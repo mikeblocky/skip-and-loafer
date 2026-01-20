@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+:root {
+  /* 4-Color Palette */
+  --pop-pink: #ff9ec6;
+  --pop-green: #97eba9;
+  --pop-blue: #8fd3ff;
+  --pop-yellow: #ffe57f;
+
+  --paper-white: #ffffff;
+  --line-blue: #dcebf7;
+
+  --font-main: 'Sniglet', sans-serif;
+  --font-hand: 'Coming Soon', cursive;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main);
+  /* Notebook Lines Background */
+  background-color: #fdfcfa;
+  background-image: repeating-linear-gradient(transparent,
+      transparent 31px,
+      #e8f0f8 32px);
+  background-size: 100% 32px;
+  overflow-x: hidden;
+  color: #4a5568;
+}
+
+/* Planner Container */
+.planner-container {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--paper-white);
+  box-shadow:
+    0 20px 50px -12px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+/* Lined Paper for pages */
+.planner-page {
+  flex: 1;
+  background-color: var(--paper-white);
+  background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-blue) 32px);
+  background-size: 100% 32px;
+  position: relative;
+}
+
+/* Spiral Binding */
+.spiral-binding-center {
+  width: 50px;
+  flex-shrink: 0;
+  background:
+    radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
+    linear-gradient(to bottom, transparent 45%, #cbd5e0 45%, #a0aec0 55%, transparent 55%);
+  background-size: 100% 40px, 8px 40px;
+  background-repeat: repeat-y;
+  background-position: center top;
+}
+
+/* Calendar Pad */
+.calendar-pad {
+  background: white;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  box-shadow:
+    0 1px 0 #e2e8f0,
+    0 2px 0 white,
+    0 3px 0 #e2e8f0,
+    0 4px 0 white,
+    0 5px 0 #e2e8f0,
+    0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Memo Card Style */
+.memo-card {
+  background: linear-gradient(135deg, #fff 0%, #f9f9f7 100%);
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  will-change: transform;
+}
+
+.memo-card::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 16px;
+  background: linear-gradient(180deg, rgba(200, 200, 200, 0.6) 0%, rgba(180, 180, 180, 0.4) 100%);
+  border-radius: 2px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .planner-container {
+    flex-direction: column !important;
+    max-width: 95vw;
+    min-height: auto;
+  }
+
+  .planner-page {
+    padding: 24px !important;
+  }
+
+  .spiral-binding-center {
+    width: 100%;
+    height: 30px;
+    background:
+      radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
+      linear-gradient(to right, transparent 45%, #cbd5e0 45%, #a0aec0 55%, transparent 55%);
+    background-size: 40px 100%, 40px 8px;
+    background-repeat: repeat-x;
+  }
+
+  .calendar-pad {
+    width: 70px !important;
+    height: 85px !important;
+  }
+
+  .calendar-pad span:first-of-type {
+    font-size: 2rem !important;
+  }
+}
+
+/* Morphing Shape Animation */
+@keyframes morph {
+
+  0%,
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  25% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+
+  50% {
+    border-radius: 50% 60% 30% 60% / 30% 40% 70% 50%;
+  }
+
+  75% {
+    border-radius: 40% 30% 60% 50% / 60% 70% 40% 30%;
+  }
+}
+
+.morphing-shape {
+  animation: morph 8s ease-in-out infinite;
+  will-change: border-radius;
+  filter: blur(0.5px);
+}
