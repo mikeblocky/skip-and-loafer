@@ -36,15 +36,16 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
             </div>
         </div>
 
-        {/* Content - fixed alignment */}
+        {/* Content - fixed vertical alignment */}
         <div style={{
             flex: 1,
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: isMobile ? '8px' : '12px'
+            justifyContent: 'flex-end',
+            paddingTop: isMobile ? '14px' : '12px',
+            paddingBottom: isMobile ? '4px' : '10px'
         }}>
             <AnimatePresence mode="wait">
                 <motion.span

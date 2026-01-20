@@ -19,15 +19,12 @@ const QUOTES = [
   { text: "I know this feeling. It's envy.", author: "Shima Sousuke" },
 ];
 
-/* Cover images */
+/* Cover images - reduced for performance */
 const COVER_IMAGES = [
   '/cover_01_01_v2.jpg', '/cover_01_02_v2.jpg', '/cover_01_03_v2.jpg',
-  '/cover_01_04_v2.jpg', '/cover_02_01_v2.jpg', '/cover_02_02_v2.jpg',
-  '/cover_02_03_v2.jpg', '/cover_02_04_v2.jpg', '/cover_03_01_v2.jpg',
-  '/cover_03_02_v2.jpg', '/cover_03_03_v2.jpg', '/cover_03_04_v2.jpg',
-  '/cover_01_05_v2.jpg', '/cover_02_05_v2.jpg', '/cover_03_05_v2.jpg',
-  '/cover_02_06_v2.jpg', '/cover_03_06_v2.jpg', '/cover_01_01_v2.jpg',
-  '/cover_01_02_v2.jpg', '/cover_02_02_v2.jpg', '/cover_03_02_v2.jpg',
+  '/cover_02_01_v2.jpg', '/cover_02_02_v2.jpg', '/cover_02_03_v2.jpg',
+  '/cover_03_01_v2.jpg', '/cover_03_02_v2.jpg', '/cover_03_03_v2.jpg',
+  '/cover_01_04_v2.jpg', '/cover_02_04_v2.jpg', '/cover_03_04_v2.jpg',
 ];
 
 /* Character stickers with positions */
@@ -40,10 +37,21 @@ const CHARACTER_DATA = [
 ];
 
 /* Sticker with real position tracking */
-const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate }) => {
+const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate, index }) => {
   const [showEffect, setShowEffect] = useState(null);
   const stickerRef = useRef(null);
-  const size = isMobile ? 120 : 180; // EVEN BIGGER
+  const size = isMobile ? 100 : 150;
+
+  // Random position and rotation on each page load
+  const randomPos = useMemo(() => {
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
+    const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+    return {
+      x: isMobile ? Math.random() * (w - 120) : Math.random() * (w - 200),
+      y: isMobile ? 50 + Math.random() * (h - 200) : 50 + Math.random() * (h - 250),
+      rot: Math.random() * 30 - 15 // -15 to +15 degrees
+    };
+  }, [isMobile]);
 
   const checkProximity = useCallback(() => {
     if (!stickerRef.current) return;
@@ -111,16 +119,16 @@ const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate 
       whileHover={{ scale: 1.05 }}
       style={{
         position: 'absolute',
-        left: character.x,
-        top: character.y,
+        left: randomPos.x,
+        top: randomPos.y,
         width: size,
         zIndex: 600,
         cursor: 'grab',
         filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))'
       }}
-      initial={{ scale: 0, rotate: character.rot * 2 }}
-      animate={{ scale: 1, rotate: character.rot }}
-      transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.2 }}
+      initial={{ scale: 0, rotate: randomPos.rot * 2 }}
+      animate={{ scale: 1, rotate: randomPos.rot }}
+      transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.2 + index * 0.1 }}
     >
       <img
         src={character.src}
@@ -341,11 +349,12 @@ function App() {
         </>
       )}
 
-      {/* Character Stickers - BIGGER */}
-      {CHARACTER_DATA.map(char => (
+      {/* Character Stickers - Random positions */}
+      {CHARACTER_DATA.map((char, index) => (
         <CharacterSticker
           key={char.id}
           character={char}
+          index={index}
           isMobile={isMobile}
           allPositions={stickerPositions}
           onPositionUpdate={handlePositionUpdate}

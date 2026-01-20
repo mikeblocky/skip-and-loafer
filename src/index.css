@@ -148,7 +148,23 @@ body {
 }
 
 .morphing-shape {
-  animation: morph 8s ease-in-out infinite;
-  will-change: border-radius;
+  animation: morph 12s ease-in-out infinite;
+  will-change: border-radius, transform;
   filter: blur(0.5px);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* GPU acceleration for draggable elements */
+.memo-card,
+[draggable] {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth all transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
