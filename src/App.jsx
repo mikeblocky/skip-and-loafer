@@ -57,18 +57,15 @@ const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate 
     // Check relationships
     let effect = null;
 
-    // 1c + 2c = best friends (not love!)
-    if (character.id === '1c' && allPositions['2c']) {
-      const dist = Math.hypot(myX - allPositions['2c'].x, myY - allPositions['2c'].y);
-      if (dist < 280) effect = 'bestfriend';
-    }
-    if (character.id === '2c' && allPositions['1c']) {
-      const dist = Math.hypot(myX - allPositions['1c'].x, myY - allPositions['1c'].y);
+    // 1c + 2c = best friends (bidirectional)
+    if ((character.id === '1c' && allPositions['2c']) || (character.id === '2c' && allPositions['1c'])) {
+      const otherId = character.id === '1c' ? '2c' : '1c';
+      const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
       if (dist < 280) effect = 'bestfriend';
     }
 
-    // 1c near 3c, 4c, or 5c = group friendship
-    if (character.id === '1c') {
+    // 1c or 2c near 3c, 4c, or 5c = group friendship (bidirectional)
+    if (character.id === '1c' || character.id === '2c') {
       ['3c', '4c', '5c'].forEach(otherId => {
         if (allPositions[otherId]) {
           const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
@@ -76,25 +73,27 @@ const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate 
         }
       });
     }
-    if (['3c', '4c', '5c'].includes(character.id) && allPositions['1c']) {
-      const dist = Math.hypot(myX - allPositions['1c'].x, myY - allPositions['1c'].y);
-      if (dist < 280) effect = 'group';
+    // 3c, 4c, 5c near 1c or 2c = group friendship (reverse)
+    if (['3c', '4c', '5c'].includes(character.id)) {
+      ['1c', '2c'].forEach(mainId => {
+        if (allPositions[mainId]) {
+          const dist = Math.hypot(myX - allPositions[mainId].x, myY - allPositions[mainId].y);
+          if (dist < 280) effect = 'group';
+        }
+      });
     }
 
-    // 4c + 5c = friendship
-    if (character.id === '4c' && allPositions['5c']) {
-      const dist = Math.hypot(myX - allPositions['5c'].x, myY - allPositions['5c'].y);
-      if (dist < 250) effect = 'friendship';
-    }
-    if (character.id === '5c' && allPositions['4c']) {
-      const dist = Math.hypot(myX - allPositions['4c'].x, myY - allPositions['4c'].y);
-      if (dist < 250) effect = 'friendship';
+    // 4c + 5c = mutual friendship (bidirectional)
+    if ((character.id === '4c' && allPositions['5c']) || (character.id === '5c' && allPositions['4c'])) {
+      const otherId = character.id === '4c' ? '5c' : '4c';
+      const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
+      if (dist < 280) effect = 'friendship';
     }
 
-    // 3c near 1c = mature
+    // 3c near 1c = mature/growth (Mika's personal journey)
     if (character.id === '3c' && allPositions['1c']) {
       const dist = Math.hypot(myX - allPositions['1c'].x, myY - allPositions['1c'].y);
-      if (dist < 250) effect = 'mature';
+      if (dist < 280) effect = 'mature';
     }
 
     setShowEffect(effect);
