@@ -423,7 +423,7 @@ function App() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {/* Left Page */}
+              {/* First Page - Desktop: Title/Quote, Mobile: Countdown */}
               <div className="planner-page" style={{
                 borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
                 borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
@@ -436,55 +436,111 @@ function App() {
                   </div>
                 )}
 
-                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isMobile ? 'center' : 'flex-start', paddingTop: isMobile ? '10px' : '0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                    <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                    <span style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>AGENDA</span>
-                    <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                  </div>
+                {/* Desktop: Title + Quote */}
+                {!isMobile && (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                      <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
+                      <span style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>AGENDA</span>
+                      <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
+                    </div>
 
-                  <h1 style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '2.8rem' : '4.5rem', fontWeight: 'normal', lineHeight: 1.1, marginBottom: '16px', textAlign: isMobile ? 'center' : 'left' }}>
-                    <span style={{ color: 'var(--pop-blue)' }}>Skip </span>
-                    <span style={{ color: '#b0b8c0', fontSize: isMobile ? '2.2rem' : '3.5rem' }}>&</span>
-                    <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
-                  </h1>
+                    <h1 style={{ fontFamily: 'var(--font-main)', fontSize: '4.5rem', fontWeight: 'normal', lineHeight: 1.1, marginBottom: '16px', textAlign: 'left' }}>
+                      <span style={{ color: 'var(--pop-blue)' }}>Skip </span>
+                      <span style={{ color: '#b0b8c0', fontSize: '3.5rem' }}>&</span>
+                      <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
+                    </h1>
 
-                  <div style={{ marginTop: '24px', background: '#fef9c3', padding: '16px', borderLeft: '4px solid var(--pop-yellow)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
-                    <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
-                      "{randomQuote.text}"
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.9rem', textAlign: 'right' }}>
-                      — {randomQuote.author}
-                    </p>
+                    <div style={{ marginTop: '24px', background: '#fef9c3', padding: '16px', borderLeft: '4px solid var(--pop-yellow)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
+                        "{randomQuote.text}"
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.9rem', textAlign: 'right' }}>
+                        — {randomQuote.author}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Mobile: Countdown (on top) */}
+                {isMobile && (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* Agenda + Title */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <Star size={20} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
+                      <span style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '1rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>AGENDA</span>
+                      <Star size={20} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
+                    </div>
+
+                    <h1 style={{ fontFamily: 'var(--font-main)', fontSize: '2.5rem', fontWeight: 'normal', lineHeight: 1.1, marginBottom: '20px', textAlign: 'center' }}>
+                      <span style={{ color: 'var(--pop-blue)' }}>Skip </span>
+                      <span style={{ color: '#b0b8c0', fontSize: '2rem' }}>&</span>
+                      <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
+                    </h1>
+
+                    <motion.div
+                      style={{ marginBottom: '16px', background: 'white', padding: '6px 16px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ repeat: Infinity, duration: 4 }}
+                    >
+                      <Sparkles size={16} style={{ color: 'var(--pop-yellow)' }} />
+                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '0.9rem' }}>Chapter 77 is coming in...</span>
+                      <Sparkles size={16} style={{ color: 'var(--pop-pink)' }} />
+                    </motion.div>
+
+                    <Countdown isMobile={isMobile} />
+
+                    <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', fontSize: '1rem', color: '#4b5563', background: '#eff6ff', padding: '5px 14px', borderRadius: '6px', display: 'inline-block', fontWeight: 'bold' }}>
+                        {localDateString}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Binding */}
               <div className="spiral-binding-center" style={{ zIndex: 20 }}></div>
 
-              {/* Right Page */}
+              {/* Second Page - Desktop: Countdown, Mobile: Quote only */}
               <div className="planner-page" style={{ padding: isMobile ? '20px' : '52px', borderRadius: isMobile ? '0 0 4px 4px' : '0 4px 4px 0' }}>
-                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
 
-                  <motion.div
-                    style={{ marginBottom: isMobile ? '20px' : '40px', background: 'white', padding: '8px 20px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{ repeat: Infinity, duration: 4 }}
-                  >
-                    <Sparkles size={18} style={{ color: 'var(--pop-yellow)' }} />
-                    <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>Chapter 77 is coming in...</span>
-                    <Sparkles size={18} style={{ color: 'var(--pop-pink)' }} />
-                  </motion.div>
+                {/* Desktop: Countdown */}
+                {!isMobile && (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <motion.div
+                      style={{ marginBottom: '40px', background: 'white', padding: '8px 20px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      animate={{ y: [0, -4, 0] }}
+                      transition={{ repeat: Infinity, duration: 4 }}
+                    >
+                      <Sparkles size={18} style={{ color: 'var(--pop-yellow)' }} />
+                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>Chapter 77 is coming in...</span>
+                      <Sparkles size={18} style={{ color: 'var(--pop-pink)' }} />
+                    </motion.div>
 
-                  <Countdown isMobile={isMobile} />
+                    <Countdown isMobile={isMobile} />
 
-                  <div style={{ marginTop: isMobile ? '20px' : '45px', textAlign: 'center' }}>
-                    <p style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '1.1rem' : '1.5rem', color: '#4b5563', background: '#eff6ff', padding: '6px 18px', borderRadius: '6px', display: 'inline-block', fontWeight: 'bold' }}>
-                      {localDateString}
-                    </p>
+                    <div style={{ marginTop: '45px', textAlign: 'center' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', fontSize: '1.5rem', color: '#4b5563', background: '#eff6ff', padding: '6px 18px', borderRadius: '6px', display: 'inline-block', fontWeight: 'bold' }}>
+                        {localDateString}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Mobile: Quote only (on bottom) */}
+                {isMobile && (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+                    <div style={{ background: '#fef9c3', padding: '16px', borderLeft: '4px solid var(--pop-yellow)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
+                        "{randomQuote.text}"
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.9rem', textAlign: 'right' }}>
+                        — {randomQuote.author}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <motion.div
                   style={{ position: 'absolute', bottom: '28px', right: '28px', opacity: 0.3, pointerEvents: 'none' }}
