@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { intervalToDuration, isBefore } from 'date-fns';
+import { differenceInSeconds, isBefore } from 'date-fns';
 
-const TARGET_DATE = new Date('2026-01-23T00:00:00+09:00');
+const TARGET_DATE = new Date('2026-02-25T00:00:00+09:00');
 
 const flipVariants = {
     initial: { rotateX: -90, opacity: 0 },
@@ -86,15 +86,22 @@ const Countdown = ({ isMobile = false }) => {
     const [timeLeft, setTimeLeft] = useState(null);
 
     useEffect(() => {
-        const timer = setInterval(() => {
+        const calculateTimeLeft = () => {
             const now = new Date();
             if (isBefore(now, TARGET_DATE)) {
-                setTimeLeft(intervalToDuration({ start: now, end: TARGET_DATE }));
+                const totalSeconds = differenceInSeconds(TARGET_DATE, now);
+                const days = Math.floor(totalSeconds / (60 * 60 * 24));
+                const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+                const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+                const seconds = totalSeconds % 60;
+                setTimeLeft({ days, hours, minutes, seconds });
             } else {
                 setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-                clearInterval(timer);
             }
-        }, 1000);
+        };
+
+        calculateTimeLeft();
+        const timer = setInterval(calculateTimeLeft, 1000);
         return () => clearInterval(timer);
     }, []);
 
