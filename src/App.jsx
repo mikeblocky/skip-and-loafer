@@ -3,6 +3,40 @@ import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import Countdown from './components/Countdown';
 import { Star, Heart, Sparkles } from 'lucide-react';
 
+/* Character Colors */
+const CHARACTER_COLORS = {
+  "Iwakura Mitsumi": {
+    bg: "#ffe4ec",      // soft sakura pink
+    border: "#f472b6",  // cheerful rosy pink
+    text: "#9d174d"     // warm berry
+  },
+
+  "Shima Sousuke": {
+    bg: "#e0f2fe",      // airy sky blue
+    border: "#38bdf8",  // light summer blue
+    text: "#075985"     // calm deep ocean
+  },
+
+  "Egashira Mika": {
+    bg: "#fff1d6",      // creamy peach
+    border: "#fbbf24",  // honey gold
+    text: "#92400e"     // toasted caramel
+  },
+
+  "Murashige Yuzuki": {
+    bg: "#dcfce7",      // fresh mint
+    border: "#34d399",  // lively green
+    text: "#065f46"     // deep forest
+  },
+
+  "Nao": {
+    bg: "#f1edff",      // pale lavender mist
+    border: "#a78bfa",  // gentle violet
+    text: "#5b21b6"     // quiet dusk purple
+  }
+
+};
+
 /* Quotes */
 const QUOTES = [
   { text: "You can never tell what people are thinking. So I'll try to understand them, little by little.", author: "Iwakura Mitsumi" },
@@ -302,7 +336,7 @@ function App() {
 
   const randomQuote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
 
-  const targetDate = new Date('2026-01-23T00:00:00+09:00');
+  const targetDate = new Date('2026-02-25T00:00:00+09:00');
   const localDateString = targetDate.toLocaleString(undefined, {
     weekday: 'long', month: 'long', day: 'numeric',
     hour: 'numeric', minute: '2-digit'
@@ -451,11 +485,11 @@ function App() {
                       <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
                     </h1>
 
-                    <div style={{ marginTop: '24px', background: '#fef9c3', padding: '16px', borderLeft: '4px solid var(--pop-yellow)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                    <div style={{ marginTop: '24px', background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
                       <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
                         "{randomQuote.text}"
                       </p>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.9rem', textAlign: 'right' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
                         — {randomQuote.author}
                       </p>
                     </div>
@@ -484,7 +518,7 @@ function App() {
                       transition={{ repeat: Infinity, duration: 4 }}
                     >
                       <Sparkles size={16} style={{ color: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '0.9rem' }}>Chapter 77 is coming in...</span>
+                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '0.9rem' }}>Chapter 78 is coming in...</span>
                       <Sparkles size={16} style={{ color: 'var(--pop-pink)' }} />
                     </motion.div>
 
@@ -514,7 +548,7 @@ function App() {
                       transition={{ repeat: Infinity, duration: 4 }}
                     >
                       <Sparkles size={18} style={{ color: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>Chapter 77 is coming in...</span>
+                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>Chapter 78 is coming in...</span>
                       <Sparkles size={18} style={{ color: 'var(--pop-pink)' }} />
                     </motion.div>
 
@@ -531,11 +565,11 @@ function App() {
                 {/* Mobile: Quote only (on bottom) */}
                 {isMobile && (
                   <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
-                    <div style={{ background: '#fef9c3', padding: '16px', borderLeft: '4px solid var(--pop-yellow)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                    <div style={{ background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
                       <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
                         "{randomQuote.text}"
                       </p>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.9rem', textAlign: 'right' }}>
+                      <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
                         — {randomQuote.author}
                       </p>
                     </div>
@@ -550,6 +584,73 @@ function App() {
                   <Heart size={isMobile ? 32 : 48} style={{ color: 'var(--pop-pink)', fill: 'var(--pop-pink)' }} />
                 </motion.div>
               </div>
+
+              {/* Side Tab - Release Notes */}
+              <motion.div
+                style={{
+                  position: isMobile ? 'relative' : 'absolute',
+                  right: isMobile ? 'auto' : '-30px',
+                  top: isMobile ? 'auto' : '-30px',
+                  bottom: 'auto',
+                  marginBottom: isMobile ? '20px' : 0,
+                  transform: isMobile ? 'none' : 'rotate(-2deg)',
+                  background: '#fef3c7',
+                  padding: isMobile ? '12px 16px' : '16px 20px',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)',
+                  maxWidth: isMobile ? '100%' : '240px',
+                  zIndex: 30,
+                  border: '2px solid #f59e0b',
+                  order: isMobile ? -1 : 0
+                }}
+                initial={{ y: -30, opacity: 0, rotate: isMobile ? 0 : -5 }}
+                animate={{ y: 0, opacity: 1, rotate: isMobile ? 0 : -2 }}
+                transition={{ delay: 0.8, duration: 0.5, type: 'spring' }}
+                whileHover={{ scale: 1.02, rotate: 0 }}
+              >
+                {/* Tape decoration */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  left: '50%',
+                  transform: 'translateX(-50%) rotate(-2deg)',
+                  width: '60px',
+                  height: '20px',
+                  background: 'rgba(255,255,255,0.7)',
+                  borderRadius: '2px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }} />
+
+                <div style={{ fontFamily: 'var(--font-hand)', color: '#92400e' }}>
+                  <p style={{ fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📢</span> Chapter 77 has been released!
+                  </p>
+                  <p style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', marginBottom: '8px', fontStyle: 'italic', color: '#b45309' }}>
+                    "Winter events, head-on!"
+                  </p>
+                  <p style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', marginBottom: '10px', color: '#78350f' }}>
+                    Next chapter will be released on February 25th in JST, please check your local time!
+                  </p>
+                  <a
+                    href="https://comic-days.com/episode/2551460910063177193"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-block',
+                      fontSize: isMobile ? '0.75rem' : '0.8rem',
+                      color: '#fff',
+                      background: 'var(--pop-pink)',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    Read it!
+                  </a>
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
