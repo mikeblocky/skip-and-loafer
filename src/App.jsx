@@ -1,346 +1,51 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
-import Countdown from './components/Countdown';
-import { Star, Heart, Sparkles } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Star, Heart } from 'lucide-react';
 
-/* Character Colors */
-const CHARACTER_COLORS = {
-  "Iwakura Mitsumi": {
-    bg: "#ffe4ec",      // soft sakura pink
-    border: "#f472b6",  // cheerful rosy pink
-    text: "#9d174d"     // warm berry
-  },
+// Data
+import { CHARACTER_DATA } from './data/characters';
+import { COVER_IMAGES } from './data/coverImages';
+import { CHAPTERS } from './data/chapters';
 
-  "Shima Sousuke": {
-    bg: "#e0f2fe",      // airy sky blue
-    border: "#38bdf8",  // light summer blue
-    text: "#075985"     // calm deep ocean
-  },
-
-  "Egashira Mika": {
-    bg: "#fff1d6",      // creamy peach
-    border: "#fbbf24",  // honey gold
-    text: "#92400e"     // toasted caramel
-  },
-
-  "Murashige Yuzuki": {
-    bg: "#dcfce7",      // fresh mint
-    border: "#34d399",  // lively green
-    text: "#065f46"     // deep forest
-  },
-
-  "Nao": {
-    bg: "#f1edff",      // pale lavender mist
-    border: "#a78bfa",  // gentle violet
-    text: "#5b21b6"     // quiet dusk purple
-  }
-
-};
-
-/* Quotes */
-const QUOTES = [
-  { text: "You can never tell what people are thinking. So I'll try to understand them, little by little.", author: "Iwakura Mitsumi" },
-  { text: "It's probably the little things that matter. Like how food tastes better when you eat with that person.", author: "Shima Sousuke" },
-  { text: "I think memories of places are memories of the people you went there with.", author: "Iwakura Mitsumi" },
-  { text: "If you ever find a goal for yourself, then, succeed or fail, we'll go anywhere you want and eat some good food!", author: "Iwakura Mitsumi" },
-  { text: "When you fall in love, sometimes it's because you find something in them that you don't have.", author: "Egashira Mika" },
-  { text: "I think this is the first time I've ever been real friends with a girl.", author: "Shima Sousuke" },
-  { text: "Hard work builds confidence, but… It's scary that all we can do is hope that it'll pay off someday.", author: "Iwakura Mitsumi" },
-  { text: "I've always wanted friends I could speak from the heart with. So I'm happy I met you guys.", author: "Murashige Yuzuki" },
-  { text: "And what's wrong with being cringe? Having a little bit of a cringe side will make you more endearing.", author: "Nao" },
-  { text: "I'm the kind of person who falls flat on her face a lot. But that makes me a pro at dusting myself off!", author: "Iwakura Mitsumi" },
-  { text: "When you're feeling overwhelmed, a little kindness, well… It really picks you back up!", author: "Iwakura Mitsumi" },
-  { text: "I know this feeling. It's envy.", author: "Shima Sousuke" },
-];
-
-/* Cover images - reduced for performance */
-const COVER_IMAGES = [
-  '/cover_01_01_v2.jpg', '/cover_01_02_v2.jpg', '/cover_01_03_v2.jpg',
-  '/cover_02_01_v2.jpg', '/cover_02_02_v2.jpg', '/cover_02_03_v2.jpg',
-  '/cover_03_01_v2.jpg', '/cover_03_02_v2.jpg', '/cover_03_03_v2.jpg',
-  '/cover_01_04_v2.jpg', '/cover_02_04_v2.jpg', '/cover_03_04_v2.jpg',
-];
-
-/* Character stickers with positions */
-const CHARACTER_DATA = [
-  { id: '1c', src: '/1c.png', name: 'Mitsumi', x: 50, y: 100, rot: -8 },
-  { id: '2c', src: '/2c.png', name: 'Sousuke', x: 800, y: 80, rot: 6 },
-  { id: '3c', src: '/3c.png', name: 'Mika', x: 30, y: 500, rot: -12 },
-  { id: '4c', src: '/4c.png', name: 'Makoto', x: 850, y: 450, rot: 8 },
-  { id: '5c', src: '/5c.png', name: 'Yuzuki', x: 750, y: 520, rot: -5 },
-];
-
-/* Sticker with real position tracking */
-const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate, index }) => {
-  const [showEffect, setShowEffect] = useState(null);
-  const stickerRef = useRef(null);
-  const size = isMobile ? 100 : 150;
-
-  // Random position and rotation on each page load
-  const randomPos = useMemo(() => {
-    const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-    return {
-      x: isMobile ? Math.random() * (w - 120) : Math.random() * (w - 200),
-      y: isMobile ? 50 + Math.random() * (h - 200) : 50 + Math.random() * (h - 250),
-      rot: Math.random() * 30 - 15 // -15 to +15 degrees
-    };
-  }, [isMobile]);
-
-  const checkProximity = useCallback(() => {
-    if (!stickerRef.current) return;
-    const rect = stickerRef.current.getBoundingClientRect();
-    const myX = rect.left + rect.width / 2;
-    const myY = rect.top + rect.height / 2;
-
-    // Update my position
-    onPositionUpdate(character.id, { x: myX, y: myY });
-
-    // Check relationships
-    let effect = null;
-
-    // 1c + 2c = best friends (bidirectional)
-    if ((character.id === '1c' && allPositions['2c']) || (character.id === '2c' && allPositions['1c'])) {
-      const otherId = character.id === '1c' ? '2c' : '1c';
-      const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-      if (dist < 280) effect = 'bestfriend';
-    }
-
-    // 1c or 2c near 3c, 4c, or 5c = group friendship (bidirectional)
-    if (character.id === '1c' || character.id === '2c') {
-      ['3c', '4c', '5c'].forEach(otherId => {
-        if (allPositions[otherId]) {
-          const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-          if (dist < 280) effect = 'group';
-        }
-      });
-    }
-    // 3c, 4c, 5c near 1c or 2c = group friendship (reverse)
-    if (['3c', '4c', '5c'].includes(character.id)) {
-      ['1c', '2c'].forEach(mainId => {
-        if (allPositions[mainId]) {
-          const dist = Math.hypot(myX - allPositions[mainId].x, myY - allPositions[mainId].y);
-          if (dist < 280) effect = 'group';
-        }
-      });
-    }
-
-    // 4c + 5c = mutual friendship (bidirectional)
-    if ((character.id === '4c' && allPositions['5c']) || (character.id === '5c' && allPositions['4c'])) {
-      const otherId = character.id === '4c' ? '5c' : '4c';
-      const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-      if (dist < 280) effect = 'friendship';
-    }
-
-    // 3c near 1c = mature/growth (Mika's personal journey)
-    if (character.id === '3c' && allPositions['1c']) {
-      const dist = Math.hypot(myX - allPositions['1c'].x, myY - allPositions['1c'].y);
-      if (dist < 280) effect = 'mature';
-    }
-
-    setShowEffect(effect);
-  }, [character.id, allPositions, onPositionUpdate]);
-
-  return (
-    <motion.div
-      ref={stickerRef}
-      drag
-      dragMomentum={false}
-      dragElastic={0}
-      onDrag={checkProximity}
-      onDragEnd={checkProximity}
-      whileDrag={{ scale: 1.1, zIndex: 9999 }}
-      whileHover={{ scale: 1.05 }}
-      style={{
-        position: 'absolute',
-        left: randomPos.x,
-        top: randomPos.y,
-        width: size,
-        zIndex: 600,
-        cursor: 'grab',
-        filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))'
-      }}
-      initial={{ scale: 0, rotate: randomPos.rot * 2 }}
-      animate={{ scale: 1, rotate: randomPos.rot }}
-      transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.2 + index * 0.1 }}
-    >
-      <img
-        src={character.src}
-        alt={character.name}
-        style={{ width: '100%', height: 'auto', pointerEvents: 'none' }}
-        draggable="false"
-      />
-
-      {/* Relationship Effect */}
-      <AnimatePresence>
-        {/* Best Friends (1c + 2c) - Two Stars */}
-        {showEffect === 'bestfriend' && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            style={{ position: 'absolute', top: '-35px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}
-          >
-            <motion.div animate={{ y: [0, -6, 0], rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 0.9 }}>
-              <Star size={28} fill="#ffe57f" color="#ffe57f" />
-            </motion.div>
-            <motion.div animate={{ y: [0, -6, 0], rotate: [0, -10, 10, 0] }} transition={{ repeat: Infinity, duration: 0.9, delay: 0.15 }}>
-              <Star size={28} fill="#97d5eb" color="#97d5eb" />
-            </motion.div>
-          </motion.div>
-        )}
-
-        {/* Group Friendship (1c with 3c/4c/5c) */}
-        {showEffect === 'group' && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            style={{ position: 'absolute', top: '-35px', left: '50%', transform: 'translateX(-50%)' }}
-          >
-            <motion.div animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}>
-              <Sparkles size={36} color="#ff9ec6" fill="#ff9ec6" />
-            </motion.div>
-          </motion.div>
-        )}
-
-        {showEffect === 'friendship' && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
-          >
-            <motion.div
-              animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 1 }}
-            >
-              <Sparkles size={32} color="#ffe57f" fill="#ffe57f" />
-            </motion.div>
-          </motion.div>
-        )}
-
-        {showEffect === 'mature' && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
-          >
-            <motion.div
-              animate={{ y: [0, -5, 0], rotate: [0, 5, -5, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-            >
-              <Star size={28} fill="#97eba9" color="#97eba9" />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
-/* Interactive Morphing Shape */
-const InteractiveShape = ({ color, size, initialTop, initialLeft, index }) => {
-  const pathX = useMemo(() => [0, 30, -20, 15, 0], []);
-  const pathY = useMemo(() => [0, -25, 10, -15, 0], []);
-
-  return (
-    <motion.div
-      className="morphing-shape"
-      style={{
-        position: 'absolute',
-        top: initialTop,
-        left: initialLeft,
-        width: size,
-        height: size,
-        background: color,
-        opacity: 0.35,
-        zIndex: 2,
-        pointerEvents: 'none'
-      }}
-      animate={{
-        x: pathX,
-        y: pathY,
-        scale: [1, 1.15, 0.9, 1.1, 1],
-        rotate: [0, 10, -8, 5, 0]
-      }}
-      transition={{
-        repeat: Infinity,
-        duration: 12 + index * 2,
-        ease: "easeInOut"
-      }}
-    />
-  );
-};
-
-/* Memo Card - Free drag */
-const MemoCard = ({ src, index, initialX, initialY, initialRotation }) => {
-  const [zIndex, setZIndex] = useState(100 + index);
-
-  return (
-    <motion.div
-      className="memo-card"
-      drag
-      dragMomentum={false}
-      dragElastic={0}
-      whileDrag={{ scale: 1.05, zIndex: 9999, cursor: 'grabbing' }}
-      whileHover={{ scale: 1.02 }}
-      onDragStart={() => setZIndex(9999)}
-      onDragEnd={() => setZIndex(100 + index)}
-      style={{
-        position: 'absolute',
-        left: initialX,
-        top: initialY,
-        width: '200px',
-        zIndex: zIndex,
-        rotate: initialRotation,
-        touchAction: 'none',
-        cursor: 'grab'
-      }}
-      initial={{ y: -400, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{
-        type: 'spring',
-        stiffness: 100,
-        damping: 18,
-        delay: index * 0.07
-      }}
-    >
-      <img
-        src={src}
-        alt=""
-        style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
-        loading="lazy"
-        draggable="false"
-      />
-    </motion.div>
-  );
-};
-
-/* Floating Sparkle */
-const FloatingSparkle = ({ children, top, left, right, delay, color }) => (
-  <motion.div
-    style={{ position: 'absolute', top, left, right, color, zIndex: 5, pointerEvents: 'none' }}
-    animate={{ y: [0, -12, 0], rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-    transition={{ repeat: Infinity, duration: 4, delay, ease: "easeInOut" }}
-  >
-    {children}
-  </motion.div>
-);
+// Components
+import CharacterSticker from './components/CharacterSticker';
+import InteractiveShape from './components/InteractiveShape';
+import MemoCard from './components/MemoCard';
+import FloatingSparkle from './components/FloatingSparkle';
+import ReleaseNote from './components/ReleaseNote';
+import PlannerPage from './components/PlannerPage';
+import NavTabs from './components/NavTabs';
+import ChaptersPage from './components/ChaptersPage';
+import MangaReader from './components/MangaReader';
 
 function App() {
   const [showUI, setShowUI] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [stickerPositions, setStickerPositions] = useState({});
-
-  const randomQuote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
-
-  const targetDate = new Date('2026-02-25T00:00:00+09:00');
-  const localDateString = targetDate.toLocaleString(undefined, {
-    weekday: 'long', month: 'long', day: 'numeric',
-    hour: 'numeric', minute: '2-digit'
+  const [activePage, setActivePage] = useState(() => localStorage.getItem('skip_activePage') || 'home');
+  const [readerChapter, setReaderChapter] = useState(() => {
+    const saved = localStorage.getItem('skip_readerChapter');
+    try { return saved ? JSON.parse(saved) : null; } catch (e) { return null; }
   });
+
+  useEffect(() => { localStorage.setItem('skip_activePage', activePage); }, [activePage]);
+  useEffect(() => {
+    if (readerChapter) localStorage.setItem('skip_readerChapter', JSON.stringify(readerChapter));
+    else localStorage.removeItem('skip_readerChapter');
+  }, [readerChapter]);
+
+  // Read Chapter Handlers
+  const activeChapterIndex = readerChapter ? CHAPTERS.findIndex(c => c.number === readerChapter.number) : -1;
+  const hasNextChapter = activeChapterIndex !== -1 && activeChapterIndex < CHAPTERS.length - 1;
+  const hasPrevChapter = activeChapterIndex > 0;
+
+  const handleNextChapter = useCallback(() => {
+    if (hasNextChapter) setReaderChapter(CHAPTERS[activeChapterIndex + 1]);
+  }, [hasNextChapter, activeChapterIndex]);
+
+  const handlePrevChapter = useCallback(() => {
+    if (hasPrevChapter) setReaderChapter(CHAPTERS[activeChapterIndex - 1]);
+  }, [hasPrevChapter, activeChapterIndex]);
 
   const handlePositionUpdate = useCallback((id, pos) => {
     setStickerPositions(prev => ({ ...prev, [id]: pos }));
@@ -390,6 +95,7 @@ function App() {
           character={char}
           index={index}
           isMobile={isMobile}
+          activePage={activePage}
           allPositions={stickerPositions}
           onPositionUpdate={handlePositionUpdate}
         />
@@ -422,6 +128,7 @@ function App() {
               alignItems: 'center',
               justifyContent: 'center',
               padding: isMobile ? '12px' : '40px',
+              paddingTop: isMobile ? '50px' : '60px',
               pointerEvents: 'none'
             }}
             initial={{ opacity: 0, y: 30 }}
@@ -446,211 +153,65 @@ function App() {
               style={{
                 width: '100%',
                 maxWidth: isMobile ? '98vw' : '1200px',
-                minHeight: isMobile ? 'auto' : '600px',
+                minHeight: isMobile ? '88vh' : '600px',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: isMobile ? 'column' : 'row',
                 zIndex: 10,
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                marginTop: isMobile ? '10px' : '20px'
               }}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {/* First Page - Desktop: Title/Quote, Mobile: Countdown */}
-              <div className="planner-page" style={{
-                borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
-                borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
-                padding: isMobile ? '20px' : '52px',
-                borderRadius: isMobile ? '4px 4px 0 0' : '4px 0 0 4px'
-              }}>
-                {!isMobile && (
-                  <div style={{ position: 'absolute', top: '28px', right: '28px', color: '#d1d5db', fontSize: '1.8rem', opacity: 0.5, transform: 'rotate(-5deg)', border: '2px solid #d1d5db', padding: '6px 14px', borderRadius: '8px', fontFamily: 'var(--font-main)' }}>
-                    2026
-                  </div>
+              {/* Bookmark Nav Tabs */}
+              <NavTabs
+                activePage={activePage}
+                onPageChange={setActivePage}
+                isMobile={isMobile}
+              />
+
+              {/* Page Content */}
+              <AnimatePresence mode="wait">
+                {activePage === 'home' && (
+                  <motion.div
+                    key="home"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ display: 'contents' }}
+                  >
+                    <PlannerPage isMobile={isMobile} />
+                  </motion.div>
                 )}
 
-                {/* Desktop: Title + Quote */}
-                {!isMobile && (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                      <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>AGENDA</span>
-                      <Star size={22} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                    </div>
-
-                    <h1 style={{ fontFamily: 'var(--font-main)', fontSize: '4.5rem', fontWeight: 'normal', lineHeight: 1.1, marginBottom: '16px', textAlign: 'left' }}>
-                      <span style={{ color: 'var(--pop-blue)' }}>Skip </span>
-                      <span style={{ color: '#b0b8c0', fontSize: '3.5rem' }}>&</span>
-                      <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
-                    </h1>
-
-                    <div style={{ marginTop: '24px', background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
-                        "{randomQuote.text}"
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
-                        — {randomQuote.author}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mobile: Countdown (on top) */}
-                {isMobile && (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* Agenda + Title */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                      <Star size={20} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '1rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>AGENDA</span>
-                      <Star size={20} style={{ color: 'var(--pop-yellow)', fill: 'var(--pop-yellow)' }} />
-                    </div>
-
-                    <h1 style={{ fontFamily: 'var(--font-main)', fontSize: '2.5rem', fontWeight: 'normal', lineHeight: 1.1, marginBottom: '20px', textAlign: 'center' }}>
-                      <span style={{ color: 'var(--pop-blue)' }}>Skip </span>
-                      <span style={{ color: '#b0b8c0', fontSize: '2rem' }}>&</span>
-                      <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
-                    </h1>
-
-                    <motion.div
-                      style={{ marginBottom: '16px', background: 'white', padding: '6px 16px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '6px' }}
-                      animate={{ y: [0, -3, 0] }}
-                      transition={{ repeat: Infinity, duration: 4 }}
-                    >
-                      <Sparkles size={16} style={{ color: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '0.9rem' }}>Chapter 78 is coming in...</span>
-                      <Sparkles size={16} style={{ color: 'var(--pop-pink)' }} />
-                    </motion.div>
-
-                    <Countdown isMobile={isMobile} />
-
-                    <div style={{ marginTop: '16px', textAlign: 'center' }}>
-                      <p style={{ fontFamily: 'var(--font-hand)', fontSize: '1rem', color: '#4b5563', background: '#eff6ff', padding: '5px 14px', borderRadius: '6px', display: 'inline-block', fontWeight: 'bold' }}>
-                        {localDateString}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Binding */}
-              <div className="spiral-binding-center" style={{ zIndex: 20 }}></div>
-
-              {/* Second Page - Desktop: Countdown, Mobile: Quote only */}
-              <div className="planner-page" style={{ padding: isMobile ? '20px' : '52px', borderRadius: isMobile ? '0 0 4px 4px' : '0 4px 4px 0' }}>
-
-                {/* Desktop: Countdown */}
-                {!isMobile && (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <motion.div
-                      style={{ marginBottom: '40px', background: 'white', padding: '8px 20px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      animate={{ y: [0, -4, 0] }}
-                      transition={{ repeat: Infinity, duration: 4 }}
-                    >
-                      <Sparkles size={18} style={{ color: 'var(--pop-yellow)' }} />
-                      <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>Chapter 78 is coming in...</span>
-                      <Sparkles size={18} style={{ color: 'var(--pop-pink)' }} />
-                    </motion.div>
-
-                    <Countdown isMobile={isMobile} />
-
-                    <div style={{ marginTop: '45px', textAlign: 'center' }}>
-                      <p style={{ fontFamily: 'var(--font-hand)', fontSize: '1.5rem', color: '#4b5563', background: '#eff6ff', padding: '6px 18px', borderRadius: '6px', display: 'inline-block', fontWeight: 'bold' }}>
-                        {localDateString}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mobile: Quote only (on bottom) */}
-                {isMobile && (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
-                    <div style={{ background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
-                        "{randomQuote.text}"
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
-                        — {randomQuote.author}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <motion.div
-                  style={{ position: 'absolute', bottom: '28px', right: '28px', opacity: 0.3, pointerEvents: 'none' }}
-                  animate={{ rotate: [10, 18, 10], scale: [1, 1.08, 1] }}
-                  transition={{ repeat: Infinity, duration: 3 }}
-                >
-                  <Heart size={isMobile ? 32 : 48} style={{ color: 'var(--pop-pink)', fill: 'var(--pop-pink)' }} />
-                </motion.div>
-              </div>
-
-              {/* Side Tab - Release Notes */}
-              <motion.div
-                style={{
-                  position: isMobile ? 'relative' : 'absolute',
-                  right: isMobile ? 'auto' : '-30px',
-                  top: isMobile ? 'auto' : '-30px',
-                  bottom: 'auto',
-                  marginBottom: isMobile ? '20px' : 0,
-                  transform: isMobile ? 'none' : 'rotate(-2deg)',
-                  background: '#fef3c7',
-                  padding: isMobile ? '12px 16px' : '16px 20px',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)',
-                  maxWidth: isMobile ? '100%' : '240px',
-                  zIndex: 30,
-                  border: '2px solid #f59e0b',
-                  order: isMobile ? -1 : 0
-                }}
-                initial={{ y: -30, opacity: 0, rotate: isMobile ? 0 : -5 }}
-                animate={{ y: 0, opacity: 1, rotate: isMobile ? 0 : -2 }}
-                transition={{ delay: 0.8, duration: 0.5, type: 'spring' }}
-                whileHover={{ scale: 1.02, rotate: 0 }}
-              >
-                {/* Tape decoration */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  left: '50%',
-                  transform: 'translateX(-50%) rotate(-2deg)',
-                  width: '60px',
-                  height: '20px',
-                  background: 'rgba(255,255,255,0.7)',
-                  borderRadius: '2px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                }} />
-
-                <div style={{ fontFamily: 'var(--font-hand)', color: '#92400e' }}>
-                  <p style={{ fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>📢</span> Chapter 77 has been released!
-                  </p>
-                  <p style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', marginBottom: '8px', fontStyle: 'italic', color: '#b45309' }}>
-                    "Winter events, head-on!"
-                  </p>
-                  <p style={{ fontSize: isMobile ? '0.8rem' : '0.85rem', marginBottom: '10px', color: '#78350f' }}>
-                    Next chapter will be released on February 25th in JST, please check your local time!
-                  </p>
-                  <a
-                    href="https://comic-days.com/episode/2551460910063177193"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {activePage === 'chapters' && (
+                  <motion.div
+                    key="chapters"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                     style={{
-                      display: 'inline-block',
-                      fontSize: isMobile ? '0.75rem' : '0.8rem',
-                      color: '#fff',
-                      background: 'var(--pop-pink)',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      textDecoration: 'none',
-                      fontWeight: 'bold',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      width: '100%',
+                      backgroundColor: 'var(--paper-white)',
+                      backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, var(--line-blue) 32px)',
+                      backgroundSize: '100% 32px',
+                      borderRadius: '4px',
+                      flex: 1, display: 'flex', flexDirection: 'column'
                     }}
                   >
-                    Read it!
-                  </a>
-                </div>
-              </motion.div>
+                    <ChaptersPage isMobile={isMobile} onReadChapter={(ch) => setReaderChapter(ch)} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Release Notes - only on home */}
+              {activePage === 'home' && (
+                <ReleaseNote isMobile={isMobile} />
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -660,6 +221,21 @@ function App() {
       <div style={{ position: 'fixed', bottom: '8px', right: '14px', zIndex: 1000, fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.7rem', opacity: 0.6 }}>
         © Takamatsu Misaki / KODANSHA
       </div>
+
+      {/* Manga Reader Overlay */}
+      <AnimatePresence>
+        {readerChapter && readerChapter.pages && (
+          <MangaReader
+            key={`reader-${readerChapter.number}`}
+            chapter={readerChapter}
+            pages={readerChapter.pages}
+            onClose={() => setReaderChapter(null)}
+            onNextChapter={hasNextChapter ? handleNextChapter : undefined}
+            onPrevChapter={hasPrevChapter ? handlePrevChapter : undefined}
+            isMobile={isMobile}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
