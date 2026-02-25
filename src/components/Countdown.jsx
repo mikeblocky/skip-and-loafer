@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { differenceInSeconds, isBefore } from 'date-fns';
 
-const TARGET_DATE = new Date('2026-02-25T00:00:00+09:00');
+const TARGET_DATE = new Date('2026-04-25T00:00:00+09:00');
 
 const flipVariants = {
     initial: { rotateX: -90, opacity: 0 },
