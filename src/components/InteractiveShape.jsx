@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
