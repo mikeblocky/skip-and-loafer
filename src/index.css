@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   /* 4-Color Palette */
   --pop-pink: #ff9ec6;
@@ -14,9 +20,13 @@
   --font-hand: 'Coming Soon', cursive;
 }
 
+html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   font-family: var(--font-main);
   /* Notebook Lines Background */
   background-color: #fdfcfa;
@@ -24,7 +34,6 @@ body {
       transparent 31px,
       #e8f0f8 32px);
   background-size: 100% 32px;
-  overflow-x: hidden;
   color: #4a5568;
 }
 

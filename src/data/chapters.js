@@ -1,9 +1,12 @@
 /* Chapters data - each chapter has EN (weebdex) and JP (comic-days) links */
 /* JP links are arrays to support multi-part chapters */
 
-/** Generate page paths: mangaPages('56.5', 6) → ['/manga/ch-56.5/0.jpg', …, '/manga/ch-56.5/5.jpg'] */
-export const mangaPages = (ch, count) =>
-    Array.from({ length: count }, (_, i) => `/manga/ch-${ch}/${i}.jpg`);
+/** Generate page paths: mangaPages('56.5', 6, 'jpg') → ['/manga/ch-56.5/0.jpg', …, '/manga/ch-56.5/5.jpg'] */
+export const mangaPages = (ch, count, ext = 'jpg') =>
+    Array.from({ length: count }, (_, i) => `/manga/ch-${ch}/${i}.${ext}`);
+
+/** Check if a chapter is a main story chapter (integer number) */
+export const isMainChapter = (num) => Number.isInteger(Number(num));
 
 export const VOLUMES = [
     { number: 1, title: 'Volume 1', cover: '/volumes/1.jpg', chapters: [1, 2, 3, 4, 5], anime: 'Season 1' },
@@ -21,6 +24,23 @@ export const VOLUMES = [
     { number: 13, title: 'Volume 13', cover: null, chapters: [73, 74, 75, 76, 77, 78], inProgress: true },
 ];
 
+/* Per-volume colors matching cover art */
+export const VOL_COLORS = {
+    1: '#ff9ec6',            // Pink
+    2: '#f0a85e',            // Yellow-peach
+    3: '#6bc47f',            // Green
+    4: '#a78bfa',            // Lavender
+    5: '#d46a6a',            // Red-green (warm)
+    6: '#5aade0',            // Blue
+    7: '#f28ba0',            // Peach-Pink
+    8: '#6ab8d4',            // Yellow-blue
+    9: '#5ea86a',            // Green-red
+    10: '#8b9cf0',           // Blue-lavender
+    11: '#ff9ec6',           // Pink
+    12: '#7ec494',           // Peach-green
+    13: '#c4b5fd',           // Lavender (default for in-progress)
+};
+
 export const CHAPTERS = [
     // ── Volume 1 ──
     {
@@ -32,7 +52,7 @@ export const CHAPTERS = [
         }
     },
     {
-        number: 2, title: 'Fidget Fidget Karaoke Box', thumbnail: null, 
+        number: 2, title: 'Fidget Fidget Karaoke Box', thumbnail: null,
         pages: mangaPages('2', 50),
         links: {
             en: 'https://weebdex.org/chapter/anu39mu1t0',
@@ -40,19 +60,25 @@ export const CHAPTERS = [
         }
     },
     {
-        number: 3, title: 'Restless Club Activities', thumbnail: null, links: {
+        number: 3, title: 'Restless Club Activities', thumbnail: null,
+        pages: mangaPages('3', 28),
+        links: {
             en: 'https://weebdex.org/chapter/45oog1u7jw',
             jp: ['https://comic-days.com/episode/10834108156642602112']
         }
     },
     {
-        number: 4, title: 'Fluffy Student Council', thumbnail: null, links: {
+        number: 4, title: 'Fluffy Student Council', thumbnail: null,
+        pages: mangaPages('4', 28),
+        links: {
             en: 'https://weebdex.org/chapter/c8c8ks9sfg',
             jp: ['https://comic-days.com/episode/10834108156642602366']
         }
     },
     {
-        number: 5, title: '"Cracklin\'" Movie Theatre', thumbnail: null, links: {
+        number: 5, title: '"Cracklin\'" Movie Theatre', thumbnail: null, 
+        pages: mangaPages('5', 29),
+        links: {
             en: 'https://weebdex.org/chapter/gmp3g7hguk',
             jp: ['https://comic-days.com/episode/10834108156642602694']
         }
@@ -67,7 +93,7 @@ export const CHAPTERS = [
     },
     {
         number: 7, title: 'Clickclopping Schedule', thumbnail: null, links: {
-            en: 'https://weebdex.org/group/qiz143gv1a',
+            en: 'https://weebdex.org/chapter/xs0dauvk9t',
             jp: ['https://comic-days.com/episode/10834108156668590208']
         }
     },
@@ -563,9 +589,11 @@ export const CHAPTERS = [
         }
     },
     {
-        number: 78, title: 'A Steamy First Shrine Visit', thumbnail: null, latest: true,
+        number: 78, title: 'Huffy-Puffy Shrine Visit', thumbnail: null,
+        pages: mangaPages('78', 28),
+        latest: true,
         links: {
-            en: null,
+            en: 'https://weebdex.org/chapter/uktwrfvi0a',
             jp: ['https://comic-days.com/episode/12207421983406221656', 'https://comic-days.com/episode/12207421983406221664']
         }
     },

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/purity */
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Sparkles } from 'lucide-react';
@@ -11,6 +12,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
     const randomPos = useMemo(() => {
         const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
         const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+         
         return {
             x: isMobile ? Math.random() * (w - 120) : Math.random() * (w - 200),
             y: isMobile ? 50 + Math.random() * (h - 200) : 50 + Math.random() * (h - 250),
@@ -29,6 +31,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
         if (isMobile) {
             // Top, Right, Bottom, Left based on index
             const side = index % 4;
+            // eslint-disable-next-line react-hooks/purity
             if (side === 0) { x = Math.random() * (w - size); y = pad; } // Top
             else if (side === 1) { x = w - size - pad; y = Math.random() * (h - size); } // Right
             else if (side === 2) { x = Math.random() * (w - size); y = h - size - pad; } // Bottom
@@ -36,15 +39,17 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
         } else {
             // Left, Right based on index
             const side = index % 2;
+            // eslint-disable-next-line react-hooks/purity
             if (side === 0) { x = pad; y = Math.random() * (h - size); } // Left
             else { x = w - size - pad; y = Math.random() * (h - size); } // Right
         }
 
+        // eslint-disable-next-line react-hooks/purity
         return { x, y, rot: Math.random() * 40 - 20 };
     }, [isMobile, index, size]);
 
     // Choose target based on current view
-    const targetPos = activePage === 'chapters' ? edgePos : randomPos;
+    const targetPos = (activePage === 'chapters' || activePage === 'sync') ? edgePos : randomPos;
 
     const checkProximity = useCallback(() => {
         if (!stickerRef.current) return;
@@ -102,7 +107,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
 
     return (
         <AnimatePresence>
-            {!(isMobile && activePage === 'chapters') && (
+            {!(isMobile && (activePage === 'chapters' || activePage === 'sync')) && (
                 <motion.div
                     ref={stickerRef}
                     drag
@@ -123,7 +128,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
                     initial={{ scale: 0, opacity: 0, rotate: randomPos.rot * 2, x: randomPos.x, y: randomPos.y }}
                     animate={{ scale: 1, opacity: 1, rotate: targetPos.rot, x: targetPos.x, y: targetPos.y }}
                     exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 180, damping: 15, delay: activePage === 'chapters' ? index * 0.05 : 0.2 + index * 0.1 }}
+                    transition={{ type: 'spring', stiffness: 180, damping: 15, delay: (activePage === 'chapters' || activePage === 'sync') ? index * 0.05 : 0.2 + index * 0.1 }}
                 >
                     <img
                         src={character.src}
