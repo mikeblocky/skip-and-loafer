@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, ChevronLeft, ChevronRight, ArrowRightLeft,
     ZoomIn, ZoomOut, BookOpen, Layers, ArrowLeftToLine, ArrowRightToLine,
-    AlignVerticalSpaceAround, SlidersHorizontal
+    AlignVerticalSpaceAround, SlidersHorizontal, SkipBack, StepBack, StepForward, ArrowUpToLine,
+    File
 } from 'lucide-react';
 
 const MODE = { SINGLE: 'single', SPREAD: 'spread', SCROLL: 'scroll' };
@@ -31,11 +33,17 @@ const Fab = ({ onClick, onPointerDown, active, disabled, children, size = 36, st
     >{children}</motion.button>
 );
 
-const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, isMobile }) => {
+const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, isMobile, onChapterFinished, getRemainingCooldown }) => {
     const pKey = `skip_page_${chapter?.number}`;
     const [page, setPage] = useState(() => {
         const saved = localStorage.getItem(pKey);
-        try { const p = saved ? Number(saved) : 0; return Math.max(0, Math.min(p, (pages?.length || 1) - 1)); } catch (e) { return 0; }
+        try {
+            const p = saved ? Number(saved) : 0;
+            const lastPageIndex = (pages?.length || 1) - 1;
+            // If the user previously finished this chapter (left off on the last page), reset to beginning
+            if (p === lastPageIndex && lastPageIndex > 0) return 0;
+            return Math.max(0, Math.min(p, lastPageIndex));
+        } catch (e) { return 0; }
     });
     const [mode, setMode] = useState(() => localStorage.getItem('skip_mode') || MODE.SINGLE);
     const [rtl, setRtl] = useState(() => {
@@ -49,22 +57,111 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
     const [zoom, setZoom] = useState(1);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
-    const [turnDir, setTurnDir] = useState(1);
-    const [showSlider, setShowSlider] = useState(false);
+    const [isWheeling, setIsWheeling] = useState(false);
     const [showOverlay, setShowOverlay] = useState(true);
     const [previewPage, setPreviewPage] = useState(null);
     const [isNavHovered, setIsNavHovered] = useState(false);
     const [isAtBottom, setIsAtBottom] = useState(false);
     const [showEndPopup, setShowEndPopup] = useState(false);
+    const [autoNextCountdown, setAutoNextCountdown] = useState(15);
+    const [cooldownRemaining, setCooldownRemaining] = useState(0);
     const panStart = useRef({ x: 0, y: 0 });
     const hideRef = useRef(null);
     const total = pages.length;
+
+    const handleImageError = useCallback((e) => {
+        const img = e.target;
+        const currentSrc = img.getAttribute('src');
+        const attempts = parseInt(img.dataset.fA || '0', 10);
+
+        if (attempts === 0) {
+            img.dataset.fA = '1';
+            img.src = currentSrc.endsWith('.jpg') ? currentSrc.replace('.jpg', '.png') : currentSrc.replace('.png', '.jpg');
+        } else if (attempts === 1) {
+            img.dataset.fA = '2';
+            img.src = currentSrc.replace(/\.(jpg|png)$/, '.jpeg');
+        } else if (attempts === 2) {
+            img.dataset.fA = '3';
+            img.src = currentSrc.replace(/\.jpeg$/, '.webp');
+        }
+    }, []);
+
+    // Track if we've already marked this chapter finished to prevent rapid-fire increments
+    const hasMarkedFinishedRef = useRef(false);
+    useEffect(() => {
+        hasMarkedFinishedRef.current = false;
+    }, [chapter?.number]);
+
+    // Mark chapter as finished when end popup shows
+    useEffect(() => {
+        if (showEndPopup && onChapterFinished && !hasMarkedFinishedRef.current) {
+            hasMarkedFinishedRef.current = true;
+            onChapterFinished(chapter.number);
+
+            // Instantly sync the local cooldown state so the UI exactly matches reality
+            if (getRemainingCooldown) {
+                setCooldownRemaining(getRemainingCooldown(chapter.number));
+            }
+        }
+    }, [showEndPopup, onChapterFinished, chapter.number, getRemainingCooldown]);
+
+    // Auto-advance & Cooldown countdowns
+    useEffect(() => {
+        let timer;
+        let cdTimer;
+
+        if (showEndPopup) {
+            // Auto Next
+            timer = setInterval(() => {
+                setAutoNextCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setShowEndPopup(false);
+                        if (onNextChapter) {
+                            onNextChapter();
+                        } else if (onClose) {
+                            onClose();
+                        }
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            // Read Cooldown Tracking
+            if (getRemainingCooldown) {
+                const initialCd = getRemainingCooldown(chapter.number);
+                setCooldownRemaining(initialCd);
+                if (initialCd > 0) {
+                    cdTimer = setInterval(() => {
+                        setCooldownRemaining(prev => {
+                            if (prev <= 1) {
+                                clearInterval(cdTimer);
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                }
+            }
+        } else {
+            setAutoNextCountdown(15);
+            // Don't arbitrarily reset cooldownRemaining here so it doesn't flash 0 if quickly reopened
+        }
+        return () => {
+            clearInterval(timer);
+            clearInterval(cdTimer);
+        };
+    }, [showEndPopup, onNextChapter, getRemainingCooldown, chapter.number]);
+
+    const isModeSwitching = useRef(false);
 
     // Track scroll intersections
     const imgRefs = useRef([]);
     useEffect(() => {
         if (mode !== MODE.SCROLL) return;
         const observer = new IntersectionObserver((entries) => {
+            if (isModeSwitching.current) return;
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     setPage(Number(entry.target.dataset.index));
@@ -87,10 +184,35 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
     // Scroll to current page when entering Scroll Mode
     useEffect(() => {
         if (mode === MODE.SCROLL) {
-            const el = imgRefs.current[page];
-            if (el) el.scrollIntoView({ behavior: 'instant' });
+            isModeSwitching.current = true;
+            const scrollToPage = () => {
+                const el = imgRefs.current[page];
+                if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+            };
+            scrollToPage();
+
+            // Try again after a short delay to account for image loading expanding the container
+            const t = setTimeout(() => {
+                scrollToPage();
+                isModeSwitching.current = false;
+            }, 300);
+            return () => clearTimeout(t);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode]); // intentionally only running on mode change, not page change
+
+    const scrollContainerRef = useRef(null);
+    const prevZoom = useRef(zoom);
+
+    useLayoutEffect(() => {
+        if (mode === MODE.SCROLL && scrollContainerRef.current && zoom !== prevZoom.current) {
+            const el = scrollContainerRef.current;
+            const ratio = zoom / prevZoom.current;
+            const centerY = el.scrollTop + el.clientHeight / 2;
+            el.scrollTop = centerY * ratio - el.clientHeight / 2;
+        }
+        prevZoom.current = zoom;
+    }, [zoom, mode]);
 
     const spreadIdx = Math.floor(page / 2) * 2;
     const pL = spreadIdx;
@@ -101,10 +223,10 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
         clearTimeout(hideRef.current);
         hideRef.current = setTimeout(() => { setShowOverlay(false); }, 4000);
     }, []);
+
     useEffect(() => { nudge(); return () => clearTimeout(hideRef.current); }, [nudge]);
 
-    const go = useCallback((delta, dir) => {
-        setTurnDir(dir || (delta > 0 ? 1 : -1));
+    const go = useCallback((delta) => {
         setPage(p => {
             const next = p + delta;
             if (next >= total) {
@@ -117,7 +239,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
 
     const doZoom = useCallback((d) => {
         setZoom(z => {
-            const next = Math.max(0.5, Math.min(4, +(z + d).toFixed(2)));
+            const next = Math.max(0.5, Math.min(4, +(z + d).toFixed(3)));
             if (next === 1) setPanOffset({ x: 0, y: 0 });
             return next;
         });
@@ -144,12 +266,12 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
             if (e.target.tagName.toLowerCase() === 'input') return;
             nudge();
             const s = mode === MODE.SPREAD ? 2 : 1;
-            if (e.key === 'ArrowRight') rtl ? go(-s, -1) : go(s, 1);
-            else if (e.key === 'ArrowLeft') rtl ? go(s, 1) : go(-s, -1);
+            if (e.key === 'ArrowRight') rtl ? go(-s) : go(s);
+            else if (e.key === 'ArrowLeft') rtl ? go(s) : go(-s);
             else if (e.key === 'Escape') onClose();
-            else if (e.key === '+' || e.key === '=') doZoom(0.25);
-            else if (e.key === '-') doZoom(-0.25);
-            else if (e.key === '0') resetZoom();
+            else if (e.key === '+' || e.key === '=') { if (e.ctrlKey || e.metaKey) e.preventDefault(); doZoom(0.25); }
+            else if (e.key === '-') { if (e.ctrlKey || e.metaKey) e.preventDefault(); doZoom(-0.25); }
+            else if (e.key === '0') { if (e.ctrlKey || e.metaKey) e.preventDefault(); resetZoom(); }
             else if (e.key === '1') { setMode(MODE.SINGLE); resetZoom(); }
             else if (e.key === '2') { setMode(MODE.SPREAD); resetZoom(); }
             else if (e.key === '3') { setMode(MODE.SCROLL); resetZoom(); }
@@ -159,12 +281,48 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
         return () => window.removeEventListener('keydown', h);
     }, [mode, rtl, go, doZoom, resetZoom, nudge, onClose]);
 
-    /* ctrl+wheel */
+    /* prevent native pinch-to-zoom and ctrl-wheel scaling on the body, allow trackpad panning */
+    const wheelTimeout = useRef(null);
     useEffect(() => {
-        const h = (e) => { if (!e.ctrlKey) return; e.preventDefault(); doZoom(e.deltaY < 0 ? 0.15 : -0.15); };
-        window.addEventListener('wheel', h, { passive: false });
-        return () => window.removeEventListener('wheel', h);
-    }, [doZoom]);
+        const handleWheel = (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                setIsWheeling(true);
+                clearTimeout(wheelTimeout.current);
+                wheelTimeout.current = setTimeout(() => setIsWheeling(false), 150);
+
+                // Trackpad pinch zoom scaling map. 0.005 makes it smoother and less aggressive.
+                doZoom(-e.deltaY * 0.005);
+            } else {
+                if (mode === 'scroll') return;
+                e.preventDefault();
+                // Discrete mouse wheel usually has 0 deltaX and larger integer deltaY
+                const isMouseWheel = Math.abs(e.deltaX) === 0 && Math.abs(e.deltaY) >= 30;
+
+                if (isMouseWheel || zoom === 1) {
+                    // Smooth mouse wheel zoom
+                    // We purposely do NOT set isWheeling here so the CSS transition handles smoothing.
+                    doZoom(e.deltaY > 0 ? -0.25 : 0.25);
+                } else if (zoom > 1) {
+                    // Trackpad two-finger panning for Single/Spread modes
+                    setIsWheeling(true);
+                    clearTimeout(wheelTimeout.current);
+                    wheelTimeout.current = setTimeout(() => setIsWheeling(false), 150);
+
+                    setPanOffset(prev => ({
+                        x: prev.x - e.deltaX,
+                        y: prev.y - e.deltaY
+                    }));
+                }
+            }
+        };
+        // must be added as passive: false to prevent default
+        document.addEventListener('wheel', handleWheel, { passive: false });
+
+        return () => {
+            document.removeEventListener('wheel', handleWheel);
+        };
+    }, [doZoom, zoom, mode]);
 
     /* pinch and pan */
     const activePointers = useRef(new Map());
@@ -225,19 +383,33 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
 
     /* click zones */
     const handleTap = (e) => {
-        if (mode === MODE.SCROLL || isPanning) return;
+        if (isPanning) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const pct = (e.clientX - rect.left) / rect.width;
 
-        // Edge navigation while zoomed
+        if (mode === MODE.SCROLL) {
+            if (pct > 0.3 && pct < 0.7) { nudge(); setShowOverlay(s => !s); return; }
+            nudge();
+
+            // Edge navigation for scroll mode (move pages by scrolling viewport)
+            const scrollAmount = window.innerHeight * 0.85;
+            if (pct >= 0.7) {
+                e.currentTarget.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+            } else {
+                e.currentTarget.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        // Edge navigation while zoomed for single/spread
         if (zoom > 1) {
             if (pct < 0.15) {
                 const s = mode === MODE.SPREAD ? 2 : 1;
-                rtl ? go(s, 1) : go(-s, -1);
+                rtl ? go(s) : go(-s);
                 setPanOffset({ x: 0, y: 0 });
             } else if (pct > 0.85) {
                 const s = mode === MODE.SPREAD ? 2 : 1;
-                rtl ? go(-s, -1) : go(s, 1);
+                rtl ? go(-s) : go(s);
                 setPanOffset({ x: 0, y: 0 });
             }
             return;
@@ -246,17 +418,15 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
         if (pct > 0.3 && pct < 0.7) { nudge(); setShowOverlay(s => !s); return; }
         nudge();
         const s = mode === MODE.SPREAD ? 2 : 1;
-        if (pct >= 0.7) { rtl ? go(-s, -1) : go(s, 1); }
-        else { rtl ? go(s, 1) : go(-s, -1); }
+        if (pct >= 0.7) { rtl ? go(-s) : go(s); }
+        else { rtl ? go(s) : go(-s); }
     };
 
 
     const canPrev = rtl ? page < total - 1 : page > 0;
     const canNext = rtl ? page > 0 : page < total - 1;
-    const btnSize = isMobile ? 44 : 40;
-    const smallBtn = isMobile ? 34 : 36;
-    const iconMain = isMobile ? 15 : 18;
-    const iconSm = isMobile ? 13 : 15;
+    const btnSize = isMobile ? 36 : 40;
+    const iconMain = isMobile ? 14 : 18;
 
     /* progress bar helpers */
     const isScroll = mode === MODE.SCROLL;
@@ -281,7 +451,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                 background: '#0a0a0a',
                 display: 'flex', flexDirection: 'column', userSelect: 'none',
                 cursor: zoom > 1 ? (isPanning ? 'grabbing' : 'grab') : 'default',
-                touchAction: mode === MODE.SCROLL ? 'pan-y' : 'none'
+                touchAction: mode === MODE.SCROLL ? 'pan-x pan-y' : 'none'
             }}
         >
             {/* ═══ TOP-RIGHT: X ═══ */}
@@ -351,7 +521,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                     top: '50%', transform: 'translateY(-50%)', zIndex: 25,
                                 }}
                             >
-                                <Fab onClick={() => { const s = mode === MODE.SPREAD ? 2 : 1; rtl ? go(s, 1) : go(-s, -1); }}
+                                <Fab onClick={() => { const s = mode === MODE.SPREAD ? 2 : 1; rtl ? go(s) : go(-s); }}
                                     disabled={!canPrev} size={isMobile ? 44 : 42}
                                     style={{ background: isMobile ? 'transparent' : 'rgba(0,0,0,0.3)', border: 'none', color: isMobile ? 'rgba(255,255,255,0.15)' : undefined }}>
                                     <ChevronLeft size={isMobile ? 32 : 28} strokeWidth={1} />
@@ -365,7 +535,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                     top: '50%', transform: 'translateY(-50%)', zIndex: 25,
                                 }}
                             >
-                                <Fab onClick={() => { const s = mode === MODE.SPREAD ? 2 : 1; rtl ? go(-s, -1) : go(s, 1); }}
+                                <Fab onClick={() => { const s = mode === MODE.SPREAD ? 2 : 1; rtl ? go(-s) : go(s); }}
                                     disabled={!canNext} size={isMobile ? 44 : 42}
                                     style={{ background: isMobile ? 'transparent' : 'rgba(0,0,0,0.3)', border: 'none', color: isMobile ? 'rgba(255,255,255,0.15)' : undefined }}>
                                     <ChevronRight size={isMobile ? 32 : 28} strokeWidth={1} />
@@ -382,11 +552,12 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                     onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU} onPointerCancel={onPU}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     <img src={pages[page]} alt={`${page + 1}`} draggable="false"
+                        onError={handleImageError}
                         style={{
                             maxHeight: '100vh', maxWidth: '100vw', objectFit: 'contain',
                             display: 'block', margin: 'auto',
                             transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
-                            transition: isPanning ? 'none' : 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                            transition: (isPanning || isWheeling) ? 'none' : 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
                             willChange: 'transform'
                         }} />
                 </div>
@@ -402,13 +573,13 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                         alignItems: 'center', justifyContent: 'center',
                         direction: rtl ? 'rtl' : 'ltr',
                         transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
-                        transition: isPanning ? 'none' : 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                        transition: (isPanning || isWheeling) ? 'none' : 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
                         willChange: 'transform'
                     }}>
-                        <img src={pages[pL]} alt={`${pL + 1}`} draggable="false"
+                        <img src={pages[pL]} alt={`${pL + 1}`} draggable="false" onError={handleImageError}
                             style={{ maxHeight: '100vh', maxWidth: isMobile ? '49vw' : '49vw', objectFit: 'contain', margin: '0 -1px', display: 'block' }} />
                         {pL !== pR && (
-                            <img src={pages[pR]} alt={`${pR + 1}`} draggable="false"
+                            <img src={pages[pR]} alt={`${pR + 1}`} draggable="false" onError={handleImageError}
                                 style={{ maxHeight: '100vh', maxWidth: isMobile ? '49vw' : '49vw', objectFit: 'contain', margin: '0 -1px', display: 'block' }} />
                         )}
                     </div>
@@ -418,6 +589,8 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
             {/* ═══ SCROLL ═══ */}
             {mode === MODE.SCROLL && (
                 <div className="hide-scrollbar"
+                    ref={scrollContainerRef}
+                    onClick={handleTap}
                     onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU} onPointerCancel={onPU}
                     onScroll={(e) => {
                         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -428,12 +601,13 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                         }
                     }}
                     style={{
-                        flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        flex: 1, overflow: 'auto', textAlign: 'center'
                     }}>
                     <div style={{
-                        transform: `scale(${zoom})`, transformOrigin: 'top center',
-                        transition: 'transform 0.15s ease-out',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                        width: isMobile ? `${100 * zoom}%` : `${720 * zoom}px`,
+                        display: 'inline-flex', flexDirection: 'column', alignItems: 'center',
+                        margin: '0 auto', verticalAlign: 'top',
+                        transition: (isWheeling || mode === MODE.SCROLL) ? 'none' : 'width 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
                         gap: 0, lineHeight: 0, fontSize: 0,
                     }}>
                         {pages.map((p, i) => (
@@ -441,7 +615,13 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                 ref={(el) => imgRefs.current[i] = el}
                                 data-index={i}
                                 loading="eager"
-                                style={{ display: 'block', width: isMobile ? '100%' : '720px', maxWidth: '100%', objectFit: 'contain', margin: 0, padding: 0, verticalAlign: 'bottom', marginTop: i > 0 ? '-1px' : 0 }} />
+                                onError={handleImageError}
+                                onLoad={() => {
+                                    if (i === page && isModeSwitching.current) {
+                                        imgRefs.current[page]?.scrollIntoView({ behavior: 'instant', block: 'start' });
+                                    }
+                                }}
+                                style={{ display: 'block', width: '100%', maxWidth: '100%', objectFit: 'contain', margin: 0, padding: 0, verticalAlign: 'bottom', marginTop: i > 0 ? '-1px' : 0 }} />
                         ))}
                     </div>
                 </div>
@@ -471,25 +651,54 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                 onMouseEnter={() => !isMobile && setIsNavHovered(true)}
                                 onMouseLeave={() => !isMobile && setIsNavHovered(false)}
                                 style={{
-                                    display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: 'center', gap: isMobile ? '4px' : '8px',
+                                    display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: 'center', gap: isMobile ? '2px' : '8px',
                                     background: 'rgba(10,10,10,0.6)', backdropFilter: 'blur(12px)',
                                     borderRadius: isMobile ? '16px' : '20px',
-                                    padding: isMobile ? '6px 8px' : '10px 8px',
+                                    padding: isMobile ? '4px 6px' : '10px 8px',
                                     border: '1px solid rgba(255,255,255,0.08)',
                                     overflowX: isMobile ? 'auto' : 'visible',
                                     overflowY: isMobile ? 'visible' : 'auto',
                                     maxWidth: '100%', maxHeight: '100%'
                                 }}>
+                                {/* Return to First Page */}
+                                <div style={{ position: 'relative' }}>
+                                    <Fab onClick={() => {
+                                        setShowEndPopup(false);
+                                        setPage(0);
+                                        if (mode === MODE.SCROLL && imgRefs.current[0]) {
+                                            imgRefs.current[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }
+                                    }} size={btnSize} disabled={page === 0}>
+                                        {mode === MODE.SCROLL ? <ArrowUpToLine size={iconMain} /> : (rtl ? <StepForward size={iconMain} /> : <StepBack size={iconMain} />)}
+                                    </Fab>
+                                    {!isMobile && isNavHovered && (
+                                        <div style={{
+                                            position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)', marginRight: '14px',
+                                            background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(6px)', padding: '4px 8px', borderRadius: '6px',
+                                            color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-hand)',
+                                            whiteSpace: 'nowrap', pointerEvents: 'none', border: '1px solid rgba(255,255,255,0.1)',
+                                            display: 'flex', alignItems: 'center', gap: '6px'
+                                        }}>
+                                            {mode === MODE.SCROLL ? 'Back to Top' : 'First Page'}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={{
+                                    width: isMobile ? '1px' : '18px', height: isMobile ? '18px' : '1px',
+                                    background: 'rgba(255,255,255,0.1)', margin: isMobile ? '0 2px' : '2px 0'
+                                }} />
+
                                 {/* Modes */}
                                 {[
-                                    { m: MODE.SINGLE, I: BookOpen, label: 'Single', key: '1' },
-                                    { m: MODE.SPREAD, I: Layers, label: 'Spread', key: '2' },
+                                    { m: MODE.SINGLE, I: File, label: 'Single', key: '1' },
+                                    { m: MODE.SPREAD, I: BookOpen, label: 'Spread', key: '2' },
                                     { m: MODE.SCROLL, I: AlignVerticalSpaceAround, label: 'Scroll', key: '3' },
-                                ].map(({ m, I, label, key }) => (
+                                ].map(({ m, I: ModeIcon, label, key }) => (
                                     <div key={m} style={{ position: 'relative' }}>
                                         <Fab active={mode === m} size={btnSize}
                                             onClick={() => { setMode(m); resetZoom(); }}>
-                                            <I size={iconMain} />
+                                            <ModeIcon size={iconMain} />
                                         </Fab>
                                         {!isMobile && isNavHovered && (
                                             <div style={{
@@ -511,24 +720,26 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                 }} />
 
                                 {/* RTL Toggle */}
-                                <div style={{ position: 'relative' }}>
-                                    <Fab onClick={() => setRtl(r => !r)} size={btnSize} style={isMobile ? { padding: '0 8px', width: 'auto' } : {}}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            {rtl ? <ArrowLeftToLine size={iconMain} /> : <ArrowRightToLine size={iconMain} />}
-                                        </div>
-                                    </Fab>
-                                    {!isMobile && isNavHovered && (
-                                        <div style={{
-                                            position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)', marginRight: '14px',
-                                            background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(6px)', padding: '4px 8px', borderRadius: '6px',
-                                            color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-hand)',
-                                            whiteSpace: 'nowrap', pointerEvents: 'none', border: '1px solid rgba(255,255,255,0.1)',
-                                            display: 'flex', alignItems: 'center', gap: '6px'
-                                        }}>
-                                            Direction <span style={{ color: '#ff9ec6', background: 'rgba(255,158,198,0.15)', padding: '2px 4px', borderRadius: '4px', fontSize: '0.55rem' }}>R</span>
-                                        </div>
-                                    )}
-                                </div>
+                                {mode !== MODE.SCROLL && (
+                                    <div style={{ position: 'relative' }}>
+                                        <Fab onClick={() => setRtl(r => !r)} size={btnSize} style={isMobile ? { padding: '0 8px', width: 'auto' } : {}}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                {rtl ? <ArrowLeftToLine size={iconMain} /> : <ArrowRightToLine size={iconMain} />}
+                                            </div>
+                                        </Fab>
+                                        {!isMobile && isNavHovered && (
+                                            <div style={{
+                                                position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)', marginRight: '14px',
+                                                background: 'rgba(20,20,20,0.85)', backdropFilter: 'blur(6px)', padding: '4px 8px', borderRadius: '6px',
+                                                color: 'rgba(255,255,255,0.8)', fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-hand)',
+                                                whiteSpace: 'nowrap', pointerEvents: 'none', border: '1px solid rgba(255,255,255,0.1)',
+                                                display: 'flex', alignItems: 'center', gap: '6px'
+                                            }}>
+                                                Direction <span style={{ color: '#ff9ec6', background: 'rgba(255,158,198,0.15)', padding: '2px 4px', borderRadius: '4px', fontSize: '0.55rem' }}>{rtl ? 'Right-to-Left' : 'Left-to-Right'}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div style={{
                                     width: isMobile ? '1px' : '18px', height: isMobile ? '18px' : '1px',
@@ -621,7 +832,6 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                                 if (mode === MODE.SCROLL) {
                                     imgRefs.current[previewPage]?.scrollIntoView({ behavior: 'smooth' });
                                 } else {
-                                    setTurnDir(previewPage > page ? 1 : -1);
                                     setPage(previewPage);
                                 }
                                 setPreviewPage(null);
@@ -687,22 +897,65 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                         }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                            <span style={{ fontFamily: 'var(--font-hand)', color: '#fff', fontSize: '1.05rem', fontWeight: 'bold' }}>
-                                Chapter {chapter.number} ended
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <span style={{ fontFamily: 'var(--font-hand)', color: '#fff', fontSize: '1.05rem', fontWeight: 'bold' }}>
+                                    Chapter {chapter.number} ended
+                                </span>
+                                {cooldownRemaining === 0 ? (
+                                    <motion.span
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3, duration: 0.4 }}
+                                        style={{
+                                            fontFamily: 'var(--font-hand)', color: '#ff9ec6', fontSize: '0.78rem',
+                                            fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px'
+                                        }}
+                                    >
+                                        ✓ +1 read counted!
+                                    </motion.span>
+                                ) : (
+                                    <span style={{
+                                        fontFamily: 'var(--font-hand)', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem',
+                                        marginTop: '4px'
+                                    }}>
+                                        Reread count in {cooldownRemaining}s
+                                    </span>
+                                )}
+                            </div>
                             <Fab onClick={() => setShowEndPopup(false)} size={28} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)' }}>
                                 <X size={16} />
                             </Fab>
+                        </div>
+
+                        <div style={{
+                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.8rem', fontFamily: 'var(--font-hand)', color: 'rgba(255,255,255,0.7)',
+                            background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)'
+                        }}>
+                            <span>{onNextChapter ? 'Auto-next in ' : 'Auto-close in '} <strong style={{ color: '#ff9ec6' }}>{autoNextCountdown}s</strong>...</span>
                         </div>
 
                         <div style={{ display: 'flex', gap: '8px', flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
                             <Fab disabled={!onPrevChapter} onClick={() => { setShowEndPopup(false); onPrevChapter?.(); }} size={36} style={{ flex: 1, fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold', background: 'rgba(255,255,255,0.08)' }}>
                                 Previous chapter
                             </Fab>
-                            <Fab disabled={!onNextChapter} active={true} onClick={() => { setShowEndPopup(false); onNextChapter?.(); }} size={36} style={{ flex: 1, fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold' }}>
-                                Next chapter
+                            <Fab active={true} onClick={() => {
+                                setShowEndPopup(false);
+                                if (onNextChapter) onNextChapter();
+                                else if (onClose) onClose();
+                            }} size={36} style={{ flex: 1, fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold' }}>
+                                {onNextChapter ? 'Next chapter' : 'Close reader'}
                             </Fab>
                         </div>
+                        <Fab onClick={() => {
+                            setShowEndPopup(false);
+                            setPage(0);
+                            if (mode === MODE.SCROLL && imgRefs.current[0]) {
+                                imgRefs.current[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }} size={32} style={{ width: '100%', marginTop: '4px', fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px dashed rgba(255,255,255,0.2)' }}>
+                            {mode === MODE.SCROLL ? 'Return to Top' : 'Return to first page'}
+                        </Fab>
                     </motion.div>
                 )}
             </AnimatePresence>

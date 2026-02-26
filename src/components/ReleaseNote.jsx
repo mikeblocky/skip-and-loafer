@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { motion } from 'framer-motion';
 
 const ReleaseNote = ({ isMobile }) => (
@@ -7,10 +8,11 @@ const ReleaseNote = ({ isMobile }) => (
         rel="noopener noreferrer"
         style={{
             position: isMobile ? 'relative' : 'absolute',
-            bottom: isMobile ? 'auto' : '-22px',
-            left: isMobile ? 'auto' : '50%',
-            transform: isMobile ? 'none' : 'translateX(-50%) rotate(1deg)',
-            alignSelf: isMobile ? 'center' : 'auto',
+            bottom: isMobile ? 'auto' : '-10px',
+            right: isMobile ? 'auto' : '64px',
+            left: 'auto',
+            transform: isMobile ? 'none' : 'rotate(-1deg)',
+            alignSelf: 'center',
             background: '#fef3c7',
             padding: isMobile ? '8px 12px' : '10px 20px',
             borderRadius: '8px',
@@ -22,8 +24,8 @@ const ReleaseNote = ({ isMobile }) => (
             alignItems: 'center',
             gap: isMobile ? '5px' : '10px',
             justifyContent: 'center',
-            marginTop: isMobile ? '10px' : 0,
-            marginBottom: isMobile ? '4px' : 0,
+            marginTop: isMobile ? '16px' : 0,
+            marginBottom: isMobile ? '16px' : 0,
             width: isMobile ? 'fit-content' : 'auto',
             whiteSpace: isMobile ? 'normal' : 'nowrap'
         }}
