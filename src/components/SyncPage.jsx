@@ -11,9 +11,6 @@ import {
 } from 'lucide-react';
 import { CHAPTERS, VOLUMES, isMainChapter, VOL_COLORS } from '../data/chapters';
 
-const SYNC_API_BASE = '/api/sync';
-const POLL_INTERVAL = 15000;
-
 /* ─── Color palettes matching ChaptersPage aesthetics ─── */
 const NOTE_PALETTES = [
     { bg: '#fff0f3', border: '#ff9ec6', accent: '#ff6b9d' },  // pink
@@ -193,7 +190,7 @@ const ListRow = ({ index, finished, readCount, noteColor, customNote, tierBorder
 };
 
 /* ─── Chapter Row (Mini version for accordions) ─── */
-const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, unmarkFinished, getReadCount, pendingLinks }) => {
+const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, getReadCount, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks }) => {
     const finished = isFinished?.(chapter.number);
     const readCount = getReadCount?.(chapter.number) || 0;
     const tier = getReadTier(readCount);
@@ -211,6 +208,27 @@ const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, t
 
     const pendingStart = pendingLinks?.[chapter.number];
     const [linkTimeLeft, setLinkTimeLeft] = useState(0);
+
+    // Cooldown state
+    const [cooldown, setCooldown] = useState(() => getRemainingCooldown?.(chapter.number) || 0);
+
+    useEffect(() => {
+        let timer;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                const rem = getRemainingCooldown?.(chapter.number) || 0;
+                setCooldown(rem);
+                if (rem <= 0) clearInterval(timer);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown, getRemainingCooldown, chapter.number]);
+
+    const handleIncrement = () => {
+        if (cooldown > 0) return;
+        incrementReadCount?.(chapter.number);
+        setCooldown(60);
+    };
 
     useEffect(() => {
         if (!pendingStart) {
@@ -271,15 +289,32 @@ const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, t
                 <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.74rem' : '0.85rem', color: '#374151', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>{chapter.title}</span>
             </div>
 
-            <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap' }}>
-                {chapter.pages && chapter.pages.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+                <motion.button
+                    whileHover={cooldown > 0 ? {} : { scale: 1.1 }} whileTap={cooldown > 0 ? {} : { scale: 0.95 }}
+                    onClick={handleIncrement}
+                    disabled={cooldown > 0}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        fontSize: isMobile ? '0.75rem' : '0.76rem',
+                        color: cooldown > 0 ? '#9ca3af' : note.accent, background: cooldown > 0 ? '#f3f4f6' : `${note.border}30`,
+                        padding: isMobile ? '6px 10px' : '4px 10px', borderRadius: '9999px',
+                        textDecoration: 'none', fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                        border: `1.5px solid ${cooldown > 0 ? '#d1d5db' : note.border}`,
+                        cursor: cooldown > 0 ? 'not-allowed' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
+                        boxShadow: cooldown > 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.05)', opacity: cooldown > 0 ? 0.7 : 1
+                    }}
+                >
+                    {cooldown > 0 ? `⏳ ${cooldown}s` : '+1 Read'}
+                </motion.button>
+                {false && chapter.pages && chapter.pages.length > 0 && (
                     <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                         onClick={() => onReadChapter?.(chapter)}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: isMobile ? '0.75rem' : '0.76rem', color: '#fff', background: '#10b981', padding: isMobile ? '6px 10px' : '4px 10px', borderRadius: '9999px', textDecoration: 'none', fontFamily: 'var(--font-hand)', fontWeight: 'bold', border: 'none', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                         <BookMarked size={isMobile ? 12 : 11} /> Read
                     </motion.button>
                 )}
-                {chapter.links.en && (
+                {false && chapter.links.en && (
                     <motion.a href={chapter.links.en} target="_blank" rel="noopener noreferrer" onClick={() => trackExternalLink?.(chapter.number)} onContextMenu={() => trackExternalLink?.(chapter.number)} onAuxClick={(e) => { if (e.button === 1) trackExternalLink?.(chapter.number); }} whileTap={{ scale: 0.95 }} style={linkStyle(note.accent)}>
                         <Globe size={isMobile ? 9 : 11} /> EN
                     </motion.a>
@@ -337,7 +372,8 @@ const getReadTier = (count) => {
 const MEDAL_ICONS = [Crown, Star, Zap];
 const MEDAL_COLORS = ['#f59e0b', '#94a3b8', '#cd7f32'];
 
-/* ─── Sync data helpers ─── */
+/* ─── Sync data helpers (used only for initial key generation) ─── */
+const SYNC_API_BASE = '/api/sync';
 const collectSyncData = () => {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -345,16 +381,6 @@ const collectSyncData = () => {
         if (key?.startsWith('skip_')) data[key] = localStorage.getItem(key);
     }
     return data;
-};
-
-const applySyncData = (data) => {
-    const toRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith('skip_')) toRemove.push(key);
-    }
-    toRemove.forEach(k => localStorage.removeItem(k));
-    Object.entries(data).forEach(([key, value]) => localStorage.setItem(key, value));
 };
 
 /* ═══════════════════════════
@@ -397,7 +423,7 @@ const TabSelector = ({ activeTab, setActiveTab, isMobile }) => (
 /* ═══════════════════════════
    MAIN SYNC PAGE
    ═══════════════════════════ */
-const SyncPage = ({ isMobile, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, pendingLinks }) => {
+const SyncPage = ({ isMobile, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData }) => {
     const [activeTab, setActiveTab] = useState(0);
     const [expandedVol, setExpandedVol] = useState(null);
 
@@ -429,43 +455,14 @@ const SyncPage = ({ isMobile, finishedCount = 0, finished = new Set(), readCount
     }, [activeTab]);
 
     /* ── Sync state ── */
-    const [syncKey, setSyncKey] = useState(() => localStorage.getItem('skip_syncKey') || '');
-    const [syncActive, setSyncActive] = useState(() => !!localStorage.getItem('skip_syncKey'));
+    // Using global sync hook passed as prop
+    const { syncKey, setSyncKey, syncActive, setSyncActive, lastSynced, pushData, pullData, disconnect } = syncData || {};
+    
+    // Local UI state
     const [inputKey, setInputKey] = useState('');
     const [loading, setLoading] = useState(null);
     const [status, setStatus] = useState(null);
     const [copied, setCopied] = useState(false);
-    const [lastSynced, setLastSynced] = useState(null);
-    const pollRef = useRef(null);
-
-    useEffect(() => {
-        if (syncKey) localStorage.setItem('skip_syncKey', syncKey);
-        else localStorage.removeItem('skip_syncKey');
-    }, [syncKey]);
-
-    const pushData = useCallback(async (key) => {
-        try {
-            const data = collectSyncData();
-            await fetch(`${SYNC_API_BASE}/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, key }) });
-        } catch { /* silent */ }
-    }, []);
-
-    const pullData = useCallback(async (key) => {
-        try {
-            const res = await fetch(`${SYNC_API_BASE}/claim?key=${encodeURIComponent(key)}&peek=true`);
-            if (!res.ok) return false;
-            const { data } = await res.json();
-            if (data) { applySyncData(data); reloadFromStorage?.(); setLastSynced(new Date()); return true; }
-        } catch { /* silent */ }
-        return false;
-    }, [reloadFromStorage]);
-
-    useEffect(() => {
-        if (!syncActive || !syncKey) { clearInterval(pollRef.current); return; }
-        pushData(syncKey);
-        pollRef.current = setInterval(async () => { await pushData(syncKey); await pullData(syncKey); }, POLL_INTERVAL);
-        return () => clearInterval(pollRef.current);
-    }, [syncActive, syncKey, pushData, pullData]);
 
     const handleGenerate = useCallback(async () => {
         setLoading('gen'); setStatus(null);
@@ -474,25 +471,32 @@ const SyncPage = ({ isMobile, finishedCount = 0, finished = new Set(), readCount
             const res = await fetch(`${SYNC_API_BASE}/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data }) });
             if (!res.ok) throw new Error('Failed');
             const { key } = await res.json();
-            setSyncKey(key); setSyncActive(true); setLastSynced(new Date());
+            setSyncKey(key); setSyncActive(true); 
             setStatus({ type: 'success', msg: `Syncing with key ${key}` });
         } catch (e) { setStatus({ type: 'error', msg: e.message }); } finally { setLoading(null); }
-    }, []);
+    }, [setSyncKey, setSyncActive]);
 
     const handleJoin = useCallback(async () => {
         const key = inputKey.trim();
         if (!key) { setStatus({ type: 'error', msg: 'Enter a key' }); return; }
         setLoading('join'); setStatus(null);
         try {
-            if (await pullData(key)) { setSyncKey(key); setSyncActive(true); setInputKey(''); setStatus({ type: 'success', msg: 'Connected!' }); }
+            if (await pullData(key)) { 
+                setSyncKey(key); 
+                setSyncActive(true); 
+                setInputKey(''); 
+                setStatus({ type: 'success', msg: 'Connected!' }); 
+            }
             else setStatus({ type: 'error', msg: 'Key not found' });
         } catch (e) { setStatus({ type: 'error', msg: e.message }); } finally { setLoading(null); }
-    }, [inputKey, pullData]);
+    }, [inputKey, pullData, setSyncKey, setSyncActive]);
 
     const handleDisconnect = useCallback(() => {
-        clearInterval(pollRef.current); setSyncKey(''); setSyncActive(false); setLastSynced(null);
-        setStatus({ type: 'info', msg: 'Disconnected' });
-    }, []);
+        // Clear all progress data and disconnect
+        disconnect?.();
+        setStatus({ type: 'info', msg: 'Disconnected — progress data cleared' });
+    }, [disconnect]);
+
 
     const handleCopy = useCallback(() => {
         if (syncKey) { navigator.clipboard.writeText(syncKey); setCopied(true); setTimeout(() => setCopied(false), 2000); }
@@ -608,6 +612,8 @@ const SyncPage = ({ isMobile, finishedCount = 0, finished = new Set(), readCount
                                                         onReadChapter={onReadChapter} isFinished={(num) => finished.has(num)}
                                                         trackExternalLink={trackExternalLink} cancelExternalLink={cancelExternalLink} unmarkFinished={unmarkFinished}
                                                         getReadCount={(num) => readCounts[num] || 0}
+                                                        incrementReadCount={incrementReadCount}
+                                                        getRemainingCooldown={getRemainingCooldown}
                                                         pendingLinks={pendingLinks}
                                                     />
                                                 ))}

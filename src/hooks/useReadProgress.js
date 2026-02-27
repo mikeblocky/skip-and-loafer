@@ -103,6 +103,32 @@ export const useReadProgress = () => {
         }).catch(err => console.error('Global increment failed', err));
     }, []);
 
+    const incrementReadCount = useCallback((chapterNumber) => {
+        const now = Date.now();
+        const lastMarked = lastMarkedRef.current[chapterNumber] || 0;
+
+        if (now - lastMarked < 60000) return;
+        lastMarkedRef.current[chapterNumber] = now;
+
+        // Also mark as finished (first-time reads need this)
+        setFinished(prev => {
+            const next = new Set(prev);
+            next.add(chapterNumber);
+            return next;
+        });
+
+        setReadCounts(prev => ({
+            ...prev,
+            [chapterNumber]: (prev[chapterNumber] || 0) + 1
+        }));
+
+        fetch('/api/reads/increment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chapter: chapterNumber })
+        }).catch(err => console.error('Global increment failed', err));
+    }, []);
+
     const unmarkFinished = useCallback((chapterNumber) => {
         setFinished(prev => {
             if (!prev.has(chapterNumber)) return prev;
@@ -231,6 +257,7 @@ export const useReadProgress = () => {
         unmarkFinished,
         isFinished,
         getReadCount,
+        incrementReadCount,
         trackExternalLink,
         cancelExternalLink,
         reloadFromStorage,

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Globe, Languages, ChevronLeft, ChevronRight, Tv, BookMarked, Pin, Sparkles, Star, Heart, Crown, Gem, Sparkle, Dog, Cat, Music, Coffee, Gift, Pizza, Rabbit, Bird, Fish, Snail, PawPrint } from 'lucide-react';
+import { BookOpen, Globe, Languages, ChevronLeft, ChevronRight, Tv, BookMarked, Pin, Sparkles, Star, Heart, Crown, Gem, Sparkle, Dog, Cat, Music, Coffee, Gift, Pizza, Rabbit, Bird, Fish, Snail, PawPrint, ShoppingCart } from 'lucide-react';
 import { CHAPTERS, VOLUMES, isMainChapter, VOL_COLORS } from '../data/chapters';
 
 const NOTE_PALETTES = [
@@ -102,12 +102,33 @@ const MilestoneEffects = ({ count, tier, color }) => {
 };
 
 /* ─── Chapter row (shared) ─── */
-const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, pendingLinks }) => {
+const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => {
     const finished = isFinished?.(chapter.number);
     const readCount = getReadCount?.(chapter.number) || 0;
     const tier = getReadTier(readCount);
     const note = NOTE_PALETTES[index % NOTE_PALETTES.length];
     const jpLinks = chapter.links.jp || [];
+
+    // Cooldown state
+    const [cooldown, setCooldown] = useState(() => getRemainingCooldown?.(chapter.number) || 0);
+
+    useEffect(() => {
+        let timer;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                const rem = getRemainingCooldown?.(chapter.number) || 0;
+                setCooldown(rem);
+                if (rem <= 0) clearInterval(timer);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown, getRemainingCooldown, chapter.number]);
+
+    const handleIncrement = () => {
+        if (cooldown > 0) return;
+        incrementReadCount?.(chapter.number);
+        setCooldown(60);
+    };
 
     const linkStyle = (bg) => ({
         display: 'inline-flex', alignItems: 'center', gap: '4px',
@@ -265,8 +286,26 @@ const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, track
             </div>
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap' }}>
-                {chapter.pages && chapter.pages.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+                <motion.button
+                    whileHover={cooldown > 0 ? {} : { scale: 1.1 }} whileTap={cooldown > 0 ? {} : { scale: 0.95 }}
+                    onClick={handleIncrement}
+                    disabled={cooldown > 0}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        fontSize: isMobile ? '0.75rem' : '0.76rem',
+                        color: cooldown > 0 ? '#9ca3af' : note.accent, background: cooldown > 0 ? '#f3f4f6' : `${note.border}30`,
+                        padding: isMobile ? '6px 10px' : '4px 10px', borderRadius: '9999px',
+                        textDecoration: 'none', fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                        boxShadow: cooldown > 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
+                        border: `1.5px solid ${cooldown > 0 ? '#d1d5db' : note.border}`,
+                        cursor: cooldown > 0 ? 'not-allowed' : 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
+                        opacity: cooldown > 0 ? 0.7 : 1
+                    }}
+                >
+                    {cooldown > 0 ? `⏳ ${cooldown}s` : '+1 Read'}
+                </motion.button>
+                {false && chapter.pages && chapter.pages.length > 0 && (
                     <motion.button
                         whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                         onClick={() => onReadChapter && onReadChapter(chapter)}
@@ -282,7 +321,7 @@ const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished, track
                         <BookMarked size={isMobile ? 12 : 11} /> Read
                     </motion.button>
                 )}
-                {chapter.links.en && (
+                {false && chapter.links.en && (
                     <motion.a href={chapter.links.en} target="_blank" rel="noopener noreferrer"
                         onClick={() => trackExternalLink?.(chapter.number)}
                         onContextMenu={() => trackExternalLink?.(chapter.number)}
@@ -392,7 +431,7 @@ const VolSelector = ({ activeVol, setActiveVol, isMobile }) => (
 );
 
 /* ─── MOBILE layout ─── */
-const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, pendingLinks }) => (
+const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => (
     <div style={{
         width: '100%', padding: '24px 8px 10px 8px',
         display: 'flex', flexDirection: 'column',
@@ -503,7 +542,6 @@ const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor
                         )}
                     </div>
 
-                    {/* Volume info */}
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <p style={{
                             fontFamily: 'var(--font-main)', fontSize: '1.4rem',
@@ -515,6 +553,38 @@ const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor
                             Chapter {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                             {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '5px' }}>✦ ongoing</span>}
                         </p>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+                            {volume.purchaseUrl && (
+                                <motion.a
+                                    href={volume.purchaseUrl} target="_blank" rel="noopener noreferrer"
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                        fontSize: '0.75rem', color: '#fff', background: volColor,
+                                        padding: '4px 8px', borderRadius: '6px', textDecoration: 'none',
+                                        fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                                        boxShadow: `0 2px 4px ${volColor}40`
+                                    }}
+                                >
+                                    <ShoppingCart size={12} /> Preorder/Buy EN
+                                </motion.a>
+                            )}
+                            {volume.purchaseUrlJp && (
+                                <motion.a
+                                    href={volume.purchaseUrlJp} target="_blank" rel="noopener noreferrer"
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                        fontSize: '0.75rem', color: '#fff', background: 'var(--pop-pink)',
+                                        padding: '4px 8px', borderRadius: '6px', textDecoration: 'none',
+                                        fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                                        boxShadow: `0 2px 4px rgba(255, 158, 198, 0.4)`
+                                    }}
+                                >
+                                    <ShoppingCart size={12} /> Preorder/Buy JP
+                                </motion.a>
+                            )}
+                        </div>
                     </div>
 
                     {/* Next arrow */}
@@ -529,7 +599,7 @@ const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor
                     gap: '5px', width: '100%', padding: '4px 2px',
                 }}>
                     {volChapters.map((ch, idx) => (
-                        <ChapterRow key={ch.number} chapter={ch} index={idx} isMobile onReadChapter={onReadChapter} isFinished={isFinished} trackExternalLink={trackExternalLink} cancelExternalLink={cancelExternalLink} markFinished={markFinished} unmarkFinished={unmarkFinished} getReadCount={getReadCount} pendingLinks={pendingLinks} />
+                        <ChapterRow key={ch.number} chapter={ch} index={idx} isMobile onReadChapter={onReadChapter} isFinished={isFinished} trackExternalLink={trackExternalLink} cancelExternalLink={cancelExternalLink} markFinished={markFinished} unmarkFinished={unmarkFinished} getReadCount={getReadCount} incrementReadCount={incrementReadCount} getRemainingCooldown={getRemainingCooldown} pendingLinks={pendingLinks} />
                     ))}
                 </div>
             </motion.div>
@@ -538,7 +608,7 @@ const MobileChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor
 );
 
 /* ─── DESKTOP layout ─── */
-const DesktopChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, pendingLinks }) => (
+const DesktopChapters = ({ activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => (
     <div style={{
         width: '100%', padding: '28px 40px',
         minHeight: '600px', display: 'flex', flexDirection: 'column',
@@ -660,17 +730,49 @@ const DesktopChapters = ({ activeVol, setActiveVol, volume, volChapters, volColo
                     </motion.div>
 
                     {/* Volume info */}
-                    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
                         <motion.p initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.15 }}
                             style={{
                                 fontFamily: 'var(--font-main)', fontSize: '1.5rem',
                                 fontWeight: 'normal', color: volColor, marginBottom: '2px'
                             }}>{volume.title}</motion.p>
-                        <p style={{ fontFamily: 'var(--font-hand)', fontSize: '0.9rem', color: '#9ca3af' }}>
+                        <p style={{ fontFamily: 'var(--font-hand)', fontSize: '0.9rem', color: '#9ca3af', marginBottom: '4px' }}>
                             Chapters {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                             {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '6px' }}>✦ ongoing</span>}
                         </p>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {volume.purchaseUrl && (
+                                <motion.a
+                                    href={volume.purchaseUrl} target="_blank" rel="noopener noreferrer"
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                        fontSize: '0.85rem', color: '#fff', background: volColor,
+                                        padding: '6px 12px', borderRadius: '8px', textDecoration: 'none',
+                                        fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                                        boxShadow: `0 2px 6px ${volColor}50`
+                                    }}
+                                >
+                                    <ShoppingCart size={14} /> Buy English volume
+                                </motion.a>
+                            )}
+                            {volume.purchaseUrlJp && (
+                                <motion.a
+                                    href={volume.purchaseUrlJp} target="_blank" rel="noopener noreferrer"
+                                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                        fontSize: '0.85rem', color: '#fff', background: 'var(--pop-pink)',
+                                        padding: '6px 12px', borderRadius: '8px', textDecoration: 'none',
+                                        fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                                        boxShadow: `0 2px 6px rgba(255, 158, 198, 0.5)`
+                                    }}
+                                >
+                                    <ShoppingCart size={14} /> Buy Japanese volume
+                                </motion.a>
+                            )}
+                        </div>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '4px' }}>
                             <NavBtn onClick={goPrev} disabled={activeVol === 0} volColor={volColor}>
                                 <ChevronLeft size={20} />
@@ -689,7 +791,7 @@ const DesktopChapters = ({ activeVol, setActiveVol, volume, volChapters, volColo
                     padding: '4px 6px',
                 }}>
                     {volChapters.map((ch, idx) => (
-                        <ChapterRow key={ch.number} chapter={ch} index={idx} isMobile={false} onReadChapter={onReadChapter} isFinished={isFinished} trackExternalLink={trackExternalLink} cancelExternalLink={cancelExternalLink} markFinished={markFinished} unmarkFinished={unmarkFinished} getReadCount={getReadCount} pendingLinks={pendingLinks} />
+                        <ChapterRow key={ch.number} chapter={ch} index={idx} isMobile={false} onReadChapter={onReadChapter} isFinished={isFinished} trackExternalLink={trackExternalLink} cancelExternalLink={cancelExternalLink} markFinished={markFinished} unmarkFinished={unmarkFinished} getReadCount={getReadCount} incrementReadCount={incrementReadCount} getRemainingCooldown={getRemainingCooldown} pendingLinks={pendingLinks} />
                     ))}
                 </div>
             </motion.div>
@@ -698,7 +800,7 @@ const DesktopChapters = ({ activeVol, setActiveVol, volume, volChapters, volColo
 );
 
 /* ─── Main export ─── */
-const ChaptersPage = ({ isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, pendingLinks }) => {
+const ChaptersPage = ({ isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => {
     const [activeVol, _setActiveVol] = useState(() => {
         const saved = localStorage.getItem('skip_activeVol');
         if (saved !== null) {
@@ -721,7 +823,7 @@ const ChaptersPage = ({ isMobile, onReadChapter, isFinished, trackExternalLink, 
     const goPrev = () => setActiveVol(prev => Math.max(0, prev - 1));
     const goNext = () => setActiveVol(prev => Math.min(VOLUMES.length - 1, prev + 1));
 
-    const shared = { activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, pendingLinks };
+    const shared = { activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks };
 
     return isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />;
 };
