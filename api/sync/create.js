@@ -48,14 +48,11 @@ export default async function handler(req, res) {
             return res.status(413).json({ error: 'Payload too large (max 50KB)' });
         }
 
-        // Update existing key if provided
+        // Update existing key if provided — re-create it if it expired
         if (existingKey) {
-            const exists = await client.exists(`${PREFIX}${existingKey}`);
-            if (exists) {
-                await client.set(`${PREFIX}${existingKey}`, payload);
-                await client.disconnect();
-                return res.status(200).json({ key: existingKey });
-            }
+            await client.set(`${PREFIX}${existingKey}`, payload);
+            await client.disconnect();
+            return res.status(200).json({ key: existingKey });
         }
 
         // Generate a new key

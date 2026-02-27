@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon } from 'lucide-react';
 
 const TABS = [
     { id: 'home', label: 'Home', icon: Home, color: 'var(--pop-pink)' },
     { id: 'chapters', label: 'Chapters', icon: BookOpen, color: 'var(--pop-blue)' },
+    { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#8b5cf6' },
     { id: 'sync', label: 'Progress & Sync', mobileLabel: 'Sync', icon: BarChart3, color: 'var(--pop-green)' },
     { id: 'birthdays', label: 'Birthdays', mobileLabel: 'B-days', icon: Cake, color: '#f59e0b' },
 ];

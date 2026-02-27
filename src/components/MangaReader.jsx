@@ -10,6 +10,31 @@ import {
 
 const MODE = { SINGLE: 'single', SPREAD: 'spread', SCROLL: 'scroll' };
 
+const FallbackImage = ({ src, forwardedRef, ...props }) => {
+    const [currentSrc, setCurrentSrc] = useState(src);
+    const [attempts, setAttempts] = useState(0);
+
+    useEffect(() => {
+        setCurrentSrc(src);
+        setAttempts(0);
+    }, [src]);
+
+    const handleError = () => {
+        if (attempts === 0) {
+            setCurrentSrc(prev => prev.endsWith('.jpg') ? prev.replace('.jpg', '.png') : prev.replace('.png', '.jpg'));
+            setAttempts(1);
+        } else if (attempts === 1) {
+            setCurrentSrc(prev => prev.replace(/\.(jpg|png)$/, '.jpeg'));
+            setAttempts(2);
+        } else if (attempts === 2) {
+            setCurrentSrc(prev => prev.replace(/\.jpeg$/, '.webp'));
+            setAttempts(3);
+        }
+    };
+
+    return <img src={currentSrc} ref={forwardedRef} onError={handleError} {...props} />;
+};
+
 /* No page-turn animation — simple instant swap */
 
 /* ── Tiny floating button ── */
@@ -68,23 +93,6 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
     const panStart = useRef({ x: 0, y: 0 });
     const hideRef = useRef(null);
     const total = pages.length;
-
-    const handleImageError = useCallback((e) => {
-        const img = e.target;
-        const currentSrc = img.getAttribute('src');
-        const attempts = parseInt(img.dataset.fA || '0', 10);
-
-        if (attempts === 0) {
-            img.dataset.fA = '1';
-            img.src = currentSrc.endsWith('.jpg') ? currentSrc.replace('.jpg', '.png') : currentSrc.replace('.png', '.jpg');
-        } else if (attempts === 1) {
-            img.dataset.fA = '2';
-            img.src = currentSrc.replace(/\.(jpg|png)$/, '.jpeg');
-        } else if (attempts === 2) {
-            img.dataset.fA = '3';
-            img.src = currentSrc.replace(/\.jpeg$/, '.webp');
-        }
-    }, []);
 
     // Track if we've already marked this chapter finished to prevent rapid-fire increments
     const hasMarkedFinishedRef = useRef(false);
@@ -551,8 +559,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                 <div onClick={handleTap}
                     onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU} onPointerCancel={onPU}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <img src={pages[page]} alt={`${page + 1}`} draggable="false"
-                        onError={handleImageError}
+                    <FallbackImage src={pages[page]} alt={`${page + 1}`} draggable="false"
                         style={{
                             maxHeight: '100vh', maxWidth: '100vw', objectFit: 'contain',
                             display: 'block', margin: 'auto',
@@ -576,10 +583,10 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                         transition: (isPanning || isWheeling) ? 'none' : 'transform 0.4s cubic-bezier(0.33, 1, 0.68, 1)',
                         willChange: 'transform'
                     }}>
-                        <img src={pages[pL]} alt={`${pL + 1}`} draggable="false" onError={handleImageError}
+                        <FallbackImage src={pages[pL]} alt={`${pL + 1}`} draggable="false"
                             style={{ maxHeight: '100vh', maxWidth: isMobile ? '49vw' : '49vw', objectFit: 'contain', margin: '0 -1px', display: 'block' }} />
                         {pL !== pR && (
-                            <img src={pages[pR]} alt={`${pR + 1}`} draggable="false" onError={handleImageError}
+                            <FallbackImage src={pages[pR]} alt={`${pR + 1}`} draggable="false"
                                 style={{ maxHeight: '100vh', maxWidth: isMobile ? '49vw' : '49vw', objectFit: 'contain', margin: '0 -1px', display: 'block' }} />
                         )}
                     </div>
@@ -611,14 +618,14 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                         gap: 0, lineHeight: 0, fontSize: 0,
                     }}>
                         {pages.map((p, i) => (
-                            <img key={i} src={p} alt={`${i + 1}`} draggable="false"
-                                ref={(el) => imgRefs.current[i] = el}
+                            <FallbackImage key={i} src={p} alt={`${i + 1}`} draggable="false"
+                                forwardedRef={(el) => imgRefs.current[i] = el}
                                 data-index={i}
                                 loading="eager"
-                                onError={handleImageError}
                                 onLoad={() => {
                                     if (i === page && isModeSwitching.current) {
                                         imgRefs.current[page]?.scrollIntoView({ behavior: 'instant', block: 'start' });
+                                        isModeSwitching.current = false;
                                     }
                                 }}
                                 style={{ display: 'block', width: '100%', maxWidth: '100%', objectFit: 'contain', margin: 0, padding: 0, verticalAlign: 'bottom', marginTop: i > 0 ? '-1px' : 0 }} />

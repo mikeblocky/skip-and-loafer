@@ -49,7 +49,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
     }, [isMobile, index, size]);
 
     // Choose target based on current view
-    const targetPos = (activePage === 'chapters' || activePage === 'sync') ? edgePos : randomPos;
+    const targetPos = (activePage === 'chapters' || activePage === 'sync' || activePage === 'birthdays' || activePage === 'gallery') ? edgePos : randomPos;
 
     const checkProximity = useCallback(() => {
         if (!stickerRef.current) return;
@@ -107,7 +107,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
 
     return (
         <AnimatePresence>
-            {!(isMobile && (activePage === 'chapters' || activePage === 'sync')) && (
+            {!(isMobile && (activePage === 'chapters' || activePage === 'sync' || activePage === 'birthdays' || activePage === 'gallery')) && (
                 <motion.div
                     ref={stickerRef}
                     drag

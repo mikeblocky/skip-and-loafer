@@ -9,18 +9,18 @@ export const mangaPages = (ch, count, ext = 'jpg') =>
 export const isMainChapter = (num) => Number.isInteger(Number(num));
 
 export const VOLUMES = [
-    { number: 1, title: 'Volume 1', cover: '/volumes/1.jpg', chapters: [1, 2, 3, 4, 5], anime: 'Season 1' },
-    { number: 2, title: 'Volume 2', cover: '/volumes/2.jpg', chapters: [6, 7, 8, 9, 10, 11, 11.5], anime: 'Season 1' },
-    { number: 3, title: 'Volume 3', cover: '/volumes/3.jpg', chapters: [12, 13, 14, 15, 16, 17], anime: 'Season 1' },
-    { number: 4, title: 'Volume 4', cover: '/volumes/4.jpg', chapters: [18, 19, 20, 21, 22, 23, 23.5], anime: 'Season 1' },
-    { number: 5, title: 'Volume 5', cover: '/volumes/5.jpg', chapters: [24, 25, 26, 27, 28, 29] },
-    { number: 6, title: 'Volume 6', cover: '/volumes/6.jpg', chapters: [30, 31, 32, 33, 34, 35, 35.5] },
-    { number: 7, title: 'Volume 7', cover: '/volumes/7.jpg', chapters: [36, 37, 38, 39, 40, 41, 41.5] },
-    { number: 8, title: 'Volume 8', cover: '/volumes/8.jpg', chapters: [42, 43, 44, 45, 46, 47, 47.5] },
-    { number: 9, title: 'Volume 9', cover: '/volumes/9.jpg', chapters: [48, 49, 50, 51, 52, 53, 53.1, 53.2, 53.5] },
-    { number: 10, title: 'Volume 10', cover: '/volumes/10.jpg', chapters: [54, 55, 56, 56.5, 57, 58, 59] },
-    { number: 11, title: 'Volume 11', cover: '/volumes/11.jpg', chapters: [60, 61, 62, 63, 64, 65] },
-    { number: 12, title: 'Volume 12', cover: '/volumes/12.jpg', chapters: [66, 67, 68, 69, 70, 71, 72] },
+    { number: 1, title: 'Volume 1', cover: '/volumes/1.jpg', chapters: [1, 2, 3, 4, 5], anime: 'Season 1', purchaseUrl: 'https://www.penguinrandomhouse.com/books/677487/skip-and-loafer-vol-1-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065142091/' },
+    { number: 2, title: 'Volume 2', cover: '/volumes/2.jpg', chapters: [6, 7, 8, 9, 10, 11, 11.5], anime: 'Season 1', purchaseUrl: 'https://www.penguinrandomhouse.com/books/696193/skip-and-loafer-vol-2-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065163005/' },
+    { number: 3, title: 'Volume 3', cover: '/volumes/3.jpg', chapters: [12, 13, 14, 15, 16, 17], anime: 'Season 1', purchaseUrl: 'https://www.penguinrandomhouse.com/books/707653/skip-and-loafer-vol-3-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065184711/' },
+    { number: 4, title: 'Volume 4', cover: '/volumes/4.jpg', chapters: [18, 19, 20, 21, 22, 23, 23.5], anime: 'Season 1', purchaseUrl: 'https://www.penguinrandomhouse.com/books/707725/skip-and-loafer-vol-4-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065205395/' },
+    { number: 5, title: 'Volume 5', cover: '/volumes/5.jpg', chapters: [24, 25, 26, 27, 28, 29], purchaseUrl: 'https://www.penguinrandomhouse.com/books/707592/skip-and-loafer-vol-5-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065224977/' },
+    { number: 6, title: 'Volume 6', cover: '/volumes/6.jpg', chapters: [30, 31, 32, 33, 34, 35, 35.5], purchaseUrl: 'https://www.penguinrandomhouse.com/books/719281/skip-and-loafer-vol-6-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065257794/' },
+    { number: 7, title: 'Volume 7', cover: '/volumes/7.jpg', chapters: [36, 37, 38, 39, 40, 41, 41.5], purchaseUrl: 'https://www.penguinrandomhouse.com/books/725414/skip-and-loafer-vol-7-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065281474/' },
+    { number: 8, title: 'Volume 8', cover: '/volumes/8.jpg', chapters: [42, 43, 44, 45, 46, 47, 47.5], purchaseUrl: 'https://www.penguinrandomhouse.com/books/740385/skip-and-loafer-vol-8-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065302676/' },
+    { number: 9, title: 'Volume 9', cover: '/volumes/9.jpg', chapters: [48, 49, 50, 51, 52, 53, 53.1, 53.2, 53.5], purchaseUrl: 'https://www.penguinrandomhouse.com/books/749797/skip-and-loafer-vol-9-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065326427/' },
+    { number: 10, title: 'Volume 10', cover: '/volumes/10.jpg', chapters: [54, 55, 56, 56.5, 57, 58, 59], purchaseUrl: 'https://www.penguinrandomhouse.com/books/772728/skip-and-loafer-vol-10-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/406534851X/' },
+    { number: 11, title: 'Volume 11', cover: '/volumes/11.jpg', chapters: [60, 61, 62, 63, 64, 65], purchaseUrl: 'https://www.penguinrandomhouse.com/books/783973/skip-and-loafer-vol-11-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065377226/' },
+    { number: 12, title: 'Volume 12', cover: '/volumes/12.jpg', chapters: [66, 67, 68, 69, 70, 71, 72], purchaseUrl: 'https://www.penguinrandomhouse.com/books/819145/skip-and-loafer-vol-12-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065397065/' },
     { number: 13, title: 'Volume 13', cover: null, chapters: [73, 74, 75, 76, 77, 78], inProgress: true },
 ];
 
@@ -76,7 +76,7 @@ export const CHAPTERS = [
         }
     },
     {
-        number: 5, title: '"Cracklin\'" Movie Theatre', thumbnail: null, 
+        number: 5, title: '"Cracklin\'" Movie Theatre', thumbnail: null,
         pages: mangaPages('5', 29),
         links: {
             en: 'https://weebdex.org/chapter/gmp3g7hguk',
