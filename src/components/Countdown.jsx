@@ -5,6 +5,16 @@ import { differenceInSeconds, isBefore } from 'date-fns';
 
 const TARGET_DATE = new Date('2026-04-25T00:00:00+09:00');
 
+const UI_TEXT = {
+    en: { days: 'days', hours: 'hrs', minutes: 'min', seconds: 'sec', loading: 'Loading...' },
+    es: { days: 'días', hours: 'hrs', minutes: 'min', seconds: 'seg', loading: 'Cargando...' },
+    pt: { days: 'dias', hours: 'hrs', minutes: 'min', seconds: 'seg', loading: 'Carregando...' },
+    fr: { days: 'jours', hours: 'h', minutes: 'min', seconds: 'sec', loading: 'Chargement...' },
+    de: { days: 'Tage', hours: 'Std', minutes: 'Min', seconds: 'Sek', loading: 'Lädt...' },
+    it: { days: 'giorni', hours: 'ore', minutes: 'min', seconds: 'sec', loading: 'Caricamento...' },
+    vi: { days: 'ngày', hours: 'giờ', minutes: 'phút', seconds: 'giây', loading: 'Đang tải...' },
+};
+
 const flipVariants = {
     initial: { rotateX: -90, opacity: 0 },
     animate: { rotateX: 0, opacity: 1 },
@@ -83,8 +93,9 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
     </motion.div>
 );
 
-const Countdown = ({ isMobile = false }) => {
+const Countdown = ({ isMobile = false, uiLanguage = 'en' }) => {
     const [timeLeft, setTimeLeft] = useState(null);
+    const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
 
     useEffect(() => {
         const calculateTimeLeft = () => {
@@ -106,7 +117,7 @@ const Countdown = ({ isMobile = false }) => {
         return () => clearInterval(timer);
     }, []);
 
-    if (!timeLeft) return <div style={{ fontFamily: 'var(--font-main)', color: '#9ca3af' }}>Loading...</div>;
+    if (!timeLeft) return <div style={{ fontFamily: 'var(--font-main)', color: '#9ca3af' }}>{t.loading}</div>;
 
     return (
         <div style={{
@@ -117,10 +128,10 @@ const Countdown = ({ isMobile = false }) => {
             flexWrap: 'nowrap',
             alignItems: 'center'
         }}>
-            <CalendarPad value={timeLeft.days || 0} label="days" delay={0.1} borderColor="var(--pop-pink)" isMobile={isMobile} />
-            <CalendarPad value={timeLeft.hours || 0} label="hrs" delay={0.2} borderColor="var(--pop-green)" isMobile={isMobile} />
-            <CalendarPad value={timeLeft.minutes || 0} label="min" delay={0.3} borderColor="var(--pop-blue)" isMobile={isMobile} />
-            <CalendarPad value={timeLeft.seconds || 0} label="sec" delay={0.4} borderColor="var(--pop-yellow)" isMobile={isMobile} />
+            <CalendarPad value={timeLeft.days || 0} label={t.days} delay={0.1} borderColor="var(--pop-pink)" isMobile={isMobile} />
+            <CalendarPad value={timeLeft.hours || 0} label={t.hours} delay={0.2} borderColor="var(--pop-green)" isMobile={isMobile} />
+            <CalendarPad value={timeLeft.minutes || 0} label={t.minutes} delay={0.3} borderColor="var(--pop-blue)" isMobile={isMobile} />
+            <CalendarPad value={timeLeft.seconds || 0} label={t.seconds} delay={0.4} borderColor="var(--pop-yellow)" isMobile={isMobile} />
         </div>
     );
 };

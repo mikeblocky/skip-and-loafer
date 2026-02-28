@@ -1,32 +1,48 @@
 /* eslint-disable no-unused-vars */
 import { motion } from 'framer-motion';
 
-const ReleaseNote = ({ isMobile }) => (
+const UI_TEXT = {
+    en: { chapterOut: 'Chapter 78 out now!', quote: '"Pure white and brand new. Step firmly and feel the crunch."', read: 'Read →' },
+    es: { chapterOut: '¡Capítulo 78 disponible!', quote: '"Puro blanco y completamente nuevo. Pisa firme y siente el crujido."', read: 'Leer →' },
+    pt: { chapterOut: 'Capítulo 78 disponível!', quote: '"Branco puro e totalmente novo. Pise firme e sinta o estalo."', read: 'Ler →' },
+    fr: { chapterOut: 'Chapitre 78 disponible !', quote: '"Blanc pur et tout neuf. Avancez fermement et sentez le craquement."', read: 'Lire →' },
+    de: { chapterOut: 'Kapitel 78 ist jetzt da!', quote: '"Reinweiß und brandneu. Tritt fest auf und spüre das Knirschen."', read: 'Lesen →' },
+    it: { chapterOut: 'Capitolo 78 disponibile ora!', quote: '"Bianco puro e nuovissimo. Cammina deciso e senti lo scricchiolio."', read: 'Leggi →' },
+    vi: { chapterOut: 'Chương 78 đã ra mắt!', quote: '"Trắng tinh và hoàn toàn mới. Bước thật chắc và cảm nhận tiếng lạo xạo."', read: 'Đọc →' },
+};
+
+const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false }) => {
+    const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+
+    return (
     <motion.a
         href="https://comic-days.com/episode/12207421983406221656"
         target="_blank"
         rel="noopener noreferrer"
         style={{
-            position: isMobile ? 'relative' : 'absolute',
-            bottom: isMobile ? 'auto' : '-10px',
-            right: isMobile ? 'auto' : '64px',
+            position: inline ? 'relative' : 'fixed',
+            top: inline ? 'auto' : (isMobile ? '74vh' : '300px'),
+            right: inline ? 'auto' : '50%',
             left: 'auto',
-            transform: isMobile ? 'none' : 'rotate(-1deg)',
-            alignSelf: 'center',
+            bottom: 'auto',
+            transform: inline ? 'none' : (isMobile ? 'translateX(50%)' : 'translateX(50%) rotate(-1deg)'),
+            alignSelf: 'auto',
             background: '#fef3c7',
             padding: isMobile ? '8px 12px' : '10px 20px',
             borderRadius: '8px',
             boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
-            zIndex: 30,
+            zIndex: 1150,
             border: '1.5px solid #f59e0b',
             textDecoration: 'none',
             display: 'flex',
             alignItems: 'center',
+            flexWrap: inline && isMobile ? 'wrap' : 'nowrap',
             gap: isMobile ? '5px' : '10px',
             justifyContent: 'center',
-            marginTop: isMobile ? '16px' : 0,
-            marginBottom: isMobile ? '16px' : 0,
+            marginTop: 0,
+            marginBottom: 0,
             width: isMobile ? 'fit-content' : 'auto',
+            maxWidth: inline && isMobile ? '100%' : 'none',
             whiteSpace: isMobile ? 'normal' : 'nowrap'
         }}
         initial={{ y: 20, opacity: 0 }}
@@ -36,10 +52,10 @@ const ReleaseNote = ({ isMobile }) => (
     >
         <span style={{ fontSize: isMobile ? '0.75rem' : '0.85rem' }}>📢</span>
         <span style={{ fontFamily: 'var(--font-hand)', color: '#92400e', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 'bold' }}>
-            Chapter 78 out now!
+            {t.chapterOut}
         </span>
         <span style={{ fontFamily: 'var(--font-hand)', color: '#b45309', fontSize: isMobile ? '0.7rem' : '0.8rem', fontStyle: 'italic' }}>
-            "Pure white and brand new. Step firmly and feel the crunch."
+            {t.quote}
         </span>
         <span style={{
             fontSize: isMobile ? '0.65rem' : '0.75rem',
@@ -51,9 +67,10 @@ const ReleaseNote = ({ isMobile }) => (
             fontWeight: 'bold',
             flexShrink: 0
         }}>
-            Read →
+            {t.read}
         </span>
     </motion.a>
-);
+    );
+};
 
 export default ReleaseNote;

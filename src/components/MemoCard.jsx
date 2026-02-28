@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 
 const MemoCard = ({ src, index, initialX, initialY, initialRotation }) => {
@@ -45,4 +45,4 @@ const MemoCard = ({ src, index, initialX, initialY, initialRotation }) => {
     );
 };
 
-export default MemoCard;
+export default memo(MemoCard);

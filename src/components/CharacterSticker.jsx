@@ -1,12 +1,14 @@
 /* eslint-disable no-unused-vars, react-hooks/purity */
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { memo, useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Sparkles } from 'lucide-react';
 
-const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPositionUpdate, index }) => {
+const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPositionUpdate, index, sidePreference, sideRank = 0, sideCount = 1 }) => {
     const [showEffect, setShowEffect] = useState(null);
     const stickerRef = useRef(null);
     const size = isMobile ? 100 : 150;
+    const sidePages = ['home', 'chapters', 'sync', 'birthdays', 'gallery', 'blog'];
+    const isSideLayoutPage = sidePages.includes(activePage);
 
     // Random position and rotation on each page load
     const randomPos = useMemo(() => {
@@ -20,7 +22,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
         };
     }, [isMobile]);
 
-    // Edge position for Chapters page
+    // Edge position for side-layout pages
     const edgePos = useMemo(() => {
         const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
         const h = typeof window !== 'undefined' ? window.innerHeight : 800;
@@ -37,19 +39,33 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
             else if (side === 2) { x = Math.random() * (w - size); y = h - size - pad; } // Bottom
             else { x = pad; y = Math.random() * (h - size); } // Left
         } else {
-            // Left, Right based on index
-            const side = index % 2;
+            // Use balanced side assignment from App; fallback to random if unavailable
+            const side = sidePreference === 'left' ? 0 : sidePreference === 'right' ? 1 : (Math.random() < 0.5 ? 0 : 1);
             // eslint-disable-next-line react-hooks/purity
-            if (side === 0) { x = pad; y = Math.random() * (h - size); } // Left
-            else { x = w - size - pad; y = Math.random() * (h - size); } // Right
+            if (side === 0) { x = pad; } // Left
+            else { x = w - size - pad; } // Right
+
+            const maxY = Math.max(0, h - size);
+            const safeCount = Math.max(1, sideCount);
+            const minGap = size * 0.5; // allow at most 50% overlap
+
+            if (safeCount === 1) {
+                y = Math.random() * maxY;
+            } else {
+                const baseGap = maxY / (safeCount - 1);
+                const baseY = Math.min(maxY, Math.max(0, sideRank * baseGap));
+                const jitterRoom = Math.max(0, (baseGap - minGap) / 2);
+                const jitter = (Math.random() * 2 - 1) * jitterRoom;
+                y = Math.min(maxY, Math.max(0, baseY + jitter));
+            }
         }
 
         // eslint-disable-next-line react-hooks/purity
         return { x, y, rot: Math.random() * 40 - 20 };
-    }, [isMobile, index, size]);
+    }, [isMobile, index, size, sidePreference, sideRank, sideCount]);
 
     // Choose target based on current view
-    const targetPos = (activePage === 'chapters' || activePage === 'sync' || activePage === 'birthdays' || activePage === 'gallery') ? edgePos : randomPos;
+    const targetPos = isSideLayoutPage ? edgePos : randomPos;
 
     const checkProximity = useCallback(() => {
         if (!stickerRef.current) return;
@@ -107,7 +123,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
 
     return (
         <AnimatePresence>
-            {!(isMobile && (activePage === 'chapters' || activePage === 'sync' || activePage === 'birthdays' || activePage === 'gallery')) && (
+            {!(isMobile && isSideLayoutPage) && (
                 <motion.div
                     ref={stickerRef}
                     drag
@@ -128,7 +144,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
                     initial={{ scale: 0, opacity: 0, rotate: randomPos.rot * 2, x: randomPos.x, y: randomPos.y }}
                     animate={{ scale: 1, opacity: 1, rotate: targetPos.rot, x: targetPos.x, y: targetPos.y }}
                     exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 180, damping: 15, delay: (activePage === 'chapters' || activePage === 'sync') ? index * 0.05 : 0.2 + index * 0.1 }}
+                    transition={{ type: 'spring', stiffness: 180, damping: 15, delay: isSideLayoutPage ? index * 0.05 : 0.2 + index * 0.1 }}
                 >
                     <img
                         src={character.src}
@@ -208,4 +224,4 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
     );
 };
 
-export default CharacterSticker;
+export default memo(CharacterSticker);

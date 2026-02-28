@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 /* Four characters — two on each side, tucked to the viewport edges.
    Rendered only on desktop (hidden via display:none on mobile). */
 const CHARS = [
-  { src: '/1c.png', alt: 'Mitsumi', side: 'left',  top: '18%', rotate: 6,  floatY: [0, -14, 0], dur: 4.0 },
-  { src: '/3c.png', alt: 'Mika',    side: 'left',  top: '58%', rotate: -8, floatY: [0, -10, 0], dur: 5.2 },
-  { src: '/2c.png', alt: 'Sousuke', side: 'right', top: '22%', rotate: -6, floatY: [0, -12, 0], dur: 4.6 },
-  { src: '/4c.png', alt: 'Makoto',  side: 'right', top: '62%', rotate: 9,  floatY: [0, -8,  0], dur: 3.8 },
+  { src: '/characters/1c.png', alt: 'Mitsumi', side: 'left',  top: '18%', rotate: 6,  floatY: [0, -14, 0], dur: 4.0 },
+  { src: '/characters/3c.png', alt: 'Mika',    side: 'left',  top: '58%', rotate: -8, floatY: [0, -10, 0], dur: 5.2 },
+  { src: '/characters/2c.png', alt: 'Sousuke', side: 'right', top: '22%', rotate: -6, floatY: [0, -12, 0], dur: 4.6 },
+  { src: '/characters/4c.png', alt: 'Makoto',  side: 'right', top: '62%', rotate: 9,  floatY: [0, -8,  0], dur: 3.8 },
 ];
 
 const SideCharacters = ({ isMobile }) => {

@@ -1,0 +1,65 @@
+import { motion } from 'framer-motion';
+import { ImageOff } from 'lucide-react';
+import { TAB_PANEL_INITIAL, getTabPanelAnimate, TRANSITION_FAST } from '../../shared/animationPresets';
+
+const GallerySubtabPanel = ({
+  tab,
+  tabIndex,
+  activeTab,
+  isMobile,
+  selectedImage,
+  images,
+  t,
+  setSelectedImage,
+  markLoaded,
+  GalleryThumbComponent,
+}) => {
+  const isActive = tabIndex === activeTab;
+
+  return (
+    <motion.div
+      key={tab.id}
+      initial={TAB_PANEL_INITIAL}
+      animate={getTabPanelAnimate(isActive)}
+      transition={TRANSITION_FAST}
+      className="hide-scrollbar"
+      style={{
+        display: isActive ? 'block' : 'none',
+        flex: 1,
+        overflowY: isMobile ? 'visible' : 'auto',
+        maxHeight: isMobile ? 'none' : 'min(550px, calc(100vh - 280px))',
+        padding: '4px',
+        overflowAnchor: 'none',
+      }}
+    >
+      {images.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '16px' }}>
+          <ImageOff size={48} style={{ color: '#d1d5db' }} />
+          <span style={{ fontFamily: 'var(--font-hand)', fontSize: '1.1rem', color: '#9ca3af', fontWeight: 'bold' }}>{t.noImages}</span>
+        </div>
+      ) : (
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4" style={{ overflowAnchor: 'none' }}>
+          {images.map((src, index) => {
+            const isSelected = isActive && src === selectedImage;
+            return (
+              <GalleryThumbComponent
+                key={src}
+                src={src}
+                index={index}
+                onLoaded={markLoaded}
+                selectedBorderColor={isSelected ? tab.color : null}
+                artAltLabel={t.artAlt}
+                onClick={() => {
+                  if (!isActive) return;
+                  setSelectedImage(src);
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+export default GallerySubtabPanel;
