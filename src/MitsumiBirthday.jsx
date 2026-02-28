@@ -224,7 +224,7 @@ const MitsumiBirthday = () => {
                             transition={{ duration: 1.2, repeat: Infinity, ease: roughStep }}
                             style={{ width: '100%', height: '100%' }}
                         >
-                            <img src="/1c.png" alt="Mitsumi" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <img src="/characters/1c.png" alt="Mitsumi" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         </motion.div>
 
                         <motion.div
@@ -296,7 +296,7 @@ const MitsumiBirthday = () => {
                             transition={{ duration: 1.5, repeat: Infinity, ease: roughStep }}
                             style={{ width: '100%', height: '100%' }}
                         >
-                            <img src="/2c.png" alt="Shima" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <img src="/characters/2c.png" alt="Shima" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         </motion.div>
                     </div>
                 </motion.div>
@@ -322,7 +322,7 @@ const MitsumiBirthday = () => {
                         transition={{ duration: 1.3, repeat: Infinity, ease: roughStep }}
                         style={{ width: '100%', height: '100%' }}
                     >
-                        <img src="/3c.png" alt="Mika" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src="/characters/3c.png" alt="Mika" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         <motion.div
                             animate={{ opacity: [0, 0, 1, 1, 0, 0], rotate: [0, 0, 10, -10, 0, 0] }}
                             transition={{ times: [0, t(22), t(22.1), t(26), t(26.1), 1], duration: DURATION, repeat: Infinity, ease: veryRough }}
@@ -354,7 +354,7 @@ const MitsumiBirthday = () => {
                         transition={{ duration: 2, repeat: Infinity, ease: roughStep }}
                         style={{ width: '100%', height: '100%' }}
                     >
-                        <img src="/4c.png" alt="Yuzuki" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src="/characters/4c.png" alt="Yuzuki" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         <motion.div
                             animate={{ opacity: [0, 0, 1, 1, 0, 0], scale: [0, 0, 1.2, 1, 0, 0], rotate: [0, 0, -10, 10, 0, 0] }}
                             transition={{ times: [0, t(25), t(25.1), t(27), t(27.1), 1], duration: DURATION, repeat: Infinity, ease: veryRough }}
@@ -386,7 +386,7 @@ const MitsumiBirthday = () => {
                         transition={{ duration: 1.1, repeat: Infinity, ease: roughStep }}
                         style={{ width: '100%', height: '100%' }}
                     >
-                        <img src="/5c.png" alt="Makoto" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <img src="/characters/5c.png" alt="Makoto" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         <motion.div
                             animate={{ opacity: [0, 0, 1, 1, 0, 0], rotate: [0, 0, -15, 15, 0, 0] }}
                             transition={{ times: [0, t(26), t(26.1), t(28), t(28.1), 1], duration: DURATION, repeat: Infinity, ease: veryRough }}

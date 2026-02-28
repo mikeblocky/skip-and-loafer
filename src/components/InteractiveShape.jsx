@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const InteractiveShape = ({ color, size, initialTop, initialLeft, index }) => {
@@ -35,4 +35,4 @@ const InteractiveShape = ({ color, size, initialTop, initialLeft, index }) => {
     );
 };
 
-export default InteractiveShape;
+export default memo(InteractiveShape);
