@@ -1,67 +1,23 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Bug, Cake, BookOpen, Trash2, ShoppingBag, Images } from 'lucide-react';
+import { X } from 'lucide-react';
+import {
+    CHANGELOG_VERSION,
+    STORAGE_KEY,
+    RELEASE_DATE,
+    formatReleaseDate,
+    getUtcOffsetLabel,
+    CHANGELOG_SERIES,
+    TYPE_COLORS,
+    UI_TEXT,
+} from './changelog/changelogConfig';
 
-/**
- * Bump this version string every time you add new changelog entries.
- * The popup only shows if the user hasn't seen this exact version.
- */
-const CHANGELOG_VERSION = '2026-02-27-v3';
-const STORAGE_KEY = 'skip_changelogSeen';
-
-const CHANGELOG_ENTRIES = [
-    {
-        icon: <Images size={14} />,
-        type: 'new',
-        text: 'Gallery tab — browse fan art, tweets, stickers, and more by category',
-    },
-    {
-        icon: <Cake size={14} />,
-        type: 'new',
-        text: 'Birthday calendar — see upcoming character birthdays',
-    },
-    {
-        icon: <BookOpen size={14} />,
-        type: 'new',
-        text: '+1 Read button to manually track rereads per chapter',
-    },
-    {
-        icon: <ShoppingBag size={14} />,
-        type: 'new',
-        text: 'Added volume purchase buttons',
-    },
-    {
-        icon: <Zap size={14} />,
-        type: 'improved',
-        text: 'Sync now works across all pages and on mobile',
-    },
-    {
-        icon: <Trash2 size={14} />,
-        type: 'removed',
-        text: 'Native reader and translated chapters',
-    },
-    {
-        icon: <Bug size={14} />,
-        type: 'fix',
-        text: 'Fixed read counts showing different numbers between synced devices',
-    },
-    {
-        icon: <Bug size={14} />,
-        type: 'fix',
-        text: 'Disconnecting a sync key now fully resets local progress',
-    },
-];
-
-const TYPE_COLORS = {
-    new: { bg: '#dbeafe', text: '#1e40af', label: 'New' },
-    improved: { bg: '#d1fae5', text: '#065f46', label: 'Improved' },
-    removed: { bg: '#fee2e2', text: '#991b1b', label: 'Removed' },
-    fix: { bg: '#fef3c7', text: '#92400e', label: 'Fix' },
-};
-
-const ChangelogPopup = ({ isMobile }) => {
+const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
     const [show, setShow] = useState(false);
+    const utcOffsetLabel = getUtcOffsetLabel();
+    const releaseDateLabel = formatReleaseDate(RELEASE_DATE);
+    const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
 
     useEffect(() => {
         try {
@@ -128,49 +84,91 @@ const ChangelogPopup = ({ isMobile }) => {
                         </button>
 
                         {/* Header */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', justifyContent: 'center', flexDirection: 'column' }}>
                             <h2 style={{
-                                fontFamily: 'var(--font-main)', color: '#374151',
+                                fontFamily: 'Sniglet, var(--font-main)', color: '#374151',
                                 fontSize: isMobile ? '1.2rem' : '1.4rem', margin: 0,
+                                fontWeight: 'normal',
                             }}>
-                                What&apos;s new
+                                {t.whatsNew}
                             </h2>
+                            <span style={{
+                                fontFamily: 'var(--font-hand)',
+                                color: '#9ca3af',
+                                fontSize: isMobile ? '0.75rem' : '0.8rem',
+                                lineHeight: 1.2,
+                            }}>
+                                {t.releaseDate}: {releaseDateLabel} ({utcOffsetLabel} {t.local})
+                            </span>
                         </div>
 
-                        {/* Entries */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                            {CHANGELOG_ENTRIES.map((entry, i) => {
-                                const typeStyle = TYPE_COLORS[entry.type] || TYPE_COLORS.fix;
+                        {/* Feature Series */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                            {CHANGELOG_SERIES.map((feature, featureIdx) => {
+                                const Icon = feature.icon;
                                 return (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.06 }}
-                                        style={{
-                                            display: 'flex', alignItems: 'flex-start', gap: '10px',
-                                            padding: '10px 12px',
-                                            background: '#fafafa',
-                                            borderRadius: '10px',
-                                            border: '1px solid #e5e7eb',
-                                        }}
-                                    >
+                                <motion.div
+                                    key={feature.title}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: featureIdx * 0.05 }}
+                                    style={{
+                                        padding: isMobile ? '10px 10px' : '12px 12px',
+                                        background: '#fafafa',
+                                        borderRadius: '10px',
+                                        border: '1px solid #e5e7eb',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '8px',
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ color: '#6b7280', display: 'inline-flex', alignItems: 'center' }}><Icon size={14} /></span>
                                         <span style={{
-                                            display: 'inline-flex', alignItems: 'center', gap: '4px',
-                                            fontSize: '0.65rem', fontWeight: 'bold', fontFamily: 'var(--font-hand)',
-                                            padding: '2px 8px', borderRadius: '9999px',
-                                            background: typeStyle.bg, color: typeStyle.text,
-                                            flexShrink: 0, whiteSpace: 'nowrap', marginTop: '1px',
+                                            fontFamily: 'Sniglet, var(--font-main)',
+                                            color: '#374151',
+                                            fontSize: isMobile ? '0.95rem' : '1rem',
+                                            lineHeight: 1.2,
+                                            fontWeight: 'normal',
                                         }}>
-                                            {entry.icon} {typeStyle.label}
+                                            {feature.title}
                                         </span>
-                                        <span style={{
-                                            fontFamily: 'var(--font-hand)', color: '#374151',
-                                            fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.4,
-                                        }}>
-                                            {entry.text}
-                                        </span>
-                                    </motion.div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        {feature.lines.map((line, lineIdx) => {
+                                            const baseTypeStyle = TYPE_COLORS[line.type] || TYPE_COLORS.fixed;
+                                            const typeStyle = { ...baseTypeStyle, label: t.type[line.type] || baseTypeStyle.label };
+                                            return (
+                                                <div key={`${feature.title}-${lineIdx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                                    <span style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        fontSize: '0.62rem',
+                                                        fontWeight: 'bold',
+                                                        fontFamily: 'var(--font-hand)',
+                                                        padding: '2px 7px',
+                                                        borderRadius: '9999px',
+                                                        background: typeStyle.bg,
+                                                        color: typeStyle.text,
+                                                        flexShrink: 0,
+                                                        marginTop: '1px',
+                                                    }}>
+                                                        {typeStyle.label}
+                                                    </span>
+                                                    <span style={{
+                                                        fontFamily: 'var(--font-hand)',
+                                                        color: '#374151',
+                                                        fontSize: isMobile ? '0.82rem' : '0.88rem',
+                                                        lineHeight: 1.35,
+                                                    }}>
+                                                        {line.text}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </motion.div>
                                 );
                             })}
                         </div>
@@ -188,7 +186,7 @@ const ChangelogPopup = ({ isMobile }) => {
                                     cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                 }}
                             >
-                                Got it!
+                                {t.gotIt}
                             </motion.button>
                         </div>
                     </motion.div>

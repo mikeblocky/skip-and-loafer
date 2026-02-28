@@ -3,6 +3,26 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cake, Sparkles, Star, Heart, Dog, Cat, Music, Coffee, Gift, Pizza, Sun, Cloud, Ghost, Gem, Rabbit, Bird, Fish, Snail, Skull, PawPrint } from 'lucide-react';
 
+const UI_TEXT = {
+    en: { title: 'Birthdays', next: 'Next', in: 'in', today: 'TODAY!', passed: 'passed', tomorrow: 'Tomorrow!', birthdayToday: 'birthday today!', characters: 'characters', dayUnit: 'days' },
+    es: { title: 'Cumpleaños', next: 'Siguiente', in: 'en', today: '¡HOY!', passed: 'pasó', tomorrow: '¡Mañana!', birthdayToday: 'cumpleaños hoy!', characters: 'personajes', dayUnit: 'días' },
+    pt: { title: 'Aniversários', next: 'Próximo', in: 'em', today: 'HOJE!', passed: 'passou', tomorrow: 'Amanhã!', birthdayToday: 'aniversário hoje!', characters: 'personagens', dayUnit: 'dias' },
+    fr: { title: 'Anniversaires', next: 'Prochain', in: 'dans', today: 'AUJOURD’HUI !', passed: 'passé', tomorrow: 'Demain !', birthdayToday: 'anniversaire aujourd’hui !', characters: 'personnages', dayUnit: 'jours' },
+    de: { title: 'Geburtstage', next: 'Nächster', in: 'in', today: 'HEUTE!', passed: 'vorbei', tomorrow: 'Morgen!', birthdayToday: 'hat heute Geburtstag!', characters: 'Charaktere', dayUnit: 'Tage' },
+    it: { title: 'Compleanni', next: 'Prossimo', in: 'tra', today: 'OGGI!', passed: 'passato', tomorrow: 'Domani!', birthdayToday: 'compie gli anni oggi!', characters: 'personaggi', dayUnit: 'giorni' },
+    vi: { title: 'Sinh nhật', next: 'Tiếp theo', in: 'sau', today: 'HÔM NAY!', passed: 'đã qua', tomorrow: 'Ngày mai!', birthdayToday: 'sinh nhật hôm nay!', characters: 'nhân vật', dayUnit: 'ngày' },
+};
+
+const LOCALE_BY_UI_LANGUAGE = {
+    en: 'en-US',
+    es: 'es-ES',
+    pt: 'pt-BR',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    it: 'it-IT',
+    vi: 'vi-VN',
+};
+
 /* ─── Birthday data ─── */
 const BIRTHDAYS = [
     { name: 'Kanechika', fullName: 'Kanechika Narumi', month: 2, day: 1, color: '#4338ca', bg: '#eef2ff' },
@@ -18,9 +38,6 @@ const BIRTHDAYS = [
     { name: 'Ririka', fullName: 'Saijou Ririka', month: 10, day: 30, color: '#881337', bg: '#fff1f2' },
     { name: 'Yuzuki', fullName: 'Murashige Yuzuki', month: 12, day: 11, color: '#14b8a6', bg: '#f0fdfa' },
 ];
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const isTodayBirthday = (m, d) => { const n = new Date(); return n.getMonth() + 1 === m && n.getDate() === d; };
 const hasPassed = (month, day) => {
@@ -51,7 +68,7 @@ const CHAR_ANIM = {
 };
 
 /* ── Character bubble ── */
-const CharBubble = ({ char, index, isMobile }) => {
+const CharBubble = ({ char, index, isMobile, t, reduceMotion = false }) => {
     const today = isTodayBirthday(char.month, char.day);
     const passed = hasPassed(char.month, char.day);
     const days = getDaysUntil(char.month, char.day);
@@ -59,9 +76,9 @@ const CharBubble = ({ char, index, isMobile }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={passed ? { opacity: 0.45, scale: 1 } : { opacity: 1, scale: 1, ...ca.animate }}
-            transition={passed ? { duration: 0.4, delay: 0.03 * index } : {
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
+            animate={reduceMotion ? (passed ? { opacity: 0.45, scale: 1 } : { opacity: 1, scale: 1 }) : (passed ? { opacity: 0.45, scale: 1 } : { opacity: 1, scale: 1, ...ca.animate })}
+            transition={reduceMotion ? { duration: 0 } : (passed ? { duration: 0.4, delay: 0.03 * index } : {
                 opacity: { duration: 0.3, delay: 0.03 * index },
                 y: ca.animate.y ? { duration: ca.dur, repeat: Infinity, ease: 'easeInOut', delay: index * 0.25 } : undefined,
                 x: ca.animate.x ? { duration: ca.dur, repeat: Infinity, ease: 'easeInOut', delay: index * 0.3 } : undefined,
@@ -70,8 +87,8 @@ const CharBubble = ({ char, index, isMobile }) => {
                 skewX: ca.animate.skewX ? { duration: ca.dur * 1.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.4 } : undefined,
                 skewY: ca.animate.skewY ? { duration: ca.dur * 1.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.45 } : undefined,
                 rotateX: ca.animate.rotateX ? { duration: ca.dur * 2, repeat: Infinity, ease: 'easeInOut', delay: index * 0.5 } : undefined,
-            }}
-            whileHover={passed ? {} : { scale: 1.1, y: -2 }}
+            })}
+            whileHover={reduceMotion || passed ? {} : { scale: 1.1, y: -2 }}
             style={{
                 background: today ? char.color : passed ? '#f5f5f5' : char.bg,
                 border: `2px solid ${passed ? '#ddd' : char.color}`,
@@ -86,15 +103,15 @@ const CharBubble = ({ char, index, isMobile }) => {
                 overflow: 'visible',
             }}
         >
-            {today && <motion.div animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} style={{ position: 'absolute', inset: '-4px', borderRadius: '16px', border: `2px solid ${char.color}`, pointerEvents: 'none' }} />}
+            {today && <motion.div animate={reduceMotion ? undefined : { scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }} transition={reduceMotion ? undefined : { duration: 2, repeat: Infinity }} style={{ position: 'absolute', inset: '-4px', borderRadius: '16px', border: `2px solid ${char.color}`, pointerEvents: 'none' }} />}
             <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '1.1rem' : '1.3rem', fontWeight: 'bold', color: today ? '#fff' : passed ? '#c8c8c8' : char.color, lineHeight: 1 }}>{char.day}</span>
             <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.5rem' : '0.6rem', fontWeight: 'bold', color: today ? 'rgba(255,255,255,0.9)' : passed ? '#aaa' : '#374151', textAlign: 'center', lineHeight: 1.1 }}>{char.name}</span>
             {today ? (
-                <motion.span animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
-                    style={{ fontFamily: 'var(--font-hand)', fontSize: '0.38rem', fontWeight: 'bold', color: '#fff', background: 'rgba(255,255,255,0.25)', padding: '1px 5px', borderRadius: '99px' }}>TODAY!</motion.span>
+                <motion.span animate={reduceMotion ? undefined : { scale: [1, 1.1, 1] }} transition={reduceMotion ? undefined : { duration: 1.5, repeat: Infinity }}
+                    style={{ fontFamily: 'var(--font-hand)', fontSize: '0.38rem', fontWeight: 'bold', color: '#fff', background: 'rgba(255,255,255,0.25)', padding: '1px 5px', borderRadius: '99px' }}>{t.today}</motion.span>
             ) : (
                 <span style={{ fontFamily: 'var(--font-hand)', fontSize: '0.36rem', color: passed ? '#bbb' : '#9ca3af', fontWeight: 'bold' }}>
-                    {passed ? 'passed' : days === 1 ? 'Tomorrow!' : `${days}d`}
+                    {passed ? t.passed : days === 1 ? t.tomorrow : `${days} ${t.dayUnit || 'days'}`}
                 </span>
             )}
         </motion.div>
@@ -102,15 +119,15 @@ const CharBubble = ({ char, index, isMobile }) => {
 };
 
 /* ── Month column ── */
-const MonthColumn = ({ month, chars, isMobile, isNow }) => {
+const MonthColumn = ({ month, chars, isMobile, isNow, t, monthLabels, reduceMotion = false }) => {
     const hasBday = chars.length > 0;
     const allPassed = hasBday && chars.every(c => hasPassed(c.month, c.day));
 
     return (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? '4px' : '8px', minWidth: 0 }}>
             <motion.div
-                animate={isNow ? { scale: [1, 1.04, 1] } : {}}
-                transition={{ duration: 3, repeat: Infinity }}
+                animate={reduceMotion ? undefined : (isNow ? { scale: [1, 1.04, 1] } : {})}
+                transition={reduceMotion ? undefined : { duration: 3, repeat: Infinity }}
                 style={{
                     fontFamily: 'var(--font-hand)',
                     fontSize: isMobile ? '0.55rem' : '0.75rem',
@@ -122,18 +139,18 @@ const MonthColumn = ({ month, chars, isMobile, isNow }) => {
                     border: isNow ? '1.5px solid #f472b6' : '1.5px solid transparent',
                     whiteSpace: 'nowrap',
                 }}
-            >{MONTHS[month - 1]}</motion.div>
+            >{monthLabels[month - 1]}</motion.div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '4px' : '8px', alignItems: 'center', flex: 1, justifyContent: 'flex-start' }}>
                 {hasBday ? chars.map((c, j) => (
-                    <CharBubble key={c.name} char={c} index={j} isMobile={isMobile} />
+                    <CharBubble key={c.name} char={c} index={j} isMobile={isMobile} t={t} reduceMotion={reduceMotion} />
                 )) : (
                     <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: isNow ? '#f472b640' : '#ebebeb', marginTop: isMobile ? '12px' : '30px' }} />
                 )}
             </div>
 
             <motion.div
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.03 * (month - 1), duration: 0.3 }}
+                initial={reduceMotion ? false : { scaleX: 0 }} animate={reduceMotion ? undefined : { scaleX: 1 }} transition={reduceMotion ? undefined : { delay: 0.03 * (month - 1), duration: 0.3 }}
                 style={{ width: '100%', height: isNow ? '5px' : hasBday ? '3px' : '2px', background: allPassed ? '#ddd' : isNow ? '#f472b6' : hasBday ? chars[0].color : '#f3f4f6', borderRadius: '4px', marginTop: 'auto' }}
             />
         </div>
@@ -141,8 +158,16 @@ const MonthColumn = ({ month, chars, isMobile, isNow }) => {
 };
 
 /* ─── Main ─── */
-const BirthdayPage = ({ isMobile }) => {
+const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simplifyVisuals = false }) => {
+    const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+    const locale = LOCALE_BY_UI_LANGUAGE[uiLanguage] || 'en-US';
     const currentMonth = new Date().getMonth() + 1;
+    const monthLabels = useMemo(() => {
+        return Array.from({ length: 12 }, (_, index) => {
+            const date = new Date(2026, index, 1);
+            return new Intl.DateTimeFormat(locale, { month: 'short' }).format(date);
+        });
+    }, [locale]);
 
     const byMonth = useMemo(() => {
         const map = {};
@@ -178,33 +203,33 @@ const BirthdayPage = ({ isMobile }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Cake size={isMobile ? 24 : 22} style={{ color: '#f59e0b' }} />
-                    <span style={{ fontFamily: 'var(--font-main)', color: '#6b7280', fontSize: isMobile ? '1.5rem' : '1.3rem', fontWeight: 'normal' }}>Birthdays</span>
+                    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#6b7280', fontSize: isMobile ? '1.5rem' : '1.3rem', fontWeight: 'normal' }}>{t.title}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {nextBday && !todayBday && (
                         <motion.span
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={reduceMotion ? false : { opacity: 0, x: 10 }}
+                            animate={reduceMotion ? undefined : { opacity: 1, x: 0 }}
                             style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.85rem' : '0.75rem', color: nextBday.color, fontWeight: 'bold', background: `${nextBday.color}15`, padding: '4px 12px', borderRadius: '99px', border: `1.5px solid ${nextBday.color}30` }}
                         >
-                            Next: {nextBday.name} in {getDaysUntil(nextBday.month, nextBday.day)}d
+                            {t.next}: {nextBday.name} {t.in} {getDaysUntil(nextBday.month, nextBday.day)} {t.dayUnit || 'days'}
                         </motion.span>
                     )}
                     {todayBday && (
                         <motion.span
-                            animate={{ scale: [1, 1.08, 1], rotate: [-2, 2, -2] }}
-                            transition={{ duration: 2, repeat: Infinity }}
+                            animate={reduceMotion ? undefined : { scale: [1, 1.08, 1], rotate: [-2, 2, -2] }}
+                            transition={reduceMotion ? undefined : { duration: 2, repeat: Infinity }}
                             style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.9rem' : '0.75rem', color: todayBday.color, fontWeight: 'bold', background: `${todayBday.color}15`, padding: '4px 12px', borderRadius: '99px', border: `1.5px solid ${todayBday.color}40`, boxShadow: `0 4px 12px ${todayBday.color}20` }}
                         >
-                            🎂 {todayBday.name}'s birthday today!
+                            🎂 {todayBday.name} {t.birthdayToday}
                         </motion.span>
                     )}
                 </div>
             </div>
 
             {/* Background decorations for extra "funky" feel */}
-            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0, opacity: 0.4 }}>
+            {!reduceMotion && !simplifyVisuals && <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0, opacity: 0.4 }}>
                 <motion.div animate={{ y: [0, -25, 0], rotate: [0, 45, 0], scale: [1, 1.2, 1] }} transition={{ duration: 15, repeat: Infinity }} style={{ position: 'absolute', bottom: '15%', right: '10%', color: 'var(--pop-yellow)' }}><Dog size={32} /></motion.div>
                 <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3], rotate: [0, -20, 0] }} transition={{ duration: 12, repeat: Infinity }} style={{ position: 'absolute', top: '40%', right: '5%', color: 'var(--pop-green)' }}><Cat size={28} /></motion.div>
                 <motion.div animate={{ x: [0, 20, 0], y: [0, 20, 0], scale: [1, 1.1, 1] }} transition={{ duration: 18, repeat: Infinity }} style={{ position: 'absolute', bottom: '10%', left: '8%', color: 'var(--pop-blue)' }}><Pizza size={30} /></motion.div>
@@ -218,28 +243,28 @@ const BirthdayPage = ({ isMobile }) => {
                 <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 15, repeat: Infinity }} style={{ position: 'absolute', top: '55%', left: '5%', color: 'var(--pop-yellow)' }}><Fish size={26} /></motion.div>
                 <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 30, repeat: Infinity }} style={{ position: 'absolute', bottom: '20%', left: '35%', color: 'var(--pop-green)' }}><Snail size={22} /></motion.div>
                 <motion.div animate={{ scale: [0.9, 1.1, 0.9] }} transition={{ duration: 13, repeat: Infinity }} style={{ position: 'absolute', top: '35%', right: '40%', color: 'var(--pop-pink)' }}><PawPrint size={24} /></motion.div>
-            </div>
+            </div>}
 
             {/* Month columns */}
             {isMobile ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
                     {[[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]].map((row, ri) => (
                         <div key={ri} style={{ display: 'flex', gap: '4px', flex: 1 }}>
-                            {row.map(m => <MonthColumn key={m} month={m} chars={byMonth[m]} isMobile isNow={m === currentMonth} />)}
+                            {row.map(m => <MonthColumn key={m} month={m} chars={byMonth[m]} isMobile isNow={m === currentMonth} t={t} monthLabels={monthLabels} reduceMotion={reduceMotion} />)}
                         </div>
                     ))}
                 </div>
             ) : (
                 <div style={{ display: 'flex', gap: '4px' }}>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                        <MonthColumn key={m} month={m} chars={byMonth[m]} isMobile={false} isNow={m === currentMonth} />
+                        <MonthColumn key={m} month={m} chars={byMonth[m]} isMobile={false} isNow={m === currentMonth} t={t} monthLabels={monthLabels} reduceMotion={reduceMotion} />
                     ))}
                 </div>
             )}
 
             {!isMobile && (
                 <div style={{ textAlign: 'center', padding: '10px', fontFamily: 'var(--font-hand)', fontSize: '0.6rem', color: '#d1d5db' }}>
-                    {BIRTHDAYS.length} characters • {new Date().getFullYear()}
+                    {BIRTHDAYS.length} {t.characters} • {new Date().getFullYear()}
                 </div>
             )}
         </div>

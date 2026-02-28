@@ -33,9 +33,9 @@ export const CHARACTER_COLORS = {
 
 /* Character stickers with positions */
 export const CHARACTER_DATA = [
-    { id: '1c', src: '/1c.png', name: 'Mitsumi', x: 50, y: 100, rot: -8 },
-    { id: '2c', src: '/2c.png', name: 'Sousuke', x: 800, y: 80, rot: 6 },
-    { id: '3c', src: '/3c.png', name: 'Mika', x: 30, y: 500, rot: -12 },
-    { id: '4c', src: '/4c.png', name: 'Makoto', x: 850, y: 450, rot: 8 },
-    { id: '5c', src: '/5c.png', name: 'Yuzuki', x: 750, y: 520, rot: -5 },
+    { id: '1c', src: '/characters/1c.png', name: 'Mitsumi', x: 50, y: 100, rot: -8 },
+    { id: '2c', src: '/characters/2c.png', name: 'Sousuke', x: 800, y: 80, rot: 6 },
+    { id: '3c', src: '/characters/3c.png', name: 'Mika', x: 30, y: 500, rot: -12 },
+    { id: '4c', src: '/characters/4c.png', name: 'Makoto', x: 850, y: 450, rot: 8 },
+    { id: '5c', src: '/characters/5c.png', name: 'Yuzuki', x: 750, y: 520, rot: -5 },
 ];

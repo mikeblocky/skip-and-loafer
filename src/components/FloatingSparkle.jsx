@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 
 const FloatingSparkle = ({ children, top, left, right, delay, color }) => (
@@ -11,4 +12,4 @@ const FloatingSparkle = ({ children, top, left, right, delay, color }) => (
     </motion.div>
 );
 
-export default FloatingSparkle;
+export default memo(FloatingSparkle);
