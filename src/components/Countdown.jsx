@@ -12,7 +12,6 @@ const UI_TEXT = {
     fr: { days: 'jours', hours: 'h', minutes: 'min', seconds: 'sec', loading: 'Chargement...' },
     de: { days: 'Tage', hours: 'Std', minutes: 'Min', seconds: 'Sek', loading: 'Lädt...' },
     it: { days: 'giorni', hours: 'ore', minutes: 'min', seconds: 'sec', loading: 'Caricamento...' },
-    vi: { days: 'ngày', hours: 'giờ', minutes: 'phút', seconds: 'giây', loading: 'Đang tải...' },
 };
 
 const flipVariants = {

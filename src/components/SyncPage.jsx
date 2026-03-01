@@ -24,6 +24,7 @@ import LeaderboardTab from './sync/tabs/LeaderboardTab';
 import SyncTab from './sync/tabs/SyncTab';
 import { CONTENT_SLIDE, TRANSITION_TAB } from './shared/animationPresets';
 import { ListRow, MiniChapterRow, TabSelector } from './sync/syncSharedComponents';
+import { useSubtabShortcutNavigation } from '../hooks/useSubtabShortcutNavigation';
 
 const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
@@ -63,16 +64,11 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
         }
     }, [activeTab]);
 
-    useEffect(() => {
-        const key = subtabShortcut?.key;
-        if (!key) return;
-        if (key === 'q') {
-            setActiveTab((prev) => (prev - 1 + tabs.length) % tabs.length);
-        }
-        if (key === 'e') {
-            setActiveTab((prev) => (prev + 1) % tabs.length);
-        }
-    }, [subtabShortcut?.token, tabs.length]);
+    useSubtabShortcutNavigation({
+        subtabShortcut,
+        tabCount: tabs.length,
+        onNavigate: setActiveTab,
+    });
 
     /* ── Sync state ── */
     // Using global sync hook passed as prop

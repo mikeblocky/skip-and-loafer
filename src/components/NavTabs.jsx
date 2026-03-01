@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
 
 const TABS = [
     { id: 'home', label: 'Home', icon: Home, color: 'var(--pop-pink)' },
@@ -9,11 +10,17 @@ const TABS = [
     { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#8b5cf6' },
     { id: 'blog', label: 'Blog', mobileLabel: 'Blog', icon: FileText, color: '#f97316' },
     { id: 'sync', label: 'Progress & Sync', mobileLabel: 'Sync', icon: BarChart3, color: 'var(--pop-green)' },
+    { id: 'quiz', label: 'Quiz', mobileLabel: 'Quiz', icon: Trophy, color: '#ef4444' },
     { id: 'birthdays', label: 'Birthdays', mobileLabel: 'B-days', icon: Cake, color: '#f59e0b' },
 ];
 
 const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
     const railRef = useRef(null);
+
+    const handleTabPress = useCallback((tabId) => {
+        triggerHaptic('selection');
+        onPageChange(tabId);
+    }, [onPageChange]);
 
     useEffect(() => {
         if (!isMobile || !railRef.current) return;
@@ -63,7 +70,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                         <motion.button
                             key={tab.id}
                             data-tab-id={tab.id}
-                            onClick={() => onPageChange(tab.id)}
+                            onClick={() => handleTabPress(tab.id)}
                             aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
                             aria-current={isActive ? 'page' : undefined}
                             whileHover={{
