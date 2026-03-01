@@ -1,18 +1,13 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { Newspaper, ChevronLeft, CalendarDays, BookOpen, ALargeSmall, Space, Focus, Sun, Moon, FileText as FileTextIcon, ChevronUp } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import { BLOGS } from '../data/blogs';
 import ImageLightbox from './shared/ImageLightbox';
 import {
   UI_TEXT,
-  NOTE_PALETTES,
   formatDate,
   getReadMinutes,
-  getPreview,
   ensureMetaDescriptionTag,
   readBlogReaderState,
   writeBlogReaderState,
@@ -24,43 +19,29 @@ import { useBlogHistoryNavigation } from './blog/useBlogHistoryNavigation';
 import { useBlogReaderBehavior } from './blog/useBlogReaderBehavior';
 import { CONTENT_SLIDE_COMPACT, TRANSITION_FAST, TAP_SCALE_DEFAULT, TAP_SCALE_SOFT } from './shared/animationPresets';
 import {
-  getBlogListItemInitial,
-  BLOG_LIST_ITEM_ANIMATE,
-  getBlogListItemTransition,
-} from './blog/blogAnimations';
-import {
   getPageRootStyle,
   getHeaderRowStyle,
   getHeaderTitleWrapStyle,
   getHeaderTitleStyle,
   getSortButtonStyle,
   getScrollablePaneStyle,
-  EMPTY_BLOGS_STYLE,
-  getBlogCardStyle,
-  BLOG_CARD_TITLE_STYLE,
-  getBlogMetaStyle,
-  BLOG_META_DOT_STYLE,
-  getReadPostButtonStyle,
-  getBackToListButtonStyle,
-  getDetailMetaStyle,
   getReaderPanelStyle,
-  getReaderHeadingStyle,
-  getReaderDescriptionStyle,
-  getReaderScrollStyle,
-  getReaderContentWrapStyle,
-  getLoadMoreStyle,
   PROGRESS_TRACK_STYLE,
   PROGRESS_FILL_STYLE,
   getBackFabStyle,
   getTopFabStyle,
 } from './blog/blogStyles';
 import ReaderControls from './blog/ReaderControls';
+import BlogListView from './blog/BlogListView';
+import BlogDetailView from './blog/BlogDetailView';
+
+const BlogMarkdownRenderer = lazy(() => import('./blog/BlogMarkdownRenderer'));
 
 const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
   const CHUNK_STEP = isMobile ? 5 : 4;
   const initialReaderState = readBlogReaderState();
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const locale = uiLanguage === 'vi' ? 'vi-VN' : uiLanguage;
+  const locale = uiLanguage;
   const [selectedBlogId, setSelectedBlogId] = useState(initialReaderState?.blogId || null);
   const hasHydratedSelectionRef = useRef(false);
   const previousSelectedBlogIdRef = useRef(initialReaderState?.blogId || null);
@@ -232,20 +213,6 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
     { key: 'night', label: t.themeNight || UI_TEXT.en.themeNight, Icon: Moon },
   ];
 
-  const renderedMarkdownChunks = useMemo(() => {
-    if (!selectedBlog) return null;
-    return markdownChunks.slice(0, visibleChunkCount).map((chunk, index) => (
-      <ReactMarkdown
-        key={`${selectedBlog.id}-chunk-${index}`}
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
-        components={markdownComponents}
-      >
-        {chunk}
-      </ReactMarkdown>
-    ));
-  }, [selectedBlog, markdownChunks, visibleChunkCount, markdownComponents]);
-
   const showFloatingFabStack = showFloatingControls || showBackToTop;
 
   return (
@@ -293,49 +260,15 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             ref={listScrollRef}
             style={getScrollablePaneStyle(isMobile)}
           >
-            {blogs.length === 0 && (
-              <div style={EMPTY_BLOGS_STYLE}>
-                {t.noBlogs}
-              </div>
-            )}
-
-            {blogs.map((blog, index) => {
-              const note = NOTE_PALETTES[index % NOTE_PALETTES.length];
-              const preview = blog.description || getPreview(blog.content);
-              const readMinutes = getReadMinutes(blog.content);
-
-              return (
-                <motion.div
-                  key={blog.id}
-                  initial={getBlogListItemInitial(index)}
-                  animate={BLOG_LIST_ITEM_ANIMATE}
-                  transition={getBlogListItemTransition(index)}
-                  style={getBlogCardStyle(note, isMobile)}
-                >
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '3px', marginBottom: '6px' }}>
-                      <span style={{ ...BLOG_CARD_TITLE_STYLE, fontSize: isMobile ? '0.95rem' : '1rem' }}>{blog.title}</span>
-                      <span style={getBlogMetaStyle(note, isMobile)}>
-                        <CalendarDays size={12} /> {formatDate(blog.date, locale)}
-                        <span style={BLOG_META_DOT_STYLE}>•</span>
-                        <BookOpen size={12} /> {readMinutes} {t.minutesRead}
-                      </span>
-                    </div>
-                    <p style={{ margin: 0, color: '#4b5563', fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.78 * bodyFontScale}rem` : `${0.84 * bodyFontScale}rem`, lineHeight: readerPrefs.wideSpacing ? 1.55 : 1.35 }}>
-                      {preview || t.empty}
-                    </p>
-                  </div>
-
-                  <motion.button
-                    whileTap={TAP_SCALE_DEFAULT}
-                    onClick={() => setSelectedBlogId(blog.id)}
-                    style={getReadPostButtonStyle(note, isMobile)}
-                  >
-                    {t.readPost}
-                  </motion.button>
-                </motion.div>
-              );
-            })}
+            <BlogListView
+              blogs={blogs}
+              isMobile={isMobile}
+              t={t}
+              locale={locale}
+              bodyFontScale={bodyFontScale}
+              readerPrefs={readerPrefs}
+              onSelectBlog={setSelectedBlogId}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -347,46 +280,32 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             className="hide-scrollbar"
             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden', minHeight: 0 }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-              <motion.button
-                whileTap={TAP_SCALE_DEFAULT}
-                onClick={handleBackToList}
-                style={getBackToListButtonStyle(isMobile)}
-              >
-                <ChevronLeft size={14} /> {t.backToList}
-              </motion.button>
-              <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '4px' }}>
-                <span style={getDetailMetaStyle(isMobile)}>
-                  <CalendarDays size={12} /> {formatDate(selectedBlog.date, locale)}
-                  <span style={BLOG_META_DOT_STYLE}>•</span>
-                  <BookOpen size={12} /> {getReadMinutes(selectedBlog.content)} {t.minutesRead}
-                </span>
-              </div>
-            </div>
-
-            <div style={getReaderPanelStyle(readerTheme, isMobile)}>
-              <h3 style={getReaderHeadingStyle(readerTheme, headingFontScale, isMobile)}>
-                {selectedBlog.title}
-              </h3>
-              {(selectedBlog.metadata?.description || selectedBlog.description) && (
-                <p style={getReaderDescriptionStyle(readerTheme, bodyFontScale, paragraphLineHeight, isMobile)}>
-                  {selectedBlog.metadata?.description || selectedBlog.description}
-                </p>
+            <BlogDetailView
+              isMobile={isMobile}
+              t={t}
+              locale={locale}
+              selectedBlog={selectedBlog}
+              handleBackToList={handleBackToList}
+              readerTheme={readerTheme}
+              headingFontScale={headingFontScale}
+              bodyFontScale={bodyFontScale}
+              paragraphLineHeight={paragraphLineHeight}
+              readerPrefs={readerPrefs}
+              readScrollRef={readScrollRef}
+              renderedMarkdownChunks={(
+                <Suspense fallback={null}>
+                  <BlogMarkdownRenderer
+                    selectedBlogId={selectedBlog?.id || null}
+                    markdownChunks={markdownChunks}
+                    visibleChunkCount={visibleChunkCount}
+                    markdownComponents={markdownComponents}
+                  />
+                </Suspense>
               )}
-              <div ref={readScrollRef} className="hide-scrollbar" style={getReaderScrollStyle(readerTheme)}>
-                <div style={getReaderContentWrapStyle(readerPrefs.focusWidth)}>
-                  {renderedMarkdownChunks}
-                  {markdownChunks.length > visibleChunkCount && (
-                    <div
-                      ref={loadMoreRef}
-                      style={getLoadMoreStyle(isMobile, readerTheme)}
-                    >
-                      Loading more…
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              markdownChunksLength={markdownChunks.length}
+              visibleChunkCount={visibleChunkCount}
+              loadMoreRef={loadMoreRef}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -416,7 +335,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             onClick={scrollActivePaneToTop}
             style={getTopFabStyle(isMobile, showFloatingFabStack)}
           >
-            <ChevronUp size={isMobile ? 18 : 20} /> Top
+            <ChevronUp size={isMobile ? 18 : 20} /> {t.returnToTop || UI_TEXT.en.returnToTop}
           </button>
         </>
       , document.body)}

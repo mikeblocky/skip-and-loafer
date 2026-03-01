@@ -10,7 +10,6 @@ const UI_TEXT = {
     fr: { title: 'Anniversaires', next: 'Prochain', in: 'dans', today: 'AUJOURD’HUI !', passed: 'passé', tomorrow: 'Demain !', birthdayToday: 'anniversaire aujourd’hui !', characters: 'personnages', dayUnit: 'jours' },
     de: { title: 'Geburtstage', next: 'Nächster', in: 'in', today: 'HEUTE!', passed: 'vorbei', tomorrow: 'Morgen!', birthdayToday: 'hat heute Geburtstag!', characters: 'Charaktere', dayUnit: 'Tage' },
     it: { title: 'Compleanni', next: 'Prossimo', in: 'tra', today: 'OGGI!', passed: 'passato', tomorrow: 'Domani!', birthdayToday: 'compie gli anni oggi!', characters: 'personaggi', dayUnit: 'giorni' },
-    vi: { title: 'Sinh nhật', next: 'Tiếp theo', in: 'sau', today: 'HÔM NAY!', passed: 'đã qua', tomorrow: 'Ngày mai!', birthdayToday: 'sinh nhật hôm nay!', characters: 'nhân vật', dayUnit: 'ngày' },
 };
 
 const LOCALE_BY_UI_LANGUAGE = {
@@ -20,7 +19,6 @@ const LOCALE_BY_UI_LANGUAGE = {
     fr: 'fr-FR',
     de: 'de-DE',
     it: 'it-IT',
-    vi: 'vi-VN',
 };
 
 /* ─── Birthday data ─── */

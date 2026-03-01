@@ -21,12 +21,6 @@
   --base-font-size: 16px;
 }
 
-html[lang='vi'] {
-  --font-main: 'Pangolin', cursive;
-  --font-hand: 'Pangolin', cursive;
-  --base-font-size: 17px;
-}
-
 html,
 body {
   margin: 0;
@@ -338,4 +332,69 @@ html[data-a11y-simplify-visuals='1'] * {
   filter: none !important;
   backdrop-filter: none !important;
   background-image: none !important;
+}
+
+html[data-a11y-dim-non-essential-colors='1'] {
+  --pop-pink: #f8b4d0;
+  --pop-green: #b5ddbe;
+  --pop-blue: #b2d5eb;
+  --pop-yellow: #e8dbad;
+}
+
+html[data-a11y-colorblind-mode='protanopia'] {
+  filter: saturate(0.82) hue-rotate(-8deg);
+}
+
+html[data-a11y-colorblind-mode='deuteranopia'] {
+  filter: saturate(0.78) hue-rotate(12deg);
+}
+
+html[data-a11y-colorblind-mode='tritanopia'] {
+  filter: saturate(0.82) hue-rotate(40deg);
+}
+
+html[data-a11y-colorblind-mode='black-white'] {
+  filter: grayscale(1) contrast(1.15);
+}
+
+html[data-a11y-colorblind-mode='black-white'] button,
+html[data-a11y-colorblind-mode='black-white'] a,
+html[data-a11y-colorblind-mode='black-white'] [role="button"],
+html[data-a11y-colorblind-mode='black-white'] [role="option"] {
+  background: #ffffff !important;
+  color: #111111 !important;
+  border-color: #111111 !important;
+  box-shadow: none !important;
+}
+
+html[data-a11y-colorblind-mode='black-white'] button[aria-pressed='true'],
+html[data-a11y-colorblind-mode='black-white'] button[aria-selected='true'],
+html[data-a11y-colorblind-mode='black-white'] [role="option"][aria-selected='true'] {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border-color: #111111 !important;
+}
+
+html[data-a11y-colorblind-mode='black-white'] button:disabled,
+html[data-a11y-colorblind-mode='black-white'] button[aria-disabled='true'] {
+  background: #e5e7eb !important;
+  color: #4b5563 !important;
+  border-color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+html[data-a11y-colorblind-mode='black-white'] input,
+html[data-a11y-colorblind-mode='black-white'] select,
+html[data-a11y-colorblind-mode='black-white'] textarea {
+  background: #ffffff !important;
+  color: #111111 !important;
+  border: 2px solid #111111 !important;
+}
+
+html[data-a11y-colorblind-mode='black-white'] button:focus-visible,
+html[data-a11y-colorblind-mode='black-white'] a:focus-visible,
+html[data-a11y-colorblind-mode='black-white'] input:focus-visible,
+html[data-a11y-colorblind-mode='black-white'] [role="button"]:focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 2px !important;
 }

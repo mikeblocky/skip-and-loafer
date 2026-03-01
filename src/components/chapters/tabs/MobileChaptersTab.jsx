@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, Tv, Pin, ShoppingCart } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Tv, Pin } from 'lucide-react';
 import { CHAPTERS, VOLUMES, isMainChapter } from '../../../data/chapters';
+import VolumePurchaseLinks from './VolumePurchaseLinks';
 
 const MobileChaptersTab = ({
   activeVol,
@@ -23,6 +24,8 @@ const MobileChaptersTab = ({
   t,
   nativePurchaseUrl,
   nativeVolumeLabel,
+  enShortLabel,
+  jpShortLabel,
   uiLanguage,
   getVolumeTitleFn,
   getVolumeShortWordFn,
@@ -139,53 +142,16 @@ const MobileChaptersTab = ({
               {t.chapterRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
               {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '5px' }}>✦ {t.ongoing}</span>}
             </p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
-              {nativePurchaseUrl && (
-                <motion.a
-                  href={nativePurchaseUrl} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '0.75rem', color: '#fff', background: 'var(--pop-green)',
-                    padding: '4px 8px', borderRadius: '6px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(151, 235, 169, 0.45)',
-                  }}
-                >
-                  <ShoppingCart size={12} /> {nativeVolumeLabel || t.buyNativeVolume}
-                </motion.a>
-              )}
-              {volume.purchaseUrl && (
-                <motion.a
-                  href={volume.purchaseUrl} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '0.75rem', color: '#fff', background: volColor,
-                    padding: '4px 8px', borderRadius: '6px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: `0 2px 4px ${volColor}40`,
-                  }}
-                >
-                  <ShoppingCart size={12} /> {t.buyEN}
-                </motion.a>
-              )}
-              {volume.purchaseUrlJp && (
-                <motion.a
-                  href={volume.purchaseUrlJp} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '4px',
-                    fontSize: '0.75rem', color: '#fff', background: 'var(--pop-pink)',
-                    padding: '4px 8px', borderRadius: '6px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(255, 158, 198, 0.4)',
-                  }}
-                >
-                  <ShoppingCart size={12} /> {t.buyJP}
-                </motion.a>
-              )}
-            </div>
+            <VolumePurchaseLinks
+              isMobile
+              volColor={volColor}
+              nativePurchaseUrl={nativePurchaseUrl}
+              nativeVolumeLabel={nativeVolumeLabel || t.buyNativeVolume}
+              enPurchaseUrl={volume.purchaseUrl}
+              enVolumeLabel={enShortLabel || t.buyEN}
+              jpPurchaseUrl={volume.purchaseUrlJp}
+              jpVolumeLabel={jpShortLabel || t.buyJP}
+            />
           </div>
 
           <NavBtnComponent onClick={goNext} disabled={activeVol === VOLUMES.length - 1} volColor={volColor} isMobile>

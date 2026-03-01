@@ -1,6 +1,6 @@
-import { Zap, Bug, Cake, BookOpen, ShoppingBag, Images } from 'lucide-react';
+import { Zap, Bug, Cake, BookOpen } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-02-28-v10.7';
+export const CHANGELOG_VERSION = '2026-03-01-v11.1';
 export const STORAGE_KEY = 'skip_changelogSeen';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,68 +26,54 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'New features: Blog and reader',
+    title: 'Quiz (new feature)',
     icon: BookOpen,
     lines: [
-      { type: 'added', text: 'Added Blog page with post listing and detail reading flow.' },
-      { type: 'added', text: 'Added Blog Reader with markdown rendering, media support, and reader-focused layout.' },
-      { type: 'added', text: 'Added in-reader progress tracking and a reader Top button for long posts.' },
-      { type: 'added', text: 'Added image lightbox experience for blog media (tap/click to open enlarged view).' },
+      { type: 'added', text: 'Added a full Quiz tab with Questions, Leaderboard, and History sub-tabs.' },
+      { type: 'added', text: 'Added quiz history tracking (name, score, set, mode, date) with local persistence.' },
+      { type: 'added', text: 'Added new set sizes: 10, 25, 50, 100, 125, 150, 175, and 200.' },
+      { type: 'added', text: 'Added Random mode and All-in-level gameplay flow with side-by-side setup chips.' },
     ],
   },
   {
-    title: 'Home layout and controls',
+    title: 'Navigation and gestures',
     icon: Cake,
     lines: [
-      { type: 'changed', text: 'Release note is now placed directly under the local-time area on Home, instead of floating over content.' },
-      { type: 'fixed', text: 'Release note no longer overlaps planner content and stays visually aligned with countdown/time sections.' },
-      { type: 'changed', text: 'Accessibility quick control moves to the top while in read mode and returns to bottom when exiting read mode.' },
-      { type: 'changed', text: 'Shortcuts quick button is hidden on mobile for a cleaner compact layout.' },
+      { type: 'changed', text: 'Added swipe gesture navigation for main tab switching on touch devices.' },
+      { type: 'changed', text: 'Updated shortcut behavior so main tab and sub-tab navigation are clearer and more consistent.' },
+      { type: 'fixed', text: 'Improved interaction safety for in-progress quiz sessions with a return-to-menu confirmation step.' },
     ],
   },
   {
-    title: 'Top button behavior',
-    icon: Zap,
-    lines: [
-      { type: 'added', text: 'Added a global Top button for long-scroll pages in the main app shell.' },
-      { type: 'fixed', text: 'Global Top button now uses Blog-style right-bottom placement and matching visual behavior.' },
-      { type: 'fixed', text: 'Removed duplicate Top button on Blog by disabling the global one there (Blog keeps its own reader Top control).' },
-    ],
-  },
-  {
-    title: 'Blog page fixes and media update',
-    icon: Images,
-    lines: [
-      { type: 'changed', text: 'Interview blog post image sources were moved from remote social URLs to local project assets.' },
-      { type: 'fixed', text: 'Resolved React hydration error caused by invalid markdown block content nesting inside paragraph rendering.' },
-      { type: 'fixed', text: 'Image pair layout for the target two-image section is now tightly joined with no visible gap.' },
-      { type: 'changed', text: 'Removed the old “latest update” helper line and improved blog title emphasis in list/detail views.' },
-    ],
-  },
-  {
-    title: 'Typography and tabs',
-    icon: Zap,
-    lines: [
-      { type: 'changed', text: 'Tab headers and all major page titles now use Sniglet with normal weight for consistent styling.' },
-      { type: 'changed', text: 'Updated mobile tab labels to full localized names (Gallery and Birthdays) across all supported UI languages.' },
-    ],
-  },
-  {
-    title: 'Country-aware volume links',
-    icon: ShoppingBag,
-    lines: [
-      { type: 'changed', text: 'Updated Spanish volume purchase links to Milky Way Ediciones product pages.' },
-      { type: 'added', text: 'Added Mexico native purchase mapping (Penguin Libros MX links) and locale support for MX language fallback.' },
-      { type: 'fixed', text: 'Native language labels for mapped countries are now shown with better locale-aware naming and fallback behavior.' },
-    ],
-  },
-  {
-    title: 'Shortcuts and language menu',
+    title: 'Language behavior updates',
     icon: Bug,
     lines: [
-      { type: 'changed', text: 'Main tab shortcuts use 1..6 directly and subtab navigation uses Q/E.' },
-      { type: 'changed', text: 'Language selector uses a custom menu with outside-click and Esc close behavior.' },
-      { type: 'fixed', text: 'Shortcut help content now reflects current key mappings more accurately.' },
+      { type: 'changed', text: 'Language selection is now handled in a separated custom language menu flow.' },
+      { type: 'changed', text: 'Initial UI language now auto-selects using locale/location-aware detection with English fallback.' },
+      { type: 'fixed', text: 'Language fallback behavior is more reliable when region/language mapping is unavailable.' },
+    ],
+  },
+  {
+    title: 'Accessibility upgrades',
+    icon: Cake,
+    lines: [
+      { type: 'added', text: 'Added color vision mode options by group: Off, Protanopia, Deuteranopia, Tritanopia, and Black & White.' },
+      { type: 'added', text: 'Added a dim non-essential colors toggle to reduce visual intensity while keeping content readable.' },
+      { type: 'added', text: 'Added dedicated shortcut-help localization keys so panel guidance can be translated per language.' },
+      { type: 'changed', text: 'Accessibility panel now includes grouped color-vision controls for faster profile switching.' },
+      { type: 'changed', text: 'Color-vision labels are now localized across supported languages in the UI text dictionary.' },
+      { type: 'fixed', text: 'Black & White mode now enforces stronger button contrast tiers (default/selected/disabled) for clearer state recognition.' },
+      { type: 'fixed', text: 'Focus outlines and form controls were tuned for stronger readability under Black & White mode.' },
+      { type: 'fixed', text: 'New accessibility preferences persist in storage and re-apply correctly on reload.' },
+    ],
+  },
+  {
+    title: 'Decorative layer',
+    icon: Zap,
+    lines: [
+      { type: 'changed', text: 'Character stickers now stay on side lanes on desktop for cleaner center-content focus.' },
+      { type: 'fixed', text: 'Character stickers are now hidden on mobile for a less cluttered small-screen layout.' },
+      { type: 'removed', text: 'Removed random in-page sticker placement behavior in the current decorative layout.' },
     ],
   },
 ];
@@ -106,5 +92,4 @@ export const UI_TEXT = {
   fr: { whatsNew: 'Nouveautés', releaseDate: 'Date de sortie', local: 'locale', gotIt: 'Compris !', type: { added: 'Ajouté', changed: 'Modifié', removed: 'Supprimé', fixed: 'Corrigé' } },
   de: { whatsNew: 'Neuigkeiten', releaseDate: 'Veröffentlichungsdatum', local: 'lokal', gotIt: 'Verstanden!', type: { added: 'Hinzugefügt', changed: 'Geändert', removed: 'Entfernt', fixed: 'Behoben' } },
   it: { whatsNew: 'Novità', releaseDate: 'Data di rilascio', local: 'locale', gotIt: 'Capito!', type: { added: 'Aggiunto', changed: 'Modificato', removed: 'Rimosso', fixed: 'Corretto' } },
-  vi: { whatsNew: 'Có gì mới', releaseDate: 'Ngày phát hành', local: 'giờ địa phương', gotIt: 'Đã hiểu!', type: { added: 'Thêm', changed: 'Thay đổi', removed: 'Đã xóa', fixed: 'Đã sửa' } },
 };

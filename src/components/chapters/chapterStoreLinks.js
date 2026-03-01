@@ -46,6 +46,21 @@ const BR_AMAZON_DP_TUPLES = [
   [3, 'dp/6555947799'],
 ];
 
+const BR_JBC_LINKS = {
+  1: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-01/',
+  2: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-02/',
+  3: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-03/',
+  4: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-04/',
+  5: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-05/',
+  6: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-06/',
+  7: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-07/',
+  8: 'https://editorajbc.com.br/mangas/colecao/skip-to-loafer/vol/skip-loafer-08/',
+};
+
+const NATIVE_PREORDER_BY_LOCALE = {
+  BR: [8],
+};
+
 const DE_AMAZON_DP_TUPLES = [
   [1, 'dp/3753914894'],
   [2, 'dp/3753914908'],
@@ -89,9 +104,8 @@ export const AMAZON_STORE_BY_LOCALE = {
     links: tupleMap(BR_AMAZON_DP_TUPLES, ([volume, dp]) => dp),
   },
   BR: {
-    kind: 'amazonDp',
-    domain: 'www.amazon.com.br',
-    links: tupleMap(BR_AMAZON_DP_TUPLES, ([volume, dp]) => dp),
+    kind: 'templateMap',
+    links: BR_JBC_LINKS,
   },
   DE: {
     kind: 'amazonDp',
@@ -124,4 +138,10 @@ export const buildNativeLink = (countryCode, volumeNumber) => {
   }
 
   return store.links?.[volumeNumber] || null;
+};
+
+export const isNativePreOrderVolume = (countryCode, volumeNumber) => {
+  const preorderVolumes = NATIVE_PREORDER_BY_LOCALE[countryCode];
+  if (!Array.isArray(preorderVolumes)) return false;
+  return preorderVolumes.includes(volumeNumber);
 };
