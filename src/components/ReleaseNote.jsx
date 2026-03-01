@@ -8,7 +8,6 @@ const UI_TEXT = {
     fr: { chapterOut: 'Chapitre 78 disponible !', quote: '"Blanc pur et tout neuf. Avancez fermement et sentez le craquement."', read: 'Lire →' },
     de: { chapterOut: 'Kapitel 78 ist jetzt da!', quote: '"Reinweiß und brandneu. Tritt fest auf und spüre das Knirschen."', read: 'Lesen →' },
     it: { chapterOut: 'Capitolo 78 disponibile ora!', quote: '"Bianco puro e nuovissimo. Cammina deciso e senti lo scricchiolio."', read: 'Leggi →' },
-    vi: { chapterOut: 'Chương 78 đã ra mắt!', quote: '"Trắng tinh và hoàn toàn mới. Bước thật chắc và cảm nhận tiếng lạo xạo."', read: 'Đọc →' },
 };
 
 const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false }) => {

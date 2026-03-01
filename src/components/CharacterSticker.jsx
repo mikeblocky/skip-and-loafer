@@ -7,8 +7,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
     const [showEffect, setShowEffect] = useState(null);
     const stickerRef = useRef(null);
     const size = isMobile ? 100 : 150;
-    const sidePages = ['home', 'chapters', 'sync', 'birthdays', 'gallery', 'blog'];
-    const isSideLayoutPage = sidePages.includes(activePage);
+    const isSideLayoutPage = true;
 
     // Random position and rotation on each page load
     const randomPos = useMemo(() => {
@@ -64,8 +63,8 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
         return { x, y, rot: Math.random() * 40 - 20 };
     }, [isMobile, index, size, sidePreference, sideRank, sideCount]);
 
-    // Choose target based on current view
-    const targetPos = isSideLayoutPage ? edgePos : randomPos;
+    // Always keep stickers at the side lanes on desktop
+    const targetPos = edgePos;
 
     const checkProximity = useCallback(() => {
         if (!stickerRef.current) return;
@@ -123,7 +122,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
 
     return (
         <AnimatePresence>
-            {!(isMobile && isSideLayoutPage) && (
+            {!isMobile && (
                 <motion.div
                     ref={stickerRef}
                     drag
@@ -141,7 +140,7 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
                         cursor: 'grab',
                         filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))'
                     }}
-                    initial={{ scale: 0, opacity: 0, rotate: randomPos.rot * 2, x: randomPos.x, y: randomPos.y }}
+                    initial={{ scale: 0, opacity: 0, rotate: edgePos.rot * 2, x: edgePos.x, y: edgePos.y }}
                     animate={{ scale: 1, opacity: 1, rotate: targetPos.rot, x: targetPos.x, y: targetPos.y }}
                     exit={{ scale: 0, opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 180, damping: 15, delay: isSideLayoutPage ? index * 0.05 : 0.2 + index * 0.1 }}

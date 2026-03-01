@@ -7,7 +7,7 @@ import {
   NavBtn as SharedNavBtn,
   VolSelector as SharedVolSelector,
 } from './chapters/chaptersSharedComponents';
-import { buildNativeLink } from './chapters/chapterStoreLinks';
+import { buildNativeLink, isNativePreOrderVolume } from './chapters/chapterStoreLinks';
 import { NOTE_PALETTES, getReadTier } from './chapters/chapterTierConfig';
 import {
   UI_TEXT,
@@ -65,6 +65,9 @@ const DesktopChapters = (props) => (
 const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const [countryCode, setCountryCode] = useState(null);
+
+  const isLikelyPreOrderLink = (url) =>
+    /pre[-\s]?order|pré[-\s]?venda|vorbestell|preordina|reservar|précommander/i.test(String(url || ''));
 
   useEffect(() => {
     let cancelled = false;
@@ -135,8 +138,15 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
   const volChapters = volume.chapters.map((num) => CHAPTERS.find((c) => c.number === num)).filter(Boolean);
   const volColor = VOL_COLORS[volume.number] || '#9ca3af';
   const nativePurchaseUrl = buildNativeLink(countryCode, volume.number);
+  const enIsPreOrder = Boolean(volume.inProgress || isLikelyPreOrderLink(volume.purchaseUrl));
+  const jpIsPreOrder = Boolean(volume.inProgress || isLikelyPreOrderLink(volume.purchaseUrlJp));
+  const nativeIsPreOrder = Boolean(volume.inProgress || isNativePreOrderVolume(countryCode, volume.number));
   const nativeLanguageName = getNativeLanguageName(countryCode, uiLanguage);
-  const nativeVolumeLabel = getNativeVolumeLabel(uiLanguage, nativeLanguageName, t);
+  const nativeVolumeLabel = getNativeVolumeLabel(uiLanguage, nativeLanguageName, t, nativeIsPreOrder);
+  const enVolumeLabel = enIsPreOrder ? t.preOrderEnVolume : t.buyEnVolume;
+  const jpVolumeLabel = jpIsPreOrder ? t.preOrderJpVolume : t.buyJpVolume;
+  const enShortLabel = enIsPreOrder ? t.preOrderEN : t.buyEN;
+  const jpShortLabel = jpIsPreOrder ? t.preOrderJP : t.buyJP;
 
   const goPrev = () => setActiveVol((prev) => Math.max(0, prev - 1));
   const goNext = () => setActiveVol((prev) => Math.min(VOLUMES.length - 1, prev + 1));
@@ -148,7 +158,33 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
     if (key === 'e') goNext();
   }, [subtabShortcut?.token]);
 
-  const shared = { activeVol, setActiveVol, volume, volChapters, volColor, goPrev, goNext, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks, t, nativePurchaseUrl, nativeVolumeLabel, uiLanguage };
+  const shared = {
+    activeVol,
+    setActiveVol,
+    volume,
+    volChapters,
+    volColor,
+    goPrev,
+    goNext,
+    onReadChapter,
+    isFinished,
+    trackExternalLink,
+    cancelExternalLink,
+    markFinished,
+    unmarkFinished,
+    getReadCount,
+    incrementReadCount,
+    getRemainingCooldown,
+    pendingLinks,
+    t,
+    nativePurchaseUrl,
+    nativeVolumeLabel,
+    enVolumeLabel,
+    jpVolumeLabel,
+    enShortLabel,
+    jpShortLabel,
+    uiLanguage,
+  };
 
   return isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />;
 };

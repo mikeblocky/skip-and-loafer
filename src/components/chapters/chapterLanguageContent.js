@@ -1,11 +1,10 @@
 export const UI_TEXT = {
-  en: { chapters: 'Chapters', latest: 'latest', plusRead: '+1 read', timeLeft: 'Time left', unreadNotice: 'Notice: You have {count} unread chapter{suffix}!', unreadShort: '{count} unread chapter{suffix}!', chapterRange: 'Chapter', chaptersRange: 'Chapters', ongoing: 'ongoing', buyEN: 'Preorder/Buy EN', buyJP: 'Preorder/Buy JP', buyNative: 'Buy native', buyEnVolume: 'Buy English volume', buyJpVolume: 'Buy Japanese volume', buyNativeVolume: 'Buy native volume' },
-  es: { chapters: 'Capítulos', latest: 'nuevo', plusRead: '+1 lectura', timeLeft: 'Tiempo restante', unreadNotice: 'Aviso: tienes {count} capítulo{suffix} sin leer!', unreadShort: '{count} capítulo{suffix} sin leer!', chapterRange: 'Capítulo', chaptersRange: 'Capítulos', ongoing: 'en curso', buyEN: 'Reservar/Comprar EN', buyJP: 'Reservar/Comprar JP', buyNative: 'Comprar local', buyEnVolume: 'Comprar volumen en inglés', buyJpVolume: 'Comprar volumen japonés', buyNativeVolume: 'Comprar volumen local' },
-  pt: { chapters: 'Capítulos', latest: 'novo', plusRead: '+1 leitura', timeLeft: 'Tempo restante', unreadNotice: 'Aviso: você tem {count} capítulo{suffix} não lido!', unreadShort: '{count} capítulo{suffix} não lido!', chapterRange: 'Capítulo', chaptersRange: 'Capítulos', ongoing: 'em andamento', buyEN: 'Pré-venda/Comprar EN', buyJP: 'Pré-venda/Comprar JP', buyNative: 'Comprar local', buyEnVolume: 'Comprar volume em inglês', buyJpVolume: 'Comprar volume em japonês', buyNativeVolume: 'Comprar volume local' },
-  fr: { chapters: 'Chapitres', latest: 'nouveau', plusRead: '+1 lecture', timeLeft: 'Temps restant', unreadNotice: 'Info : vous avez {count} chapitre{suffix} non lu !', unreadShort: '{count} chapitre{suffix} non lu !', chapterRange: 'Chapitre', chaptersRange: 'Chapitres', ongoing: 'en cours', buyEN: 'Précommander/Acheter EN', buyJP: 'Précommander/Acheter JP', buyNative: 'Acheter local', buyEnVolume: 'Acheter le volume anglais', buyJpVolume: 'Acheter le volume japonais', buyNativeVolume: 'Acheter le volume local' },
-  de: { chapters: 'Kapitel', latest: 'neu', plusRead: '+1 gelesen', timeLeft: 'Verbleibende Zeit', unreadNotice: 'Hinweis: Du hast {count} ungelesene Kapitel{suffix}!', unreadShort: '{count} ungelesene Kapitel{suffix}!', chapterRange: 'Kapitel', chaptersRange: 'Kapitel', ongoing: 'laufend', buyEN: 'Vorbestellen/Kaufen EN', buyJP: 'Vorbestellen/Kaufen JP', buyNative: 'Lokal kaufen', buyEnVolume: 'Englischen Band kaufen', buyJpVolume: 'Japanischen Band kaufen', buyNativeVolume: 'Lokalen Band kaufen' },
-  it: { chapters: 'Capitoli', latest: 'nuovo', plusRead: '+1 lettura', timeLeft: 'Tempo rimanente', unreadNotice: 'Avviso: hai {count} capitol{suffix} non letto!', unreadShort: '{count} capitol{suffix} non letto!', chapterRange: 'Capitolo', chaptersRange: 'Capitoli', ongoing: 'in corso', buyEN: 'Preordine/Compra EN', buyJP: 'Preordine/Compra JP', buyNative: 'Compra locale', buyEnVolume: 'Compra volume inglese', buyJpVolume: 'Compra volume giapponese', buyNativeVolume: 'Compra volume locale' },
-  vi: { chapters: 'Chương', latest: 'mới nhất', plusRead: '+1 lượt đọc', timeLeft: 'Thời gian còn lại', unreadNotice: 'Lưu ý: bạn còn {count} chương chưa đọc!', unreadShort: 'Còn {count} chương chưa đọc!', chapterRange: 'Chương', chaptersRange: 'Các chương', ongoing: 'đang phát hành', buyEN: 'Đặt trước/Mua bản EN', buyJP: 'Đặt trước/Mua bản JP', buyNative: 'Mua bản địa phương', buyEnVolume: 'Mua tập tiếng Anh', buyJpVolume: 'Mua tập tiếng Nhật', buyNativeVolume: 'Mua tập bản địa phương' },
+  en: { chapters: 'Chapters', latest: 'latest', plusRead: '+1 read', timeLeft: 'Time left', unreadNotice: 'Notice: You have {count} unread chapter{suffix}!', unreadShort: '{count} unread chapter{suffix}!', chapterRange: 'Chapter', chaptersRange: 'Chapters', ongoing: 'ongoing', buyEN: 'Order EN', buyJP: 'Order JP', preOrderEN: 'Pre-order EN', preOrderJP: 'Pre-order JP', buyNative: 'Order native', buyEnVolume: 'Order English volume', buyJpVolume: 'Order Japanese volume', buyNativeVolume: 'Order native volume', preOrderEnVolume: 'Pre-order English volume', preOrderJpVolume: 'Pre-order Japanese volume', preOrderNativeVolume: 'Pre-order native volume', preOrderVolume: 'Pre-order volume' },
+  es: { chapters: 'Capítulos', latest: 'nuevo', plusRead: '+1 lectura', timeLeft: 'Tiempo restante', unreadNotice: 'Aviso: tienes {count} capítulo{suffix} sin leer!', unreadShort: '{count} capítulo{suffix} sin leer!', chapterRange: 'Capítulo', chaptersRange: 'Capítulos', ongoing: 'en curso', buyEN: 'Pedir EN', buyJP: 'Pedir JP', preOrderEN: 'Reservar EN', preOrderJP: 'Reservar JP', buyNative: 'Pedir local', buyEnVolume: 'Pedir volumen en inglés', buyJpVolume: 'Pedir volumen japonés', buyNativeVolume: 'Pedir volumen local', preOrderEnVolume: 'Reservar volumen en inglés', preOrderJpVolume: 'Reservar volumen japonés', preOrderNativeVolume: 'Reservar volumen local', preOrderVolume: 'Reservar volumen' },
+  pt: { chapters: 'Capítulos', latest: 'novo', plusRead: '+1 leitura', timeLeft: 'Tempo restante', unreadNotice: 'Aviso: você tem {count} capítulo{suffix} não lido!', unreadShort: '{count} capítulo{suffix} não lido!', chapterRange: 'Capítulo', chaptersRange: 'Capítulos', ongoing: 'em andamento', buyEN: 'Encomendar EN', buyJP: 'Encomendar JP', preOrderEN: 'Pré-venda EN', preOrderJP: 'Pré-venda JP', buyNative: 'Encomendar local', buyEnVolume: 'Encomendar volume em inglês', buyJpVolume: 'Encomendar volume em japonês', buyNativeVolume: 'Encomendar volume local', preOrderEnVolume: 'Pré-venda de volume em inglês', preOrderJpVolume: 'Pré-venda de volume em japonês', preOrderNativeVolume: 'Pré-venda de volume local', preOrderVolume: 'Pré-venda de volume' },
+  fr: { chapters: 'Chapitres', latest: 'nouveau', plusRead: '+1 lecture', timeLeft: 'Temps restant', unreadNotice: 'Info : vous avez {count} chapitre{suffix} non lu !', unreadShort: '{count} chapitre{suffix} non lu !', chapterRange: 'Chapitre', chaptersRange: 'Chapitres', ongoing: 'en cours', buyEN: 'Commander EN', buyJP: 'Commander JP', preOrderEN: 'Précommander EN', preOrderJP: 'Précommander JP', buyNative: 'Commander local', buyEnVolume: 'Commander le volume anglais', buyJpVolume: 'Commander le volume japonais', buyNativeVolume: 'Commander le volume local', preOrderEnVolume: 'Précommander le volume anglais', preOrderJpVolume: 'Précommander le volume japonais', preOrderNativeVolume: 'Précommander le volume local', preOrderVolume: 'Précommander le volume' },
+  de: { chapters: 'Kapitel', latest: 'neu', plusRead: '+1 gelesen', timeLeft: 'Verbleibende Zeit', unreadNotice: 'Hinweis: Du hast {count} ungelesene Kapitel{suffix}!', unreadShort: '{count} ungelesene Kapitel{suffix}!', chapterRange: 'Kapitel', chaptersRange: 'Kapitel', ongoing: 'laufend', buyEN: 'EN bestellen', buyJP: 'JP bestellen', preOrderEN: 'EN vorbestellen', preOrderJP: 'JP vorbestellen', buyNative: 'Lokal bestellen', buyEnVolume: 'Englischen Band bestellen', buyJpVolume: 'Japanischen Band bestellen', buyNativeVolume: 'Lokalen Band bestellen', preOrderEnVolume: 'Englischen Band vorbestellen', preOrderJpVolume: 'Japanischen Band vorbestellen', preOrderNativeVolume: 'Lokalen Band vorbestellen', preOrderVolume: 'Band vorbestellen' },
+  it: { chapters: 'Capitoli', latest: 'nuovo', plusRead: '+1 lettura', timeLeft: 'Tempo rimanente', unreadNotice: 'Avviso: hai {count} capitol{suffix} non letto!', unreadShort: '{count} capitol{suffix} non letto!', chapterRange: 'Capitolo', chaptersRange: 'Capitoli', ongoing: 'in corso', buyEN: 'Ordina EN', buyJP: 'Ordina JP', preOrderEN: 'Preordina EN', preOrderJP: 'Preordina JP', buyNative: 'Ordina locale', buyEnVolume: 'Ordina volume inglese', buyJpVolume: 'Ordina volume giapponese', buyNativeVolume: 'Ordina volume locale', preOrderEnVolume: 'Preordina volume inglese', preOrderJpVolume: 'Preordina volume giapponese', preOrderNativeVolume: 'Preordina volume locale', preOrderVolume: 'Preordina volume' },
 };
 
 export const COUNTRY_CACHE_KEY = 'skip_countryCodeCache_v1';
@@ -23,7 +22,6 @@ const getVolumeWord = (uiLanguage = 'en') => {
   if (uiLanguage === 'fr') return 'Tome';
   if (uiLanguage === 'de') return 'Band';
   if (uiLanguage === 'it') return 'Volume';
-  if (uiLanguage === 'vi') return 'Tập';
   return 'Volume';
 };
 
@@ -33,7 +31,6 @@ export const getVolumeShortWord = (uiLanguage = 'en') => {
   if (uiLanguage === 'fr') return 'T';
   if (uiLanguage === 'de') return 'Bd';
   if (uiLanguage === 'it') return 'Vol';
-  if (uiLanguage === 'vi') return 'Tập';
   return 'Vol';
 };
 
@@ -53,17 +50,15 @@ const LANGUAGE_CODE_BY_COUNTRY = {
   DE: 'de',
   IT: 'it',
   FR: 'fr',
-  VN: 'vi',
 };
 
 const NATIVE_LANGUAGE_LABEL_FALLBACK = {
-  en: { ES: 'Spanish', MX: 'Spanish', PT: 'Portuguese', BR: 'Brazilian Portuguese', DE: 'German', IT: 'Italian', FR: 'French', VN: 'Vietnamese' },
-  es: { ES: 'español', MX: 'español', PT: 'portugués', BR: 'portugués brasileño', DE: 'alemán', IT: 'italiano', FR: 'francés', VN: 'vietnamita' },
-  pt: { ES: 'espanhol', MX: 'espanhol', PT: 'português', BR: 'português brasileiro', DE: 'alemão', IT: 'italiano', FR: 'francês', VN: 'vietnamita' },
-  fr: { ES: 'espagnol', MX: 'espagnol', PT: 'portugais', BR: 'portugais brésilien', DE: 'allemand', IT: 'italien', FR: 'français', VN: 'vietnamien' },
-  de: { ES: 'Spanisch', MX: 'Spanisch', PT: 'Portugiesisch', BR: 'Brasilianisches Portugiesisch', DE: 'Deutsch', IT: 'Italienisch', FR: 'Französisch', VN: 'Vietnamesisch' },
-  it: { ES: 'spagnolo', MX: 'spagnolo', PT: 'portoghese', BR: 'portoghese brasiliano', DE: 'tedesco', IT: 'italiano', FR: 'francese', VN: 'vietnamita' },
-  vi: { ES: 'tiếng Tây Ban Nha', MX: 'tiếng Tây Ban Nha', PT: 'tiếng Bồ Đào Nha', BR: 'tiếng Bồ Đào Nha (Brazil)', DE: 'tiếng Đức', IT: 'tiếng Ý', FR: 'tiếng Pháp', VN: 'tiếng Việt' },
+  en: { ES: 'Spanish', MX: 'Spanish', PT: 'Portuguese', BR: 'Brazilian Portuguese', DE: 'German', IT: 'Italian', FR: 'French' },
+  es: { ES: 'español', MX: 'español', PT: 'portugués', BR: 'portugués brasileño', DE: 'alemán', IT: 'italiano', FR: 'francés' },
+  pt: { ES: 'espanhol', MX: 'espanhol', PT: 'português', BR: 'português brasileiro', DE: 'alemão', IT: 'italiano', FR: 'francês' },
+  fr: { ES: 'espagnol', MX: 'espagnol', PT: 'portugais', BR: 'portugais brésilien', DE: 'allemand', IT: 'italien', FR: 'français' },
+  de: { ES: 'Spanisch', MX: 'Spanisch', PT: 'Portugiesisch', BR: 'Brasilianisches Portugiesisch', DE: 'Deutsch', IT: 'Italienisch', FR: 'Französisch' },
+  it: { ES: 'spagnolo', MX: 'spagnolo', PT: 'portoghese', BR: 'portoghese brasiliano', DE: 'tedesco', IT: 'italiano', FR: 'francese' },
 };
 
 export const getNativeLanguageName = (countryCode, uiLanguage = 'en') => {
@@ -85,14 +80,22 @@ export const getNativeLanguageName = (countryCode, uiLanguage = 'en') => {
   return fallbackByUi[countryCode] || NATIVE_LANGUAGE_LABEL_FALLBACK.en[countryCode] || countryCode;
 };
 
-export const getNativeVolumeLabel = (uiLanguage, nativeLanguageName, t) => {
-  if (!nativeLanguageName) return t.buyNativeVolume;
+export const getNativeVolumeLabel = (uiLanguage, nativeLanguageName, t, isPreOrder = false) => {
+  if (!nativeLanguageName) return isPreOrder ? t.preOrderNativeVolume : t.buyNativeVolume;
 
-  if (uiLanguage === 'es') return `Comprar volumen en ${nativeLanguageName}`;
-  if (uiLanguage === 'pt') return `Comprar volume em ${nativeLanguageName}`;
-  if (uiLanguage === 'fr') return `Acheter le volume ${nativeLanguageName}`;
-  if (uiLanguage === 'de') return `${nativeLanguageName}-Band kaufen`;
-  if (uiLanguage === 'it') return `Compra volume ${nativeLanguageName}`;
-  if (uiLanguage === 'vi') return `Mua tập ${nativeLanguageName}`;
-  return `Buy ${nativeLanguageName} volume`;
+  if (isPreOrder) {
+    if (uiLanguage === 'es') return `Reservar volumen en ${nativeLanguageName}`;
+    if (uiLanguage === 'pt') return `Pré-venda de volume em ${nativeLanguageName}`;
+    if (uiLanguage === 'fr') return `Précommander le volume ${nativeLanguageName}`;
+    if (uiLanguage === 'de') return `${nativeLanguageName}-Band vorbestellen`;
+    if (uiLanguage === 'it') return `Preordina volume ${nativeLanguageName}`;
+    return `Pre-order ${nativeLanguageName} volume`;
+  }
+
+  if (uiLanguage === 'es') return `Pedir volumen en ${nativeLanguageName}`;
+  if (uiLanguage === 'pt') return `Encomendar volume em ${nativeLanguageName}`;
+  if (uiLanguage === 'fr') return `Commander le volume ${nativeLanguageName}`;
+  if (uiLanguage === 'de') return `${nativeLanguageName}-Band bestellen`;
+  if (uiLanguage === 'it') return `Ordina volume ${nativeLanguageName}`;
+  return `Order ${nativeLanguageName} volume`;
 };

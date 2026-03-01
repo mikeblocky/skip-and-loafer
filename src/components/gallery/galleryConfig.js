@@ -7,7 +7,6 @@ export const UI_TEXT = {
   fr: { header: 'Galerie', noImages: 'Pas encore d’images — bientôt disponible !', artAlt: 'Illustration de la galerie' },
   de: { header: 'Galerie', noImages: 'Noch keine Bilder — bald verfügbar!', artAlt: 'Galerie-Bild' },
   it: { header: 'Galleria', noImages: 'Nessuna immagine per ora — in arrivo!', artAlt: 'Illustrazione galleria' },
-  vi: { header: 'Thư viện', noImages: 'Chưa có hình ảnh — sắp cập nhật!', artAlt: 'Ảnh trong thư viện' },
 };
 
 export const TAB_LABELS = {
@@ -70,16 +69,6 @@ export const TAB_LABELS = {
     websites: { title: 'Siti web', short: 'Siti' },
     promotions: { title: 'Promozioni', short: 'Promo' },
     characters: { title: 'Personaggi', short: 'Personaggi' },
-  },
-  vi: {
-    takamatsu: { title: 'Tweet của Takamatsu', short: 'Takamatsu' },
-    official: { title: 'Tweet chính thức', short: 'Chính thức' },
-    anime: { title: 'Anime', short: 'Anime' },
-    volumes: { title: 'Manga', short: 'Manga' },
-    stickers: { title: 'Sticker', short: 'Sticker' },
-    websites: { title: 'Trang web', short: 'Web' },
-    promotions: { title: 'Quảng bá', short: 'Promo' },
-    characters: { title: 'Nhân vật', short: 'Nhân vật' },
   },
 };
 

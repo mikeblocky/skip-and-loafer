@@ -7,7 +7,6 @@ export const UI_TEXT = {
   fr: { plusRead: '+1 lecture', progress: 'Progression', overview: 'Aperçu', leaderboard: 'Chapitres les plus relus', rereads: 'Relectures', sync: 'Synchronisation', syncHeader: 'Progression et synchronisation', syncKey: 'Clé de synchronisation', createSyncKey: 'Créer une nouvelle clé de synchronisation', creating: 'Création...', orJoin: 'OU REJOINDRE', join: 'Rejoindre', enterKey: 'Entrez une clé', connectedNow: 'Connecté !', keyNotFound: 'Clé introuvable', disconnectedCleared: 'Déconnecté — progression effacée', syncingWithKey: 'Synchronisation avec la clé {key}', overallCompletion: 'Progression globale', chaptersDone: 'chapitres terminés', totalReads: 'lectures totales', loadingGlobal: 'Chargement des lectures globales...', noGlobal: 'Aucune lecture globale pour le moment !', reads: 'lectures', syncActive: 'Synchronisation active', syncInactive: 'Synchronisation inactive', syncing: 'Synchronisation de votre progression toutes les 15 s', connectHint: 'Connectez-vous pour synchroniser vos lectures entre appareils', connected: 'Connecté', offline: 'Hors ligne', cloudConnection: 'Connexion cloud', lastSync: 'Dernière synchronisation', shareKey: 'Partagez cette clé pour synchroniser entre appareils. Elle n’expire jamais.', disconnect: 'Déconnecter' },
   de: { plusRead: '+1 gelesen', progress: 'Fortschritt', overview: 'Übersicht', leaderboard: 'Meistgelesene Kapitel', rereads: 'Wiederholungen', sync: 'Synchronisierung', syncHeader: 'Fortschritt & Synchronisierung', syncKey: 'Synchronisierungsschlüssel', createSyncKey: 'Neuen Synchronisierungsschlüssel erstellen', creating: 'Wird erstellt...', orJoin: 'ODER BEITRETEN', join: 'Beitreten', enterKey: 'Schlüssel eingeben', connectedNow: 'Verbunden!', keyNotFound: 'Schlüssel nicht gefunden', disconnectedCleared: 'Getrennt — Fortschritt gelöscht', syncingWithKey: 'Synchronisiert mit Schlüssel {key}', overallCompletion: 'Gesamtfortschritt', chaptersDone: 'Kapitel abgeschlossen', totalReads: 'Gesamtlesungen', loadingGlobal: 'Globale Lesungen werden geladen...', noGlobal: 'Noch keine globalen Lesungen!', reads: 'Lesungen', syncActive: 'Synchronisierung aktiv', syncInactive: 'Synchronisierung inaktiv', syncing: 'Synchronisiert deinen Fortschritt alle 15 Sek.', connectHint: 'Verbinde dich, um Lesungen geräteübergreifend zu synchronisieren', connected: 'Verbunden', offline: 'Offline', cloudConnection: 'Cloud-Verbindung', lastSync: 'Letzte Synchronisierung', shareKey: 'Teile diesen Schlüssel, um zwischen Geräten zu synchronisieren. Er läuft nie ab.', disconnect: 'Trennen' },
   it: { plusRead: '+1 lettura', progress: 'Progresso', overview: 'Panoramica', leaderboard: 'Capitoli più riletti', rereads: 'Riletture', sync: 'Sincronizzazione', syncHeader: 'Progresso e sincronizzazione', syncKey: 'Chiave di sincronizzazione', createSyncKey: 'Crea una nuova chiave di sincronizzazione', creating: 'Creazione...', orJoin: 'OPPURE ACCEDI', join: 'Accedi', enterKey: 'Inserisci una chiave', connectedNow: 'Connesso!', keyNotFound: 'Chiave non trovata', disconnectedCleared: 'Disconnesso — progressi cancellati', syncingWithKey: 'Sincronizzazione con la chiave {key}', overallCompletion: 'Completamento generale', chaptersDone: 'capitoli completati', totalReads: 'letture totali', loadingGlobal: 'Caricamento letture globali...', noGlobal: 'Nessuna lettura globale ancora!', reads: 'letture', syncActive: 'Sincronizzazione attiva', syncInactive: 'Sincronizzazione inattiva', syncing: 'Sincronizzazione progresso ogni 15s', connectHint: 'Connettiti per sincronizzare le letture tra dispositivi', connected: 'Connesso', offline: 'Offline', cloudConnection: 'Connessione cloud', lastSync: 'Ultima sincronizzazione', shareKey: 'Condividi questa chiave per sincronizzare tra dispositivi. Non scade mai.', disconnect: 'Disconnetti' },
-  vi: { plusRead: '+1 lượt đọc', progress: 'Tiến độ', overview: 'Tổng quan', leaderboard: 'Các chương được đọc lại nhiều nhất', rereads: 'Đọc lại', sync: 'Đồng bộ', syncHeader: 'Tiến độ & đồng bộ', syncKey: 'Khóa đồng bộ', createSyncKey: 'Tạo khóa đồng bộ mới', creating: 'Đang tạo...', orJoin: 'HOẶC THAM GIA', join: 'Tham gia', enterKey: 'Nhập khóa', connectedNow: 'Đã kết nối!', keyNotFound: 'Không tìm thấy khóa', disconnectedCleared: 'Đã ngắt kết nối — dữ liệu tiến độ đã xóa', syncingWithKey: 'Đang đồng bộ với khóa {key}', overallCompletion: 'Hoàn thành', chaptersDone: 'chương đã xong', totalReads: 'tổng lượt đọc', loadingGlobal: 'Đang tải lượt đọc toàn cục...', noGlobal: 'Chưa có lượt đọc toàn cục!', reads: 'lượt đọc', syncActive: 'Đồng bộ đang bật', syncInactive: 'Đồng bộ đang tắt', syncing: 'Đang đồng bộ tiến độ của bạn mỗi 15 giây', connectHint: 'Kết nối để đồng bộ lượt đọc giữa các thiết bị', connected: 'Đã kết nối', offline: 'Ngoại tuyến', cloudConnection: 'Kết nối đám mây', lastSync: 'Lần đồng bộ gần nhất', shareKey: 'Chia sẻ khóa này để đồng bộ giữa các thiết bị. Khóa này không bao giờ hết hạn.', disconnect: 'Ngắt kết nối' },
 };
 
 export const LOCALE_BY_UI_LANGUAGE = {
@@ -17,7 +16,6 @@ export const LOCALE_BY_UI_LANGUAGE = {
   fr: 'fr-FR',
   de: 'de-DE',
   it: 'it-IT',
-  vi: 'vi-VN',
 };
 
 export const NOTE_PALETTES = [
@@ -53,7 +51,6 @@ export const TIER_LABELS = {
   fr: { goldenRetriever: 'Golden Retriever', studentCouncilPresident: 'Président du conseil des élèves', honorStudent: 'Élève d’honneur', classRepresentative: 'Délégué de classe', culturalFestivalMvp: 'MVP du festival culturel', dramaClubStar: 'Star du club de théâtre', karaokeEnthusiast: 'Passionné de karaoké', fraiseCustomer: 'Client de Fraise', tsubameWestVip: 'VIP de Tsubame West', studyGroupMember: 'Membre du groupe d’étude', class13Student: 'Élève de la classe 1-3', firstDayTransfer: 'Nouvel élève du premier jour' },
   de: { goldenRetriever: 'Golden Retriever', studentCouncilPresident: 'Schülerratspräsident', honorStudent: 'Musterschüler', classRepresentative: 'Klassensprecher', culturalFestivalMvp: 'Kulturfest-MVP', dramaClubStar: 'Drama-Club-Star', karaokeEnthusiast: 'Karaoke-Fan', fraiseCustomer: 'Fraise-Stammkunde', tsubameWestVip: 'Tsubame West VIP', studyGroupMember: 'Lerngruppenmitglied', class13Student: 'Schüler der Klasse 1-3', firstDayTransfer: 'Ersttags-Transfer' },
   it: { goldenRetriever: 'Golden Retriever', studentCouncilPresident: 'Presidente del consiglio studentesco', honorStudent: 'Studente modello', classRepresentative: 'Rappresentante di classe', culturalFestivalMvp: 'MVP del festival culturale', dramaClubStar: 'Star del club di teatro', karaokeEnthusiast: 'Appassionato di karaoke', fraiseCustomer: 'Cliente di Fraise', tsubameWestVip: 'VIP di Tsubame West', studyGroupMember: 'Membro del gruppo di studio', class13Student: 'Studente della classe 1-3', firstDayTransfer: 'Trasferito del primo giorno' },
-  vi: { goldenRetriever: 'Golden Retriever', studentCouncilPresident: 'Chủ tịch hội học sinh', honorStudent: 'Học sinh danh dự', classRepresentative: 'Lớp trưởng', culturalFestivalMvp: 'MVP lễ hội văn hóa', dramaClubStar: 'Ngôi sao CLB kịch', karaokeEnthusiast: 'Tín đồ karaoke', fraiseCustomer: 'Khách quen Fraise', tsubameWestVip: 'VIP Tsubame West', studyGroupMember: 'Thành viên nhóm học', class13Student: 'Học sinh lớp 1-3', firstDayTransfer: 'Học sinh chuyển trường ngày đầu' },
 };
 
 export const getChapterWord = (uiLanguage = 'en') => {
@@ -62,7 +59,6 @@ export const getChapterWord = (uiLanguage = 'en') => {
   if (uiLanguage === 'fr') return 'Chapitre';
   if (uiLanguage === 'de') return 'Kapitel';
   if (uiLanguage === 'it') return 'Capitolo';
-  if (uiLanguage === 'vi') return 'Chương';
   return 'Chapter';
 };
 
@@ -72,7 +68,6 @@ export const getVolumeWord = (uiLanguage = 'en') => {
   if (uiLanguage === 'fr') return 'Tome';
   if (uiLanguage === 'de') return 'Band';
   if (uiLanguage === 'it') return 'Volume';
-  if (uiLanguage === 'vi') return 'Tập';
   return 'Volume';
 };
 

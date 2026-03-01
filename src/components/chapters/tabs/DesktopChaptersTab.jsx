@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, Tv, Pin, ShoppingCart } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Tv, Pin } from 'lucide-react';
 import { CHAPTERS, VOLUMES, isMainChapter } from '../../../data/chapters';
+import VolumePurchaseLinks from './VolumePurchaseLinks';
 
 const DesktopChaptersTab = ({
   activeVol,
@@ -23,6 +24,8 @@ const DesktopChaptersTab = ({
   t,
   nativePurchaseUrl,
   nativeVolumeLabel,
+  enVolumeLabel,
+  jpVolumeLabel,
   uiLanguage,
   getVolumeTitleFn,
   getVolumeShortWordFn,
@@ -140,53 +143,16 @@ const DesktopChaptersTab = ({
               {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
               {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '6px' }}>✦ {t.ongoing}</span>}
             </p>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {nativePurchaseUrl && (
-                <motion.a
-                  href={nativePurchaseUrl} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    fontSize: '0.85rem', color: '#fff', background: 'var(--pop-green)',
-                    padding: '6px 12px', borderRadius: '8px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: '0 2px 6px rgba(151, 235, 169, 0.5)',
-                  }}
-                >
-                  <ShoppingCart size={14} /> {nativeVolumeLabel || t.buyNativeVolume}
-                </motion.a>
-              )}
-              {volume.purchaseUrl && (
-                <motion.a
-                  href={volume.purchaseUrl} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    fontSize: '0.85rem', color: '#fff', background: volColor,
-                    padding: '6px 12px', borderRadius: '8px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: `0 2px 6px ${volColor}50`,
-                  }}
-                >
-                  <ShoppingCart size={14} /> {t.buyEnVolume}
-                </motion.a>
-              )}
-              {volume.purchaseUrlJp && (
-                <motion.a
-                  href={volume.purchaseUrlJp} target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    fontSize: '0.85rem', color: '#fff', background: 'var(--pop-pink)',
-                    padding: '6px 12px', borderRadius: '8px', textDecoration: 'none',
-                    fontFamily: 'var(--font-hand)', fontWeight: 'bold',
-                    boxShadow: '0 2px 6px rgba(255, 158, 198, 0.5)',
-                  }}
-                >
-                  <ShoppingCart size={14} /> {t.buyJpVolume}
-                </motion.a>
-              )}
-            </div>
+            <VolumePurchaseLinks
+              isMobile={false}
+              volColor={volColor}
+              nativePurchaseUrl={nativePurchaseUrl}
+              nativeVolumeLabel={nativeVolumeLabel || t.buyNativeVolume}
+              enPurchaseUrl={volume.purchaseUrl}
+              enVolumeLabel={enVolumeLabel || t.buyEnVolume}
+              jpPurchaseUrl={volume.purchaseUrlJp}
+              jpVolumeLabel={jpVolumeLabel || t.buyJpVolume}
+            />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '4px' }}>
               <NavBtnComponent onClick={goPrev} disabled={activeVol === 0} volColor={volColor}>
                 <ChevronLeft size={20} />

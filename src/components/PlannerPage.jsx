@@ -14,7 +14,6 @@ const UI_TEXT = {
     fr: { agenda: 'AGENDA', breakShort: 'Pause en mars : le chapitre 79 sortira dans l’édition d’avril !', breakLong: 'Pause en mars ! Le chapitre 79 sortira dans l’édition d’avril !' },
     de: { agenda: 'AGENDA', breakShort: 'Pause im März: Kapitel 79 erscheint in der April-Ausgabe!', breakLong: 'Pause im März! Kapitel 79 erscheint in der April-Ausgabe!' },
     it: { agenda: 'AGENDA', breakShort: 'Pausa a marzo: il capitolo 79 uscirà nel numero di aprile!', breakLong: 'Pausa a marzo! Il capitolo 79 uscirà nel numero di aprile!' },
-    vi: { agenda: 'LỊCH PHÁT HÀNH', breakShort: 'Tạm nghỉ trong tháng 3, Chương 79 sẽ phát hành trong số tháng 4!', breakLong: 'Tạm nghỉ trong tháng 3! Chương 79 sẽ phát hành trong số tháng 4!' },
 };
 
 const LOCALE_BY_UI_LANGUAGE = {
@@ -24,7 +23,6 @@ const LOCALE_BY_UI_LANGUAGE = {
     fr: 'fr-FR',
     de: 'de-DE',
     it: 'it-IT',
-    vi: 'vi-VN',
 };
 
 const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
