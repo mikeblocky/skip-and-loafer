@@ -8,11 +8,17 @@ import {
   createThumbnail,
 } from './thumbnailCache';
 
+const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
+const isGifSrc = (value) => /\.gif($|\?)/i.test(value || '');
+
 const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artAltLabel }) => {
+  const isVideo = isVideoSrc(src);
+  const isGif = isGifSrc(src);
+  const shouldBypassThumbnail = isVideo || isGif;
   const [isVisible, setIsVisible] = useState(false);
   const [thumbSrc, setThumbSrc] = useState(() => THUMBNAIL_CACHE.get(src) || null);
   const [isLoaded, setIsLoaded] = useState(() => IMAGE_LOADED_CACHE.has(src));
-  const dimensions = IMAGE_DIMENSION_CACHE.get(src);
+  const dimensions = shouldBypassThumbnail ? null : IMAGE_DIMENSION_CACHE.get(src);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -32,7 +38,7 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
   }, [isVisible]);
 
   useEffect(() => {
-    if (!isVisible || thumbSrc) return;
+    if (!isVisible || thumbSrc || shouldBypassThumbnail) return;
     let alive = true;
     createThumbnail(src)
       .then((thumb) => {
@@ -46,7 +52,7 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
     return () => {
       alive = false;
     };
-  }, [isVisible, src, thumbSrc]);
+  }, [isVisible, src, thumbSrc, shouldBypassThumbnail]);
 
   return (
     <motion.div
@@ -68,21 +74,40 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
         }}
       >
         {isVisible && (
-          <img
-            src={thumbSrc || src}
-            alt={`${artAltLabel} ${index + 1}`}
-            className="block w-full h-auto object-contain"
-            loading="lazy"
-            decoding="async"
-            fetchPriority={index < 2 ? 'high' : 'low'}
-            onLoad={() => {
-              if (!isLoaded) {
-                IMAGE_LOADED_CACHE.add(src);
-                setIsLoaded(true);
-                onLoaded(src);
-              }
-            }}
-          />
+          isVideo ? (
+            <video
+              src={src}
+              className="block w-full h-auto object-contain"
+              preload="metadata"
+              playsInline
+              muted
+              loop
+              autoPlay
+              onLoadedData={() => {
+                if (!isLoaded) {
+                  IMAGE_LOADED_CACHE.add(src);
+                  setIsLoaded(true);
+                  onLoaded(src);
+                }
+              }}
+            />
+          ) : (
+            <img
+              src={shouldBypassThumbnail ? src : (thumbSrc || src)}
+              alt={`${artAltLabel} ${index + 1}`}
+              className="block w-full h-auto object-contain"
+              loading="lazy"
+              decoding="async"
+              fetchPriority={index < 2 ? 'high' : 'low'}
+              onLoad={() => {
+                if (!isLoaded) {
+                  IMAGE_LOADED_CACHE.add(src);
+                  setIsLoaded(true);
+                  onLoaded(src);
+                }
+              }}
+            />
+          )
         )}
       </div>
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">

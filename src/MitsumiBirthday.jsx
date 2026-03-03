@@ -183,7 +183,7 @@ const MitsumiBirthday = () => {
                             transition={{ duration: 1.5, repeat: Infinity, ease: roughStep }}
                             style={{
                                 fontFamily: 'var(--font-main)', fontSize: isMobile ? '1.3rem' : '2.2rem',
-                                color: '#f472b6', margin: 0, textShadow: '3px 3px 0px #be185d',
+                                color: '#f472b6', margin: 0,
                                 whiteSpace: 'nowrap', lineHeight: 1
                             }}
                         >
@@ -194,6 +194,16 @@ const MitsumiBirthday = () => {
 
 
                 {/* MITSUMI - CENTER STAR */}
+                <motion.div
+                    animate={{ y: [0, 0, 0, -(isMobile ? 26 : 36), 0, -(isMobile ? 20 : 28), 0, 0, 0] }}
+                    transition={{
+                        times: [0, t(29), t(30), t(30.8), t(31.6), t(32.4), t(33.2), t(34), 1],
+                        duration: DURATION,
+                        repeat: Infinity,
+                        ease: roughStep,
+                    }}
+                    style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                >
                 <motion.div
                     animate={{
                         top: ['120vh', '120vh', charLine, charLine, '46%', charLine, charLine, charLine, charLine],
@@ -276,6 +286,16 @@ const MitsumiBirthday = () => {
 
                 {/* SHIMA — PEEK #1 (edge, tiny) → RETREAT → PEEK #2 (closer, bigger) → RETREAT → SLOW APPROACH → ARRIVE */}
                 <motion.div
+                    animate={{ y: [0, 0, 0, -(isMobile ? 19 : 27), 0, -(isMobile ? 14 : 21), 0, 0, 0] }}
+                    transition={{
+                        times: [0, t(29), t(30), t(30.8), t(31.6), t(32.4), t(33.2), t(34), 1],
+                        duration: DURATION,
+                        repeat: Infinity,
+                        ease: roughStep,
+                    }}
+                    style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                >
+                <motion.div
                     animate={{
                         left: ['120vw','120vw', '97%', '97%', '120vw','120vw', '92%', '92%', '120vw','120vw', '88%', '75%', '64%', '64%', isMobile ? '60%' : '58%', isMobile ? '60%' : '58%'],
                         top:  [charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine,charLine],
@@ -300,9 +320,20 @@ const MitsumiBirthday = () => {
                         </motion.div>
                     </div>
                 </motion.div>
+                </motion.div>
 
 
                 {/* MIKA — PEEK from left edge, then rush in after surprise */}
+                <motion.div
+                    animate={{ y: [0, 0, 0, -(isMobile ? 14 : 21), 0, -(isMobile ? 10 : 15), 0, 0, 0] }}
+                    transition={{
+                        times: [0, t(29), t(30), t(30.8), t(31.6), t(32.4), t(33.2), t(34), 1],
+                        duration: DURATION,
+                        repeat: Infinity,
+                        ease: roughStep,
+                    }}
+                    style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                >
                 <motion.div
                     animate={{
                         left: ['-20vw','-20vw', '3%', '3%', '-20vw','-20vw', isMobile ? '28%' : '34%', isMobile ? '28%' : '34%', isMobile ? '40%' : '42%', isMobile ? '40%' : '42%'],
@@ -332,9 +363,20 @@ const MitsumiBirthday = () => {
                         </motion.div>
                     </motion.div>
                 </motion.div>
+                </motion.div>
 
 
                 {/* YUZUKI - FROM BOTTOM LEFT CLUSTERING CENTER */}
+                <motion.div
+                    animate={{ y: [0, 0, 0, -(isMobile ? 9 : 14), 0, -(isMobile ? 6 : 10), 0, 0, 0] }}
+                    transition={{
+                        times: [0, t(29), t(30), t(30.8), t(31.6), t(32.4), t(33.2), t(34), 1],
+                        duration: DURATION,
+                        repeat: Infinity,
+                        ease: roughStep,
+                    }}
+                    style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                >
                 <motion.div
                     animate={{
                         left: ['-20vw', '-20vw', isMobile ? '20%' : '25%', isMobile ? '20%' : '25%', isMobile ? '30%' : '34%', isMobile ? '30%' : '34%'],
@@ -364,9 +406,20 @@ const MitsumiBirthday = () => {
                         </motion.div>
                     </motion.div>
                 </motion.div>
+                </motion.div>
 
 
                 {/* MAKOTO - FROM BOTTOM RIGHT CLUSTERING CENTER */}
+                <motion.div
+                    animate={{ y: [0, 0, 0, -(isMobile ? 9 : 14), 0, -(isMobile ? 6 : 10), 0, 0, 0] }}
+                    transition={{
+                        times: [0, t(29), t(30), t(30.8), t(31.6), t(32.4), t(33.2), t(34), 1],
+                        duration: DURATION,
+                        repeat: Infinity,
+                        ease: roughStep,
+                    }}
+                    style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+                >
                 <motion.div
                     animate={{
                         left: ['120vw', '120vw', isMobile ? '80%' : '75%', isMobile ? '80%' : '75%', isMobile ? '70%' : '66%', isMobile ? '70%' : '66%'],
@@ -396,7 +449,9 @@ const MitsumiBirthday = () => {
                         </motion.div>
                     </motion.div>
                 </motion.div>
+                </motion.div>
 
+                </motion.div>
             </div>
 
             {/* BUTTON - REFINED SIZE & PERFECT CENTER */}

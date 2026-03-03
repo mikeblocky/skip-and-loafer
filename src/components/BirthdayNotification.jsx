@@ -179,19 +179,19 @@ const BirthdayNotification = ({ isMobile }) => {
             {announcements.map((char, i) => (
                 <motion.div
                     key={char.name}
-                    initial={{ opacity: 0, y: -40, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -30, scale: 0.95 }}
+                    initial={{ opacity: 0, y: -40, scale: 0.95, x: '-50%' }}
+                    animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+                    exit={{ opacity: 0, y: -30, scale: 0.95, x: '-50%' }}
                     transition={{ type: 'spring', stiffness: 300, damping: 25, delay: i * 0.15 }}
                     style={{
                         position: 'fixed',
-                        top: isMobile ? `${12 + i * 110}px` : `${16 + i * 90}px`,
+                        top: isMobile ? `calc(env(safe-area-inset-top, 0px) + ${8 + i * 74}px)` : `${16 + i * 90}px`,
                         left: '50%',
-                        transform: 'translateX(-50%)',
                         zIndex: 10001,
-                        width: isMobile ? 'calc(100vw - 24px)' : 'auto',
-                        maxWidth: '480px',
+                        width: isMobile ? 'calc(100vw - 16px)' : 'auto',
+                        maxWidth: isMobile ? 'calc(100vw - 16px)' : '480px',
                         minWidth: isMobile ? 'auto' : '380px',
+                        pointerEvents: 'auto',
                     }}
                 >
                     <div style={{
@@ -205,6 +205,8 @@ const BirthdayNotification = ({ isMobile }) => {
                         gap: '12px',
                         position: 'relative',
                         overflow: 'hidden',
+                        maxHeight: isMobile ? 'calc(100vh - env(safe-area-inset-top, 0px) - 16px)' : 'none',
+                        pointerEvents: 'auto',
                     }}>
                         {/* Confetti background particles */}
                         {[...Array(6)].map((_, j) => (
@@ -299,14 +301,21 @@ const BirthdayNotification = ({ isMobile }) => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={handleDismiss}
+                            aria-label="Dismiss birthday notification"
                             style={{
                                 background: 'none',
                                 border: 'none',
                                 cursor: 'pointer',
                                 color: '#9ca3af',
-                                padding: '4px',
+                                padding: isMobile ? '8px' : '4px',
                                 flexShrink: 0,
                                 marginTop: '-2px',
+                                minWidth: isMobile ? '36px' : '24px',
+                                minHeight: isMobile ? '36px' : '24px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 2,
                             }}
                         >
                             <X size={16} />
