@@ -143,6 +143,8 @@ function App() {
   });
 
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+  const now = new Date();
+  const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
 
   const {
     showAccessibilityPanel,
@@ -330,6 +332,36 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            {showMitsumiReplayBanner && (
+              <motion.a
+                href="/mitsumi"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: isMobile ? '4px' : '8px',
+                  marginBottom: isMobile ? '8px' : '10px',
+                  padding: isMobile ? '8px 12px' : '10px 14px',
+                  borderRadius: '9999px',
+                  textDecoration: 'none',
+                  fontFamily: 'var(--font-hand)',
+                  fontSize: isMobile ? '0.85rem' : '0.92rem',
+                  fontWeight: 'bold',
+                  color: '#be185d',
+                  background: '#fdf2f8',
+                  border: '2px solid #f9a8d4',
+                  boxShadow: '0 4px 10px rgba(244,114,182,0.18)',
+                  zIndex: 900,
+                }}
+              >
+                Replay Mitsumi's birthday surprise!
+              </motion.a>
+            )}
+
             {/* Spacer for safe centering */}
             <div style={{ flexGrow: 1, minHeight: isMobile ? '24px' : '20px' }} />
 

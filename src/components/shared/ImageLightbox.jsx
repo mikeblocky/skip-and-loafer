@@ -3,11 +3,14 @@ import { motion } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
+const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
+
 const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = 'Artwork' }) => {
   const overlayRef = useRef(null);
   const idx = images.indexOf(src);
   const hasPrev = idx > 0;
   const hasNext = idx < images.length - 1;
+  const isVideo = isVideoSrc(src);
 
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -50,13 +53,13 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       if (event.key === 'Escape') onClose();
       else if (event.key === 'ArrowLeft' && hasPrev) onNavigate(images[idx - 1]);
       else if (event.key === 'ArrowRight' && hasNext) onNavigate(images[idx + 1]);
-      else if (event.key === '+' || event.key === '=') {
+      else if (!isVideo && (event.key === '+' || event.key === '=')) {
         if (event.ctrlKey || event.metaKey) event.preventDefault();
         doZoom(0.25);
-      } else if (event.key === '-') {
+      } else if (!isVideo && event.key === '-') {
         if (event.ctrlKey || event.metaKey) event.preventDefault();
         doZoom(-0.25);
-      } else if (event.key === '0') {
+      } else if (!isVideo && event.key === '0') {
         if (event.ctrlKey || event.metaKey) event.preventDefault();
         resetZoom();
       } else if (!isMobile && (event.key.toLowerCase() === 'q' || event.key.toLowerCase() === 'x')) {
@@ -66,7 +69,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [idx, hasPrev, hasNext, images, onClose, onNavigate, doZoom, resetZoom, isMobile]);
+  }, [idx, hasPrev, hasNext, images, onClose, onNavigate, doZoom, resetZoom, isMobile, isVideo]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -76,6 +79,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   }, []);
 
   const handleWheel = useCallback((event) => {
+    if (isVideo) return;
     event.preventDefault();
 
     if (event.ctrlKey) {
@@ -99,7 +103,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       wheelTimeout.current = setTimeout(() => setIsWheeling(false), 150);
       setPanOffset((prev) => ({ x: prev.x - event.deltaX, y: prev.y - event.deltaY }));
     }
-  }, [doZoom, zoom]);
+  }, [doZoom, zoom, isVideo]);
 
   useEffect(() => {
     const preventBrowserZoom = (event) => {
@@ -110,6 +114,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   }, []);
 
   const onPointerDown = (event) => {
+    if (isVideo) return;
     if (event.target instanceof Element && event.target.closest('[data-lightbox-control="true"]')) return;
 
     activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -133,6 +138,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   };
 
   const onPointerMove = (event) => {
+    if (isVideo) return;
     if (!activePointers.current.has(event.pointerId)) return;
     activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
@@ -168,6 +174,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   };
 
   const onPointerUp = (event) => {
+    if (isVideo) return;
     if (event.target instanceof Element && event.target.closest('[data-lightbox-control="true"]')) return;
 
     activePointers.current.delete(event.pointerId);
@@ -373,7 +380,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
         onPointerCancel={onPointerUp}
         onClick={(event) => {
           if (event.target === event.currentTarget) {
-            if (zoom <= 1) onClose();
+            if (zoom <= 1 || isVideo) onClose();
             else resetZoom();
           }
         }}
@@ -386,31 +393,57 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
           touchAction: 'none',
         }}
       >
-        <motion.img
-          key={src}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          src={src}
-          alt={altText}
-          draggable={false}
-          onClick={(event) => {
-            event.stopPropagation();
-            handleDoubleTap(event);
-          }}
-          style={{
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            objectFit: 'contain',
-            borderRadius: '0',
-            transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
-            transition: isWheeling || isPanning || isPinching ? 'none' : 'transform 0.2s ease-out',
-            willChange: 'transform',
-            userSelect: 'none',
-            touchAction: 'none',
-          }}
-        />
+        {isVideo ? (
+          <motion.video
+            key={src}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            src={src}
+            controls
+            autoPlay
+            loop
+            muted
+            playsInline
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+            style={{
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+              borderRadius: '0',
+              userSelect: 'none',
+            }}
+          />
+        ) : (
+          <motion.img
+            key={src}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            src={src}
+            alt={altText}
+            draggable={false}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleDoubleTap(event);
+            }}
+            style={{
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+              borderRadius: '0',
+              transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
+              transition: isWheeling || isPanning || isPinching ? 'none' : 'transform 0.2s ease-out',
+              willChange: 'transform',
+              userSelect: 'none',
+              touchAction: 'none',
+            }}
+          />
+        )}
       </div>
 
       <div style={{

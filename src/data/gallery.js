@@ -14,7 +14,7 @@ const FOLDER_MAP = {
 // Glob to discover image paths at build time. We only use the keys (paths), not the imports.
 // Files in public/ are served as-is, so /public/gallery/X/Y.jpg → /gallery/X/Y.jpg
 const allGalleryPaths = Object.keys(
-  import.meta.glob('/public/gallery/**/*.{jpg,jpeg,png,gif,webp}', { eager: false })
+  import.meta.glob('/public/gallery/**/*.{jpg,jpeg,png,gif,webp,mp4}', { eager: false })
 );
 
 // Build categories by matching discovered paths to folders
