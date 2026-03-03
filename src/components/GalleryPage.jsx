@@ -22,6 +22,8 @@ function shuffleInSession(arr) {
   return result;
 }
 
+const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
+
 
 const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
@@ -59,6 +61,15 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     const toPreload = [images[i - 1], images[i + 1]].filter(Boolean);
     toPreload.forEach((url) => {
       if (IMAGE_LOADED_CACHE.has(url)) return;
+
+      if (isVideoSrc(url)) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadeddata = () => IMAGE_LOADED_CACHE.add(url);
+        video.src = url;
+        return;
+      }
+
       const img = new Image();
       img.onload = () => IMAGE_LOADED_CACHE.add(url);
       img.src = url;

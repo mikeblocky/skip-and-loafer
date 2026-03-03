@@ -5,7 +5,41 @@ import './index.css'
 const App = lazy(() => import('./App.jsx'))
 const MitsumiBirthday = lazy(() => import('./MitsumiBirthday.jsx'))
 
-const isMitsumiPage = window.location.pathname === '/mitsumi';
+const MITSUMI_FIRST_VISIT_KEY = 'skip_mitsumi_first_visit';
+
+const getTodayKey = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+};
+
+const isMarchThird = () => {
+  const now = new Date();
+  return now.getMonth() === 2 && now.getDate() === 3;
+};
+
+let isMitsumiPage = window.location.pathname === '/mitsumi';
+
+if (!isMitsumiPage && isMarchThird()) {
+  const todayKey = getTodayKey();
+  let hasVisitedToday = false;
+
+  try {
+    hasVisitedToday = localStorage.getItem(MITSUMI_FIRST_VISIT_KEY) === todayKey;
+  } catch {
+    hasVisitedToday = false;
+  }
+
+  if (!hasVisitedToday) {
+    try {
+      localStorage.setItem(MITSUMI_FIRST_VISIT_KEY, todayKey);
+    } catch {
+      // ignore storage failures
+    }
+
+    window.location.replace('/mitsumi');
+    isMitsumiPage = true;
+  }
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

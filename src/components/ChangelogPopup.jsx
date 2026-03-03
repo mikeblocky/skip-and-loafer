@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import {
-    CHANGELOG_VERSION,
     STORAGE_KEY,
     RELEASE_DATE,
     formatReleaseDate,
@@ -22,7 +21,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
     useEffect(() => {
         try {
             const seen = localStorage.getItem(STORAGE_KEY);
-            if (seen !== CHANGELOG_VERSION) {
+            if (seen !== '1') {
                 setShow(true);
             }
         } catch { /* ignore */ }
@@ -31,7 +30,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
     const handleClose = () => {
         setShow(false);
         try {
-            localStorage.setItem(STORAGE_KEY, CHANGELOG_VERSION);
+            localStorage.setItem(STORAGE_KEY, '1');
         } catch { /* ignore */ }
     };
 
