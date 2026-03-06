@@ -38,7 +38,7 @@ const MangaReaderTopOverlay = ({ showOverlay, showNav, isMobile, btnSize, iconMa
                             fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.85rem' : '0.75rem',
                             fontWeight: 'bold', color: 'rgba(255,255,255,0.6)',
                         }}>
-                            Chapter {chapter.number}
+                            Chapter {chapter.displayNumber ?? chapter.number}
                             {chapter.title && (
                                 <span style={{
                                     fontSize: isMobile ? '0.7rem' : '0.62rem',

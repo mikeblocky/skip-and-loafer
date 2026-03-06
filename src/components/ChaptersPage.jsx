@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { CHAPTERS, VOLUMES, VOL_COLORS } from '../data/chapters';
+import { motion } from 'framer-motion';
+import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS } from '../data/chapters';
 import MobileChaptersTab from './chapters/tabs/MobileChaptersTab';
 import DesktopChaptersTab from './chapters/tabs/DesktopChaptersTab';
+import SideWorksTab from './chapters/tabs/SideWorksTab';
 import {
   ChapterRow as SharedChapterRow,
   NavBtn as SharedNavBtn,
   VolSelector as SharedVolSelector,
 } from './chapters/chaptersSharedComponents';
+import { useSubtabShortcutNavigation } from '../hooks/useSubtabShortcutNavigation';
 import { buildNativeLink, isNativePreOrderVolume } from './chapters/chapterStoreLinks';
 import { NOTE_PALETTES, getReadTier } from './chapters/chapterTierConfig';
 import {
@@ -62,9 +65,67 @@ const DesktopChapters = (props) => (
   />
 );
 
+const SUBTABS = ['main', 'side'];
+
+const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) => (
+  <div
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      borderRadius: '9999px',
+      padding: '4px',
+      border: '1.5px solid #e5e7eb',
+      background: '#f9fafb',
+    }}
+  >
+    {[
+      { id: 'main', label: t.mainStory || 'Main story' },
+      { id: 'side', label: t.sideWorks || 'Side works' },
+    ].map((tab) => {
+      const isActive = activeSubtab === tab.id;
+      return (
+        <motion.button
+          key={tab.id}
+          onClick={() => setActiveSubtab(tab.id)}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
+          style={{
+            border: 'none',
+            borderRadius: '9999px',
+            padding: isMobile ? '8px 12px' : '7px 14px',
+            cursor: 'pointer',
+            background: isActive ? '#0ea5e9' : '#f3f4f6',
+            color: isActive ? '#ffffff' : '#6b7280',
+            fontFamily: 'var(--font-hand)',
+            fontWeight: 'bold',
+            fontSize: isMobile ? '0.86rem' : '0.88rem',
+            transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {tab.label}
+        </motion.button>
+      );
+    })}
+  </div>
+);
+
 const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, markFinished, unmarkFinished, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const [countryCode, setCountryCode] = useState(null);
+  const [activeSubtab, _setActiveSubtab] = useState(() => {
+    const saved = localStorage.getItem('skip_chaptersSubtab');
+    return saved === 'side' ? 'side' : 'main';
+  });
+
+  const setActiveSubtab = (valueOrFn) => {
+    _setActiveSubtab((prev) => {
+      const next = typeof valueOrFn === 'function' ? valueOrFn(prev) : valueOrFn;
+      localStorage.setItem('skip_chaptersSubtab', next);
+      return next;
+    });
+  };
 
   const isLikelyPreOrderLink = (url) =>
     /pre[-\s]?order|pré[-\s]?venda|vorbestell|preordina|reservar|précommander/i.test(String(url || ''));
@@ -78,6 +139,7 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
       try {
         localStorage.setItem(COUNTRY_CACHE_KEY, JSON.stringify({ code, ts: Date.now() }));
       } catch {
+        // Ignore storage write failures.
       }
     };
 
@@ -92,6 +154,7 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
         };
       }
     } catch {
+      // Ignore malformed cache payloads.
     }
 
     const resolveCountry = async () => {
@@ -105,6 +168,7 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
           return;
         }
       } catch {
+        // Ignore geo lookup failures and fallback to locale region.
       }
 
       const localeRegion = getLocaleRegion();
@@ -151,12 +215,16 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
   const goPrev = () => setActiveVol((prev) => Math.max(0, prev - 1));
   const goNext = () => setActiveVol((prev) => Math.min(VOLUMES.length - 1, prev + 1));
 
-  useEffect(() => {
-    const key = subtabShortcut?.key;
-    if (!key) return;
-    if (key === 'q') goPrev();
-    if (key === 'e') goNext();
-  }, [subtabShortcut?.token]);
+  useSubtabShortcutNavigation({
+    subtabShortcut,
+    tabCount: SUBTABS.length,
+    onNavigate: (nextIndexOrFn) => {
+      const currentIndex = SUBTABS.indexOf(activeSubtab);
+      const computed = typeof nextIndexOrFn === 'function' ? nextIndexOrFn(currentIndex) : nextIndexOrFn;
+      const bounded = ((computed % SUBTABS.length) + SUBTABS.length) % SUBTABS.length;
+      setActiveSubtab(SUBTABS[bounded]);
+    },
+  });
 
   const shared = {
     activeVol,
@@ -186,7 +254,46 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
     uiLanguage,
   };
 
-  return isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />;
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div
+        style={{
+          padding: isMobile ? '12px 10px 0 10px' : '14px 40px 0 40px',
+          display: 'flex',
+          justifyContent: isMobile ? 'center' : 'flex-start',
+        }}
+      >
+        <ChaptersSubtabSelector
+          isMobile={isMobile}
+          activeSubtab={activeSubtab}
+          setActiveSubtab={setActiveSubtab}
+          t={t}
+        />
+      </div>
+
+      {activeSubtab === 'main' ? (
+        isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />
+      ) : (
+        <SideWorksTab
+          isMobile={isMobile}
+          sideWorks={SIDE_WORKS}
+          onReadChapter={onReadChapter}
+          isFinished={isFinished}
+          trackExternalLink={trackExternalLink}
+          cancelExternalLink={cancelExternalLink}
+          markFinished={markFinished}
+          unmarkFinished={unmarkFinished}
+          getReadCount={getReadCount}
+          incrementReadCount={incrementReadCount}
+          getRemainingCooldown={getRemainingCooldown}
+          pendingLinks={pendingLinks}
+          t={t}
+          uiLanguage={uiLanguage}
+          ChapterRowComponent={ChapterRow}
+        />
+      )}
+    </div>
+  );
 };
 
 export default ChaptersPage;

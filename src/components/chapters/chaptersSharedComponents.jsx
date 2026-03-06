@@ -113,6 +113,7 @@ export const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished
   const tier = getReadTierFn(readCount, uiLanguage);
   const note = notePalettes[index % notePalettes.length];
   const jpLinks = chapter.links.jp || [];
+  const chapterBadge = chapter.badge || chapter.number;
 
   const [cooldown, setCooldown] = useState(() => getRemainingCooldown?.(chapter.number) || 0);
 
@@ -229,7 +230,7 @@ export const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished
         transition={finished ? { duration: 0.6, delay: index * 0.04 + 0.2 } : { duration: 2.5, repeat: Infinity, delay: index * 0.3 }}
         style={{ width: isMobile ? '32px' : '44px', height: isMobile ? '32px' : '44px', borderRadius: '50%', background: `linear-gradient(135deg, ${note.border}40, ${note.border}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `2px solid ${note.border}` }}
       >
-        <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.78rem' : '1rem', fontWeight: 'bold', color: note.accent }}>{chapter.number}</span>
+        <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.78rem' : '1rem', fontWeight: 'bold', color: note.accent }}>{chapterBadge}</span>
       </motion.div>
 
       <div style={{ flex: '1 1 120px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -275,14 +276,14 @@ export const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished
         >
           {cooldown > 0 ? `⏳ ${cooldown}s` : t.plusRead}
         </motion.button>
-        {false && chapter.pages && chapter.pages.length > 0 && (
+        {chapter.readInApp && chapter.pages && chapter.pages.length > 0 && (
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={TAP_SCALE_DEFAULT}
             onClick={() => onReadChapter && onReadChapter(chapter)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: isMobile ? '0.75rem' : '0.76rem', color: '#fff', background: '#10b981', padding: isMobile ? '6px 10px' : '4px 10px', borderRadius: '9999px', textDecoration: 'none', fontFamily: 'var(--font-hand)', fontWeight: 'bold', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: 'none', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
-            <BookMarked size={isMobile ? 12 : 11} /> Read
+            <BookMarked size={isMobile ? 12 : 11} /> {t.readInApp || 'Read'}
           </motion.button>
         )}
         {false && chapter.links.en && (

@@ -527,7 +527,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
             <MangaReaderEndPopup
                 showEndPopup={showEndPopup}
                 isMobile={isMobile}
-                chapterNumber={chapter.number}
+                chapterNumber={chapter.displayNumber ?? chapter.number}
                 cooldownRemaining={cooldownRemaining}
                 autoNextCountdown={autoNextCountdown}
                 onNextChapter={onNextChapter}
