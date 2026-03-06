@@ -1,6 +1,6 @@
-import { Cake } from 'lucide-react';
+import { BookMarked } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-03-03-v12.0';
+export const CHANGELOG_VERSION = '2026-03-06-v13.0';
 export const STORAGE_KEY = 'skip_changelogSeen';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,10 +26,10 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'Birthday update',
-    icon: Cake,
+    title: 'Side works',
+    icon: BookMarked,
     lines: [
-      { type: 'added', text: 'Happy birthday Mitsumi!' },
+      { type: 'added', text: 'Side works tab added to Chapters — read Sakura Tayori, Awai Yoru, and the March 5th tweet in-app!' },
     ],
   },
 ];
