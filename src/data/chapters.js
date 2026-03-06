@@ -5,6 +5,10 @@
 export const mangaPages = (ch, count, ext = 'jpg') =>
     Array.from({ length: count }, (_, i) => `/manga/ch-${ch}/${i}.${ext}`);
 
+/** Generate page paths for side works: sideWorkPages('awai-yoru', 11) */
+export const sideWorkPages = (slug, count, ext = 'webp') =>
+    Array.from({ length: count }, (_, i) => `/manga/${slug}/${i}.${ext}`);
+
 /** Check if a chapter is a main story chapter (integer number) */
 export const isMainChapter = (num) => Number.isInteger(Number(num));
 
@@ -600,5 +604,38 @@ export const CHAPTERS = [
     {
         number: 79, title: 'On Break — Returns in April', thumbnail: null,
         links: { en: null, jp: [] }
+    },
+];
+
+export const SIDE_WORKS = [
+    {
+        number: 'side-sakura-tayori',
+        displayNumber: 0,
+        badge: 'SW1',
+        title: 'Sakura Tayori',
+        subtitle: 'Side Work',
+        pages: sideWorkPages('sakura-tayori', 37),
+        readInApp: true,
+        links: { en: null, jp: [] },
+    },
+    {
+        number: 'side-awai-yoru',
+        displayNumber: 0,
+        badge: 'SW2',
+        title: 'Awai Yoru',
+        subtitle: 'Side Work',
+        pages: sideWorkPages('awai-yoru', 11),
+        readInApp: true,
+        links: { en: null, jp: [] },
+    },
+    {
+        number: 'side-before-musical-starts',
+        displayNumber: 0,
+        badge: 'SW3',
+        title: 'March 5th, 2026 tweet',
+        subtitle: 'Side Work',
+        pages: sideWorkPages('pre-play', 2, 'jpg'),
+        readInApp: true,
+        links: { en: null, jp: [] },
     },
 ];
