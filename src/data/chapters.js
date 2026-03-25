@@ -25,7 +25,8 @@ export const VOLUMES = [
     { number: 10, title: 'Volume 10', cover: '/volumes/10.jpg', chapters: [54, 55, 56, 56.5, 57, 58, 59], purchaseUrl: 'https://www.penguinrandomhouse.com/books/772728/skip-and-loafer-vol-10-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/406534851X/' },
     { number: 11, title: 'Volume 11', cover: '/volumes/11.jpg', chapters: [60, 61, 62, 63, 64, 65], purchaseUrl: 'https://www.penguinrandomhouse.com/books/783973/skip-and-loafer-vol-11-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065377226/' },
     { number: 12, title: 'Volume 12', cover: '/volumes/12.jpg', chapters: [66, 67, 68, 69, 70, 71, 72], purchaseUrl: 'https://www.penguinrandomhouse.com/books/819145/skip-and-loafer-vol-12-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065397065/' },
-    { number: 13, title: 'Volume 13', cover: null, chapters: [73, 74, 75, 76, 77, 78], inProgress: true },
+    { number: 13, title: 'Volume 13', cover: null, chapters: [73, 74, 75, 76, 77, 78] },
+    { number: 14, title: 'Volume 14', cover: null, chapters: [79], inProgress: true },
 ];
 
 /* Per-volume colors matching cover art */
@@ -42,7 +43,8 @@ export const VOL_COLORS = {
     10: '#8b9cf0',           // Blue-lavender
     11: '#ff9ec6',           // Pink
     12: '#7ec494',           // Peach-green
-    13: '#c4b5fd',           // Lavender (default for in-progress)
+    13: '#c4b5fd',           // Lavender
+    14: '#f0a85e',           // Warm peach (default for in-progress)
 };
 
 export const CHAPTERS = [
@@ -561,7 +563,7 @@ export const CHAPTERS = [
         }
     },
 
-    // ── Volume 13 (in-progress) ──
+    // ── Volume 13 ──
     {
         number: 73, title: 'Flustered Culture Festival, Part 4', thumbnail: null, links: {
             en: 'https://weebdex.org/chapter/gv0u4y4tqj',
@@ -601,8 +603,10 @@ export const CHAPTERS = [
             jp: ['https://comic-days.com/episode/12207421983406221656', 'https://comic-days.com/episode/12207421983406221664']
         }
     },
+
+    // ── Volume 14 (in-progress) ──
     {
-        number: 79, title: 'On Break — Returns in April', thumbnail: null,
+        number: 79, title: 'Coming in April', thumbnail: null,
         links: { en: null, jp: [] }
     },
 ];

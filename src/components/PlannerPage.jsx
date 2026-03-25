@@ -31,7 +31,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
     const locale = LOCALE_BY_UI_LANGUAGE[uiLanguage] || 'en-US';
 
-    const targetDate = new Date('2026-04-25T00:00:00+09:00');
+    const targetDate = new Date('2026-04-24T00:00:00+09:00');
     const localDateString = targetDate.toLocaleString(locale, {
         weekday: 'long', month: 'long', day: 'numeric',
         hour: 'numeric', minute: '2-digit'
