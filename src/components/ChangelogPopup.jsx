@@ -21,10 +21,9 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
 
     useEffect(() => {
         try {
-            const seen = localStorage.getItem(STORAGE_KEY);
-            if (seen !== CHANGELOG_VERSION) {
+            const dismissed = localStorage.getItem(STORAGE_KEY + '_dismissed');
+            if (!dismissed) {
                 setShow(true);
-                localStorage.setItem(STORAGE_KEY, CHANGELOG_VERSION);
             }
         } catch { /* ignore */ }
     }, []);
@@ -32,7 +31,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
     const handleClose = () => {
         setShow(false);
         try {
-            localStorage.setItem(STORAGE_KEY, CHANGELOG_VERSION);
+            localStorage.setItem(STORAGE_KEY + '_dismissed', 'true');
         } catch { /* ignore */ }
     };
 
@@ -108,68 +107,68 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                             {CHANGELOG_SERIES.map((feature, featureIdx) => {
                                 const Icon = feature.icon;
                                 return (
-                                <motion.div
-                                    key={feature.title}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: featureIdx * 0.05 }}
-                                    style={{
-                                        padding: isMobile ? '10px 10px' : '12px 12px',
-                                        background: '#fafafa',
-                                        borderRadius: '10px',
-                                        border: '1px solid #e5e7eb',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '8px',
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ color: '#6b7280', display: 'inline-flex', alignItems: 'center' }}><Icon size={14} /></span>
-                                        <span style={{
-                                            fontFamily: 'Sniglet, var(--font-main)',
-                                            color: '#374151',
-                                            fontSize: isMobile ? '0.95rem' : '1rem',
-                                            lineHeight: 1.2,
-                                            fontWeight: 'normal',
-                                        }}>
-                                            {feature.title}
-                                        </span>
-                                    </div>
+                                    <motion.div
+                                        key={feature.title}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: featureIdx * 0.05 }}
+                                        style={{
+                                            padding: isMobile ? '10px 10px' : '12px 12px',
+                                            background: '#fafafa',
+                                            borderRadius: '10px',
+                                            border: '1px solid #e5e7eb',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ color: '#6b7280', display: 'inline-flex', alignItems: 'center' }}><Icon size={14} /></span>
+                                            <span style={{
+                                                fontFamily: 'Sniglet, var(--font-main)',
+                                                color: '#374151',
+                                                fontSize: isMobile ? '0.95rem' : '1rem',
+                                                lineHeight: 1.2,
+                                                fontWeight: 'normal',
+                                            }}>
+                                                {feature.title}
+                                            </span>
+                                        </div>
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        {feature.lines.map((line, lineIdx) => {
-                                            const baseTypeStyle = TYPE_COLORS[line.type] || TYPE_COLORS.fixed;
-                                            const typeStyle = { ...baseTypeStyle, label: t.type[line.type] || baseTypeStyle.label };
-                                            return (
-                                                <div key={`${feature.title}-${lineIdx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                                                    <span style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        fontSize: '0.62rem',
-                                                        fontWeight: 'bold',
-                                                        fontFamily: 'var(--font-hand)',
-                                                        padding: '2px 7px',
-                                                        borderRadius: '9999px',
-                                                        background: typeStyle.bg,
-                                                        color: typeStyle.text,
-                                                        flexShrink: 0,
-                                                        marginTop: '1px',
-                                                    }}>
-                                                        {typeStyle.label}
-                                                    </span>
-                                                    <span style={{
-                                                        fontFamily: 'var(--font-hand)',
-                                                        color: '#374151',
-                                                        fontSize: isMobile ? '0.82rem' : '0.88rem',
-                                                        lineHeight: 1.35,
-                                                    }}>
-                                                        {line.text}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </motion.div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            {feature.lines.map((line, lineIdx) => {
+                                                const baseTypeStyle = TYPE_COLORS[line.type] || TYPE_COLORS.fixed;
+                                                const typeStyle = { ...baseTypeStyle, label: t.type[line.type] || baseTypeStyle.label };
+                                                return (
+                                                    <div key={`${feature.title}-${lineIdx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                                        <span style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            fontSize: '0.62rem',
+                                                            fontWeight: 'bold',
+                                                            fontFamily: 'var(--font-hand)',
+                                                            padding: '2px 7px',
+                                                            borderRadius: '9999px',
+                                                            background: typeStyle.bg,
+                                                            color: typeStyle.text,
+                                                            flexShrink: 0,
+                                                            marginTop: '1px',
+                                                        }}>
+                                                            {typeStyle.label}
+                                                        </span>
+                                                        <span style={{
+                                                            fontFamily: 'var(--font-hand)',
+                                                            color: '#374151',
+                                                            fontSize: isMobile ? '0.82rem' : '0.88rem',
+                                                            lineHeight: 1.35,
+                                                        }}>
+                                                            {line.text}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
                                 );
                             })}
                         </div>

@@ -113,6 +113,7 @@ export const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished
   const tier = getReadTierFn(readCount, uiLanguage);
   const note = notePalettes[index % notePalettes.length];
   const jpLinks = chapter.links.jp || [];
+  const comingSoon = !chapter.links.en && jpLinks.length === 0;
   const chapterBadge = chapter.badge || chapter.number;
 
   const [cooldown, setCooldown] = useState(() => getRemainingCooldown?.(chapter.number) || 0);
@@ -249,33 +250,35 @@ export const ChapterRow = ({ chapter, index, isMobile, onReadChapter, isFinished
       </div>
 
       <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
-        <motion.button
-          whileHover={cooldown > 0 ? {} : { scale: 1.1 }}
-          whileTap={cooldown > 0 ? {} : TAP_SCALE_DEFAULT}
-          onClick={handleIncrement}
-          disabled={cooldown > 0}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontSize: isMobile ? '0.75rem' : '0.76rem',
-            color: cooldown > 0 ? '#9ca3af' : note.accent,
-            background: cooldown > 0 ? '#f3f4f6' : `${note.border}30`,
-            padding: isMobile ? '6px 10px' : '4px 10px',
-            borderRadius: '9999px',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-hand)',
-            fontWeight: 'bold',
-            boxShadow: cooldown > 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
-            border: `1.5px solid ${cooldown > 0 ? '#d1d5db' : note.border}`,
-            cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            opacity: cooldown > 0 ? 0.7 : 1,
-          }}
-        >
-          {cooldown > 0 ? `⏳ ${cooldown}s` : t.plusRead}
-        </motion.button>
+        {!comingSoon && (
+          <motion.button
+            whileHover={cooldown > 0 ? {} : { scale: 1.1 }}
+            whileTap={cooldown > 0 ? {} : TAP_SCALE_DEFAULT}
+            onClick={handleIncrement}
+            disabled={cooldown > 0}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: isMobile ? '0.75rem' : '0.76rem',
+              color: cooldown > 0 ? '#9ca3af' : note.accent,
+              background: cooldown > 0 ? '#f3f4f6' : `${note.border}30`,
+              padding: isMobile ? '6px 10px' : '4px 10px',
+              borderRadius: '9999px',
+              textDecoration: 'none',
+              fontFamily: 'var(--font-hand)',
+              fontWeight: 'bold',
+              boxShadow: cooldown > 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
+              border: `1.5px solid ${cooldown > 0 ? '#d1d5db' : note.border}`,
+              cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              opacity: cooldown > 0 ? 0.7 : 1,
+            }}
+          >
+            {cooldown > 0 ? `⏳ ${cooldown}s` : t.plusRead}
+          </motion.button>
+        )}
         {chapter.readInApp && chapter.pages && chapter.pages.length > 0 && (
           <motion.button
             whileHover={{ scale: 1.1 }}
