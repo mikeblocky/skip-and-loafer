@@ -21,6 +21,10 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
   const dimensions = shouldBypassThumbnail ? null : IMAGE_DIMENSION_CACHE.get(src);
   const cardRef = useRef(null);
 
+  // Stable random rotation between -5 and 5 degrees
+  const [rotation] = useState(() => (Math.random() * 10) - 5);
+
+
   useEffect(() => {
     const node = cardRef.current;
     if (!node || isVisible) return;
@@ -58,21 +62,45 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
     <motion.div
       ref={cardRef}
       key={src}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.02, 0.4), duration: 0.3 }}
-      className="break-inside-avoid relative group cursor-pointer rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-      style={{ border: selectedBorderColor ? `3px solid ${selectedBorderColor}` : '2px solid transparent', contentVisibility: 'auto', overflowAnchor: 'none' }}
+      initial={{ opacity: 0, y: 30, rotate: rotation - 10 }}
+      animate={{ opacity: 1, y: 0, rotate: rotation }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20, delay: Math.min(index * 0.03, 0.4) }}
+      whileHover={{ 
+        scale: 1.05, 
+        rotate: 0, 
+        zIndex: 20,
+        transition: { type: 'spring', stiffness: 400, damping: 15 }
+      }}
+      className="break-inside-avoid relative group cursor-pointer overflow-visible"
+      style={{ 
+        contentVisibility: 'auto', 
+        overflowAnchor: 'none',
+        marginBottom: '26px'
+      }}
       onClick={onClick}
     >
-      <div
-        style={{
-          width: '100%',
-          background: 'transparent',
-          aspectRatio: dimensions ? `${dimensions.width} / ${dimensions.height}` : 'auto',
-          minHeight: dimensions ? 'auto' : '200px',
+
+      <div 
+        style={{ 
+          background: '#fff', 
+          padding: '8px 8px 26px 8px', 
+          boxShadow: '0 6px 16px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)', 
+          borderRadius: '2px',
+          border: selectedBorderColor ? `3px solid ${selectedBorderColor}` : '3px solid transparent',
+          position: 'relative'
         }}
       >
+        <div
+          style={{
+            width: '100%',
+            background: '#f3f4f6', // subtle placeholder background
+            borderRadius: '2px',
+            overflow: 'hidden',
+            aspectRatio: dimensions ? `${dimensions.width} / ${dimensions.height}` : 'auto',
+            minHeight: dimensions ? 'auto' : '200px',
+            position: 'relative'
+          }}
+        >
         {isVisible && (
           isVideo ? (
             <video
@@ -109,9 +137,10 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
             />
           )
         )}
-      </div>
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-        <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" size={32} />
+        </div>
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center rounded-[2px] m-2 mb-[26px]">
+          <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" size={32} />
+        </div>
       </div>
     </motion.div>
   );

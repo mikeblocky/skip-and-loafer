@@ -1,12 +1,17 @@
 /* eslint-disable no-unused-vars, react-hooks/purity */
-import { memo, useState, useRef, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { memo, useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { Star, Sparkles } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
+import { DRAG_SPRING, BREATHE, BREATHE_TRANSITION } from './shared/animationPresets';
 
 const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPositionUpdate, index, sidePreference, sideRank = 0, sideCount = 1 }) => {
     const [showEffect, setShowEffect] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
     const stickerRef = useRef(null);
     const size = isMobile ? 100 : 150;
+    const dragX = useMotionValue(0);
+    const dragRotate = useTransform(dragX, [-200, 0, 200], [-8, 0, 8]);
     const isSideLayoutPage = true;
 
     // Random position and rotation on each page load
@@ -120,37 +125,105 @@ const CharacterSticker = ({ character, isMobile, activePage, allPositions, onPos
         setShowEffect(effect);
     }, [character.id, allPositions, onPositionUpdate]);
 
+    const [phase, setPhase] = useState('hidden');
+    useEffect(() => {
+        const t1 = setTimeout(() => setPhase('center'), 50);
+        // They wait in the center for a funny moment, then scatter one by one
+        const t2 = setTimeout(() => {
+            setPhase('scattered');
+            triggerHaptic('tap');
+        }, 700 + index * 120);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+    }, [index]);
+
+    const centerX = (typeof window !== 'undefined' ? window.innerWidth : 1000) / 2 - size / 2;
+    const centerY = (typeof window !== 'undefined' ? window.innerHeight : 800) / 2 - size / 2;
+
+    const animState = {
+        hidden: { scale: 0, opacity: 0, x: centerX, y: centerY, rotate: 0 },
+        center: { 
+            scale: 1, 
+            opacity: 1, 
+            x: centerX + (index - 2) * (isMobile ? 65 : 100), 
+            y: centerY + (Math.random() * 20 - 10), 
+            rotate: (Math.random() * 20 - 10) 
+        },
+        scattered: { 
+            scale: 1, 
+            opacity: 1, 
+            x: targetPos.x, 
+            y: targetPos.y, 
+            rotate: targetPos.rot 
+        }
+    };
+
     return (
         <AnimatePresence>
             {!isMobile && (
                 <motion.div
                     ref={stickerRef}
                     drag
-                    dragMomentum={false}
-                    dragElastic={0}
-                    onDrag={checkProximity}
-                    onDragEnd={checkProximity}
-                    whileDrag={{ scale: 1.1, zIndex: 9999 }}
-                    whileHover={{ scale: 1.05 }}
+                    dragMomentum={true}
+                    dragElastic={0.15}
+                    dragTransition={DRAG_SPRING}
+                    onDragStart={() => {
+                        setIsDragging(true);
+                        triggerHaptic('press');
+                    }}
+                    onDrag={(e, info) => {
+                        dragX.set(info.velocity.x);
+                        checkProximity();
+                    }}
+                    onDragEnd={() => {
+                        setIsDragging(false);
+                        triggerHaptic('release');
+                        dragX.set(0);
+                        checkProximity();
+                    }}
+                    whileDrag={{
+                        scale: 1.12,
+                        zIndex: 9999,
+                        filter: 'drop-shadow(5px 10px 16px rgba(0,0,0,0.35))',
+                        transition: { type: 'spring', stiffness: 300, damping: 15 },
+                    }}
+                    whileHover={{
+                        scale: 1.06,
+                        y: -4,
+                        filter: 'drop-shadow(4px 8px 12px rgba(0,0,0,0.3))',
+                        transition: { type: 'spring', stiffness: 300, damping: 15 },
+                    }}
                     style={{
                         position: 'fixed',
                         top: 0, left: 0,
                         width: size,
                         zIndex: 600,
-                        cursor: 'grab',
-                        filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))'
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))',
+                        rotate: dragRotate,
                     }}
-                    initial={{ scale: 0, opacity: 0, rotate: edgePos.rot * 2, x: edgePos.x, y: edgePos.y }}
-                    animate={{ scale: 1, opacity: 1, rotate: targetPos.rot, x: targetPos.x, y: targetPos.y }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 180, damping: 15, delay: isSideLayoutPage ? index * 0.05 : 0.2 + index * 0.1 }}
+                    initial="hidden"
+                    animate={phase}
+                    variants={animState}
+                    exit={{ scale: 0, opacity: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                    transition={{
+                        type: 'spring',
+                        stiffness: phase === 'scattered' ? 120 : 250,
+                        damping: phase === 'scattered' ? 14 : 20,
+                    }}
                 >
-                    <img
+                    <motion.div
+                        animate={isDragging ? { scale: 1, y: 0, rotate: 0 } : undefined}
+                        transition={isDragging ? { type: 'spring', stiffness: 300, damping: 20 } : undefined}
+                        className={!isDragging ? `idle-${character.name.toLowerCase()}` : undefined}
+                        style={{ width: '100%', height: '100%', originX: 0.5, originY: 0.8 }}
+                    >
+                        <img
                         src={character.src}
                         alt={character.name}
                         style={{ width: '100%', height: 'auto', pointerEvents: 'none' }}
                         draggable="false"
                     />
+                    </motion.div>
 
                     {/* Relationship Effect */}
                     <AnimatePresence>

@@ -4,11 +4,13 @@ export const useQuickPanels = ({ quickControlsRef, shortcutStats, setShortcutSta
   const [showAccessibilityPanel, setShowAccessibilityPanel] = useState(false);
   const [showShortcutPanel, setShowShortcutPanel] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showSettingsMain, setShowSettingsMain] = useState(false);
 
   const closeAllPanels = useCallback(() => {
     setShowAccessibilityPanel(false);
     setShowShortcutPanel(false);
     setShowLanguageMenu(false);
+    setShowSettingsMain(false);
   }, []);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ export const useQuickPanels = ({ quickControlsRef, shortcutStats, setShortcutSta
       if (next) {
         setShowShortcutPanel(false);
         setShowLanguageMenu(false);
+        setShowSettingsMain(false);
       }
       return next;
     });
@@ -42,6 +45,7 @@ export const useQuickPanels = ({ quickControlsRef, shortcutStats, setShortcutSta
       if (next) {
         setShowAccessibilityPanel(false);
         setShowLanguageMenu(false);
+        setShowSettingsMain(false);
       }
       return next;
     });
@@ -53,6 +57,19 @@ export const useQuickPanels = ({ quickControlsRef, shortcutStats, setShortcutSta
       if (next) {
         setShowAccessibilityPanel(false);
         setShowShortcutPanel(false);
+        setShowSettingsMain(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleSettingsMain = useCallback(() => {
+    setShowSettingsMain((prev) => {
+      const next = !prev;
+      if (next) {
+        setShowAccessibilityPanel(false);
+        setShowShortcutPanel(false);
+        setShowLanguageMenu(false);
       }
       return next;
     });
@@ -70,10 +87,12 @@ export const useQuickPanels = ({ quickControlsRef, shortcutStats, setShortcutSta
     showAccessibilityPanel,
     showShortcutPanel,
     showLanguageMenu,
+    showSettingsMain,
     setShowLanguageMenu,
     toggleAccessibilityPanel,
     toggleShortcutPanel,
     toggleLanguagePanel,
+    toggleSettingsMain,
     closeAllPanels,
   };
 };

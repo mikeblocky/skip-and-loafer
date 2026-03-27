@@ -1,6 +1,6 @@
 import { BookMarked } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-03-06-v13.0';
+export const CHANGELOG_VERSION = '2026-03-27-v14.0';
 export const STORAGE_KEY = 'skip_changelogSeen';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -25,6 +25,17 @@ export const getUtcOffsetLabel = () => {
 };
 
 export const CHANGELOG_SERIES = [
+  {
+    title: 'Mystery quiz refresh',
+    icon: BookMarked,
+    lines: [
+      { type: 'added', text: 'New question mechanics are live: spectrum sliders, 4-point stance prompts, and more mixed question sets.' },
+      { type: 'added', text: 'Results now include a full all-characters ranking, plus dynamic reason and daily prediction text per run.' },
+      { type: 'changed', text: 'Result layout is cleaner and more compact, with clearer instructions and updated color mapping for choice confidence.' },
+      { type: 'fixed', text: 'Improved mobile tab behavior to prevent active-tab clipping and tuned reliability checks to reduce unnecessary calibration rounds.' },
+      { type: 'fixed', text: 'Extreme response handling is now adaptive, so coherent high-intensity answers are less likely to be unfairly penalized.' },
+    ],
+  },
   {
     title: 'Side works',
     icon: BookMarked,

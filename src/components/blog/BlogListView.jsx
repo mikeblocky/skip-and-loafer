@@ -11,7 +11,7 @@ import {
 } from './blogStyles';
 import {
   getBlogListItemInitial,
-  BLOG_LIST_ITEM_ANIMATE,
+  getBlogListItemAnimate,
   getBlogListItemTransition,
 } from './blogAnimations';
 import { TAP_SCALE_DEFAULT } from '../shared/animationPresets';
@@ -41,11 +41,13 @@ const BlogListView = ({
         <motion.div
           key={blog.id}
           initial={getBlogListItemInitial(index)}
-          animate={BLOG_LIST_ITEM_ANIMATE}
+          animate={getBlogListItemAnimate(index)}
           transition={getBlogListItemTransition(index)}
+          whileHover={{ scale: 1.02, rotate: 0, zIndex: 10, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
           style={getBlogCardStyle(note, isMobile)}
         >
-          <div style={{ minWidth: 0, flex: 1 }}>
+
+          <div style={{ minWidth: 0, flex: 1, zIndex: 2, position: 'relative' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '3px', marginBottom: '6px' }}>
               <span style={{ ...BLOG_CARD_TITLE_STYLE, fontSize: isMobile ? '0.95rem' : '1rem' }}>{blog.title}</span>
               <span style={getBlogMetaStyle(note, isMobile)}>

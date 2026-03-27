@@ -69,7 +69,7 @@ const SideWorksTab = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '6px' : '8px' }}
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: isMobile ? '12px' : '16px' }}
     >
       {sideWorks.map((story, idx) => (
         <ChapterRowComponent

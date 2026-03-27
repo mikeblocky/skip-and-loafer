@@ -1,34 +1,20 @@
-/* Character Colors */
 export const CHARACTER_COLORS = {
-    "Iwakura Mitsumi": {
-        bg: "#ffe4ec",      // soft sakura pink
-        border: "#f472b6",  // cheerful rosy pink
-        text: "#9d174d"     // warm berry
-    },
-
-    "Shima Sousuke": {
-        bg: "#e0f2fe",      // airy sky blue
-        border: "#38bdf8",  // light summer blue
-        text: "#075985"     // calm deep ocean
-    },
-
-    "Egashira Mika": {
-        bg: "#fff1d6",      // creamy peach
-        border: "#fbbf24",  // honey gold
-        text: "#92400e"     // toasted caramel
-    },
-
-    "Murashige Yuzuki": {
-        bg: "#dcfce7",      // fresh mint
-        border: "#34d399",  // lively green
-        text: "#065f46"     // deep forest
-    },
-
-    "Nao": {
-        bg: "#f1edff",      // pale lavender mist
-        border: "#a78bfa",  // gentle violet
-        text: "#5b21b6"     // quiet dusk purple
-    }
+    "Mitsumi": { bg: "#fff2ed", border: "#e67e5f", text: "#9a3412" }, // Orange/Pink
+    "Sousuke": { bg: "#fefce8", border: "#eab308", text: "#854d0e" }, // Yellow
+    "Mika": { bg: "#fff1f2", border: "#f43f5e", text: "#9f1239" }, // Rose
+    "Yuzuki": { bg: "#f0fdfa", border: "#14b8a6", text: "#0f766e" }, // Teal
+    "Makoto": { bg: "#f5f3ff", border: "#7c3aed", text: "#5b21b6" }, // Purple
+    "Kazakami": { bg: "#fffaf5", border: "#fb923c", text: "#c2410c" }, // Orange
+    "Mukai": { bg: "#f1f5f9", border: "#64748b", text: "#334155" }, // Slate
+    "Takemine": { bg: "#fef2f2", border: "#b91c1c", text: "#7f1d1d" }, // Red
+    "Yamada": { bg: "#fff7ed", border: "#f97316", text: "#c2410c" }, // Orange
+    "Chris": { bg: "#f0f9ff", border: "#0ea5e9", text: "#0369a1" }, // Sky
+    "Ririka": { bg: "#fff1f2", border: "#881337", text: "#4c0519" }, // Dark Rose
+    "Kanechika": { bg: "#eef2ff", border: "#4338ca", text: "#312e81" }, // Indigo
+    // Fallbacks for characters not explicitly in birthdays yet:
+    "Nao": { bg: "#f1edff", border: "#a78bfa", text: "#5b21b6" },
+    "Ujiie": { bg: "#f8fafc", border: "#64748b", text: "#0f172a" },
+    "Fumi": { bg: "#dcfce7", border: "#34d399", text: "#065f46" }
 };
 
 /* Character stickers with positions */

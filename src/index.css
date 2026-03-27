@@ -16,6 +16,11 @@
   --paper-white: #ffffff;
   --line-blue: #dcebf7;
 
+  /* Emotional warmth */
+  --warm-glow: rgba(255, 158, 198, 0.15);
+  --warm-glow-strong: rgba(255, 158, 198, 0.3);
+  --love-shadow: 0 4px 20px rgba(255, 158, 198, 0.2);
+
   --font-main: 'Coming Soon', cursive;
   --font-hand: 'Coming Soon', cursive;
   --base-font-size: 16px;
@@ -30,8 +35,8 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   font-family: var(--font-main);
-  /* Notebook Lines Background */
-  background-color: #fdfcfa;
+  /* Notebook Lines Background — warm tinted paper */
+  background-color: #fdfaf8;
   background-image: repeating-linear-gradient(transparent,
       transparent 31px,
       #e8f0f8 32px);
@@ -39,8 +44,116 @@ body {
   color: #4a5568;
 }
 
+/* Emotional celebration hearts */
+@keyframes heartFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  30% { opacity: 1; transform: translateY(-20px) scale(1.15) rotate(-12deg); }
+  60% { opacity: 0.7; transform: translateY(-45px) scale(0.9) rotate(8deg); }
+  100% { opacity: 0; transform: translateY(-70px) scale(0.5) rotate(-5deg); }
+}
+
+@keyframes sparkleFloat {
+  0% { opacity: 1; transform: translateY(0) scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(180deg); }
+  100% { opacity: 0; transform: translateY(-55px) scale(0.3) rotate(360deg); }
+}
+
+.heart-float {
+  animation: heartFloat 1.2s ease-out forwards;
+  pointer-events: none;
+  position: absolute;
+  z-index: 100;
+}
+
+.sparkle-float {
+  animation: sparkleFloat 0.9s ease-out forwards;
+  pointer-events: none;
+  position: absolute;
+  z-index: 100;
+}
+
+/* ──────────────────────────────────
+   Character Personality Keyframes
+   (CSS prevents Framer Motion React re-render flashing)
+─────────────────────────────────── */
+@keyframes idleMitsumi {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  25% { transform: translateY(-6px) scale(1.03) rotate(1.5deg); }
+  75% { transform: translateY(-3px) scale(1.015) rotate(-1deg); }
+}
+.idle-mitsumi { animation: idleMitsumi 3s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
+
+@keyframes idleSousuke {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-2px) scale(1.01) rotate(0.5deg); }
+}
+.idle-sousuke { animation: idleSousuke 5s ease-in-out infinite; }
+
+@keyframes idleMika {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  25% { transform: translateY(-4px) scale(1.02) rotate(3deg); }
+  75% { transform: translateY(-2px) scale(1.01) rotate(-2deg); }
+}
+.idle-mika { animation: idleMika 3.5s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
+
+@keyframes idleMakoto {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-2px) scale(1.008) rotate(0.3deg); }
+}
+.idle-makoto { animation: idleMakoto 4.5s ease-in-out infinite; }
+
+@keyframes idleYuzuki {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-3px) scale(1.02) rotate(-1.5deg); }
+}
+.idle-yuzuki { animation: idleYuzuki 4s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
+
+/* ──────────────────────────────────
+   Scrapbook UI Elements
+─────────────────────────────────── */
+.washi-tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 100px;
+  height: 28px;
+  background-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), inset 0 0 10px rgba(255,255,255,0.5);
+  backdrop-filter: blur(2px);
+  z-index: 5;
+  border-radius: 2px;
+}
+.washi-tape::before, .washi-tape::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: transparent;
+  border-left: 1px dotted rgba(0,0,0,0.1);
+}
+.washi-tape::before { left: 0; }
+.washi-tape::after { right: 0; }
+
 html {
   font-size: var(--base-font-size);
+}
+
+/* ──────────────────────────────────
+   Sketchbook Aesthetics & Interactions
+─────────────────────────────────── */
+.sketchbook-border {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+}
+
+.paper-interact {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
+}
+.paper-interact:hover {
+  transform: scale(1.02) rotate(-1.5deg) translateY(-2px);
+  box-shadow: 6px 10px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02);
+  z-index: 10;
 }
 
 #root {
@@ -55,6 +168,23 @@ a,
   -webkit-tap-highlight-color: transparent;
   line-height: 1.2;
   overflow: visible;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+button:active,
+a:active,
+[role="button"]:active {
+  transform: scale(0.97);
+}
+
+[draggable="true"],
+.memo-card {
+  cursor: grab;
+}
+
+[draggable="true"]:active,
+.memo-card:active {
+  cursor: grabbing;
 }
 
 button:focus-visible,
@@ -90,11 +220,22 @@ html[data-a11y-large-controls='1'] input[type="checkbox"] {
   display: flex;
   flex-direction: row;
   background-color: var(--paper-white);
+  position: relative;
+  z-index: 10;
   box-shadow:
-    0 20px 50px -12px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+    0 20px 50px -12px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 0 40px var(--warm-glow);
   border-radius: 4px;
   overflow: hidden;
+  transition: box-shadow 0.5s ease;
+}
+
+.planner-container:hover {
+  box-shadow:
+    0 24px 55px -12px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 0 50px var(--warm-glow-strong);
 }
 
 /* Lined Paper for pages */
@@ -103,7 +244,10 @@ html[data-a11y-large-controls='1'] input[type="checkbox"] {
   background-color: var(--paper-white);
   background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-blue) 32px);
   background-size: 100% 32px;
+  background-repeat: repeat;
+  background-attachment: local;
   position: relative;
+  min-height: 100%;
 }
 
 /* Spiral Binding */

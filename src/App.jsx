@@ -150,10 +150,12 @@ function App() {
     showAccessibilityPanel,
     showShortcutPanel,
     showLanguageMenu,
+    showSettingsMain,
     setShowLanguageMenu,
     toggleAccessibilityPanel,
     toggleShortcutPanel,
     toggleLanguagePanel,
+    toggleSettingsMain,
     closeAllPanels,
   } = useQuickPanels({ quickControlsRef, shortcutStats, setShortcutStats });
 
@@ -325,7 +327,7 @@ function App() {
               overflowY: 'auto',
               overflowX: 'visible',
               WebkitOverflowScrolling: 'touch',
-              padding: isMobile ? '56px 8px 40px 8px' : '40px',
+              padding: isMobile ? '82px 8px 40px 8px' : '40px',
               pointerEvents: 'auto'
             }}
             initial={{ opacity: 0, y: 30 }}
@@ -366,17 +368,23 @@ function App() {
             <div style={{ flexGrow: 1, minHeight: isMobile ? '24px' : '20px' }} />
 
             {/* Container to handle stacking contexts for tabs and planner */}
-            <div style={{
-              position: 'relative',
-              scrollMarginTop: '60px',
-              width: '100%',
-              maxWidth: isMobile ? '100%' : '1200px',
-              minHeight: isMobile ? 0 : 'min-content',
-              display: 'flex',
-              flexDirection: 'column',
-              pointerEvents: 'auto',
-              flex: '0 0 auto',
-              flexShrink: 0
+            <motion.div
+              initial={{ opacity: 0, rotateX: 35, scale: 0.95, y: 40 }}
+              animate={{ opacity: 1, rotateX: 0, scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.15 }}
+              style={{
+                position: 'relative',
+                scrollMarginTop: '60px',
+                width: '100%',
+                maxWidth: isMobile ? '100%' : '1200px',
+                minHeight: isMobile ? 0 : 'min-content',
+                display: 'flex',
+                flexDirection: 'column',
+                pointerEvents: 'auto',
+                flex: '0 0 auto',
+                flexShrink: 0,
+                transformPerspective: 2000,
+                transformOrigin: 'top center',
             }}>
               {/* Bookmark Nav Tabs */}
               <NavTabs
@@ -413,7 +421,7 @@ function App() {
                 handleMainTouchStart={handleMainTouchStart}
                 handleMainTouchEnd={handleMainTouchEnd}
               />
-            </div>
+            </motion.div>
 
             {/* Spacer for safe centering */}
             <div style={{ flexGrow: 1, minHeight: isMobile ? '8px' : '20px' }} />
@@ -478,9 +486,11 @@ function App() {
         showAccessibilityPanel={showAccessibilityPanel}
         showShortcutPanel={showShortcutPanel}
         showLanguageMenu={showLanguageMenu}
+        showSettingsMain={showSettingsMain}
         toggleAccessibilityPanel={toggleAccessibilityPanel}
         toggleShortcutPanel={toggleShortcutPanel}
         toggleLanguagePanel={toggleLanguagePanel}
+        toggleSettingsMain={toggleSettingsMain}
         accessibilityPrefs={accessibilityPrefs}
         toggleAccessibilityPref={toggleAccessibilityPref}
         setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}

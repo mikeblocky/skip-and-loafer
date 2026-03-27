@@ -165,9 +165,9 @@ const DesktopChaptersTab = ({
         </div>
 
         <div className="hide-scrollbar" style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          gap: '8px', overflowY: 'visible', overflowX: 'visible', maxHeight: 'none',
-          padding: '8px 6px 4px 6px',
+          flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '16px', overflowY: 'visible', overflowX: 'visible', maxHeight: 'none',
+          padding: '8px 6px 12px 6px',
         }}>
           {volChapters.map((ch, idx) => (
             <ChapterRowComponent
