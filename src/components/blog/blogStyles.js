@@ -115,8 +115,9 @@ export const getScrollablePaneStyle = (isMobile) => ({
   flexDirection: 'column',
   gap: '10px',
   overflowY: isMobile ? 'visible' : 'auto',
+  overflowX: 'hidden',
   maxHeight: isMobile ? 'none' : 'min(550px, calc(100vh - 280px))',
-  padding: '4px',
+  padding: isMobile ? '16px 6px 24px 6px' : '20px 16px 30px 16px',
 });
 
 export const EMPTY_BLOGS_STYLE = {
@@ -132,13 +133,16 @@ export const EMPTY_BLOGS_STYLE = {
 export const getBlogCardStyle = (note, isMobile) => ({
   border: `2px solid ${note.border}`,
   background: note.bg,
-  borderRadius: '9px',
-  padding: isMobile ? '10px 11px' : '11px 13px',
-  boxShadow: isMobile ? '0 2px 6px rgba(0,0,0,0.06)' : '0 4px 10px rgba(0,0,0,0.08)',
+  borderRadius: '2px 10px 4px 8px', // Irregular hand-cut paper Look
+  padding: isMobile ? '16px 14px' : '20px 24px',
+  boxShadow: isMobile ? '0 4px 12px rgba(0,0,0,0.06)' : '0 8px 24px rgba(0,0,0,0.08)',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'space-between',
-  gap: isMobile ? '8px' : '12px',
+  gap: isMobile ? '12px' : '20px',
+  position: 'relative',
+  margin: isMobile ? '0 10px 16px 10px' : '0 20px 24px 20px',
+  overflow: 'visible',
 });
 
 export const BLOG_CARD_TITLE_STYLE = {

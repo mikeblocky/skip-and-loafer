@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Sparkles, Heart } from 'lucide-react';
+import { HEARTBEAT, HEARTBEAT_TRANSITION, JELLY_TAP, SQUASH_TRANSITION } from './shared/animationPresets';
 import Countdown from './Countdown';
 import ReleaseNote from './ReleaseNote';
 import { CHARACTER_COLORS } from '../data/characters';
@@ -46,11 +47,10 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
     return (
         <>
             {/* First Page - Desktop: Title/Quote, Mobile: Countdown */}
-            <div className="planner-page" style={{
+            <div className="planner-page sketchbook-border" style={{
                 borderRight: isMobile ? 'none' : '1px solid #e5e7eb',
                 borderBottom: isMobile ? '1px solid #e5e7eb' : 'none',
                 padding: isMobile ? '20px' : '52px',
-                borderRadius: isMobile ? '4px 4px 0 0' : '4px 0 0 4px',
                 flex: 1, display: 'flex', flexDirection: 'column'
             }}>
                 {!isMobile && (
@@ -74,14 +74,19 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
                             <span style={{ color: 'var(--pop-pink)' }}> Loafer</span>
                         </h1>
 
-                        <div style={{ marginTop: '24px', background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                        <motion.div
+                            className="sketchbook-border paper-interact"
+                            initial={{ opacity: 0, y: 20, rotate: 3 }}
+                            animate={{ opacity: 1, y: 0, rotate: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.3 }}
+                            style={{ cursor: 'pointer', marginTop: '24px', background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `6px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 3px 8px rgba(0,0,0,0.12)', maxWidth: '340px' }}>
                             <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
                                 "{randomQuote.text}"
                             </p>
                             <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
                                 — {randomQuote.author}
                             </p>
-                        </div>
+                        </motion.div>
                     </div>
                 )}
 
@@ -102,9 +107,10 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
                         </h1>
 
                         <motion.div
-                            style={{ marginBottom: '28px', background: 'white', padding: '6px 16px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '6px' }}
-                            animate={{ y: [0, -3, 0] }}
-                            transition={{ repeat: Infinity, duration: 4 }}
+                            className="sketchbook-border paper-interact"
+                            style={{ cursor: 'pointer', marginBottom: '28px', background: 'white', padding: '8px 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            animate={{ y: [0, -4, 0], scale: [1, 1.02, 1], rotate: [2, -1, 2] }}
+                            transition={{ repeat: Infinity, duration: 4.5, ease: [0.42, 0, 0.58, 1] }}
                         >
                             <Sparkles size={16} style={{ color: 'var(--pop-yellow)' }} />
                             <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '0.9rem' }}>{t.breakShort}</span>
@@ -130,15 +136,16 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
             <div className="spiral-binding-center" style={{ zIndex: 20 }}></div>
 
             {/* Second Page - Desktop: Countdown, Mobile: Quote only */}
-            <div className="planner-page" style={{ padding: isMobile ? '20px' : '52px', borderRadius: isMobile ? '0 0 4px 4px' : '0 4px 4px 0', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div className="planner-page sketchbook-border" style={{ padding: isMobile ? '20px' : '52px', flex: 1, display: 'flex', flexDirection: 'column' }}>
 
                 {/* Desktop: Countdown */}
                 {!isMobile && (
                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         <motion.div
-                            style={{ marginBottom: '48px', background: 'white', padding: '8px 20px', borderRadius: '9999px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}
-                            animate={{ y: [0, -4, 0] }}
-                            transition={{ repeat: Infinity, duration: 4 }}
+                            className="sketchbook-border paper-interact"
+                            style={{ cursor: 'pointer', marginBottom: '48px', background: 'white', padding: '12px 20px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            animate={{ y: [0, -5, 0], scale: [1, 1.02, 1], rotate: [-2, 1, -2] }}
+                            transition={{ repeat: Infinity, duration: 4.5, ease: [0.42, 0, 0.58, 1] }}
                         >
                             <Sparkles size={18} style={{ color: 'var(--pop-yellow)' }} />
                             <span style={{ fontFamily: 'var(--font-main)', color: '#4b5563', fontSize: '1rem' }}>{t.breakLong}</span>
@@ -163,21 +170,35 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en' }) => {
                 {/* Mobile: Quote only (on bottom) */}
                 {isMobile && (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
-                        <div style={{ background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `4px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', maxWidth: '340px', transform: 'rotate(1deg)' }}>
+                        <motion.div
+                            className="sketchbook-border paper-interact"
+                            initial={{ opacity: 0, y: 20, rotate: 3 }}
+                            animate={{ opacity: 1, y: 0, rotate: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                            style={{ cursor: 'pointer', background: CHARACTER_COLORS[randomQuote.author]?.bg || '#fef9c3', padding: '16px', borderLeft: `6px solid ${CHARACTER_COLORS[randomQuote.author]?.border || 'var(--pop-yellow)'}`, boxShadow: '0 3px 8px rgba(0,0,0,0.12)', maxWidth: '340px' }}>
                             <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '10px' }}>
                                 "{randomQuote.text}"
                             </p>
                             <p style={{ fontFamily: 'var(--font-hand)', color: CHARACTER_COLORS[randomQuote.author]?.text || '#9ca3af', fontSize: '0.9rem', textAlign: 'right', fontWeight: 'bold' }}>
                                 — {randomQuote.author}
                             </p>
-                        </div>
+                        </motion.div>
                     </div>
                 )}
 
                 <motion.div
-                    style={{ position: 'absolute', bottom: '28px', right: '28px', opacity: 0.3, pointerEvents: 'none' }}
-                    animate={{ rotate: [10, 18, 10], scale: [1, 1.08, 1] }}
-                    transition={{ repeat: Infinity, duration: 3 }}
+                    style={{ position: 'absolute', bottom: '28px', right: '28px', opacity: 0.35, pointerEvents: 'none' }}
+                    animate={{
+                        rotate: [8, 20, 8],
+                        scale: [1, 1.15, 0.95, 1.1, 1],
+                        y: [0, -3, 0],
+                    }}
+                    transition={{
+                        repeat: Infinity,
+                        duration: 2.5,
+                        ease: [0.42, 0, 0.58, 1],
+                        times: [0, 0.3, 0.5, 0.7, 1],
+                    }}
                 >
                     <Heart size={isMobile ? 32 : 48} style={{ color: 'var(--pop-pink)', fill: 'var(--pop-pink)' }} />
                 </motion.div>

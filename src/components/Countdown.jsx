@@ -15,9 +15,9 @@ const UI_TEXT = {
 };
 
 const flipVariants = {
-    initial: { rotateX: -90, opacity: 0 },
-    animate: { rotateX: 0, opacity: 1 },
-    exit: { rotateX: 90, opacity: 0 }
+    initial: { rotateX: -90, opacity: 0, scale: 0.85, scaleY: 0.8 },
+    animate: { rotateX: 0, opacity: 1, scale: 1, scaleY: 1 },
+    exit: { rotateX: 90, opacity: 0, scale: 0.85, scaleY: 1.15 }
 };
 
 const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
@@ -33,9 +33,9 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
             perspective: '500px',
             flexShrink: 0
         }}
-        initial={{ y: -15, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay, duration: 0.4, type: 'spring' }}
+        initial={{ y: -25, opacity: 0, scale: 0.85, rotate: -2 }}
+        animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
+        transition={{ delay, type: 'spring', stiffness: 350, damping: 14 }}
     >
         {/* Header */}
         <div style={{ width: '100%', height: isMobile ? '28px' : '40px', backgroundColor: borderColor, position: 'relative', borderTopLeftRadius: '4px', borderTopRightRadius: '4px' }}>
@@ -64,7 +64,7 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
                     initial="initial"
                     animate="animate"
                     exit="exit"
-                    transition={{ duration: 0.3 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15, mass: 0.5 }}
                     style={{
                         fontSize: isMobile ? '2.2rem' : '3.75rem',
                         fontFamily: 'var(--font-hand)',

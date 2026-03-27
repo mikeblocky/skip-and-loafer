@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS } from '../data/chapters';
+import { JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from './shared/animationPresets';
+import { triggerHaptic } from '../utils/haptics';
 import MobileChaptersTab from './chapters/tabs/MobileChaptersTab';
 import DesktopChaptersTab from './chapters/tabs/DesktopChaptersTab';
 import SideWorksTab from './chapters/tabs/SideWorksTab';
@@ -87,9 +89,9 @@ const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) 
       return (
         <motion.button
           key={tab.id}
-          onClick={() => setActiveSubtab(tab.id)}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.96 }}
+          onClick={() => { triggerHaptic('tap'); setActiveSubtab(tab.id); }}
+          whileHover={{ ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
+          whileTap={{ ...JELLY_TAP, transition: SQUASH_TRANSITION }}
           style={{
             border: 'none',
             borderRadius: '9999px',
