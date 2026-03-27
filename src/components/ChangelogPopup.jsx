@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
+import { PRESS_SPRING, ENTER_SPRING_BOUNCY, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from './shared/animationPresets';
 import {
     STORAGE_KEY,
     CHANGELOG_VERSION,
@@ -51,9 +53,10 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                     }}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.9, y: 20 }}
+                        initial={{ scale: 0.85, y: 30, rotate: -2 }}
+                        animate={{ scale: 1, y: 0, rotate: 0 }}
+                        exit={{ scale: 0.85, y: 30, opacity: 0 }}
+                        transition={ENTER_SPRING_BOUNCY}
                         onClick={(e) => e.stopPropagation()}
                         style={{
                             background: 'var(--paper-white)',
@@ -109,9 +112,9 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                                 return (
                                     <motion.div
                                         key={feature.title}
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: featureIdx * 0.05 }}
+                                        initial={{ opacity: 0, y: 10, rotate: featureIdx % 2 === 0 ? -0.5 : 0.5 }}
+                                        animate={{ opacity: 1, y: 0, rotate: 0 }}
+                                        transition={{ delay: featureIdx * 0.06, type: 'spring', stiffness: 260, damping: 20 }}
                                         style={{
                                             padding: isMobile ? '10px 10px' : '12px 12px',
                                             background: '#fafafa',
@@ -176,9 +179,9 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                         {/* Close CTA */}
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleClose}
+                                whileHover={{ ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
+                                whileTap={{ ...JELLY_TAP, transition: SQUASH_TRANSITION }}
+                                onClick={() => { triggerHaptic('tap'); handleClose(); }}
                                 style={{
                                     background: 'var(--pop-blue)', border: '2px solid #60a5fa',
                                     color: '#fff', padding: '8px 28px', borderRadius: '9999px',

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cake, Sparkles, Star, Heart, Dog, Cat, Music, Coffee, Gift, Pizza, Sun, Cloud, Ghost, Gem, Rabbit, Bird, Fish, Snail, Skull, PawPrint } from 'lucide-react';
 
@@ -71,8 +71,10 @@ const CharBubble = ({ char, index, isMobile, t, reduceMotion = false }) => {
     const passed = hasPassed(char.month, char.day);
     const days = getDaysUntil(char.month, char.day);
     const ca = CHAR_ANIM[char.name] || { animate: { y: [0, -3, 0] }, dur: 3 };
+    const [tilt] = useState(() => (Math.random() * 8) - 4);
 
     return (
+        <div style={{ transform: `rotate(${tilt}deg)`, position: 'relative', overflow: 'visible' }}>
         <motion.div
             initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
             animate={reduceMotion ? (passed ? { opacity: 0.45, scale: 1 } : { opacity: 1, scale: 1 }) : (passed ? { opacity: 0.45, scale: 1 } : { opacity: 1, scale: 1, ...ca.animate })}
@@ -113,6 +115,7 @@ const CharBubble = ({ char, index, isMobile, t, reduceMotion = false }) => {
                 </span>
             )}
         </motion.div>
+        </div>
     );
 };
 

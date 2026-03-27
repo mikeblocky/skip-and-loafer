@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Accessibility, Keyboard, Languages } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings } from 'lucide-react';
 
 const AppQuickControls = ({
   quickControlsRef,
@@ -10,9 +10,11 @@ const AppQuickControls = ({
   showAccessibilityPanel,
   showShortcutPanel,
   showLanguageMenu,
+  showSettingsMain,
   toggleAccessibilityPanel,
   toggleShortcutPanel,
   toggleLanguagePanel,
+  toggleSettingsMain,
   accessibilityPrefs,
   toggleAccessibilityPref,
   setAccessibilityColorBlindMode,
@@ -33,14 +35,14 @@ const AppQuickControls = ({
   return (
     <div ref={quickControlsRef} style={{ position: 'fixed', left: '10px', top: '10px', zIndex: 1100, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
       <button
-        onClick={toggleAccessibilityPanel}
-        aria-label={t.accessibilityOptions}
-        aria-expanded={showAccessibilityPanel}
+        onClick={toggleSettingsMain}
+        aria-label={t.settings || 'Settings'}
+        aria-expanded={showSettingsMain}
         style={{
           background: 'white',
           border: '2px solid var(--line-blue)',
           borderRadius: '9999px',
-          padding: '8px 12px',
+          padding: '8px 14px',
           boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
           cursor: 'pointer',
           display: 'flex',
@@ -49,62 +51,73 @@ const AppQuickControls = ({
           color: '#374151',
           fontFamily: 'var(--font-hand)',
           fontWeight: 'bold',
-          fontSize: '0.9rem',
+          fontSize: '0.95rem',
         }}
       >
-        <Accessibility size={16} />
-        {t.accessibility}
+        <Settings size={18} />
+        {t.settings || 'Settings'}
       </button>
 
-      {!isMobile && (
-        <button
-          onClick={toggleShortcutPanel}
-          aria-label={t.keyboardHelp}
-          aria-expanded={showShortcutPanel}
-          style={{
-            background: 'white',
-            border: '2px solid var(--line-blue)',
-            borderRadius: '9999px',
-            padding: '8px 12px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            color: '#374151',
-            fontFamily: 'var(--font-hand)',
-            fontWeight: 'bold',
-            fontSize: '0.9rem',
-          }}
-        >
-          <Keyboard size={16} />
-          {t.shortcuts}
-        </button>
-      )}
-
-      <button
-        onClick={toggleLanguagePanel}
-        aria-label={t.language}
-        aria-expanded={showLanguageMenu}
-        style={{
-          background: 'white',
-          border: '2px solid var(--line-blue)',
-          borderRadius: '9999px',
-          padding: '8px 12px',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          color: '#374151',
-          fontFamily: 'var(--font-hand)',
-          fontWeight: 'bold',
-          fontSize: '0.9rem',
-        }}
-      >
-        <Languages size={16} />
-        {t.language}
-      </button>
+      <AnimatePresence>
+        {showSettingsMain && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{
+              background: 'white',
+              border: '2px solid var(--line-blue)',
+              borderRadius: '12px',
+              padding: '8px',
+              boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              minWidth: '160px'
+            }}
+          >
+            <button
+               onClick={toggleLanguagePanel}
+               style={{
+                 textAlign: 'left', background: 'none', border: 'none', padding: '8px 10px',
+                 borderRadius: '8px', cursor: 'pointer', color: '#374151', fontFamily: 'var(--font-hand)',
+                 fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'
+               }}
+               onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+               onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+            >
+              <Languages size={16} /> {t.language}
+            </button>
+            <button
+               onClick={toggleAccessibilityPanel}
+               style={{
+                 textAlign: 'left', background: 'none', border: 'none', padding: '8px 10px',
+                 borderRadius: '8px', cursor: 'pointer', color: '#374151', fontFamily: 'var(--font-hand)',
+                 fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'
+               }}
+               onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+               onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+            >
+              <Accessibility size={16} /> {t.accessibility}
+            </button>
+            {!isMobile && (
+              <button
+                 onClick={toggleShortcutPanel}
+                 style={{
+                   textAlign: 'left', background: 'none', border: 'none', padding: '8px 10px',
+                   borderRadius: '8px', cursor: 'pointer', color: '#374151', fontFamily: 'var(--font-hand)',
+                   fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px'
+                 }}
+                 onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                 onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+              >
+                <Keyboard size={16} /> {t.shortcuts}
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showAccessibilityPanel && (
@@ -121,7 +134,7 @@ const AppQuickControls = ({
               borderRadius: '12px',
               padding: '10px',
               boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
-              minWidth: isMobile ? '220px' : '250px',
+              minWidth: isMobile ? '230px' : '250px',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
@@ -215,7 +228,7 @@ const AppQuickControls = ({
               borderRadius: '12px',
               boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
               padding: '8px',
-              minWidth: isMobile ? '220px' : '250px',
+              minWidth: isMobile ? '230px' : '250px',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
@@ -268,7 +281,7 @@ const AppQuickControls = ({
               borderRadius: '12px',
               padding: '10px',
               boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
-              minWidth: isMobile ? '220px' : '280px',
+              minWidth: isMobile ? '230px' : '280px',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',

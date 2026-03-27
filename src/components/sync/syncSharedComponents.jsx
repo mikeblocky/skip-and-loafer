@@ -21,7 +21,30 @@ import {
   Languages,
 } from 'lucide-react';
 import { NOTE_PALETTES, getReadTier } from './syncConfig';
-import { HOVER_SCALE_TAB, TAP_SCALE_DEFAULT, TAP_SCALE_TAB } from '../shared/animationPresets';
+import { HOVER_SCALE_TAB, TAP_SCALE_DEFAULT, TAP_SCALE_TAB, PRESS_SPRING, ENTER_SPRING, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../shared/animationPresets';
+import { triggerHaptic } from '../../utils/haptics';
+
+// Floating celebration hearts on +1 read
+const CelebrationHearts = ({ show }) => {
+  const [particles, setParticles] = useState([]);
+  useEffect(() => {
+    if (!show) return;
+    const emojis = ['💗', '✨', '💖', '⭐', '💕'];
+    const newParticles = Array.from({ length: 4 }, (_, i) => ({
+      id: Date.now() + i,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      left: 30 + Math.random() * 40,
+      animDelay: i * 0.08,
+      size: 10 + Math.random() * 8,
+    }));
+    setParticles(newParticles);
+    const timer = setTimeout(() => setParticles([]), 1400);
+    return () => clearTimeout(timer);
+  }, [show]);
+  return particles.map(p => (
+    <span key={p.id} className="heart-float" style={{ left: `${p.left}%`, bottom: '100%', fontSize: `${p.size}px`, animationDelay: `${p.animDelay}s` }}>{p.emoji}</span>
+  ));
+};
 
 const MilestoneEffects = ({ count, tier, color, isMobile }) => {
   let numParticles = 0;
@@ -110,12 +133,17 @@ const MilestoneEffects = ({ count, tier, color, isMobile }) => {
 export const ListRow = ({ index, finished, readCount, noteColor, customNote, tierBorder, tierBg, tierText, tierAccent, numberLine1, numberLine2, title, subtitle, rightContent, onClick, style, isMobile = false }) => {
   const note = customNote || NOTE_PALETTES[noteColor % NOTE_PALETTES.length];
 
+  const quirkRotate = ((index * 7 + 3) % 5 - 2) * 0.4;
+  const quirkRadius = `${6 + (index % 3) * 2}px ${8 + (index % 2)}px ${5 + (index % 4)}px ${7 + (index % 5)}px`;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, rotate: index % 2 === 0 ? -0.5 : 0.5 }}
-      animate={finished ? { opacity: 1, y: 0, rotate: 0, scale: [1, 1.02, 1] } : { opacity: 1, y: 0, rotate: 0 }}
-      transition={finished ? { delay: index * 0.04, duration: 0.5 } : { delay: index * 0.04, duration: 0.3, type: 'spring', stiffness: 200 }}
-      whileHover={!isMobile && onClick ? { scale: 1.015, y: -2, boxShadow: `0 4px 12px ${note.border}60` } : {}}
+      className="paper-interact"
+      initial={{ opacity: 0, y: 18, rotate: (index % 3 - 1) * 1.5, scale: 0.95 }}
+      animate={finished ? { opacity: 1, y: 0, rotate: quirkRotate, scale: [1, 1.04, 0.99, 1] } : { opacity: 1, y: 0, rotate: quirkRotate }}
+      transition={finished ? { delay: index * 0.04, ...ENTER_SPRING } : { delay: index * 0.035, type: 'spring', stiffness: 280, damping: 18 }}
+      whileHover={!isMobile && onClick ? { scale: 1.025, y: -4, rotate: 0, boxShadow: `0 8px 22px ${note.border}45`, transition: { type: 'spring', stiffness: 300, damping: 16 } } : {}}
+      whileTap={onClick ? { ...JELLY_TAP, transition: SQUASH_TRANSITION } : {}}
       onClick={onClick}
       style={{
         position: 'relative',
@@ -125,10 +153,10 @@ export const ListRow = ({ index, finished, readCount, noteColor, customNote, tie
         gap: isMobile ? '10px' : '14px',
         padding: isMobile ? '14px 12px' : '13px 18px',
         background: note.bg,
-        borderRadius: '8px',
+        borderRadius: quirkRadius,
         border: `1.5px solid ${note.border}80`,
-        borderBottom: `3px solid ${note.border}`,
-        boxShadow: finished ? `0 2px 8px ${note.border}60` : `0 2px 5px ${note.border}25`,
+        borderBottom: `3.5px solid ${note.border}`,
+        boxShadow: finished ? `0 3px 10px ${note.border}55` : `0 2px 6px ${note.border}20`,
         overflow: 'visible',
         width: '100%',
         cursor: onClick ? 'pointer' : 'default',
@@ -139,11 +167,20 @@ export const ListRow = ({ index, finished, readCount, noteColor, customNote, tie
         <MilestoneEffects count={readCount} tier={{ bg: tierBg, border: tierBorder, text: tierText, accent: tierAccent }} color={note.accent} isMobile={isMobile} />
       )}
 
+
+
       <div style={{ position: 'absolute', top: '-1px', left: isMobile ? '12px' : '18px', width: isMobile ? '22px' : '30px', height: isMobile ? '8px' : '10px', background: `${note.border}50`, borderRadius: '0 0 3px 3px' }} />
 
       <motion.div
-        animate={finished ? { rotate: [0, -10, 10, -5, 5, 0] } : { boxShadow: [`0 0 0px ${note.accent}00`, `0 0 8px ${note.accent}40`, `0 0 0px ${note.accent}00`] }}
-        transition={finished ? { duration: 0.6, delay: index * 0.04 + 0.2 } : { duration: 2.5, repeat: Infinity, delay: index * 0.3 }}
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={finished
+          ? { scale: [0.8, 1.15, 0.95, 1.05, 1], opacity: 1, rotate: [0, -10, 10, -5, 5, 0] }
+          : { scale: 1, opacity: 1, boxShadow: [`0 0 0px ${note.accent}00`, `0 0 10px ${note.accent}40`, `0 0 0px ${note.accent}00`] }
+        }
+        transition={finished
+          ? { duration: 0.6, delay: index * 0.04 + 0.15 }
+          : { scale: { delay: index * 0.04 + 0.08, type: 'spring', stiffness: 400, damping: 12 }, boxShadow: { duration: 2.5, repeat: Infinity, delay: index * 0.3 } }
+        }
         style={{
           width: isMobile ? '36px' : '48px',
           height: isMobile ? '36px' : '48px',
@@ -179,6 +216,9 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
   const jpLinks = chapter.links.jp || [];
   const comingSoon = !chapter.links.en && jpLinks.length === 0;
 
+  const quirkRotate = ((index * 5 + 2) % 6 - 3) * 0.25;
+  const quirkRadius = `${4 + (index % 4)}px ${8 + (index % 3)}px ${5 + (index % 2)}px ${6 + (index % 5)}px`;
+
   const linkStyle = (bg) => ({
     display: 'inline-flex',
     alignItems: 'center',
@@ -212,10 +252,14 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
     return () => clearInterval(timer);
   }, [cooldown, getRemainingCooldown, chapter.number]);
 
+  const [celebrating, setCelebrating] = useState(0);
+
   const handleIncrement = () => {
     if (cooldown > 0) return;
+    triggerHaptic('celebrate');
     incrementReadCount?.(chapter.number);
     setCooldown(60);
+    setCelebrating(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -239,9 +283,10 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98, y: -5 }}
-      animate={finished ? { opacity: 1, scale: [1, 1.02, 1], y: 0 } : { opacity: 1, scale: 1, y: 0 }}
-      transition={{ delay: index * 0.02, duration: finished ? 0.3 : 0.2 }}
+      className="paper-interact"
+      initial={{ opacity: 0, scale: 0.96, y: -8, rotate: quirkRotate }}
+      animate={finished ? { opacity: 1, scale: [1, 1.03, 1], y: 0, rotate: quirkRotate } : { opacity: 1, scale: 1, y: 0, rotate: quirkRotate }}
+      transition={{ delay: index * 0.02, type: 'spring', stiffness: 280, damping: 22 }}
       style={{
         position: 'relative',
         display: 'flex',
@@ -250,7 +295,7 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
         gap: isMobile ? '8px' : '12px',
         padding: isMobile ? '12px 10px' : '12px 14px',
         background: '#fff',
-        borderRadius: '6px',
+        borderRadius: quirkRadius,
         border: '1.5px solid #e5e7eb',
         borderLeft: `4px solid ${note.accent}`,
         boxShadow: finished ? `0 2px 8px ${note.border}40` : '0 1px 2px rgba(0,0,0,0.05)',
@@ -258,6 +303,8 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
         width: '100%',
       }}
     >
+
+      <CelebrationHearts show={celebrating} />
       <MilestoneEffects count={readCount} tier={tier} color={note.accent} isMobile={isMobile} />
 
       {finished && (
@@ -294,8 +341,8 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
       <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
         {!comingSoon && (
           <motion.button
-            whileHover={cooldown > 0 ? {} : { scale: 1.1 }}
-            whileTap={cooldown > 0 ? {} : TAP_SCALE_DEFAULT}
+            whileHover={cooldown > 0 ? {} : { ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
+            whileTap={cooldown > 0 ? {} : { ...JELLY_TAP, transition: SQUASH_TRANSITION }}
             onClick={handleIncrement}
             disabled={cooldown > 0}
             style={{
@@ -386,9 +433,9 @@ export const TabSelector = ({ activeTab, setActiveTab, isMobile, tabs }) => (
       return (
         <motion.button
           key={tab.id}
-          onClick={() => setActiveTab(idx)}
-          whileHover={HOVER_SCALE_TAB}
-          whileTap={TAP_SCALE_TAB}
+          onClick={() => { triggerHaptic('tabSwitch'); setActiveTab(idx); }}
+          whileHover={{ ...HOVER_SCALE_TAB, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
+          whileTap={{ scale: 0.9, transition: PRESS_SPRING }}
           style={{
             minWidth: isMobile ? '70px' : '100px',
             minHeight: isMobile ? '46px' : '46px',

@@ -7,6 +7,7 @@ const BlogPage = lazy(() => import('../BlogPage'));
 const SyncPage = lazy(() => import('../SyncPage'));
 const BirthdayPage = lazy(() => import('../BirthdayPage'));
 const QuizPage = lazy(() => import('../QuizPage'));
+const MysteryPage = lazy(() => import('../MysteryPage'));
 
 const PAGE_SHELL_STYLE = {
   width: '100%',
@@ -210,6 +211,21 @@ const AppTabContent = ({
                 reduceMotion={accessibilityPrefs.reduceMotion}
                 simplifyVisuals={accessibilityPrefs.simplifyVisuals}
               />
+            </Suspense>
+          </motion.div>
+        )}
+
+        {activePage === 'mystery' && (
+          <motion.div
+            key="mystery"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
+          >
+            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
+              <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />
             </Suspense>
           </motion.div>
         )}
