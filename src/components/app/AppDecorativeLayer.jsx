@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Star, Heart } from 'lucide-react';
 import { CHARACTER_DATA } from '../../data/characters';
 import { COVER_IMAGES } from '../../data/coverImages';
@@ -15,9 +16,12 @@ const AppDecorativeLayer = ({
   stickerLayoutById,
   cardPositions,
 }) => {
+  const showAmbientDecor = !accessibilityPrefs.simplifyVisuals && (activePage === 'home' || activePage === 'birthdays');
+  const showHomeCards = !isMobile && activePage === 'home' && !accessibilityPrefs.simplifyVisuals;
+
   return (
     <>
-      {!accessibilityPrefs.simplifyVisuals && (
+      {showAmbientDecor && (
         <>
           <InteractiveShape color="var(--pop-pink)" size="200px" initialTop="3%" initialLeft="5%" index={0} />
           <InteractiveShape color="var(--pop-blue)" size="180px" initialTop="55%" initialLeft="3%" index={1} />
@@ -36,7 +40,7 @@ const AppDecorativeLayer = ({
         </>
       )}
 
-      {!accessibilityPrefs.simplifyVisuals && CHARACTER_DATA.map((char, index) => (
+      {showAmbientDecor && CHARACTER_DATA.map((char, index) => (
         <CharacterSticker
           key={char.id}
           character={char}
@@ -51,7 +55,7 @@ const AppDecorativeLayer = ({
         />
       ))}
 
-      {!accessibilityPrefs.simplifyVisuals && !isMobile && activePage === 'home' && (
+      {showHomeCards && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 20, pointerEvents: 'none' }}>
           {COVER_IMAGES.map((src, index) => (
             <MemoCard
@@ -66,7 +70,7 @@ const AppDecorativeLayer = ({
         </div>
       )}
 
-      {!isMobile && !accessibilityPrefs.simplifyVisuals && (
+      {!isMobile && showAmbientDecor && (
         <>
           <FloatingSparkle top="10%" left="5%" delay={0} color="var(--pop-yellow)">
             <Star size={36} fill="currentColor" />
@@ -80,4 +84,4 @@ const AppDecorativeLayer = ({
   );
 };
 
-export default AppDecorativeLayer;
+export default memo(AppDecorativeLayer);

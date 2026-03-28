@@ -65,6 +65,7 @@ const AppTabContent = ({
         position: 'relative',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
+        padding: activePage === 'home' ? (isMobile ? '10px 8px 14px' : '14px') : 0,
         zIndex: 10,
         pointerEvents: 'auto',
         minHeight: isMobile ? 0 : undefined,

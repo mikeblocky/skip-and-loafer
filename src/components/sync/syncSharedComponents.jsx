@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkle,
   Gem,
@@ -23,6 +23,7 @@ import {
 import { NOTE_PALETTES, getReadTier } from './syncConfig';
 import { HOVER_SCALE_TAB, TAP_SCALE_DEFAULT, TAP_SCALE_TAB, PRESS_SPRING, ENTER_SPRING, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../shared/animationPresets';
 import { triggerHaptic } from '../../utils/haptics';
+import { toUiLabelCase } from '../../utils/textCase';
 
 // Floating celebration hearts on +1 read
 const CelebrationHearts = ({ show }) => {
@@ -142,8 +143,8 @@ export const ListRow = ({ index, finished, readCount, noteColor, customNote, tie
       initial={{ opacity: 0, y: 18, rotate: (index % 3 - 1) * 1.5, scale: 0.95 }}
       animate={finished ? { opacity: 1, y: 0, rotate: quirkRotate, scale: [1, 1.04, 0.99, 1] } : { opacity: 1, y: 0, rotate: quirkRotate }}
       transition={finished ? { delay: index * 0.04, ...ENTER_SPRING } : { delay: index * 0.035, type: 'spring', stiffness: 280, damping: 18 }}
-      whileHover={!isMobile && onClick ? { scale: 1.025, y: -4, rotate: 0, boxShadow: `0 8px 22px ${note.border}45`, transition: { type: 'spring', stiffness: 300, damping: 16 } } : {}}
-      whileTap={onClick ? { ...JELLY_TAP, transition: SQUASH_TRANSITION } : {}}
+      whileHover={!isMobile && onClick ? { scale: 1.025, y: -10, rotate: 0, boxShadow: `0 12px 0 ${note.border}`, transition: { type: 'spring', stiffness: 300, damping: 16 } } : {}}
+      whileTap={onClick ? { scale: 0.9, y: 8 } : {}}
       onClick={onClick}
       style={{
         position: 'relative',
@@ -151,12 +152,12 @@ export const ListRow = ({ index, finished, readCount, noteColor, customNote, tie
         alignItems: 'center',
         flexWrap: 'nowrap',
         gap: isMobile ? '10px' : '14px',
-        padding: isMobile ? '14px 12px' : '13px 18px',
+        padding: isMobile ? '14px 12px' : '16px 22px',
         background: note.bg,
-        borderRadius: quirkRadius,
-        border: `1.5px solid ${note.border}80`,
-        borderBottom: `3.5px solid ${note.border}`,
-        boxShadow: finished ? `0 3px 10px ${note.border}55` : `0 2px 6px ${note.border}20`,
+        borderRadius: isMobile ? '20px' : '22px',
+        border: `3.5px solid ${note.border}`,
+        borderBottom: `9.5px solid ${note.border}`,
+        boxShadow: finished ? `0 12px 0 ${note.border}` : `0 6px 0 ${note.border}`,
         overflow: 'visible',
         width: '100%',
         cursor: onClick ? 'pointer' : 'default',
@@ -185,21 +186,22 @@ export const ListRow = ({ index, finished, readCount, noteColor, customNote, tie
           width: isMobile ? '36px' : '48px',
           height: isMobile ? '36px' : '48px',
           borderRadius: '50%',
-          background: `linear-gradient(135deg, ${note.border}40, ${note.border}80)`,
+          background: `${note.border}40`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
-          border: `2px solid ${note.border}`,
+          border: `3px solid ${note.border}`,
+          boxShadow: `0 3px 0 ${note.border}`,
         }}
       >
-        {numberLine1 && <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.65rem' : '0.8rem', fontWeight: 'bold', color: note.accent, lineHeight: 1 }}>{numberLine1}</span>}
-        {numberLine2 && <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.85rem' : '1.1rem', fontWeight: 'bold', color: note.accent, lineHeight: 1 }}>{numberLine2}</span>}
+        {numberLine1 && <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.65rem' : '0.8rem', fontWeight: '400',  color: note.accent, lineHeight: 1 }}>{numberLine1}</span>}
+        {numberLine2 && <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.85rem' : '1.1rem', fontWeight: '400',  color: note.accent, lineHeight: 1 }}>{numberLine2}</span>}
       </motion.div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
-        <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.9rem' : '1.05rem', color: '#374151', fontWeight: 'bold', lineHeight: 1.2, whiteSpace: 'normal' }}>{title}</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.9rem' : '1.05rem', color: '#1f2937', fontWeight: '400',  lineHeight: 1.2, whiteSpace: 'normal' }}>{title}</span>
         {subtitle && <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{subtitle}</div>}
       </div>
 
@@ -223,17 +225,16 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    fontSize: isMobile ? '0.75rem' : '0.76rem',
+    fontSize: isMobile ? '0.75rem' : '0.8rem',
     color: '#fff',
     background: bg,
-    padding: isMobile ? '6px 10px' : '4px 10px',
-    borderRadius: '9999px',
+    padding: isMobile ? '5px 10px' : '5px 12px',
+    borderRadius: '10px',
     textDecoration: 'none',
-    fontFamily: 'var(--font-hand)',
-    fontWeight: 'bold',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
+    fontFamily: 'var(--font-main)',
+    fontWeight: '400', 
+    border: '1.5px solid rgba(0,0,0,0.2)',
+    boxShadow: '0 2px 0 rgba(0,0,0,0.15)',
   });
 
   const pendingStart = pendingLinks?.[chapter.number];
@@ -295,10 +296,11 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
         gap: isMobile ? '8px' : '12px',
         padding: isMobile ? '12px 10px' : '12px 14px',
         background: '#fff',
-        borderRadius: quirkRadius,
-        border: '1.5px solid #e5e7eb',
-        borderLeft: `4px solid ${note.accent}`,
-        boxShadow: finished ? `0 2px 8px ${note.border}40` : '0 1px 2px rgba(0,0,0,0.05)',
+        borderRadius: isMobile ? '12px' : '14px',
+        border: '3.5px solid #e2e8f0',
+        borderBottom: '8.5px solid #cbd5eb',
+        borderLeft: `5px solid ${note.accent}`,
+        boxShadow: finished ? `0 6px 0 ${note.border}40` : '0 4px 0 rgba(0,0,0,0.05)',
         overflow: 'visible',
         width: '100%',
       }}
@@ -334,34 +336,36 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
       )}
 
       <div style={{ flex: '1 1 120px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6b7280', fontWeight: 'bold', flexShrink: 0 }}>{chapter.number} - </span>
-        <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.74rem' : '0.85rem', color: '#374151', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>{chapter.title}</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6b7280', fontWeight: '400',  flexShrink: 0 }}>{chapter.number} - </span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.74rem' : '0.85rem', color: '#1f2937', fontWeight: '400',  whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>{chapter.title}</span>
       </div>
 
       <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
         {!comingSoon && (
           <motion.button
-            whileHover={cooldown > 0 ? {} : { ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
-            whileTap={cooldown > 0 ? {} : { ...JELLY_TAP, transition: SQUASH_TRANSITION }}
+            whileHover={cooldown > 0 ? {} : { scale: 1.05, y: -4, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
+            whileTap={cooldown > 0 ? {} : { scale: 0.9, y: 8 }}
             onClick={handleIncrement}
             disabled={cooldown > 0}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '4px',
-              fontSize: isMobile ? '0.75rem' : '0.76rem',
-              color: cooldown > 0 ? '#9ca3af' : note.accent,
-              background: cooldown > 0 ? '#f3f4f6' : `${note.border}30`,
-              padding: isMobile ? '6px 10px' : '4px 10px',
-              borderRadius: '9999px',
+              fontSize: isMobile ? '0.75rem' : '0.8rem',
+              color: cooldown > 0 ? '#6b7280' : note.accent,
+              background: cooldown > 0 ? '#f3f4f6' : `${note.border}40`,
+              padding: isMobile ? '5px 12px' : '6px 14px',
+              borderRadius: '12px',
               textDecoration: 'none',
-              fontFamily: 'var(--font-hand)',
-              fontWeight: 'bold',
-              border: `1.5px solid ${cooldown > 0 ? '#d1d5db' : note.border}`,
+              fontFamily: 'var(--font-main)',
+              fontWeight: '400', 
+              border: `2.5px solid ${cooldown > 0 ? '#9ca3af' : note.border}`,
+              borderBottom: `6px solid ${cooldown > 0 ? '#9ca3af' : note.border}`,
               cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
               flexShrink: 0,
               whiteSpace: 'nowrap',
-              boxShadow: cooldown > 0 ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
+              boxShadow: cooldown > 0 ? 'none' : '0 4px 10px rgba(0,0,0,0.05)',
               opacity: cooldown > 0 ? 0.7 : 1,
             }}
           >
@@ -371,10 +375,10 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
 
         {false && chapter.pages && chapter.pages.length > 0 && (
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={TAP_SCALE_DEFAULT}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95, y: 1 }}
             onClick={() => onReadChapter?.(chapter)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: isMobile ? '0.75rem' : '0.76rem', color: '#fff', background: '#10b981', padding: isMobile ? '6px 10px' : '4px 10px', borderRadius: '9999px', textDecoration: 'none', fontFamily: 'var(--font-hand)', fontWeight: 'bold', border: 'none', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: isMobile ? '0.75rem' : '0.8rem', color: '#fff', background: '#10b981', padding: isMobile ? '5px 10px' : '5px 12px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-main)', fontWeight: '400',  border: '1.5px solid #059669', boxShadow: '0 2px 0 #059669', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             <BookMarked size={isMobile ? 12 : 11} /> Read
           </motion.button>
@@ -411,58 +415,134 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
   );
 };
 
-export const TabSelector = ({ activeTab, setActiveTab, isMobile, tabs }) => (
-  <div
-    className="hide-scrollbar"
-    style={{
-      display: 'flex',
-      gap: isMobile ? '6px' : '6px',
-      flexWrap: isMobile ? 'wrap' : 'nowrap',
-      overflowX: 'auto',
-      overflowY: 'visible',
-      padding: '4px 4px 6px 4px',
-      alignItems: 'center',
-      justifyContent: isMobile ? 'center' : 'flex-start',
-      scrollPaddingInline: '8px',
-    }}
-  >
-    {tabs.map((tab, idx) => {
-      const isActive = idx === activeTab;
-      const c = tab.color;
-      const Icon = tab.icon;
-      return (
-        <motion.button
-          key={tab.id}
-          onClick={() => { triggerHaptic('tabSwitch'); setActiveTab(idx); }}
-          whileHover={{ ...HOVER_SCALE_TAB, transition: { type: 'spring', stiffness: 400, damping: 15 } }}
-          whileTap={{ scale: 0.9, transition: PRESS_SPRING }}
-          style={{
-            minWidth: isMobile ? '70px' : '100px',
-            minHeight: isMobile ? '46px' : '46px',
-            borderRadius: '7px',
-            border: isActive ? `2px solid ${c}` : '1.5px solid #e5e7eb',
-            background: isActive ? `${c}15` : '#fafafa',
-            cursor: 'pointer',
-            padding: isMobile ? '6px 10px' : '7px 10px',
-            fontFamily: 'var(--font-hand)',
-            fontWeight: 'bold',
-            color: isActive ? c : '#b0b5bc',
-            flexShrink: 0,
-            transition: 'all 0.15s',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '2px',
-            lineHeight: 1.2,
-            overflow: 'visible',
-            margin: '0 1px',
-          }}
-        >
-          <Icon size={isMobile ? 12 : 14} style={{ opacity: isActive ? 1 : 0.65 }} />
-          <span style={{ fontSize: isMobile ? '0.65rem' : '0.8rem', lineHeight: 1.2 }}>{tab.title}</span>
-        </motion.button>
-      );
-    })}
-  </div>
-);
+export const TabSelector = ({ activeTab, setActiveTab, isMobile, tabs, tabLabels }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  const currentTab = tabs[activeTab];
+  const Icon = currentTab.icon;
+  const title = toUiLabelCase(currentTab.title || (tabLabels && tabLabels[currentTab.id]?.title) || currentTab.id);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const toggleDropdown = () => setIsOpen(!isOpen);
+
+  const handleSelect = (idx) => {
+    triggerHaptic('tabSwitch');
+    setActiveTab(idx);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', zIndex: 100, minWidth: isMobile ? '160px' : '200px', margin: isMobile ? '0 auto' : '0' }}>
+      {/* Toggle Button */}
+      <motion.button
+        onClick={toggleDropdown}
+        whileHover={{ scale: 1.025, y: -4, rotate: (activeTab % 2 === 0 ? 0.5 : -0.5) }}
+        whileTap={{ scale: 0.9, y: 8, rotate: 0 }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          width: '100%',
+          padding: isMobile ? '12px 20px' : '16px 28px',
+          background: '#ffffff',
+          color: currentTab.color,
+          border: `3.5px solid ${currentTab.color}`,
+          borderBottom: `9.5px solid ${currentTab.color}`,
+          borderRadius: '24px',
+          fontFamily: '"Sniglet", "Coming Soon", cursive', 
+          fontSize: isMobile ? '1rem' : '1.15rem',
+          fontWeight: '400', 
+          cursor: 'pointer',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          transition: 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Icon size={isMobile ? 18 : 20} strokeWidth={2.5} />
+          <span>{title}</span>
+        </div>
+        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </motion.div>
+      </motion.button>
+
+      {/* Dropdown Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 15, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: '#ffffff',
+              border: '3.5px solid #cbd5e1',
+              borderBottom: '9.5px solid #94a3b8',
+              borderRadius: '28px',
+              padding: '12px',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}
+          >
+            {tabs.map((tab, idx) => {
+              const isActive = activeTab === idx;
+              const TabIcon = tab.icon;
+              const tabTitle = toUiLabelCase(tab.title || (tabLabels && tabLabels[tab.id]?.title) || tab.id);
+              
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => handleSelect(idx)}
+                  whileHover={{ x: 4, background: isActive ? `${tab.color}15` : '#f9fafb' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    padding: '14px 20px',
+                    background: isActive ? `${tab.color}10` : 'transparent',
+                    color: isActive ? tab.color : '#64748b',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontFamily: '"Sniglet", "Coming Soon", cursive', 
+                    fontSize: isMobile ? '0.9rem' : '1rem',
+                    fontWeight: '400', 
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.1s ease'
+                  }}
+                >
+                  <TabIcon size={18} strokeWidth={2.5} />
+                  <span>{tabTitle}</span>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+

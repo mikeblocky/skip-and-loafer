@@ -12,8 +12,8 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
       initial={{ opacity: 0, y: 15, rotate: tilt, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 450, damping: 18, delay: index * 0.08 }}
-      whileHover={!isMobile && !isLocked ? { scale: 1.03, y: -4, rotate: tilt, boxShadow: `0 8px 0 ${note.border}` } : {}}
-      whileTap={!isLocked ? { scale: 0.88, y: 6, rotate: -tilt } : {}}
+      whileHover={!isMobile && !isLocked ? { scale: 1.025, y: -10, rotate: 0, boxShadow: `0 12px 0 ${note.border}` } : {}}
+      whileTap={!isLocked ? { scale: 0.9, y: 8, rotate: 0 } : {}}
       onClick={isLocked ? undefined : onClick}
       style={{
         position: 'relative',
@@ -22,8 +22,8 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
         gap: isMobile ? '10px' : '14px',
         padding: isMobile ? '12px 14px' : '14px 18px',
         background: isCorrect ? '#d1fae5' : isWrong ? '#fee2e2' : isLocked ? '#f1f5f9' : '#fff',
-        border: `3px solid ${isCorrect ? '#10b981' : isWrong ? '#ef4444' : isLocked ? '#cbd5e1' : note.border}`,
-        borderBottom: `${isMobile ? '5px' : '7px'} solid ${isCorrect ? '#059669' : isWrong ? '#dc2626' : isLocked ? '#94a3b8' : note.border}`,
+        border: `3.5px solid ${isCorrect ? '#10b981' : isWrong ? '#ef4444' : isLocked ? '#cbd5e1' : note.border}`,
+        borderBottom: `${isMobile ? '6px' : '8.5px'} solid ${isCorrect ? '#059669' : isWrong ? '#dc2626' : isLocked ? '#94a3b8' : note.border}`,
         borderRadius: '20px',
         cursor: isLocked ? 'default' : 'pointer',
         opacity: isDimmed ? 0.45 : 1,

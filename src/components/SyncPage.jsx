@@ -25,6 +25,7 @@ import SyncTab from './sync/tabs/SyncTab';
 import { CONTENT_SLIDE, TRANSITION_TAB } from './shared/animationPresets';
 import { ListRow, MiniChapterRow, TabSelector } from './sync/syncSharedComponents';
 import { useSubtabShortcutNavigation } from '../hooks/useSubtabShortcutNavigation';
+import { toUiLabelCase } from '../utils/textCase';
 
 const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
@@ -119,14 +120,59 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
     }, [syncKey]);
 
     return (
-        <div style={{ width: '100%', padding: isMobile ? '24px 8px 10px 8px' : '28px 40px', minHeight: isMobile ? 'auto' : '600px', display: 'flex', flexDirection: 'column', overflow: 'visible', flex: 1 }}>
+        <div
+            style={{
+                width: '100%',
+                padding: isMobile ? '26px 14px 18px' : '30px 36px 22px',
+                minHeight: isMobile ? 'auto' : '600px',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'visible',
+                flex: 1,
+            }}
+        >
             {/* Header (Desktop + Mobile inline) */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', marginBottom: isMobile ? '16px' : '26px', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', justifyContent: 'center' }}>
-                    <Globe size={isMobile ? 24 : 22} style={{ color: 'var(--pop-blue)' }} />
-                    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#6b7280', fontSize: isMobile ? '1.5rem' : '1.3rem', fontWeight: 'normal' }}>{t.syncHeader || UI_TEXT.en.syncHeader}</span>
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                marginBottom: isMobile ? '20px' : '32px', 
+                flexDirection: isMobile ? 'column' : 'row', 
+                gap: isMobile ? '16px' : '0',
+                position: 'relative',
+                width: '100%'
+            }}>
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0, rotate: -3 }}
+                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                    style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '12px', 
+                        padding: '10px 24px', 
+                        borderRadius: '24px', 
+                        background: '#ffffff', 
+                        border: '3.5px solid #3b82f6',
+                        borderBottom: '9.5px solid #3b82f6',
+                        boxShadow: '0 8px 18px rgba(59, 130, 246, 0.1)',
+                        zIndex: 1
+                    }}
+                >
+                    <Globe size={isMobile ? 28 : 24} strokeWidth={2.5} style={{ color: '#3b82f6' }} />
+                    <span style={{ 
+                        fontFamily: '"Sniglet", "Coming Soon", cursive', 
+                        color: '#3b82f6', 
+                        fontSize: isMobile ? '1.45rem' : '1.35rem', 
+                        fontWeight: '400',
+                        letterSpacing: '0.2px',
+                        lineHeight: 1
+                    }}>
+                        {toUiLabelCase(t.syncHeader || UI_TEXT.en.syncHeader)}
+                    </span>
+                </motion.div>
+                <div style={{ position: isMobile ? 'static' : 'absolute', right: isMobile ? 'auto' : '0' }}>
+                    <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} tabs={tabs} />
                 </div>
-                <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} tabs={tabs} />
             </div>
 
             {/* Content pane */}
@@ -135,7 +181,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                     key={activeTab}
                     initial={CONTENT_SLIDE.initial} animate={CONTENT_SLIDE.animate} exit={CONTENT_SLIDE.exit}
                     transition={TRANSITION_TAB}
-                    className="hide-scrollbar" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', overflowY: isMobile ? 'visible' : 'auto', maxHeight: isMobile ? 'none' : 'min(550px, calc(100vh - 280px))', padding: '4px' }}
+                    className="hide-scrollbar" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: isMobile ? '12px' : '10px', overflowY: isMobile ? 'visible' : 'auto', maxHeight: isMobile ? 'none' : 'min(550px, calc(100vh - 280px))', padding: isMobile ? '4px 0 8px' : '4px' }}
                 >
                     {activeTab === 0 && (
                         <ProgressTab
@@ -198,3 +244,4 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
 };
 
 export default SyncPage;
+

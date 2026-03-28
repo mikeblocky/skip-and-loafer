@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
-import { Newspaper, ChevronLeft, CalendarDays, BookOpen, ALargeSmall, Space, Focus, Sun, Moon, FileText as FileTextIcon, ChevronUp } from 'lucide-react';
+import { Newspaper, ChevronLeft, CalendarDays, BookOpen, ALargeSmall, Space, Focus, Sun, Moon, FileText as FileTextIcon, ChevronUp, ArrowUpDown } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { BLOGS } from '../data/blogs';
 import ImageLightbox from './shared/ImageLightbox';
@@ -217,17 +217,64 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
 
   return (
     <div style={getPageRootStyle(isMobile)}>
-      <div style={getHeaderRowStyle(isMobile)}>
-        <div style={getHeaderTitleWrapStyle(isMobile)}>
-          <Newspaper size={isMobile ? 24 : 22} style={{ color: '#f97316' }} />
-          <span style={getHeaderTitleStyle(isMobile)}>{t.header}</span>
-        </div>
+      <div
+        style={{
+          ...getHeaderRowStyle(isMobile),
+          marginBottom: isMobile ? '12px' : '20px',
+          position: 'relative',
+          display: isMobile ? 'flex' : (!selectedBlog ? 'grid' : 'flex'),
+          gridTemplateColumns: !isMobile && !selectedBlog ? '1fr auto 1fr' : undefined,
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: isMobile && !selectedBlog ? 'column' : 'row',
+          gap: isMobile && !selectedBlog ? '12px' : 0,
+          width: '100%',
+        }}
+      >
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '10px 24px', 
+            borderRadius: '24px', 
+            background: '#ffffff', 
+            border: '3.5px solid #f97316',
+            borderBottom: '9.5px solid #f97316',
+            boxShadow: '0 8px 18px rgba(249, 115, 22, 0.1)',
+            zIndex: 1,
+            gridColumn: !isMobile && !selectedBlog ? 2 : 'auto',
+          }}
+        >
+          <Newspaper size={isMobile ? 28 : 24} strokeWidth={2.5} style={{ color: '#f97316' }} />
+          <span style={{ 
+            fontFamily: '"Sniglet", "Coming Soon", cursive', 
+            color: '#f97316', 
+            fontSize: isMobile ? '1.45rem' : '1.35rem', 
+            fontWeight: '400',
+            letterSpacing: '0.2px',
+            lineHeight: 1
+          }}>
+            {t.header}
+          </span>
+        </motion.div>
+
         {!selectedBlog && (
           <motion.button
-            whileTap={TAP_SCALE_SOFT}
+            whileHover={{ scale: 1.05, y: -2, rotate: 2 }}
+            whileTap={{ scale: 0.85, y: 8, rotate: -2 }}
             onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-            style={getSortButtonStyle(isMobile)}
+            style={{
+              ...getSortButtonStyle(isMobile),
+              margin: 0,
+              justifySelf: !isMobile ? 'end' : 'auto',
+              gridColumn: !isMobile ? 3 : 'auto',
+              transform: 'rotate(-1deg)',
+            }}
           >
+            <ArrowUpDown size={isMobile ? 16 : 17} strokeWidth={2.5} />
             {sortOrder === 'asc'
               ? (t.sortOldToNew || UI_TEXT.en.sortOldToNew)
               : (t.sortNewToOld || UI_TEXT.en.sortNewToOld)}
@@ -236,16 +283,18 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
       </div>
 
       <div ref={staticControlsRef}>
-        <ReaderControls
-          floating={false}
-          isMobile={isMobile}
-          showFloatingControls={showFloatingControls}
-          readerPrefs={readerPrefs}
-          setReaderPrefs={setReaderPrefs}
-          toggleControls={TOGGLE_CONTROLS}
-          themeControls={THEME_CONTROLS}
-          label={t.readerControls || UI_TEXT.en.readerControls}
-        />
+        {selectedBlog && (
+          <ReaderControls
+            floating={false}
+            isMobile={isMobile}
+            showFloatingControls={showFloatingControls}
+            readerPrefs={readerPrefs}
+            setReaderPrefs={setReaderPrefs}
+            toggleControls={TOGGLE_CONTROLS}
+            themeControls={THEME_CONTROLS}
+            label={t.readerControls || UI_TEXT.en.readerControls}
+          />
+        )}
       </div>
 
       <AnimatePresence mode="wait">
@@ -327,7 +376,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
               onClick={handleBackToList}
               style={getBackFabStyle(isMobile, showFloatingFabStack)}
             >
-              <ChevronLeft size={isMobile ? 16 : 18} /> {t.backToList}
+              <ChevronLeft size={isMobile ? 18 : 18} /> {!isMobile && t.backToList}
             </button>
           )}
 
@@ -335,7 +384,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             onClick={scrollActivePaneToTop}
             style={getTopFabStyle(isMobile, showFloatingFabStack)}
           >
-            <ChevronUp size={isMobile ? 18 : 20} /> {t.returnToTop || UI_TEXT.en.returnToTop}
+            <ChevronUp size={isMobile ? 20 : 20} /> {!isMobile && (t.returnToTop || UI_TEXT.en.returnToTop)}
           </button>
         </>
       , document.body)}
@@ -353,7 +402,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
         )}
       </AnimatePresence>
 
-      {selectedBlog && createPortal(
+      {selectedBlog && !isMobile && createPortal(
         <ReaderControls
           floating
           isMobile={isMobile}
@@ -371,3 +420,4 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
 };
 
 export default BlogPage;
+
