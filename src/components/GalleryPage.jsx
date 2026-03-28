@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, Camera } from 'lucide-react';
 import { GALLERY_CATEGORIES } from '../data/gallery';
 import { UI_TEXT, TAB_LABELS, TABS } from './gallery/galleryConfig';
 import GallerySubtabPanel from './gallery/tabs/GallerySubtabPanel';
@@ -98,13 +98,53 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   return (
     <div style={{ width: '100%', padding: isMobile ? '24px 8px 10px 8px' : '28px 40px', minHeight: isMobile ? 'auto' : '600px', display: 'flex', flexDirection: 'column', overflow: 'visible', flex: 1 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', marginBottom: isMobile ? '16px' : '26px', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '14px' : '18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: isMobile ? '16px' : '0', justifyContent: 'center' }}>
-          <ImageIcon size={isMobile ? 24 : 22} style={{ color: '#8b5cf6' }} />
-          <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#6b7280', fontSize: isMobile ? '1.5rem' : '1.3rem', fontWeight: 'normal' }}>{t.header}</span>
-        </div>
-        <div style={{ marginLeft: isMobile ? 0 : '6px' }}>
-          <GalleryTabSelector activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} tabLabels={tabLabels} />
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        marginBottom: isMobile ? '20px' : '32px', 
+        flexDirection: isMobile ? 'column' : 'row', 
+        gap: isMobile ? '16px' : '0',
+        position: 'relative',
+        width: '100%',
+        padding: isMobile ? '0 10px' : '0'
+      }}>
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '10px 24px', 
+            borderRadius: '24px', 
+            background: '#ffffff', 
+            border: '3.5px solid #8b5cf6',
+            borderBottom: '9.5px solid #8b5cf6',
+            boxShadow: '0 8px 18px rgba(139, 92, 246, 0.1)',
+            zIndex: 1
+          }}
+        >
+          <Camera size={isMobile ? 28 : 24} strokeWidth={2.5} style={{ color: '#8b5cf6' }} />
+          <span style={{ 
+            fontFamily: '"Sniglet", "Coming Soon", cursive', 
+            color: '#8b5cf6', 
+            fontSize: isMobile ? '1.45rem' : '1.35rem', 
+            fontWeight: '400',
+            letterSpacing: '0.2px',
+            lineHeight: 1
+          }}>
+            {t.header}
+          </span>
+        </motion.div>
+        
+        <div style={{ position: isMobile ? 'static' : 'absolute', right: isMobile ? 'auto' : '0' }}>
+          <GalleryTabSelector 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            isMobile={isMobile} 
+            tabLabels={tabLabels} 
+          />
         </div>
       </div>
 
@@ -150,3 +190,4 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
 };
 
 export default GalleryPage;
+

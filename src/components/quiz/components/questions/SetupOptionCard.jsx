@@ -1,82 +1,80 @@
 import { motion } from 'framer-motion';
 import { triggerHaptic } from '../../../../utils/haptics';
 
-const SetupOptionCard = ({ label, selected, isMobile, onClick, color = '#ef4444', title }) => {
+const SetupOptionCard = ({ label, selected, isMobile, onClick, color = '#3b82f6', title }) => {
   const handlePress = () => {
     triggerHaptic('selection');
     onClick?.();
   };
 
-  // Generate a predictable tilt direction based on string length to give it organic, playful movement
-  const tiltDirection = label.length % 2 === 0 ? 1 : -1;
-
   return (
     <motion.button
-      whileHover={{ y: -4, rotate: tiltDirection * 3, scale: 1.05 }}
-      whileTap={{ scale: 0.85, y: 6, rotate: tiltDirection * -2 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.96, y: 4 }}
       title={title}
       onClick={handlePress}
+      className="sketchbook-border paper-interact"
       style={{
-        position: 'relative',
         width: '100%',
-        minHeight: isMobile ? '44px' : '52px',
-        border: selected ? `3px solid ${color}` : `3px solid #cbd5e1`,
-        background: selected ? color : '#f8fafc',
-        borderBottom: selected ? `7px solid ${color}` : `6px solid #94a3b8`,
-        borderRadius: '16px',
-        padding: isMobile ? '8px 12px' : '10px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
+        minHeight: isMobile ? '86px' : '96px',
+        border: `3.5px solid ${selected ? color : '#d7e0ec'}`,
+        borderBottom: `9.5px solid ${selected ? color : '#b9c8d8'}`,
+        background: selected ? `${color}14` : '#ffffff',
+        borderRadius: '22px',
+        padding: isMobile ? '14px 14px 12px' : '16px 16px 14px',
+        display: 'grid',
+        gap: '8px',
+        alignContent: 'space-between',
+        textAlign: 'left',
         cursor: 'pointer',
-        boxShadow: selected ? `0 8px 16px rgba(0,0,0,0.15)` : '0 4px 8px rgba(0,0,0,0.05)',
-        transform: selected ? 'scale(1.05)' : 'scale(1)',
-        transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        zIndex: selected ? 10 : 1,
+        boxShadow: selected ? `0 14px 26px ${color}22` : '0 10px 18px rgba(148, 163, 184, 0.12)',
       }}
     >
-      <span style={{ 
-        fontFamily: 'var(--font-main)', 
-        fontWeight: '900', 
-        color: selected ? '#fff' : '#475569', 
-        fontSize: isMobile ? '0.95rem' : '1.1rem', 
-        lineHeight: 1.1, 
-        letterSpacing: '0.5px',
-        textShadow: selected ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'
-      }}>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 'fit-content',
+          minWidth: '38px',
+          padding: '5px 10px',
+          borderRadius: '999px',
+          background: selected ? '#ffffff' : '#f8fafc',
+          border: `2px solid ${selected ? color : '#cbd5e1'}`,
+          color: selected ? color : '#64748b',
+          fontFamily: 'Sniglet, var(--font-main)',
+          fontSize: '0.85rem',
+          fontWeight: '400',
+          lineHeight: 1,
+        }}
+      >
         {label}
-      </span>
-      
-      {/* Gamified Personality Badge */}
-      {selected && (
-        <motion.div 
-           initial={{ scale: 0, rotate: -90, y: 10 }} 
-           animate={{ scale: 1, rotate: tiltDirection * 12, y: 0 }} 
-           transition={{ type: 'spring', stiffness: 600, damping: 10, mass: 0.8 }}
-           style={{
-             position: 'absolute',
-             top: -12,
-             right: -10,
-             background: '#fef3c7',
-             border: '3px solid #f59e0b',
-             borderBottom: '5px solid #d97706',
-             borderRadius: '50%',
-             width: isMobile ? '24px' : '28px',
-             height: isMobile ? '24px' : '28px',
-             display: 'flex',
-             alignItems: 'center',
-             justifyContent: 'center',
-             color: '#b45309',
-             fontSize: isMobile ? '13px' : '16px',
-             fontWeight: '900',
-             boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
-             zIndex: 20
-           }}
+      </div>
+
+      <div style={{ display: 'grid', gap: '4px' }}>
+        <div
+          style={{
+            fontFamily: 'Sniglet, var(--font-main)',
+            fontWeight: '400',
+            color: '#0f172a',
+            fontSize: isMobile ? '0.98rem' : '1.06rem',
+            lineHeight: 1.15,
+          }}
         >
-          !
-        </motion.div>
-      )}
+          {title || label}
+        </div>
+        <div
+          style={{
+            fontSize: '0.84rem',
+            lineHeight: 1.25,
+            color: selected ? color : '#64748b',
+            fontFamily: 'var(--font-main)',
+            fontWeight: '600',
+          }}
+        >
+          {selected ? 'Selected' : 'Tap to choose'}
+        </div>
+      </div>
     </motion.button>
   );
 };

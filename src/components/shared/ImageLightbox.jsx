@@ -268,21 +268,24 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
           }}
         >
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.9, y: 2 }}
             style={{
-              background: 'none',
-              border: 'none',
-              width: 40,
-              height: 40,
+              background: '#ffffff',
+              border: '2.5px solid #8b5cf6',
+              borderBottom: '6px solid #8b5cf6',
+              borderRadius: '12px',
+              width: 44,
+              height: 44,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.7)',
+              color: '#8b5cf6',
+              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)'
             }}
           >
-            <X size={24} />
+            <X size={24} strokeWidth={2.5} />
           </motion.button>
         </div>
       </motion.div>
@@ -311,21 +314,24 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
           }}
         >
           <motion.button
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1, x: -2 }}
+            whileTap={{ scale: 0.9, x: 2 }}
             style={{
-              background: 'none',
-              border: 'none',
-              width: isMobile ? 40 : 48,
-              height: isMobile ? 40 : 48,
+              background: '#ffffff',
+              border: '2.5px solid #8b5cf6',
+              borderBottom: '6px solid #8b5cf6',
+              borderRadius: '14px',
+              width: isMobile ? 44 : 54,
+              height: isMobile ? 44 : 54,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.7)',
+              color: '#8b5cf6',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
             }}
           >
-            <ChevronLeft size={32} />
+            <ChevronLeft size={isMobile ? 28 : 36} strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
@@ -354,21 +360,24 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
           }}
         >
           <motion.button
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1, x: 2 }}
+            whileTap={{ scale: 0.9, x: -2 }}
             style={{
-              background: 'none',
-              border: 'none',
-              width: isMobile ? 40 : 48,
-              height: isMobile ? 40 : 48,
+              background: '#ffffff',
+              border: '2.5px solid #8b5cf6',
+              borderBottom: '6px solid #8b5cf6',
+              borderRadius: '14px',
+              width: isMobile ? 44 : 54,
+              height: isMobile ? 44 : 54,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.7)',
+              color: '#8b5cf6',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
             }}
           >
-            <ChevronRight size={32} />
+            <ChevronRight size={isMobile ? 28 : 36} strokeWidth={2.5} />
           </motion.button>
         </div>
       )}

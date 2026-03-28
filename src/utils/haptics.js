@@ -21,10 +21,38 @@ const isReducedMotionEnabled = () => {
   return document.documentElement.getAttribute('data-a11y-reduce-motion') === '1';
 };
 
+let hasUserGesture = false;
+let gestureListenersBound = false;
+
+const markUserGesture = () => {
+  hasUserGesture = true;
+};
+
+const bindGestureListeners = () => {
+  if (gestureListenersBound || typeof window === 'undefined') return;
+
+  gestureListenersBound = true;
+  window.addEventListener('pointerdown', markUserGesture, { passive: true, once: true });
+  window.addEventListener('touchstart', markUserGesture, { passive: true, once: true });
+  window.addEventListener('keydown', markUserGesture, { passive: true, once: true });
+};
+
+export const registerHapticGesture = () => {
+  bindGestureListeners();
+  markUserGesture();
+};
+
 export const triggerHaptic = (type = 'light') => {
   if (isReducedMotionEnabled()) return false;
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
+  bindGestureListeners();
+  if (!hasUserGesture) return false;
+  if ((navigator.maxTouchPoints || 0) < 1) return false;
 
   const pattern = HAPTIC_PATTERNS[type] ?? HAPTIC_PATTERNS.light;
-  return navigator.vibrate(pattern);
+  try {
+    return navigator.vibrate(pattern);
+  } catch {
+    return false;
+  }
 };

@@ -30,7 +30,7 @@ import { useGalleryPrefetch } from './hooks/app/useGalleryPrefetch';
 import { useReaderChapterNavigation } from './hooks/app/useReaderChapterNavigation';
 import { useUiBootDelay } from './hooks/app/useUiBootDelay';
 import { getInitialUiLanguage } from './config/uiLanguage';
-import { triggerHaptic } from './utils/haptics';
+import { registerHapticGesture } from './utils/haptics';
 
 const loadGalleryPage = () => import('./components/GalleryPage');
 const GalleryPage = lazy(loadGalleryPage);
@@ -200,7 +200,7 @@ function App() {
       const target = event.target?.closest?.(interactiveSelector);
       if (!target) return;
       if (target.disabled || target.getAttribute('aria-disabled') === 'true' || target.getAttribute('data-no-haptic') === '1') return;
-      triggerHaptic('selection');
+      registerHapticGesture();
     };
 
     document.addEventListener('pointerdown', handlePointerDown, true);
@@ -451,28 +451,30 @@ function App() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            whileTap={{ scale: 0.92, y: 4 }}
             style={{
               position: 'fixed',
-              right: isMobile ? '14px' : '28px',
-              bottom: isMobile ? '98px' : '108px',
+              right: isMobile ? '16px' : '28px',
+              bottom: isMobile ? '96px' : '106px',
               zIndex: 1100,
-              border: '2px solid #d1d5db',
+              border: '3px solid #cbd5e1',
+              borderBottom: '7px solid #94a3b8',
               background: '#fff',
               color: '#374151',
-              borderRadius: '9999px',
-              padding: isMobile ? '14px 18px' : '14px 20px',
+              borderRadius: '20px',
+              padding: isMobile ? '14px' : '14px 20px',
               fontFamily: 'var(--font-hand)',
               fontWeight: 'bold',
               fontSize: isMobile ? '0.98rem' : '1.05rem',
-              boxShadow: '0 6px 16px rgba(0,0,0,0.18)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px',
+              justifyContent: 'center',
+              gap: isMobile ? '0' : '6px',
             }}
           >
-            <ChevronUp size={isMobile ? 20 : 22} /> {t.returnToTop}
+            <ChevronUp size={isMobile ? 22 : 22} /> {!isMobile && t.returnToTop}
           </motion.button>
         )}
       </AnimatePresence>

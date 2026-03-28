@@ -28,7 +28,7 @@ const GallerySubtabPanel = ({
         flex: 1,
         overflowY: isMobile ? 'visible' : 'auto',
         maxHeight: isMobile ? 'none' : 'min(550px, calc(100vh - 280px))',
-        padding: '4px',
+        padding: isMobile ? '8px 6px 20px' : '10px 8px 24px',
         overflowAnchor: 'none',
       }}
     >
@@ -38,7 +38,7 @@ const GallerySubtabPanel = ({
           <span style={{ fontFamily: 'var(--font-hand)', fontSize: '1.1rem', color: '#9ca3af', fontWeight: 'bold' }}>{t.noImages}</span>
         </div>
       ) : (
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4" style={{ overflowAnchor: 'none' }}>
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-5 space-y-5" style={{ overflowAnchor: 'none' }}>
           {images.map((src, index) => {
             const isSelected = isActive && src === selectedImage;
             return (

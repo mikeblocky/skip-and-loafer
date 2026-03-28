@@ -1,7 +1,29 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, CheckCircle2, BookOpen, RefreshCw } from 'lucide-react';
 import { CHAPTERS, VOLUMES, isMainChapter, VOL_COLORS } from '../../../data/chapters';
 import { VOL_BGS, getVolumeTitle } from '../syncConfig';
+
+const StatCard = ({ label, value, accent, bg, border, isMobile, icon: Icon }) => (
+  <div
+    className="sketchbook-border"
+    style={{
+      background: bg,
+      border: `3px solid ${border}`,
+      borderBottom: `8px solid ${border}`,
+      borderRadius: '20px',
+      padding: isMobile ? '14px 14px 12px' : '16px 16px 14px',
+      display: 'grid',
+      gap: '8px',
+      minHeight: isMobile ? '112px' : '120px',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: accent }}>
+      <Icon size={18} strokeWidth={2.4} />
+      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '0.94rem' : '1rem', fontWeight: '400', lineHeight: 1.2 }}>{label}</span>
+    </div>
+    <div style={{ color: '#0f172a', fontSize: isMobile ? '1.55rem' : '1.75rem', lineHeight: 1, fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400' }}>{value}</div>
+  </div>
+);
 
 const ProgressTab = ({
   isMobile,
@@ -22,114 +44,130 @@ const ProgressTab = ({
   incrementReadCount,
   getRemainingCooldown,
   pendingLinks,
-  ListRow,
   MiniChapterRow,
-}) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-    <div style={{
-      position: isMobile ? 'static' : 'sticky',
-      top: isMobile ? 'auto' : '0px',
-      zIndex: isMobile ? 'auto' : 15,
-      background: isMobile ? 'transparent' : 'var(--paper-white)',
-      paddingBottom: isMobile ? '0' : '10px',
-      marginBottom: 0,
-      marginInline: 0,
-      paddingInline: 0,
-    }}>
-      <ListRow
-        isMobile={isMobile}
-        index={0}
-        finished={progressPct === 100}
-        noteColor={3}
-        tierBg="#10b981"
-        tierBorder="#059669"
-        tierText="#fff"
-        tierAccent="#047857"
-        numberLine2={`${progressPct}%`}
-        title={t.overallCompletion}
-        subtitle={
-          <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6b7280' }}>
-            {finishedCountMain} of {totalChapters} {t.chaptersDone}
-          </span>
-        }
-        rightContent={
-          <div style={{ background: '#d1fae5', color: '#047857', padding: '4px 10px', borderRadius: '9999px', fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 'bold' }}>
-            {totalReads} {t.totalReads}
-          </div>
-        }
-        style={{
-          boxShadow: isMobile ? undefined : '0 4px 14px rgba(5, 150, 105, 0.15)',
-        }}
-      />
-    </div>
+}) => {
+  const activeVolumes = VOLUMES.filter((vol) => vol.chapters.some((chapterNumber) => finished.has(chapterNumber))).length;
 
-    <div className="hide-scrollbar" style={{
-      flex: 1,
-      overflowY: 'visible',
-      overflowX: 'visible',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      padding: '8px 4px 4px 4px',
-      maxHeight: 'none',
-    }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '8px',
-        alignItems: 'start',
-      }}>
+  return (
+    <div style={{ display: 'grid', gap: '22px', paddingTop: '6px', paddingBottom: '10px' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 18, rotate: -0.8 }}
+        animate={{ opacity: 1, y: 0, rotate: 0 }}
+        className="sketchbook-border"
+        style={{
+          background: '#ffffff',
+          border: '3.5px solid #10b981',
+          borderBottom: '10px solid #047857',
+          borderRadius: '28px',
+          padding: isMobile ? '20px 18px' : '24px 24px 22px',
+          boxShadow: '0 16px 0 rgba(16, 185, 129, 0.18)',
+          display: 'grid',
+          gap: '18px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: '16px', alignItems: isMobile ? 'stretch' : 'center' }}>
+          <div style={{ display: 'grid', gap: '8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: '#ffffff', border: '3px solid #a7f3d0', borderBottom: '7px solid #34d399', borderRadius: '999px', padding: '8px 14px', width: 'fit-content' }}>
+              <BookOpen size={18} strokeWidth={2.4} style={{ color: '#047857' }} />
+              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: '400', color: '#065f46' }}>{t.overallCompletion}</span>
+            </div>
+            <div style={{ color: '#065f46', fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '2.2rem' : '2.8rem', lineHeight: 1, fontWeight: '400' }}>{progressPct}%</div>
+            <div style={{ color: '#475569', fontSize: isMobile ? '0.98rem' : '1.02rem', lineHeight: 1.45 }}>
+              {finishedCountMain} / {totalChapters} {t.chaptersDone}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, minmax(0, 170px))', gap: '12px', width: isMobile ? '100%' : 'auto' }}>
+            <StatCard label={t.chaptersDone} value={String(finishedCountMain)} accent="#0f766e" bg="#ecfdf5" border="#86efac" isMobile={isMobile} icon={CheckCircle2} />
+            <StatCard label={t.totalReads} value={String(totalReads)} accent="#1d4ed8" bg="#eff6ff" border="#93c5fd" isMobile={isMobile} icon={RefreshCw} />
+            <StatCard label="Volumes" value={String(activeVolumes)} accent="#7c3aed" bg="#faf5ff" border="#c4b5fd" isMobile={isMobile} icon={BookOpen} />
+          </div>
+        </div>
+      </motion.div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px', alignItems: 'start' }}>
         {VOLUMES.map((vol, idx) => {
-          const volChapters = vol.chapters.map(num => CHAPTERS.find(c => c.number === num)).filter(Boolean);
-          const mainVolChapters = vol.chapters.filter(num => isMainChapter(num));
-          const vf = mainVolChapters.filter(ch => finished.has(ch)).length;
-          const vt = mainVolChapters.length;
-          const p = vt > 0 ? Math.round((vf / vt) * 100) : 0;
-          const isFinished = p === 100;
+          const volChapters = vol.chapters.map((num) => CHAPTERS.find((chapter) => chapter.number === num)).filter(Boolean);
+          const mainVolChapters = vol.chapters.filter((num) => isMainChapter(num));
+          const finishedCount = mainVolChapters.filter((chapterNumber) => finished.has(chapterNumber)).length;
+          const totalCount = mainVolChapters.length;
+          const progress = totalCount > 0 ? Math.round((finishedCount / totalCount) * 100) : 0;
+          const isFinished = progress === 100;
           const isExpanded = expandedVol === vol.number;
-          const volHex = VOL_COLORS[vol.number] || '#c4b5fd';
-          const customNote = { bg: VOL_BGS[vol.number] || '#faf5ff', border: volHex, accent: volHex };
+          const accent = VOL_COLORS[vol.number] || '#8b5cf6';
+          const panelBg = VOL_BGS[vol.number] || '#ffffff';
 
           return (
-            <div key={vol.number} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <ListRow
-                isMobile={isMobile}
-                index={idx + 1}
-                finished={isFinished}
-                customNote={customNote}
-                tierBg="#10b981"
-                tierBorder="#059669"
-                tierText="#fff"
-                tierAccent="#047857"
-                numberLine2={vol.number}
-                title={getVolumeTitle(uiLanguage, vol.number)}
+            <div key={vol.number} style={{ display: 'grid', gap: '10px' }}>
+              <motion.button
+                initial={{ opacity: 0, y: 20, rotate: idx % 2 === 0 ? 0.8 : -0.8 }}
+                animate={{ opacity: 1, y: 0, rotate: 0 }}
+                transition={{ delay: idx * 0.04, type: 'spring', stiffness: 260, damping: 18 }}
+                whileHover={isMobile ? {} : { y: -6, rotate: idx % 2 === 0 ? 0.8 : -0.8 }}
+                whileTap={{ scale: 0.97, y: 4 }}
                 onClick={() => setExpandedVol(isExpanded ? null : vol.number)}
-                subtitle={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '100px' }}>
-                    <div style={{ flex: 1, height: '8px', background: `${customNote.border}40`, borderRadius: '4px', overflow: 'hidden' }}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${p}%` }}
-                        transition={{ duration: 0.5, delay: idx * 0.05 }}
-                        style={{ height: '100%', background: customNote.accent, borderRadius: '4px' }}
-                      />
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-hand)', fontSize: '0.8rem', fontWeight: 'bold', color: '#6b7280', width: '32px' }}>
-                      {p}%
+                className="sketchbook-border paper-interact"
+                style={{
+                  background: `linear-gradient(180deg, ${panelBg} 0%, #ffffff 100%)`,
+                  border: `3.5px solid ${accent}`,
+                  borderBottom: `10px solid ${accent}`,
+                  borderRadius: '24px',
+                  padding: isMobile ? '18px 16px' : '20px 18px',
+                  display: 'grid',
+                  gap: '14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  boxShadow: `0 16px 30px ${accent}20`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'start' }}>
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content', minWidth: '56px', padding: '6px 12px', borderRadius: '999px', background: '#ffffff', border: `3px solid ${accent}`, color: accent, fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.96rem', fontWeight: '400' }}>
+                      {vol.number}
                     </span>
+                    <div style={{ color: '#1e293b', fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.16rem' : '1.22rem', fontWeight: '400', lineHeight: 1.1 }}>{getVolumeTitle(uiLanguage, vol.number)}</div>
                   </div>
-                }
-                rightContent={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ background: `${customNote.border}40`, color: customNote.accent, padding: '4px 10px', borderRadius: '9999px', fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 'bold' }}>
-                      {vf}/{vt}
+
+                  <div style={{ display: 'grid', justifyItems: 'end', gap: '8px' }}>
+                    <div style={{ background: isFinished ? '#ecfdf5' : '#ffffff', border: `3px solid ${isFinished ? '#34d399' : accent}`, borderBottom: `7px solid ${isFinished ? '#10b981' : accent}`, borderRadius: '16px', padding: '8px 10px', minWidth: '88px', textAlign: 'center' }}>
+                      <div style={{ color: isFinished ? '#047857' : accent, fontFamily: 'Sniglet, var(--font-main)', fontSize: '1.02rem', fontWeight: '400', lineHeight: 1 }}>{progress}%</div>
+                      <div style={{ color: '#64748b', fontSize: '0.82rem', lineHeight: 1.2 }}>{finishedCount}/{totalCount}</div>
                     </div>
                     <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                      <ChevronDown size={18} style={{ color: customNote.accent }} />
+                      <ChevronDown size={20} strokeWidth={2.6} style={{ color: accent }} />
                     </motion.div>
                   </div>
-                }
-              />
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {mainVolChapters.map((chapterNumber) => {
+                    const done = finished.has(chapterNumber);
+                    return (
+                      <span
+                        key={chapterNumber}
+                        style={{
+                          minWidth: '42px',
+                          height: '34px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0 10px',
+                          borderRadius: '14px',
+                          background: done ? `${accent}18` : '#ffffff',
+                          border: `2.5px solid ${done ? accent : '#dbe4f0'}`,
+                          color: done ? accent : '#94a3b8',
+                          fontFamily: 'Sniglet, var(--font-main)',
+                          fontSize: '0.88rem',
+                          fontWeight: '400',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {chapterNumber}
+                      </span>
+                    );
+                  })}
+                </div>
+              </motion.button>
 
               <AnimatePresence>
                 {isExpanded && (
@@ -137,23 +175,15 @@ const ProgressTab = ({
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ overflow: 'hidden', paddingLeft: isMobile ? '12px' : '24px', display: 'flex', flexDirection: 'column', gap: '0px' }}
+                    transition={{ duration: 0.28 }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <div style={{
-                      borderLeft: `2px dashed ${customNote.border}`,
-                      paddingLeft: '12px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                      gap: '8px',
-                    }}>
-                      {volChapters.map((ch, cIdx) => (
+                    <div style={{ display: 'grid', gap: '8px', padding: isMobile ? '2px 6px 4px 12px' : '2px 8px 6px 18px', borderLeft: `2px dashed ${accent}` }}>
+                      {volChapters.map((chapter, chapterIndex) => (
                         <MiniChapterRow
-                          key={ch.number}
-                          chapter={ch}
-                          index={cIdx}
+                          key={chapter.number}
+                          chapter={chapter}
+                          index={chapterIndex}
                           isMobile={isMobile}
                           onReadChapter={onReadChapter}
                           isFinished={(num) => finished.has(num)}
@@ -177,7 +207,8 @@ const ProgressTab = ({
         })}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default ProgressTab;
+
