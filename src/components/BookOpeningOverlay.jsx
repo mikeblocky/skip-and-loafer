@@ -166,14 +166,15 @@ const BookOpeningOverlay = ({ onComplete }) => {
                                 {/* Title */}
                                 <h1 style={{
                                     fontFamily: 'Sniglet, var(--font-main)',
-                                    fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                                    fontSize: 'clamp(1.7rem, 6vw, 3.5rem)',
                                     fontWeight: 'normal',
                                     color: 'white',
                                     textShadow: '0 2px 8px rgba(0,0,0,0.2)',
                                     lineHeight: 1.1,
                                     textAlign: 'center',
+                                    whiteSpace: 'nowrap',
                                 }}>
-                                    Skip & Loafer
+                                    {'Skip\u00A0&\u00A0Loafer'}
                                 </h1>
 
                                 <p style={{

@@ -38,103 +38,103 @@ export const createBlogMarkdownComponents = ({
       return (
         <div
           style={{
-            margin: '-6px auto 14px auto',
+            margin: '-12px auto 16px auto',
             background: '#fff',
-            border: `1px solid ${readerTheme.codeBorder}`,
+            border: `3px solid ${readerTheme.codeBorder}`,
             borderTop: 'none',
-            borderRadius: '0 0 9px 9px',
-            padding: isMobile ? '5px 10px 7px 10px' : '6px 12px 8px 12px',
+            borderRadius: '0 0 16px 16px',
+            padding: isMobile ? '8px 14px 10px 14px' : '10px 16px 12px 16px',
             width: 'fit-content',
             maxWidth: 'min(100%, 760px)',
             textAlign: 'center',
-            boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
+            boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
           }}
         >
-          <em style={{ color: readerTheme.subtle, fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.72 * bodyFontScale}rem` : `${0.78 * bodyFontScale}rem` }}>
+          <em style={{ color: readerTheme.subtle, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
             {nodes[0].props.children}
           </em>
         </div>
       );
     }
-
+ 
     const hasBlockMedia = nodes.some((child) => {
       if (!isValidElement(child)) return false;
       const tagName = typeof child.type === 'string'
         ? child.type
         : (child.props?.node?.tagName || '').toLowerCase();
-
+ 
       return ['img', 'figure', 'video', 'iframe', 'div', 'table'].includes(tagName);
     });
-
+ 
     if (hasBlockMedia) {
       return (
-        <div style={{ margin: '0 0 12px 0' }}>
+        <div style={{ margin: '0 0 16px 0' }}>
           {children}
         </div>
       );
     }
-
+ 
     return (
-      <p style={{ margin: '0 0 12px 0', color: readerTheme.text, fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease' }}>
+      <p style={{ margin: '0 0 16px 0', color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
         {children}
       </p>
     );
   },
   hr: () => (
-    <hr style={{ border: 0, borderTop: `1px dashed ${readerTheme.panelBorder}`, margin: '14px 0' }} />
+    <hr style={{ border: 0, borderTop: `3px dashed ${readerTheme.panelBorder}`, margin: '20px 0', opacity: 0.5 }} />
   ),
   blockquote: ({ children }) => (
-    <blockquote style={{ margin: '10px 0', padding: '8px 10px', borderLeft: `3px solid ${readerTheme.quoteBorder}`, background: readerTheme.quoteBg, borderRadius: '8px', color: readerTheme.quoteText, fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.78 * bodyFontScale}rem` : `${0.85 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease, background 0.3s ease, border-color 0.3s ease' }}>
+    <blockquote style={{ margin: '14px 0', padding: '12px 16px', borderLeft: `6px solid ${readerTheme.quoteBorder}`, background: readerTheme.quoteBg, borderRadius: '16px', color: readerTheme.quoteText, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.82 * bodyFontScale}rem` : `${0.9 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'all 0.3s ease' }}>
       {children}
     </blockquote>
   ),
   ul: ({ children }) => (
-    <ul style={{ margin: '0 0 12px 16px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease' }}>
+    <ul style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol style={{ margin: '0 0 12px 16px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-hand)', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease' }}>
+    <ol style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
       {children}
     </ol>
   ),
   li: ({ children }) => (
-    <li style={{ marginBottom: '4px' }}>{children}</li>
+    <li style={{ marginBottom: '8px' }}>{children}</li>
   ),
   strong: ({ children }) => (
-    <strong style={{ color: readerTheme.heading }}>{children}</strong>
+    <strong style={{ color: readerTheme.heading, fontWeight: 900 }}>{children}</strong>
   ),
   a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '2px', fontWeight: 'bold' }}>
+    <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: '900' }}>
       {children}
     </a>
   ),
   code: ({ inline, children }) => (
     inline ? (
-      <code style={{ background: readerTheme.codeBg, border: `1px solid ${readerTheme.codeBorder}`, borderRadius: '6px', padding: '1px 5px', color: readerTheme.heading, fontFamily: 'monospace', fontSize: isMobile ? `${0.72 * bodyFontScale}rem` : `${0.78 * bodyFontScale}rem` }}>
+      <code style={{ background: readerTheme.codeBg, border: `2px solid ${readerTheme.codeBorder}`, borderRadius: '8px', padding: '2px 6px', color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
         {children}
       </code>
     ) : (
-      <code style={{ color: readerTheme.heading, fontFamily: 'monospace', fontSize: isMobile ? `${0.72 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem`, lineHeight: listLineHeight }}>
+      <code style={{ color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.82 * bodyFontScale}rem`, lineHeight: listLineHeight }}>
         {children}
       </code>
     )
   ),
   pre: ({ children }) => (
-    <pre style={{ margin: '0 0 12px 0', background: readerTheme.codeBg, border: `1px solid ${readerTheme.codeBorder}`, borderRadius: '8px', padding: '10px', overflowX: 'auto' }}>
+    <pre style={{ margin: '0 0 16px 0', background: readerTheme.codeBg, border: `3px solid ${readerTheme.codeBorder}`, borderBottom: `6px solid ${readerTheme.codeBorder}`, borderRadius: '16px', padding: '16px', overflowX: 'auto' }}>
       {children}
     </pre>
   ),
   table: ({ children }) => (
     <div
       style={{
-        margin: '12px auto 0 auto',
+        margin: '16px auto 0 auto',
         background: '#fff',
-        border: `1px solid ${readerTheme.codeBorder}`,
-        borderRadius: '10px 10px 0 0',
-        borderBottom: 'none',
-        padding: isMobile ? '8px 8px 10px 8px' : '10px 10px 12px 10px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        border: `3px solid ${readerTheme.codeBorder}`,
+        borderBottom: `6px solid ${readerTheme.codeBorder}`,
+        borderRadius: '20px',
+        padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         overflowX: 'auto',
         width: 'fit-content',
         maxWidth: '100%',
@@ -149,16 +149,16 @@ export const createBlogMarkdownComponents = ({
       isValidElement(child)
       && (child.props?.['data-tight'] === true || child.props?.['data-tight'] === 'true')
     ));
-
+ 
     return (
-      <td style={{ verticalAlign: 'top', padding: hasTightImage ? 0 : (isMobile ? '0 4px' : '0 6px') }}>
+      <td style={{ verticalAlign: 'top', padding: hasTightImage ? 0 : (isMobile ? '4px 8px' : '5px 10px') }}>
         {children}
       </td>
     );
   },
   img: ({ src, alt, ...props }) => {
     const isTight = props['data-tight'] === true || props['data-tight'] === 'true';
-
+ 
     if (isTight) {
       return (
         <img
@@ -170,28 +170,28 @@ export const createBlogMarkdownComponents = ({
         />
       );
     }
-
+ 
     return (
-      <div style={{ margin: '12px 0 8px 0', background: '#fff', border: `1px solid ${readerTheme.codeBorder}`, borderRadius: '10px', padding: isMobile ? '8px 8px 10px 8px' : '10px 10px 12px 10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+      <div style={{ margin: '16px 0 12px 0', background: '#fff', border: `3px solid ${readerTheme.codeBorder}`, borderBottom: `6px solid ${readerTheme.codeBorder}`, borderRadius: '20px', padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
         <img
           src={src}
           alt={alt || ''}
           loading="lazy"
           onClick={() => openImageBySrc(src)}
-          style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '6px', cursor: 'zoom-in' }}
+          style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '12px', cursor: 'zoom-in' }}
         />
       </div>
     );
   },
   video: ({ children, ...props }) => (
-    <div style={{ margin: '12px 0', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', background: '#000' }}>
+    <div style={{ margin: '16px 0', border: '3px solid #e2e8f0', borderBottom: '8px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
       <video controls playsInline {...props} style={{ width: '100%', display: 'block' }}>
         {children}
       </video>
     </div>
   ),
   iframe: ({ ...props }) => (
-    <div style={{ margin: '12px 0', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', background: '#000' }}>
+    <div style={{ margin: '16px 0', border: '3px solid #e2e8f0', borderBottom: '8px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
       <iframe title="Embedded media" loading="lazy" {...props} style={{ width: '100%', minHeight: isMobile ? '200px' : '360px', border: 0, display: 'block' }} />
     </div>
   ),

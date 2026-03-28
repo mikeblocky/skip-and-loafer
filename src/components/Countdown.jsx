@@ -24,8 +24,8 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
     <motion.div
         className="calendar-pad"
         style={{
-            width: isMobile ? '72px' : '9rem',
-            height: isMobile ? '95px' : '11rem',
+            width: isMobile ? '64px' : '9rem',
+            height: isMobile ? '88px' : '11rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -66,7 +66,7 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
                     exit="exit"
                     transition={{ type: 'spring', stiffness: 400, damping: 15, mass: 0.5 }}
                     style={{
-                        fontSize: isMobile ? '2.2rem' : '3.75rem',
+                        fontSize: isMobile ? '2rem' : '3.75rem',
                         fontFamily: 'var(--font-hand)',
                         fontWeight: 'bold',
                         color: borderColor,
@@ -80,7 +80,7 @@ const CalendarPad = ({ value, label, delay, borderColor, isMobile }) => (
             {/* Labels - not bold, properly positioned */}
             <span style={{
                 fontFamily: 'var(--font-main)',
-                fontSize: isMobile ? '0.85rem' : '1.1rem',
+                fontSize: isMobile ? '0.78rem' : '1.1rem',
                 color: '#6b7280',
                 marginTop: isMobile ? '6px' : '10px',
                 letterSpacing: '0.08em',
@@ -125,7 +125,9 @@ const Countdown = ({ isMobile = false, uiLanguage = 'en' }) => {
             gap: isMobile ? '6px' : '20px',
             justifyContent: 'center',
             flexWrap: 'nowrap',
-            alignItems: 'center'
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: isMobile ? '280px' : 'none'
         }}>
             <CalendarPad value={timeLeft.days || 0} label={t.days} delay={0.1} borderColor="var(--pop-pink)" isMobile={isMobile} />
             <CalendarPad value={timeLeft.hours || 0} label={t.hours} delay={0.2} borderColor="var(--pop-green)" isMobile={isMobile} />
@@ -136,3 +138,4 @@ const Countdown = ({ isMobile = false, uiLanguage = 'en' }) => {
 };
 
 export default Countdown;
+
