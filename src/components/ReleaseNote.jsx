@@ -10,8 +10,9 @@ const UI_TEXT = {
     it: { chapterOut: 'Capitolo 78 disponibile ora!', quote: '"Bianco puro e nuovissimo. Cammina deciso e senti lo scricchiolio."', read: 'Leggi ->' },
 };
 
-const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false }) => {
+const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = false }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+    const mobileInline = inline && isMobile;
 
     return (
         <motion.a
@@ -27,39 +28,50 @@ const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false }) => {
                 transform: inline ? 'none' : (isMobile ? 'translateX(50%)' : 'translateX(50%) rotate(-1deg)'),
                 alignSelf: 'auto',
                 background: '#fef3c7',
-                padding: isMobile ? '8px 12px' : '10px 20px',
+                padding: mobileInline ? '10px 12px 12px' : (isMobile ? '8px 12px' : (largeText ? '8px 16px' : '7px 15px')),
                 borderRadius: '8px',
                 boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
                 zIndex: 1150,
                 border: '1.5px solid #f59e0b',
                 textDecoration: 'none',
-                display: 'flex',
+                display: mobileInline ? 'grid' : 'flex',
                 alignItems: 'center',
-                flexWrap: inline && isMobile ? 'wrap' : 'nowrap',
-                gap: isMobile ? '5px' : '10px',
+                flexWrap: mobileInline ? 'nowrap' : ((inline && isMobile) || (inline && largeText) ? 'wrap' : 'nowrap'),
+                gap: mobileInline ? '4px' : (isMobile ? '5px' : '7px'),
                 justifyContent: 'center',
                 marginTop: 0,
                 marginBottom: 0,
-                width: isMobile ? 'fit-content' : 'auto',
-                maxWidth: inline && isMobile ? '100%' : 'none',
-                whiteSpace: isMobile ? 'normal' : 'nowrap'
+                width: inline ? (isMobile ? '100%' : 'auto') : (isMobile ? 'fit-content' : 'auto'),
+                maxWidth: inline ? (isMobile ? '100%' : (largeText ? 'min(100%, 700px)' : 'min(100%, 600px)')) : 'none',
+                whiteSpace: mobileInline ? 'normal' : (inline && !isMobile && !largeText ? 'nowrap' : 'normal'),
+                textAlign: mobileInline ? 'center' : 'initial',
+                justifyItems: mobileInline ? 'center' : undefined,
             }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.4, type: 'spring' }}
             whileHover={{ scale: 1.03, rotate: 0 }}
         >
-            <span style={{ fontFamily: 'var(--font-hand)', color: '#92400e', fontSize: isMobile ? '0.75rem' : '0.85rem', fontWeight: 'bold' }}>
+            <span style={{ fontFamily: 'var(--font-hand)', color: '#92400e', fontSize: isMobile ? '0.82rem' : (largeText ? '0.86rem' : '0.78rem'), fontWeight: 'bold' }}>
                 {t.chapterOut}
             </span>
-            <span style={{ fontFamily: 'var(--font-hand)', color: '#b45309', fontSize: isMobile ? '0.7rem' : '0.8rem', fontStyle: 'italic' }}>
+            <span style={{
+                fontFamily: 'var(--font-hand)',
+                color: '#b45309',
+                fontSize: isMobile ? '0.74rem' : (largeText ? '0.8rem' : '0.72rem'),
+                fontStyle: 'italic',
+                whiteSpace: mobileInline ? 'normal' : (inline && !isMobile && !largeText ? 'nowrap' : 'normal'),
+                overflow: mobileInline ? 'visible' : (inline && !isMobile && !largeText ? 'hidden' : 'visible'),
+                textOverflow: mobileInline ? 'clip' : (inline && !isMobile && !largeText ? 'ellipsis' : 'clip'),
+                minWidth: inline && !isMobile ? 0 : 'auto'
+            }}>
                 {t.quote}
             </span>
             <span style={{
-                fontSize: isMobile ? '0.65rem' : '0.75rem',
+                fontSize: isMobile ? '0.68rem' : (largeText ? '0.74rem' : '0.68rem'),
                 color: '#fff',
                 background: 'var(--pop-pink)',
-                padding: '2px 8px',
+                padding: '2px 7px',
                 borderRadius: '9999px',
                 fontFamily: 'var(--font-hand)',
                 fontWeight: 'bold',

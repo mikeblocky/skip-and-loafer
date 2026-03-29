@@ -1,99 +1,38 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PawPrint } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
-import QuizIntegrityCheckpoint from './quizGame/QuizIntegrityCheckpoint';
-import QuizQuestionStep from './quizGame/QuizQuestionStep';
-import { QUESTION_TYPE_WEIGHT, hashString } from './quizGame/config';
+import useIdlePreload from '../../hooks/app/useIdlePreload';
+import { QUESTION_TYPE_WEIGHT } from './quizGame/config';
+import QuizStageFallback from './quizGame/QuizStageFallback';
 import { toMysteryLabelCase } from './quizGame/ui';
-import AnimalQuizResultView from './animalQuiz/AnimalQuizResultView';
 import getAnimalQuizCopy from './animalQuiz/copy';
-import { ANIMAL_AXES, ANIMAL_DISPLAY_TRAITS, ANIMAL_PROFILES } from '../../data/animalQuizData';
+import {
+  buildAnimalReason,
+  clamp,
+  createAnimalPolarity,
+  createAnimalQualityState,
+  pickInstruction,
+  shuffle,
+  TRAIT_PALETTE,
+  zeroAnimalAxes,
+} from './animalQuiz/utils';
+import {
+  buildAnimalQuestionSet,
+  calculateAnimalResult,
+  computeAnimalLiveQuality,
+  pickMostInformativeAnimalQuestion,
+} from './animalQuiz/engine';
+import { ANIMAL_AXES, ANIMAL_DISPLAY_TRAITS } from '../../data/animalQuizData';
 import { ANIMAL_INSTRUCTION_COPY, buildAnimalQuestionBank, buildAnimalRecoveryBank } from '../../data/animalQuizQuestions';
 
-const TRAIT_PALETTE = ['#34d399', '#60a5fa', '#f59e0b', '#8b5cf6', '#14b8a6', '#f97316'];
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-const zero = () => Object.fromEntries(ANIMAL_AXES.map((axis) => [axis, 0]));
-const polarity = () => Object.fromEntries(ANIMAL_AXES.map((axis) => [axis, { pos: 0, neg: 0 }]));
-const qualityState = () => ({ sliderCount: 0, sliderExtreme: 0, spectrumCount: 0, spectrumExtreme: 0, optionSelectTotal: 0, optionSelectCounts: [0, 0, 0, 0], allocationCount: 0, allocationConcentrationSum: 0 });
-const normalizeSigned = (value) => clamp(Math.round((value + 100) / 2), 0, 100);
-const pickInstruction = (value, uiLanguage = 'en') => (typeof value === 'string' ? value : (value?.[uiLanguage] || value?.en || ''));
+const loadQuizIntegrityCheckpoint = () => import('./quizGame/QuizIntegrityCheckpoint');
+const loadQuizQuestionStep = () => import('./quizGame/QuizQuestionStep');
+const loadAnimalQuizResultView = () => import('./animalQuiz/AnimalQuizResultView');
 
-const buildAnimalFactors = (standardizedAxes, metrics) => {
-  const warmth = normalizeSigned(standardizedAxes.warmth || 0);
-  const curiosity = normalizeSigned(standardizedAxes.curiosity || 0);
-  const vigilance = normalizeSigned(standardizedAxes.vigilance || 0);
-  const independence = normalizeSigned(standardizedAxes.independence || 0);
-  const play = normalizeSigned(standardizedAxes.play || 0);
-  const comfort = normalizeSigned(standardizedAxes.comfort || 0);
-  const coherence = (metrics.coherence || 0.5) * 100;
-  const pairConsistency = (metrics.pairConsistency || 0.5) * 100;
-  const consistency = (metrics.consistency || 0.5) * 100;
-  const extremeShield = (1 - (metrics.sliderExtremeRate || 0)) * 100;
-  return {
-    chaosCharm: clamp(Math.round((play * 0.38) + (warmth * 0.26) + (curiosity * 0.14) + ((100 - vigilance) * 0.12) + ((100 - comfort) * 0.10)), 0, 99),
-    watchCircle: clamp(Math.round((vigilance * 0.40) + (curiosity * 0.10) + (independence * 0.14) + (pairConsistency * 0.18) + (coherence * 0.18)), 0, 99),
-    denSoftness: clamp(Math.round((comfort * 0.46) + (warmth * 0.22) + (extremeShield * 0.12) + ((metrics.responseIntegrity || 50) * 0.20)), 0, 99),
-    soloRoam: clamp(Math.round((independence * 0.42) + (curiosity * 0.18) + ((100 - warmth) * 0.12) + (vigilance * 0.14) + (consistency * 0.14)), 0, 99),
-    ritualAnchor: clamp(Math.round((comfort * 0.28) + ((metrics.responseIntegrity || 50) * 0.22) + (pairConsistency * 0.22) + (vigilance * 0.14) + ((100 - play) * 0.14)), 0, 99),
-    bounceEnergy: clamp(Math.round((play * 0.42) + (warmth * 0.22) + (curiosity * 0.10) + (coherence * 0.14) + ((100 - vigilance) * 0.12)), 0, 99),
-  };
-};
-
-const buildAnimalReason = (animalKey, animalFactors, reliabilityIndex, evidenceTrail = [], copy = {}) => {
-  const localizedProfile = copy.profiles?.[animalKey] || {};
-  const detailSeed = evidenceTrail.slice(-6).map((entry) => `${entry.axis}:${entry.delta}:${entry.label}`).join('|');
-  const seed = hashString(`${animalKey}-${Object.values(animalFactors).join('-')}-${reliabilityIndex}-${detailSeed}`);
-  const openers = localizedProfile.openers || [copy.reasonFallbacks?.opener || 'Your animal pattern came through clearly.'];
-  const opener = openers[seed % (openers.length || 1)];
-  const anchor = localizedProfile.anchor || copy.reasonFallbacks?.anchor || '';
-  const growth = localizedProfile.growth || copy.reasonFallbacks?.growth || '';
-  const factorLine = Object.entries(animalFactors)
-    .sort((a, b) => b[1] - a[1])
-    .map(([key]) => copy.factorLines?.[key])
-    .find(Boolean) || '';
-  const clueLine = evidenceTrail
-    .slice()
-    .sort((a, b) => Math.abs(b.delta || 0) - Math.abs(a.delta || 0))
-    .slice(0, 1)
-    .map((entry) => (copy.clueLead || 'A clear clue came from {label}.').replace('{label}', String(entry.label || '')))
-    .filter(Boolean);
-  const reliabilityLine = reliabilityIndex < 58
-    ? copy.reliabilityContext?.exploratory || 'Treat this as a strong live read that could sharpen further with steadier answers over time.'
-    : reliabilityIndex < 74
-      ? copy.reliabilityContext?.stable || 'The pattern is fairly stable and holds together well across different question styles.'
-      : copy.reliabilityContext?.consistent || 'The pattern stays remarkably consistent even as the quiz changes format and pressure.';
-  const blueprints = [
-    [opener, anchor, factorLine, ...clueLine, growth, reliabilityLine],
-    [opener, factorLine, anchor, ...clueLine, growth, reliabilityLine],
-    [`${opener} ${anchor}`, factorLine, ...clueLine, growth, reliabilityLine],
-  ];
-  return blueprints[seed % blueprints.length].filter(Boolean).join(' ');
-};
-
-const computeProfileBalanceAdjustment = (profileKey, profileEntries) => {
-  const profile = profileEntries.find(([key]) => key === profileKey)?.[1];
-  const others = profileEntries.filter(([key]) => key !== profileKey).map(([, entry]) => entry);
-  if (!profile || !others.length) return 0;
-
-  const axisCloseness = others.reduce((sum, other) => {
-    const distance = Math.sqrt(ANIMAL_AXES.reduce((acc, axis) => {
-      const delta = (((profile.axes || {})[axis] || 0) - ((other.axes || {})[axis] || 0));
-      return acc + (delta * delta);
-    }, 0));
-    return sum + clamp(100 - ((distance / 40) * 100), 0, 100);
-  }, 0) / others.length;
-
-  const factorKeys = Object.keys(profile.factors || {});
-  const factorCloseness = others.reduce((sum, other) => {
-    const diff = factorKeys.reduce((acc, key) => acc + Math.abs((profile.factors?.[key] || 0) - (other.factors?.[key] || 0)), 0) / Math.max(1, factorKeys.length);
-    return sum + clamp(100 - diff, 0, 100);
-  }, 0) / others.length;
-
-  const distinctiveness = 100 - ((axisCloseness * 0.65) + (factorCloseness * 0.35));
-  return clamp(Math.round((distinctiveness - 50) * 0.18), -8, 8);
-};
+const QuizIntegrityCheckpoint = lazy(loadQuizIntegrityCheckpoint);
+const QuizQuestionStep = lazy(loadQuizQuestionStep);
+const AnimalQuizResultView = lazy(loadAnimalQuizResultView);
 
 const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   const copy = React.useMemo(() => getAnimalQuizCopy(uiLanguage, t), [uiLanguage, t]);
@@ -103,7 +42,11 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     () => new Map([...questionBank, ...recoveryBank].map((question) => [question.id, question])),
     [questionBank, recoveryBank],
   );
-  const instructionCopy = {
+  const animalStagePreloaders = useMemo(
+    () => [loadQuizIntegrityCheckpoint, loadQuizQuestionStep, loadAnimalQuizResultView],
+    [],
+  );
+  const instructionCopy = useMemo(() => ({
     grid: pickInstruction(ANIMAL_INSTRUCTION_COPY.grid, uiLanguage),
     sort4: pickInstruction(ANIMAL_INSTRUCTION_COPY.sort4, uiLanguage),
     pairMatch: pickInstruction(ANIMAL_INSTRUCTION_COPY.pairMatch, uiLanguage),
@@ -112,10 +55,13 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     constellation: pickInstruction(ANIMAL_INSTRUCTION_COPY.constellation, uiLanguage),
     reaction: pickInstruction(ANIMAL_INSTRUCTION_COPY.reaction, uiLanguage),
     timing: pickInstruction(ANIMAL_INSTRUCTION_COPY.timing, uiLanguage),
-  };
+  }), [uiLanguage]);
+  const zero = zeroAnimalAxes;
+  const polarity = createAnimalPolarity;
+  const qualityState = createAnimalQualityState;
   const [currentStep, setCurrentStep] = useState(0);
   const [questionIds, setQuestionIds] = useState([]);
-  const [axes, setAxes] = useState(zero());
+  const [axes, setAxes] = useState(zeroAnimalAxes());
   const [sliderValue, setSliderValue] = useState(3);
   const [spectrumValue, setSpectrumValue] = useState(3);
   const [stanceSelection, setStanceSelection] = useState(null);
@@ -134,11 +80,11 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   const [constellationSelection, setConstellationSelection] = useState([]);
   const [integrityCheckpoint, setIntegrityCheckpoint] = useState(null);
   const [matchedResult, setMatchedResult] = useState(null);
-  const axisSignalRef = useRef(zero());
-  const axisPolarityRef = useRef(polarity());
+  const axisSignalRef = useRef(zeroAnimalAxes());
+  const axisPolarityRef = useRef(createAnimalPolarity());
   const typeCountRef = useRef({});
   const responseVectorsRef = useRef([]);
-  const responseQualityRef = useRef(qualityState());
+  const responseQualityRef = useRef(createAnimalQualityState());
   const pairResponsesRef = useRef({});
   const pendingAxesRef = useRef(null);
   const integrityPromptCountRef = useRef(0);
@@ -149,6 +95,12 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     () => questionIds.map((id) => localizedQuestionLookup.get(id)).filter(Boolean),
     [questionIds, localizedQuestionLookup],
   );
+
+  useIdlePreload(animalStagePreloaders, currentStep <= 1, {
+    delayMs: 220,
+    staggerMs: 140,
+    maxPreloadCount: isMobile ? 2 : 3,
+  });
 
   const resolvedMatchedResult = useMemo(() => {
     if (!matchedResult?.matchKey || !matchedResult?.animalFactors) return matchedResult;
@@ -203,120 +155,15 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       },
     ];
   };
-  const computeConsistency = () => ANIMAL_AXES.reduce((sum, axis) => {
-    const pos = axisPolarityRef.current[axis]?.pos || 0;
-    const neg = axisPolarityRef.current[axis]?.neg || 0;
-    const total = pos + neg;
-    return sum + (total ? (Math.max(pos, neg) / total) : 0.5);
-  }, 0) / ANIMAL_AXES.length;
-
-  const computeLiveQuality = () => {
-    const sliderTotal = responseQualityRef.current.sliderCount + responseQualityRef.current.spectrumCount;
-    const sliderExtremeRate = sliderTotal ? (responseQualityRef.current.sliderExtreme + responseQualityRef.current.spectrumExtreme) / sliderTotal : 0;
-    const optionTotal = responseQualityRef.current.optionSelectTotal || 0;
-    const dominantOptionRate = optionTotal ? Math.max(...responseQualityRef.current.optionSelectCounts.map((count) => count / optionTotal)) : 0.25;
-    const positionBiasPenalty = Math.max(0, Math.min(1, (dominantOptionRate - 0.55) / 0.45));
-    const allocationConcentration = responseQualityRef.current.allocationCount ? responseQualityRef.current.allocationConcentrationSum / responseQualityRef.current.allocationCount : 0.55;
-    const pairValues = Object.values(pairResponsesRef.current);
-    const pairConsistency = pairValues.length ? pairValues.reduce((sum, pair) => {
-      if (pair?.a == null || pair?.b == null) return sum + 0.5;
-      return sum + Math.max(0, 1 - (Math.abs(pair.a - pair.b) / 2));
-    }, 0) / pairValues.length : 0.7;
-    const averageVector = responseVectorsRef.current.reduce((acc, vector) => {
-      ANIMAL_AXES.forEach((axis) => { acc[axis] += vector?.[axis] || 0; });
-      return acc;
-    }, zero());
-    const vectorCount = Math.max(1, responseVectorsRef.current.length);
-    ANIMAL_AXES.forEach((axis) => { averageVector[axis] /= vectorCount; });
-    const averageNorm = Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => sum + ((averageVector[axis] || 0) ** 2), 0)) || 1;
-    const coherence = responseVectorsRef.current.length ? responseVectorsRef.current.reduce((sum, vector) => {
-      const dot = ANIMAL_AXES.reduce((acc, axis) => acc + ((vector?.[axis] || 0) * (averageVector[axis] || 0)), 0);
-      const vectorNorm = Math.sqrt(ANIMAL_AXES.reduce((acc, axis) => acc + ((vector?.[axis] || 0) ** 2), 0)) || 1;
-      return sum + Math.max(0, dot / (vectorNorm * averageNorm));
-    }, 0) / responseVectorsRef.current.length : 0.58;
-    const adaptiveExtremeBuffer = Math.max(0.08, Math.min(0.54, 0.13 + (Math.max(0, coherence - 0.55) * 0.52) + (Math.max(0, pairConsistency - 0.55) * 0.45)));
-    const extremePenaltyRate = Math.max(0, sliderExtremeRate - adaptiveExtremeBuffer);
-    const integrity = Math.round(clamp((coherence * 100 * 0.31) + (pairConsistency * 100 * 0.29) + ((1 - extremePenaltyRate) * 100 * 0.16) + ((1 - positionBiasPenalty) * 100 * 0.14) + ((1 - Math.max(0, allocationConcentration - 0.72) / 0.28) * 100 * 0.10), 35, 99));
-    return { integrity, coherence, pairConsistency, sliderExtremeRate };
-  };
-
-  const summarizeQuestionSignal = (question) => {
-    const signal = zero();
-    const absorb = (modifiers = {}, factor = 1) => ANIMAL_AXES.forEach((axis) => { signal[axis] += Math.abs(modifiers?.[axis] || 0) * factor; });
-    if (question.type === 'slider' && question.axis) { signal[question.axis] += 10; return signal; }
-    if (['choice', 'multi', 'rank2', 'ipsative', 'allocation', 'confidenceChoice', 'drift', 'grid', 'sort4', 'pairMatch', 'constellation'].includes(question.type)) { (question.options || []).forEach((option) => absorb(option.modifiers || {})); return signal; }
-    if (question.type === 'hold') { absorb(question.lowModifiers || {}, 1.3); absorb(question.highModifiers || {}, 1.3); return signal; }
-    if (question.type === 'rhythm') { absorb(question.slowModifiers || {}, 1.1); absorb(question.fastModifiers || {}, 1.1); absorb(question.steadyModifiers || {}, 1.1); absorb(question.wildModifiers || {}, 1.1); return signal; }
-    if (question.type === 'tradeoff') { absorb(question.left?.modifiers || {}, 1.4); absorb(question.right?.modifiers || {}, 1.4); return signal; }
-    if (question.type === 'stance') { absorb(question.modifiers || {}, 2); return signal; }
-    if (question.type === 'yesno') { absorb(question.yesModifiers || {}); absorb(question.noModifiers || {}); return signal; }
-    if (question.type === 'duel' || question.type === 'spectrum') { absorb(question.left?.modifiers || {}); absorb(question.right?.modifiers || {}); }
-    return signal;
-  };
-
-  const pickMostInformativeQuestion = (remaining) => {
-    if (!remaining.length) return null;
-    const totalSignal = ANIMAL_AXES.reduce((sum, axis) => sum + (axisSignalRef.current[axis] || 0), 0);
-    const uncertainty = ANIMAL_AXES.reduce((acc, axis) => {
-      const ratio = totalSignal > 0 ? (axisSignalRef.current[axis] || 0) / totalSignal : 0;
-      acc[axis] = Math.max(0.55, 1.3 - ratio * 1.25);
-      return acc;
-    }, {});
-    const provisional = Object.values(ANIMAL_PROFILES).map((profile) => ({ axes: profile.axes, distance: Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => sum + (((axes[axis] || 0) - ((profile.axes || {})[axis] || 0)) ** 2), 0)) })).sort((a, b) => a.distance - b.distance);
-    const topA = provisional[0]?.axes || {};
-    const topB = provisional[1]?.axes || {};
-    const discrimination = ANIMAL_AXES.reduce((acc, axis) => { acc[axis] = 1 + (Math.abs((topA[axis] || 0) - (topB[axis] || 0)) * 0.09); return acc; }, {});
-    return remaining.map((question, index) => {
-      const signal = summarizeQuestionSignal(question);
-      const axisGain = ANIMAL_AXES.reduce((sum, axis) => sum + (signal[axis] * uncertainty[axis]), 0);
-      const discriminationGain = ANIMAL_AXES.reduce((sum, axis) => sum + (signal[axis] * (discrimination[axis] || 1)), 0);
-      const diversityBonus = Math.max(0, 1.8 - ((typeCountRef.current[question.type] || 0) * 0.42));
-      return { question, index, score: ((axisGain * 0.6) + (discriminationGain * 0.4)) * diversityBonus + (Math.random() * 0.45) };
-    }).sort((a, b) => b.score - a.score)[0]?.question || null;
-  };
-
-  const buildQuestionSet = (count = 35) => {
-    const byType = questionBank.reduce((acc, question) => { if (!acc[question.type]) acc[question.type] = []; acc[question.type].push(question); return acc; }, {});
-    const pick = (items, amount) => shuffle(items || []).slice(0, Math.min(amount, (items || []).length));
-    const guaranteed = [
-      ...pick(byType.flip, 1),
-      ...pick(byType.reaction, 1),
-      ...pick(byType.timing, 1),
-    ];
-    const guaranteedIds = new Set(guaranteed.map((question) => question.id));
-    const seeded = [
-      ...pick(byType.slider, 2),
-      ...pick(byType.choice, 1),
-      ...pick(byType.yesno, 2),
-      ...pick(byType.duel, 2),
-      ...pick(byType.multi, 2),
-      ...pick(byType.rank2, 2),
-      ...pick(byType.ipsative, 2),
-      ...pick(byType.spectrum, 2),
-      ...pick(byType.allocation, 2),
-      ...pick(byType.confidenceChoice, 2),
-      ...pick(byType.stance, 2),
-      ...pick(byType.drift, 1),
-      ...pick(byType.tradeoff, 1),
-      ...pick(byType.grid, 2),
-      ...pick(byType.sort4, 2),
-      ...pick(byType.pairMatch, 2),
-      ...pick(byType.hold, 2),
-      ...pick(byType.rhythm, 2),
-      ...pick(byType.constellation, 2),
-      ...pick(byType.reaction, 1),
-      ...pick(byType.timing, 1),
-    ].filter((question) => !guaranteedIds.has(question.id));
-    const orderedSeed = [...guaranteed, ...seeded];
-    const used = new Set(orderedSeed.map((question) => question.id));
-    const filler = shuffle(questionBank.filter((question) => !used.has(question.id)));
-    const selected = [...orderedSeed, ...filler].slice(0, Math.min(count, questionBank.length));
-    return shuffle(selected);
-  };
+  const computeLiveQuality = () => computeAnimalLiveQuality({
+    responseQuality: responseQualityRef.current,
+    pairResponses: pairResponsesRef.current,
+    responseVectors: responseVectorsRef.current,
+  });
 
   const handleStart = () => {
     triggerHaptic('selection');
-    setQuestionIds(buildQuestionSet(35).map((question) => question.id));
+    setQuestionIds(buildAnimalQuestionSet({ questionBank, count: 35 }).map((question) => question.id));
     setCurrentStep(1);
     setAxes(zero());
     setSliderValue(3);
@@ -803,7 +650,12 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     if (currentStep < questions.length) {
       const nextIndex = currentStep;
       const remaining = questions.slice(nextIndex);
-      const nextQuestion = pickMostInformativeQuestion(remaining);
+      const nextQuestion = pickMostInformativeAnimalQuestion({
+        remainingQuestions: remaining,
+        axes,
+        axisSignal: axisSignalRef.current,
+        typeCount: typeCountRef.current,
+      });
       if (nextQuestion) {
         setQuestionIds([
           ...questionIds.slice(0, nextIndex),
@@ -845,104 +697,20 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   };
   const calculateResult = (finalAxes) => {
     setCurrentStep(questions.length + 1);
-    const totalSignal = ANIMAL_AXES.reduce((sum, axis) => sum + (axisSignalRef.current[axis] || 0), 0);
-    const axisWeight = ANIMAL_AXES.reduce((acc, axis) => {
-      const baseSignal = axisSignalRef.current[axis] || 0;
-      const ratio = totalSignal > 0 ? baseSignal / totalSignal : (1 / ANIMAL_AXES.length);
-      acc[axis] = Math.max(0.75, Math.min(1.7, 0.92 + ratio * 2.1));
-      return acc;
-    }, {});
-    const standardizedAxes = ANIMAL_AXES.reduce((acc, axis) => {
-      const raw = finalAxes[axis] || 0;
-      const signal = Math.max(8, axisSignalRef.current[axis] || 8);
-      acc[axis] = clamp(Math.round((raw / signal) * 100), -100, 100);
-      return acc;
-    }, {});
-    const normalizedAxes = ANIMAL_AXES.reduce((acc, axis) => { acc[axis] = clamp(Math.round((standardizedAxes[axis] / 10) * 10) / 10, -10, 10); return acc; }, {});
-    const consistency = computeConsistency();
-    const liveQuality = computeLiveQuality();
-    const responseIntegrity = liveQuality.integrity;
-    const coherence = liveQuality.coherence;
-    const sliderExtremeRate = liveQuality.sliderExtremeRate;
-    const pairConsistency = liveQuality.pairConsistency;
-    const consistencyScore = Math.round(clamp(((pairConsistency * 100) * 0.45) + ((consistency * 100) * 0.25) + ((coherence * 100) * 0.30), 35, 99));
-    const animalFactors = buildAnimalFactors(standardizedAxes, { responseIntegrity, coherence, sliderExtremeRate, pairConsistency, consistency });
-    const reliabilityAdjustment =
-      ((responseIntegrity - 50) * 0.14) +
-      ((((pairConsistency || 0.5) * 100) - 50) * 0.08) +
-      ((((coherence || 0.5) * 100) - 50) * 0.06);
-    const responsePenalty = Math.max(0, ((1 - consistency) * 10) + ((sliderExtremeRate || 0) * 7));
-    const normalizedMagnitude = Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => sum + ((normalizedAxes[axis] || 0) ** 2), 0)) || 1;
-    const maxDistance = Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => sum + ((axisWeight[axis] || 1) * 20 * 20), 0)) || 1;
-    const userTopFactors = Object.entries(animalFactors).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([key]) => key);
-    const profileEntries = Object.entries(ANIMAL_PROFILES);
-    const rankedMatches = profileEntries.map(([key, profile]) => {
-      const weightedDistance = Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => {
-        const delta = (normalizedAxes[axis] || 0) - ((profile.axes || {})[axis] || 0);
-        return sum + ((axisWeight[axis] || 1) * delta * delta);
-      }, 0));
-      const axisSimilarity = clamp(100 - ((weightedDistance / maxDistance) * 100), 0, 100);
-      const profileMagnitude = Math.sqrt(ANIMAL_AXES.reduce((sum, axis) => sum + ((((profile.axes || {})[axis] || 0) ** 2)), 0)) || 1;
-      const dot = ANIMAL_AXES.reduce((sum, axis) => sum + ((normalizedAxes[axis] || 0) * (((profile.axes || {})[axis] || 0))), 0);
-      const cosineSimilarity = clamp(dot / (normalizedMagnitude * profileMagnitude), -1, 1);
-      const alignmentScore = ((cosineSimilarity + 1) / 2) * 100;
-      const factorDiff = Object.entries(profile.factors || {}).reduce((sum, [factorKey, target]) => sum + Math.abs((animalFactors[factorKey] || 0) - target), 0) / Math.max(1, Object.keys(profile.factors || {}).length);
-      const factorSimilarity = clamp(100 - factorDiff, 0, 100);
-      const profileTopFactors = Object.entries(profile.factors || {}).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([factorKey]) => factorKey);
-      const overlap = userTopFactors.filter((factorKey) => profileTopFactors.includes(factorKey)).length;
-      const baseSuitability = (axisSimilarity * 0.48) + (factorSimilarity * 0.32) + (alignmentScore * 0.12) + ((52 + (overlap * 24)) * 0.08);
-      const profileBalanceAdjustment = computeProfileBalanceAdjustment(key, profileEntries);
-      const qualityMultiplier = 0.84 + ((responseIntegrity / 100) * 0.16);
-      const coverageMultiplier = Math.max(0.86, Math.min(1.03, 0.86 + (Math.min(totalSignal, 360) / 360) * 0.17));
-      const contributionBreakdown = [
-        { label: 'axis fit', value: Math.round(axisSimilarity * 0.48) },
-        { label: 'factor fit', value: Math.round(factorSimilarity * 0.32) },
-        { label: 'alignment', value: Math.round(alignmentScore * 0.12) },
-        { label: 'top-factor overlap', value: Math.round((52 + (overlap * 24)) * 0.08) },
-        { label: 'profile balance', value: profileBalanceAdjustment },
-        { label: 'reliability adj', value: Math.round(reliabilityAdjustment) },
-        { label: 'response penalty', value: -Math.round(responsePenalty) },
-      ];
-      const contributionTotal = Math.round(baseSuitability + profileBalanceAdjustment + reliabilityAdjustment - responsePenalty);
-      return {
-        key,
-        suitabilityScore: Math.round(clamp((baseSuitability + profileBalanceAdjustment + reliabilityAdjustment - responsePenalty) * qualityMultiplier * coverageMultiplier, 10, 99)),
-        cosineSimilarity,
-        contributionBreakdown,
-        contributionTotal,
-      };
-    }).sort((a, b) => b.suitabilityScore - a.suitabilityScore);
-    const bestMatch = rankedMatches[0] || { key: 'Satonosuke', suitabilityScore: 60, cosineSimilarity: 0 };
-    const runnerUp = rankedMatches[1] || bestMatch;
-    const scaled = rankedMatches.map((entry) => Math.exp((entry.suitabilityScore || 0) / 14));
-    const probability = scaled.length ? (scaled[0] / (scaled.reduce((sum, value) => sum + value, 0) || 1)) : 0.5;
-    const separation = Math.max(0, (bestMatch.suitabilityScore || 0) - (runnerUp.suitabilityScore || 0));
-    const reliabilityIndex = Math.round(clamp((responseIntegrity * 0.48) + (consistencyScore * 0.22) + ((pairConsistency * 100) * 0.18) + (Math.max(0, separation) * 0.12), 30, 99));
-    const exploratoryOnly = reliabilityIndex < 60;
-    const confidence = Math.round(clamp((((bestMatch.suitabilityScore || 60) * 0.52) + (probability * 100 * 0.24) + (consistencyScore * 0.14) + (Math.min(totalSignal, 340) * 0.05) + (separation * 1.6)) * (exploratoryOnly ? 0.9 : 1), 56, 98));
-    const portrait = portraitData.find((item) => item.name === bestMatch.key) || portraitData[0];
+    const nextMatchedResult = calculateAnimalResult({
+      finalAxes,
+      axisSignal: axisSignalRef.current,
+      axisPolarity: axisPolarityRef.current,
+      responseQuality: responseQualityRef.current,
+      pairResponses: pairResponsesRef.current,
+      responseVectors: responseVectorsRef.current,
+      portraitData,
+      evidenceTrail: evidenceTrailRef.current,
+      recoveryRounds: recoveryRoundRef.current,
+    });
     setTimeout(() => {
       triggerHaptic('success');
-      setMatchedResult({
-        character: portrait,
-        matchKey: bestMatch.key,
-        topMatch: bestMatch.key,
-        runnerUp: runnerUp.key,
-        animalFactors,
-        confidence,
-        reliabilityIndex,
-        responseIntegrity,
-        pairConsistency,
-        coherence,
-        sliderExtremeRate,
-        consistencyScore,
-        characterScores: rankedMatches.map((entry) => ({ name: entry.key, score: entry.suitabilityScore })),
-        exploratoryOnly,
-        contributionBreakdown: bestMatch.contributionBreakdown || [],
-        contributionTotal: bestMatch.contributionTotal || 0,
-        recoveryRounds: recoveryRoundRef.current,
-        evidenceTrail: [...evidenceTrailRef.current],
-      });
+      setMatchedResult(nextMatchedResult);
       setCurrentStep(questions.length + 2);
     }, 2200);
   };
@@ -970,14 +738,30 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   );
 
   const renderContent = () => {
-    if (integrityCheckpoint) return <QuizIntegrityCheckpoint isMobile={isMobile} integrityCheckpoint={integrityCheckpoint} t={t} onResume={resumeAfterIntegrityCheckpoint} />;
+    if (integrityCheckpoint) {
+      return (
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading quiz...'} />}>
+          <QuizIntegrityCheckpoint isMobile={isMobile} integrityCheckpoint={integrityCheckpoint} t={t} onResume={resumeAfterIntegrityCheckpoint} />
+        </Suspense>
+      );
+    }
     if (currentStep === 0) return renderIntro();
     if (currentStep > 0 && currentStep <= questions.length) {
       const question = questions[currentStep - 1];
-      return <QuizQuestionStep isMobile={isMobile} currentStep={currentStep} totalQuestions={questions.length} question={question} t={t} portraitData={portraitData} state={{ sliderValue, spectrumValue, stanceSelection, multiSelection, rankSelection, confidenceSelection, ipsativeMost, ipsativeLeast, allocationPoints, driftSelection, sortSelection, pairMatchSelection, tradeoffValue, holdLevel, rhythmPattern, constellationSelection }} setters={{ setSliderValue, setSpectrumValue, setMultiSelection, setRankSelection, setConfidenceSelection, setIpsativeMost, setIpsativeLeast, setDriftSelection, setSortSelection, setPairMatchSelection, setTradeoffValue, setHoldLevel, setRhythmPattern, setConstellationSelection }} handlers={{ onApplyModifiers: applyModifiers, onNextSlider: handleNextSlider, onSubmitMulti: handleSubmitMulti, onSubmitRank: handleSubmitRank, onSubmitIpsative: handleSubmitIpsative, onSubmitSpectrum: handleSubmitSpectrum, onAdjustAllocation: handleAdjustAllocation, onSubmitAllocation: handleSubmitAllocation, onSubmitDrift: handleSubmitDrift, onSubmitSort4: handleSubmitSort4, onSubmitPairMatch: handleSubmitPairMatch, onSubmitConfidenceChoice: handleSubmitConfidenceChoice, onSubmitStance: handleSubmitStance, onSubmitTradeoff: handleSubmitTradeoff, onSubmitHold: handleSubmitHold, onSubmitRhythm: handleSubmitRhythm, onSubmitConstellation: handleSubmitConstellation, onSubmitReaction: handleSubmitReaction, onSubmitTiming: handleSubmitTiming }} getQuestionInstruction={getQuestionInstruction} />;
+      return (
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading question...'} />}>
+          <QuizQuestionStep isMobile={isMobile} currentStep={currentStep} totalQuestions={questions.length} question={question} t={t} portraitData={portraitData} state={{ sliderValue, spectrumValue, stanceSelection, multiSelection, rankSelection, confidenceSelection, ipsativeMost, ipsativeLeast, allocationPoints, driftSelection, sortSelection, pairMatchSelection, tradeoffValue, holdLevel, rhythmPattern, constellationSelection }} setters={{ setSliderValue, setSpectrumValue, setMultiSelection, setRankSelection, setConfidenceSelection, setIpsativeMost, setIpsativeLeast, setDriftSelection, setSortSelection, setPairMatchSelection, setTradeoffValue, setHoldLevel, setRhythmPattern, setConstellationSelection }} handlers={{ onApplyModifiers: applyModifiers, onNextSlider: handleNextSlider, onSubmitMulti: handleSubmitMulti, onSubmitRank: handleSubmitRank, onSubmitIpsative: handleSubmitIpsative, onSubmitSpectrum: handleSubmitSpectrum, onAdjustAllocation: handleAdjustAllocation, onSubmitAllocation: handleSubmitAllocation, onSubmitDrift: handleSubmitDrift, onSubmitSort4: handleSubmitSort4, onSubmitPairMatch: handleSubmitPairMatch, onSubmitConfidenceChoice: handleSubmitConfidenceChoice, onSubmitStance: handleSubmitStance, onSubmitTradeoff: handleSubmitTradeoff, onSubmitHold: handleSubmitHold, onSubmitRhythm: handleSubmitRhythm, onSubmitConstellation: handleSubmitConstellation, onSubmitReaction: handleSubmitReaction, onSubmitTiming: handleSubmitTiming }} getQuestionInstruction={getQuestionInstruction} />
+        </Suspense>
+      );
     }
     if (currentStep === questions.length + 1) return renderLoading();
-    if (currentStep === questions.length + 2 && resolvedMatchedResult) return <AnimalQuizResultView isMobile={isMobile} matchedResult={resolvedMatchedResult} copy={copy} onRestart={handleStart} />;
+    if (currentStep === questions.length + 2 && resolvedMatchedResult) {
+      return (
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading result...'} />}>
+          <AnimalQuizResultView isMobile={isMobile} matchedResult={resolvedMatchedResult} copy={copy} onRestart={handleStart} />
+        </Suspense>
+      );
+    }
     return null;
   };
 

@@ -19,9 +19,9 @@ const GallerySubtabPanel = ({
   return (
     <motion.div
       key={tab.id}
-      initial={TAB_PANEL_INITIAL}
-      animate={getTabPanelAnimate(isActive)}
-      transition={TRANSITION_FAST}
+      initial={{ opacity: 0, y: 8 }}
+      animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
       className="hide-scrollbar"
       style={{
         display: isActive ? 'block' : 'none',

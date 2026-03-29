@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Crown, Trophy, Medal, Users, Gamepad2, Star } from 'lucide-react';
 import { ListRow } from '../../sync/syncSharedComponents';
+import { normalizeScoreToHundred } from '../quizUtils';
 
 const smashVariant = {
   hidden: { y: -80, scale: 0.8, opacity: 0, rotate: -3 },
@@ -175,7 +176,7 @@ const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderbo
                       gap: '4px'
                     }}>
                       {rank === 1 && <Star size={16} fill="#fbbf24" color="#fbbf24" />}
-                      {entry.bestScore} xp
+                      {normalizeScoreToHundred(entry.bestScore)}%
                     </div>
                     <span style={{ 
                       fontFamily: 'var(--font-hand)', 

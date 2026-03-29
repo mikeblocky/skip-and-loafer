@@ -355,7 +355,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
                             {featuredChar.img ? (
                                 <img src={featuredChar.img} alt={featuredChar.name} style={{ width: '92%', height: '92%', objectFit: 'contain' }} />
                             ) : (
-                                <featuredChar.icon size={64} color={featuredChar.color} />
+                                <featuredChar.icon size={isMobile ? 78 : 94} color={featuredChar.color} />
                             )}
                         </div>
 
@@ -465,5 +465,4 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
 };
 
 export default BirthdayPage;
-
 

@@ -15,9 +15,16 @@ const normalizeName = (name) => {
   return trimmed || 'Player';
 };
 
+const normalizeScoreToHundred = (score) => {
+  const safeScore = Number(score) || 0;
+  return Math.max(0, Math.min(100, safeScore));
+};
+
 const sortEntries = (entries) => {
   return [...entries].sort((a, b) => {
-    if ((b.bestScore || 0) !== (a.bestScore || 0)) return (b.bestScore || 0) - (a.bestScore || 0);
+    if (normalizeScoreToHundred(b.bestScore) !== normalizeScoreToHundred(a.bestScore)) {
+      return normalizeScoreToHundred(b.bestScore) - normalizeScoreToHundred(a.bestScore);
+    }
     if ((a.played || 0) !== (b.played || 0)) return (a.played || 0) - (b.played || 0);
     return (a.name || '').localeCompare(b.name || '');
   });
@@ -29,7 +36,7 @@ const parseLeaderboard = (rawMap) => {
       const parsed = JSON.parse(rawValue);
       return {
         name,
-        bestScore: Number(parsed.bestScore) || 0,
+        bestScore: normalizeScoreToHundred(parsed.bestScore),
         played: Number(parsed.played) || 0,
         updatedAt: Number(parsed.updatedAt) || Date.now(),
       };
@@ -79,7 +86,7 @@ export default async function handler(req, res) {
     const existing = existingRaw ? JSON.parse(existingRaw) : null;
 
     const updated = {
-      bestScore: Math.max(Number(existing?.bestScore) || 0, score),
+      bestScore: Math.max(normalizeScoreToHundred(existing?.bestScore), normalizeScoreToHundred(score)),
       played: (Number(existing?.played) || 0) + 1,
       updatedAt: Date.now(),
     };

@@ -1,62 +1,37 @@
-import React, { useRef, useState } from 'react';
+import React, { Suspense, lazy, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 void motion;
 import { triggerHaptic } from '../../utils/haptics';
-import { CHAR_PROFILES, QUESTION_BANK } from '../../data/quizData';
-import QuizIntegrityCheckpoint from './quizGame/QuizIntegrityCheckpoint';
-import QuizIntro from './quizGame/QuizIntro';
-import QuizLoadingState from './quizGame/QuizLoadingState';
-import QuizQuestionStep from './quizGame/QuizQuestionStep';
-import QuizResultView from './quizGame/QuizResultView';
+import { QUESTION_BANK } from '../../data/quizData';
+import useIdlePreload from '../../hooks/app/useIdlePreload';
+import { calculateHumanResult } from './quizGame/humanResultEngine';
+import QuizStageFallback from './quizGame/QuizStageFallback';
+import {
+  buildHumanQuestionSet,
+  computeHumanLiveQuality,
+  localizeQuizQuestion,
+  pickMostInformativeHumanQuestion,
+} from './quizGame/humanQuizUtils';
 import {
   AXES,
   QUESTION_TYPE_WEIGHT,
   RELIABILITY_RECOVERY_BANK,
   SYNERGY_CHECK_LOGIC,
   hashString,
-  toMysteryName,
 } from './quizGame/config';
 
-const localizeQuizQuestion = (question, t) => {
-  const localized = t?.quiz?.questions?.[question.id];
-  if (!localized) return question;
+const loadQuizIntegrityCheckpoint = () => import('./quizGame/QuizIntegrityCheckpoint');
+const loadQuizIntro = () => import('./quizGame/QuizIntro');
+const loadQuizLoadingState = () => import('./quizGame/QuizLoadingState');
+const loadQuizQuestionStep = () => import('./quizGame/QuizQuestionStep');
+const loadQuizResultView = () => import('./quizGame/QuizResultView');
 
-  const next = { ...question };
-
-  [
-    'text',
-    'leftLabel',
-    'rightLabel',
-    'lowLabel',
-    'highLabel',
-    'slowLabel',
-    'fastLabel',
-    'steadyLabel',
-    'wildLabel',
-  ].forEach((key) => {
-    if (localized[key] != null) next[key] = localized[key];
-  });
-
-  if (localized.left && next.left) {
-    next.left = { ...next.left, text: localized.left };
-  }
-
-  if (localized.right && next.right) {
-    next.right = { ...next.right, text: localized.right };
-  }
-
-  if (Array.isArray(next.options) && Array.isArray(localized.options)) {
-    next.options = next.options.map((option, index) => {
-      const localizedOption = localized.options[index];
-      if (localizedOption == null) return option;
-      if (typeof option === 'string') return localizedOption;
-      return { ...option, text: localizedOption };
-    });
-  }
-
-  return next;
-};
+const QuizIntegrityCheckpoint = lazy(loadQuizIntegrityCheckpoint);
+const QuizIntro = lazy(loadQuizIntro);
+const QuizLoadingState = lazy(loadQuizLoadingState);
+const QuizQuestionStep = lazy(loadQuizQuestionStep);
+const QuizResultView = lazy(loadQuizResultView);
 
 const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   const [currentStep, setCurrentStep] = useState(0); 
@@ -110,230 +85,26 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     () => new Map(localizedQuestionBank.map((question) => [question.id, question])),
     [localizedQuestionBank]
   );
+  const quizStagePreloaders = useMemo(
+    () => [loadQuizIntegrityCheckpoint, loadQuizLoadingState, loadQuizQuestionStep, loadQuizResultView],
+    [],
+  );
   const questions = React.useMemo(
     () => questionIds.map((id) => localizedQuestionLookup.get(id)).filter(Boolean),
     [questionIds, localizedQuestionLookup]
   );
 
-  const computeLiveQuality = () => {
-    const sliderTotal = responseQualityRef.current.sliderCount + responseQualityRef.current.spectrumCount;
-    const sliderExtremeRate = sliderTotal
-      ? (responseQualityRef.current.sliderExtreme + responseQualityRef.current.spectrumExtreme) / sliderTotal
-      : 0;
-    const optionTotal = responseQualityRef.current.optionSelectTotal || 0;
-    const dominantOptionRate = optionTotal
-      ? Math.max(...responseQualityRef.current.optionSelectCounts.map((n) => n / optionTotal))
-      : 0.25;
-    const positionBiasPenalty = Math.max(0, Math.min(1, (dominantOptionRate - 0.55) / 0.45));
-    const allocationConcentration = responseQualityRef.current.allocationCount
-      ? responseQualityRef.current.allocationConcentrationSum / responseQualityRef.current.allocationCount
-      : 0.55;
-
-    const pairValues = Object.values(pairResponsesRef.current);
-    const pairConsistency = pairValues.length
-      ? pairValues.reduce((sum, pair) => {
-          if (pair?.a == null || pair?.b == null) return sum + 0.5;
-          return sum + Math.max(0, 1 - (Math.abs(pair.a - pair.b) / 2));
-        }, 0) / pairValues.length
-      : 0.7;
-
-    const avgVector = responseVectorsRef.current.reduce(
-      (acc, vec) => {
-        AXES.forEach((axis) => {
-          acc[axis] += vec?.[axis] || 0;
-        });
-        return acc;
-      },
-      { social: 0, planning: 0, focus: 0, drive: 0 }
-    );
-    const vectorCount = Math.max(1, responseVectorsRef.current.length);
-    AXES.forEach((axis) => {
-      avgVector[axis] /= vectorCount;
-    });
-    const avgNorm = Math.sqrt(AXES.reduce((sum, axis) => sum + avgVector[axis] * avgVector[axis], 0)) || 1;
-    const coherence = responseVectorsRef.current.length
-      ? responseVectorsRef.current.reduce((sum, vec) => {
-          const dot = AXES.reduce((s, axis) => s + (vec?.[axis] || 0) * avgVector[axis], 0);
-          const vecNorm = Math.sqrt(AXES.reduce((s, axis) => s + (vec?.[axis] || 0) * (vec?.[axis] || 0), 0)) || 1;
-          return sum + Math.max(0, dot / (vecNorm * avgNorm));
-        }, 0) / responseVectorsRef.current.length
-      : 0.55;
-
-    // Intense real-life states can produce legitimately extreme responses.
-    // Reduce extreme-value penalty when coherence and pair consistency stay strong.
-    const adaptiveExtremeBuffer = Math.max(
-      0.08,
-      Math.min(
-        0.52,
-        0.12 +
-        (Math.max(0, coherence - 0.55) * 0.55) +
-        (Math.max(0, pairConsistency - 0.55) * 0.45)
-      )
-    );
-    const extremePenaltyRate = Math.max(0, sliderExtremeRate - adaptiveExtremeBuffer);
-
-    const integrity = Math.round(
-      Math.max(
-        35,
-        Math.min(
-          99,
-          (
-            (coherence * 100 * 0.33) +
-            (pairConsistency * 100 * 0.27) +
-            ((1 - extremePenaltyRate) * 100 * 0.18) +
-            ((1 - positionBiasPenalty) * 100 * 0.14) +
-            ((1 - Math.max(0, allocationConcentration - 0.72) / 0.28) * 100 * 0.08)
-          )
-        )
-      )
-    );
-
-    return { integrity, coherence, pairConsistency, sliderExtremeRate, positionBiasPenalty };
-  };
-
-  const summarizeQuestionSignal = (q) => {
-    const signal = { social: 0, planning: 0, focus: 0, drive: 0 };
-    const absorb = (mods = {}, factor = 1) => {
-      AXES.forEach((axis) => {
-        signal[axis] += Math.abs(mods?.[axis] || 0) * factor;
-      });
-    };
-
-    if (q.type === 'slider' && q.axis) {
-      signal[q.axis] += 10;
-      return signal;
-    }
-
-    if (q.type === 'choice' || q.type === 'multi' || q.type === 'rank2' || q.type === 'ipsative' || q.type === 'allocation' || q.type === 'confidenceChoice' || q.type === 'constellation') {
-      (q.options || []).forEach((opt) => absorb(opt.modifiers || {}));
-      return signal;
-    }
-
-    if (q.type === 'hold') {
-      absorb(q.lowModifiers || {}, 1.3);
-      absorb(q.highModifiers || {}, 1.3);
-      return signal;
-    }
-
-    if (q.type === 'rhythm') {
-      absorb(q.slowModifiers || {}, 1.1);
-      absorb(q.fastModifiers || {}, 1.1);
-      absorb(q.steadyModifiers || {}, 1.1);
-      absorb(q.wildModifiers || {}, 1.1);
-      return signal;
-    }
-
-    if (q.type === 'stance') {
-      absorb(q.modifiers || {}, 2);
-      return signal;
-    }
-
-    if (q.type === 'yesno') {
-      absorb(q.yesModifiers || {});
-      absorb(q.noModifiers || {});
-      return signal;
-    }
-
-    if (q.type === 'duel') {
-      absorb(q.left?.modifiers || {});
-      absorb(q.right?.modifiers || {});
-      return signal;
-    }
-
-    if (q.type === 'spectrum') {
-      absorb(q.left?.modifiers || {});
-      absorb(q.right?.modifiers || {});
-      return signal;
-    }
-
-    return signal;
-  };
-
-  const pickMostInformativeQuestion = (remainingQuestions) => {
-    if (!remainingQuestions.length) return null;
-    const totalSignal = AXES.reduce((sum, axis) => sum + (axisSignalRef.current[axis] || 0), 0);
-    const uncertainty = AXES.reduce((acc, axis) => {
-      const ratio = totalSignal > 0 ? (axisSignalRef.current[axis] || 0) / totalSignal : 0;
-      acc[axis] = Math.max(0.55, 1.3 - ratio * 1.25);
-      return acc;
-    }, {});
-
-    const provisionalRank = Object.entries(CHAR_PROFILES)
-      .map(([key, profile]) => {
-        const dx = (axes.social || 0) - (profile.social || 0);
-        const dy = (axes.planning || 0) - (profile.planning || 0);
-        const dz = (axes.focus || 0) - (profile.focus || 0);
-        const dw = (axes.drive || 0) - (profile.drive || 0);
-        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
-        return { key, profile, distance };
-      })
-      .sort((a, b) => a.distance - b.distance);
-
-    const topA = provisionalRank[0]?.profile;
-    const topB = provisionalRank[1]?.profile;
-    const discriminationAxisWeight = AXES.reduce((acc, axis) => {
-      const diff = Math.abs((topA?.[axis] || 0) - (topB?.[axis] || 0));
-      acc[axis] = 1 + (diff * 0.11);
-      return acc;
-    }, {});
-
-    const scored = remainingQuestions.map((q, idx) => {
-      const signal = summarizeQuestionSignal(q);
-      const axisGain = AXES.reduce((sum, axis) => sum + signal[axis] * uncertainty[axis], 0);
-      const discriminationGain = AXES.reduce((sum, axis) => sum + signal[axis] * (discriminationAxisWeight[axis] || 1), 0);
-      const typeCount = typeCountRef.current[q.type] || 0;
-      const diversityBonus = Math.max(0, 1.7 - typeCount * 0.42);
-      const jitter = Math.random() * 0.45;
-      return {
-        idx,
-        score: ((axisGain * 0.62) + (discriminationGain * 0.38)) * diversityBonus + jitter,
-      };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-    return remainingQuestions[scored[0].idx];
-  };
-
-  const buildQuestionSet = (count = 35) => {
-    const validityItems = localizedQuestionBank.filter((q) => q.isValidityItem);
-    const basePool = localizedQuestionBank.filter((q) => !q.isValidityItem);
-    const byType = basePool.reduce((acc, q) => {
-      if (!acc[q.type]) acc[q.type] = [];
-      acc[q.type].push(q);
-      return acc;
-    }, {});
-
-    const pickRandom = (items, n) => [...(items || [])].sort(() => Math.random() - 0.5).slice(0, Math.min(n, (items || []).length));
-
-    const seed = [
-      ...validityItems,
-      ...pickRandom(byType.slider, 3),
-      ...pickRandom(byType.choice, 3),
-      ...pickRandom(byType.yesno, 2),
-      ...pickRandom(byType.duel, 2),
-      ...pickRandom(byType.multi, 2),
-      ...pickRandom(byType.rank2, 2),
-      ...pickRandom(byType.ipsative, 2),
-      ...pickRandom(byType.spectrum, 2),
-      ...pickRandom(byType.stance, 2),
-      ...pickRandom(byType.allocation, 2),
-      ...pickRandom(byType.confidenceChoice, 2),
-      ...pickRandom(byType.hold, 2),
-      ...pickRandom(byType.rhythm, 2),
-      ...pickRandom(byType.constellation, 2),
-    ];
-
-    const usedIds = new Set(seed.map((q) => q.id));
-    const remainder = localizedQuestionBank.filter((q) => !usedIds.has(q.id)).sort(() => Math.random() - 0.5);
-    const merged = [...seed, ...remainder].slice(0, Math.min(count, localizedQuestionBank.length));
-    return merged.sort(() => Math.random() - 0.5);
-  };
+  useIdlePreload(quizStagePreloaders, currentStep <= 1, {
+    delayMs: 220,
+    staggerMs: 140,
+    maxPreloadCount: isMobile ? 2 : 3,
+  });
 
   const handleStart = () => {
     triggerHaptic('selection');
     
     // Use stratified sampling for broad type coverage, then adaptively reorder at runtime.
-    const sampled = buildQuestionSet(35);
+    const sampled = buildHumanQuestionSet({ localizedQuestionBank, count: 35 });
     setQuestionIds(sampled.map((question) => question.id));
     
     setCurrentStep(1);
@@ -401,7 +172,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   };
 
   const applyModifiers = (modifiers, evidenceLabel = 'Response', questionType = 'choice', qualityMeta = {}) => {
-    const liveQuality = computeLiveQuality();
+    const liveQuality = computeHumanLiveQuality({
+      responseQuality: responseQualityRef.current,
+      pairResponses: pairResponsesRef.current,
+      responseVectors: responseVectorsRef.current,
+    });
     const typeWeight = QUESTION_TYPE_WEIGHT[questionType] || 1;
     const dynamicMultiplier = Math.max(0.72, Math.min(1.08, 0.82 + ((liveQuality.integrity / 100) * 0.26)));
     const finalWeight = typeWeight * dynamicMultiplier;
@@ -831,7 +606,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   }, [matchedResult, t]);
 
   const maybeInjectRecoveryRound = (nextAxes) => {
-    const live = computeLiveQuality();
+    const live = computeHumanLiveQuality({
+      responseQuality: responseQualityRef.current,
+      pairResponses: pairResponsesRef.current,
+      responseVectors: responseVectorsRef.current,
+    });
     const reliabilityNow = Math.round((live.integrity * 0.58) + ((live.pairConsistency || 0.5) * 100 * 0.24) + ((live.coherence || 0.5) * 100 * 0.18));
     const severe = reliabilityNow < 42 || live.integrity < 45;
     const moderate =
@@ -881,7 +660,12 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     if (currentStep < questions.length) {
       const nextIndex = currentStep;
       const remaining = questions.slice(nextIndex);
-      const nextQuestion = pickMostInformativeQuestion(remaining);
+      const nextQuestion = pickMostInformativeHumanQuestion({
+        remainingQuestions: remaining,
+        axes,
+        axisSignal: axisSignalRef.current,
+        typeCount: typeCountRef.current,
+      });
       if (nextQuestion) {
         const reordered = [
           ...questionIds.slice(0, nextIndex),
@@ -905,7 +689,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
   const advanceStep = (nextAxes) => {
     if (currentStep > 5 && currentStep < questions.length) {
-      const liveQuality = computeLiveQuality();
+      const liveQuality = computeHumanLiveQuality({
+        responseQuality: responseQualityRef.current,
+        pairResponses: pairResponsesRef.current,
+        responseVectors: responseVectorsRef.current,
+      });
       const enoughSpacing = (currentStep - lastIntegrityPromptStepRef.current) >= 6;
       const canPrompt = integrityPromptCountRef.current < 2 && enoughSpacing && !integrityCheckpoint;
       if (canPrompt && liveQuality.integrity < 52) {
@@ -928,236 +716,20 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
   const calculateResult = (finalAxes) => {
     setCurrentStep(questions.length + 1);
-    const totalSignal = AXES.reduce((sum, axis) => sum + (axisSignalRef.current[axis] || 0), 0);
-    const axisWeight = AXES.reduce((acc, axis) => {
-      const baseSignal = axisSignalRef.current[axis] || 0;
-      const ratio = totalSignal > 0 ? baseSignal / totalSignal : 0.25;
-      // Weight axes with stronger evidence slightly more, but keep bounds tight.
-      acc[axis] = Math.max(0.75, Math.min(1.7, 0.95 + ratio * 2.1));
-      return acc;
-    }, {});
-
-    const standardizedAxes = AXES.reduce((acc, axis) => {
-      const raw = finalAxes[axis] || 0;
-      const axisSignal = Math.max(8, axisSignalRef.current[axis] || 8);
-      acc[axis] = Math.max(-100, Math.min(100, Math.round((raw / axisSignal) * 100)));
-      return acc;
-    }, {});
-
-    const normalizedAxes = AXES.reduce((acc, axis) => {
-      // Convert standardized axis signal into the same rough scale as character profiles (~-10..10).
-      acc[axis] = Math.max(-10, Math.min(10, Math.round((standardizedAxes[axis] / 10) * 10) / 10));
-      return acc;
-    }, {});
-
-    const tScores = AXES.reduce((acc, axis) => {
-      const standardized = standardizedAxes[axis] || 0;
-      acc[axis] = Math.max(30, Math.min(70, Math.round(50 + (standardized * 0.18))));
-      return acc;
-    }, {});
-
-    const axisPercentiles = AXES.reduce((acc, axis) => {
-      const standardized = (standardizedAxes[axis] || 0) / 100;
-      const percentile = 100 / (1 + Math.exp(-(standardized * 3.2)));
-      acc[axis] = Math.round(percentile);
-      return acc;
-    }, {});
-
-    const consistency = AXES.reduce((sum, axis) => {
-      const pos = axisPolarityRef.current[axis]?.pos || 0;
-      const neg = axisPolarityRef.current[axis]?.neg || 0;
-      const total = pos + neg;
-      if (!total) return sum + 0.5;
-      return sum + (Math.max(pos, neg) / total);
-    }, 0) / AXES.length;
-
-    const liveQuality = computeLiveQuality();
-    const responseIntegrity = liveQuality.integrity;
-    const coherence = liveQuality.coherence;
-    const sliderExtremeRate = liveQuality.sliderExtremeRate;
-    const pairConsistency = liveQuality.pairConsistency;
-    const qualityMultiplier = 0.82 + ((responseIntegrity / 100) * 0.18);
-    const coverageMultiplier = Math.max(0.84, Math.min(1.02, 0.84 + (Math.min(totalSignal, 300) / 300) * 0.18));
-    const reliabilityAdjustment =
-      ((responseIntegrity - 50) * 0.16) +
-      ((((pairConsistency || 0.5) * 100) - 50) * 0.08) +
-      (((coherence || 0.5) * 100 - 50) * 0.06);
-    const responsePenalty = Math.max(0, ((1 - consistency) * 9) + ((sliderExtremeRate || 0) * 8));
-
-    const normalizedMag = Math.sqrt(AXES.reduce((sum, axis) => sum + (normalizedAxes[axis] || 0) * (normalizedAxes[axis] || 0), 0)) || 1;
-    const maxDistance = Math.sqrt(AXES.reduce((sum, axis) => sum + ((axisWeight[axis] || 1) * 20 * 20), 0)) || 1;
-    const rankedMatches = Object.entries(CHAR_PROFILES)
-      .map(([key, profile]) => {
-        const dx = (normalizedAxes.social || 0) - (profile.social || 0);
-        const dy = (normalizedAxes.planning || 0) - (profile.planning || 0);
-        const dz = (normalizedAxes.focus || 0) - (profile.focus || 0);
-        const dw = (normalizedAxes.drive || 0) - (profile.drive || 0);
-        const weightedDistance = Math.sqrt(
-          axisWeight.social * dx * dx +
-          axisWeight.planning * dy * dy +
-          axisWeight.focus * dz * dz +
-          axisWeight.drive * dw * dw
-        );
-
-        const distanceScore = Math.max(0, Math.min(100, 100 - ((weightedDistance / maxDistance) * 100)));
-        const meanAbsDelta = (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) + Math.abs(dw)) / AXES.length;
-        const axisAgreementScore = Math.max(0, Math.min(100, 100 - (meanAbsDelta * 8.2)));
-
-        const profileMag = Math.sqrt(AXES.reduce((sum, axis) => sum + (profile[axis] || 0) * (profile[axis] || 0), 0)) || 1;
-        const dot = AXES.reduce((sum, axis) => sum + (normalizedAxes[axis] || 0) * (profile[axis] || 0), 0);
-        const cosineSimilarity = Math.max(-1, Math.min(1, dot / (normalizedMag * profileMag)));
-        const alignmentScore = ((cosineSimilarity + 1) / 2) * 100;
-
-        const baseSuitability =
-          (distanceScore * 0.52) +
-          (alignmentScore * 0.31) +
-          (axisAgreementScore * 0.17);
-
-        const weightSum = AXES.reduce((sum, axis) => sum + (axisWeight[axis] || 1), 0) || 1;
-        const axisContributionRows = AXES.map((axis) => {
-          const delta = (normalizedAxes[axis] || 0) - (profile[axis] || 0);
-          const closeness = Math.max(0, 100 - (Math.abs(delta) * 9.2));
-          const weighted = closeness * (axisWeight[axis] || 1);
-          const mismatchPenalty = Math.sign(normalizedAxes[axis] || 0) !== Math.sign(profile[axis] || 0) && Math.abs(normalizedAxes[axis] || 0) > 2 && Math.abs(profile[axis] || 0) > 2
-            ? Math.min(7, Math.abs(delta) * 0.45)
-            : 0;
-          return {
-            label: axis,
-            value: Math.round(((weighted / weightSum) * 0.5) - mismatchPenalty),
-            weighted,
-            mismatchPenalty,
-          };
-        }).sort((a, b) => b.value - a.value);
-        const directionPenalty = axisContributionRows.reduce((sum, entry) => sum + entry.mismatchPenalty, 0);
-        const contributionBreakdown = [
-          ...axisContributionRows.slice(0, 4).map((entry) => ({
-            label: entry.label,
-            value: entry.value,
-          })),
-          { label: 'alignment', value: Math.round(alignmentScore * 0.31) },
-          { label: 'distance fit', value: Math.round(distanceScore * 0.52) },
-          { label: 'agreement', value: Math.round(axisAgreementScore * 0.17) },
-          { label: 'reliability adj', value: Math.round(reliabilityAdjustment) },
-          { label: 'direction penalty', value: -Math.round(directionPenalty) },
-          { label: 'response penalty', value: -Math.round(responsePenalty) },
-        ];
-        const contributionTotal = Math.round(baseSuitability + reliabilityAdjustment - directionPenalty - responsePenalty);
-
-        const suitabilityScore = Math.round(
-          Math.max(10, Math.min(99, (baseSuitability + reliabilityAdjustment - directionPenalty - responsePenalty) * qualityMultiplier * coverageMultiplier))
-        );
-
-        return {
-          key,
-          profile,
-          weightedDistance,
-          cosineSimilarity,
-          distanceScore,
-          alignmentScore,
-          axisAgreementScore,
-          suitabilityScore,
-          contributionBreakdown,
-          contributionTotal,
-        };
-      })
-      .sort((a, b) => b.suitabilityScore - a.suitabilityScore);
-
-    const bestMatch = rankedMatches[0] || { key: 'Mitsumi', weightedDistance: 0, suitabilityScore: 60, cosineSimilarity: 0 };
-    const runnerUp = rankedMatches[1] || bestMatch;
-
-    const temperature = 14;
-    const scores = rankedMatches.map((m) => Math.exp((m.suitabilityScore || 0) / temperature));
-    const scoreSum = scores.reduce((sum, s) => sum + s, 0) || 1;
-    const bestProb = scores.length ? (scores[0] / scoreSum) : 0.5;
-    const separation = Math.max(0, (bestMatch.suitabilityScore || 0) - (runnerUp.suitabilityScore || 0));
-
-    const reliabilityIndex = Math.round(
-      Math.max(
-        28,
-        Math.min(
-          99,
-          (
-            (responseIntegrity * 0.54) +
-            ((pairConsistency * 100) * 0.22) +
-            ((consistency * 100) * 0.14) +
-            ((Math.max(0, separation) * 2.1) * 0.10)
-          )
-        )
-      )
-    );
-    const exploratoryOnly = reliabilityIndex < 58;
-
-    const baseConfidence = Math.max(
-      58,
-      Math.min(
-        98,
-        Math.round(
-          ((bestMatch.suitabilityScore || 60) * 0.52) +
-          (bestProb * 100 * 0.28) +
-          (separation * 1.8) +
-          (Math.min(totalSignal, 320) * 0.055) +
-          (consistency * 11)
-        )
-      )
-    );
-    const confidence = Math.round(baseConfidence * (0.68 + ((responseIntegrity / 100) * 0.32)) * (exploratoryOnly ? 0.88 : 1));
-
-    const bestDisplayName = toMysteryName(bestMatch.key);
-    const portraitLookupName = bestDisplayName;
-    const matchObj = portraitData.find((p) => p.name === portraitLookupName || p.name.includes(portraitLookupName)) || portraitData[5];
-    const dedupedScores = new Map();
-    rankedMatches.forEach((entry) => {
-      const displayName = toMysteryName(entry.key);
-      const previous = dedupedScores.get(displayName);
-      if (!previous || entry.suitabilityScore > previous.score) {
-        dedupedScores.set(displayName, {
-          name: displayName,
-          score: entry.suitabilityScore,
-          distanceScore: Math.round(entry.distanceScore),
-          alignmentScore: Math.round(entry.alignmentScore),
-          axisAgreementScore: Math.round(entry.axisAgreementScore),
-        });
-      }
+    const nextMatchedResult = calculateHumanResult({
+      finalAxes,
+      axisSignal: axisSignalRef.current,
+      axisPolarity: axisPolarityRef.current,
+      responseQuality: responseQualityRef.current,
+      pairResponses: pairResponsesRef.current,
+      responseVectors: responseVectorsRef.current,
+      portraitData,
+      evidenceTrail: evidenceTrailRef.current,
+      recoveryRounds: recoveryRoundRef.current,
     });
-
-    const characterScores = Array.from(dedupedScores.values())
-      .sort((a, b) => b.score - a.score);
-
-    const topCandidates = characterScores.slice(0, 5).map((entry) => ({
-      name: entry.name,
-      score: entry.score,
-    }));
-    const runnerUpDisplay = characterScores.find((entry) => entry.name !== bestDisplayName)?.name || toMysteryName(runnerUp.key);
-
     setTimeout(() => {
       triggerHaptic('success');
-      setMatchedResult({ 
-        character: matchObj, 
-        matchKey: bestMatch.key,
-        confidence,
-        suitabilityScore: bestMatch.suitabilityScore,
-        finalAxes,
-        axisWeight,
-        topMatch: bestDisplayName,
-        runnerUp: runnerUpDisplay,
-        consistency,
-        cosineSimilarity: bestMatch.cosineSimilarity,
-        tScores,
-        axisPercentiles,
-        topCandidates,
-        characterScores,
-        standardizedAxes,
-        responseIntegrity,
-        coherence,
-        sliderExtremeRate,
-        pairConsistency,
-        reliabilityIndex,
-        exploratoryOnly,
-        contributionBreakdown: bestMatch.contributionBreakdown || [],
-        contributionTotal: bestMatch.contributionTotal || 0,
-        recoveryRounds: recoveryRoundRef.current,
-        evidenceTrail: [...evidenceTrailRef.current],
-      });
+      setMatchedResult(nextMatchedResult);
       setCurrentStep(questions.length + 2);
     }, 2400);
   };
@@ -1165,91 +737,105 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   const renderContent = () => {
     if (integrityCheckpoint) {
       return (
-        <QuizIntegrityCheckpoint
-          isMobile={isMobile}
-          integrityCheckpoint={integrityCheckpoint}
-          t={t}
-          onResume={resumeAfterIntegrityCheckpoint}
-        />
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading quiz...'} />}>
+          <QuizIntegrityCheckpoint
+            isMobile={isMobile}
+            integrityCheckpoint={integrityCheckpoint}
+            t={t}
+            onResume={resumeAfterIntegrityCheckpoint}
+          />
+        </Suspense>
       );
     }
 
     if (currentStep === 0) {
-      return <QuizIntro isMobile={isMobile} t={t} onStart={handleStart} />;
+      return (
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading quiz...'} />}>
+          <QuizIntro isMobile={isMobile} t={t} onStart={handleStart} />
+        </Suspense>
+      );
     }
 
     if (currentStep > 0 && currentStep <= questions.length) {
       const question = questions[currentStep - 1];
 
       return (
-        <QuizQuestionStep
-          isMobile={isMobile}
-          currentStep={currentStep}
-          totalQuestions={questions.length}
-          question={question}
-          t={t}
-          state={{
-            sliderValue,
-            spectrumValue,
-            stanceSelection,
-            multiSelection,
-            rankSelection,
-            confidenceSelection,
-            ipsativeMost,
-            ipsativeLeast,
-            allocationPoints,
-            holdLevel,
-            rhythmPattern,
-            constellationSelection,
-          }}
-          setters={{
-            setSliderValue,
-            setSpectrumValue,
-            setMultiSelection,
-            setRankSelection,
-            setConfidenceSelection,
-            setIpsativeMost,
-            setIpsativeLeast,
-            setHoldLevel,
-            setRhythmPattern,
-            setConstellationSelection,
-          }}
-          handlers={{
-            onApplyModifiers: applyModifiers,
-            onNextSlider: handleNextSlider,
-            onSubmitMulti: handleSubmitMulti,
-            onSubmitRank: handleSubmitRank,
-            onSubmitIpsative: handleSubmitIpsative,
-            onSubmitSpectrum: handleSubmitSpectrum,
-            onAdjustAllocation: handleAdjustAllocation,
-            onSubmitAllocation: handleSubmitAllocation,
-            onSubmitConfidenceChoice: handleSubmitConfidenceChoice,
-            onSubmitStance: handleSubmitStance,
-            onSubmitHold: handleSubmitHold,
-            onSubmitRhythm: handleSubmitRhythm,
-            onSubmitConstellation: handleSubmitConstellation,
-          }}
-          getQuestionInstruction={getQuestionInstruction}
-        />
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading question...'} />}>
+          <QuizQuestionStep
+            isMobile={isMobile}
+            currentStep={currentStep}
+            totalQuestions={questions.length}
+            question={question}
+            t={t}
+            state={{
+              sliderValue,
+              spectrumValue,
+              stanceSelection,
+              multiSelection,
+              rankSelection,
+              confidenceSelection,
+              ipsativeMost,
+              ipsativeLeast,
+              allocationPoints,
+              holdLevel,
+              rhythmPattern,
+              constellationSelection,
+            }}
+            setters={{
+              setSliderValue,
+              setSpectrumValue,
+              setMultiSelection,
+              setRankSelection,
+              setConfidenceSelection,
+              setIpsativeMost,
+              setIpsativeLeast,
+              setHoldLevel,
+              setRhythmPattern,
+              setConstellationSelection,
+            }}
+            handlers={{
+              onApplyModifiers: applyModifiers,
+              onNextSlider: handleNextSlider,
+              onSubmitMulti: handleSubmitMulti,
+              onSubmitRank: handleSubmitRank,
+              onSubmitIpsative: handleSubmitIpsative,
+              onSubmitSpectrum: handleSubmitSpectrum,
+              onAdjustAllocation: handleAdjustAllocation,
+              onSubmitAllocation: handleSubmitAllocation,
+              onSubmitConfidenceChoice: handleSubmitConfidenceChoice,
+              onSubmitStance: handleSubmitStance,
+              onSubmitHold: handleSubmitHold,
+              onSubmitRhythm: handleSubmitRhythm,
+              onSubmitConstellation: handleSubmitConstellation,
+            }}
+            getQuestionInstruction={getQuestionInstruction}
+          />
+        </Suspense>
       );
     }
 
     if (currentStep === questions.length + 1) {
-      return <QuizLoadingState t={t} />;
+      return (
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Calculating...'} />}>
+          <QuizLoadingState t={t} />
+        </Suspense>
+      );
     }
 
     if (currentStep === questions.length + 2 && resolvedMatchedResult) {
       return (
-        <QuizResultView
-          isMobile={isMobile}
-          matchedResult={resolvedMatchedResult}
-          fallbackColors={fallbackColors}
-          axes={axes}
-          t={t}
-          showAllScores={showAllScores}
-          setShowAllScores={setShowAllScores}
-          onRestart={handleStart}
-        />
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading result...'} />}>
+          <QuizResultView
+            isMobile={isMobile}
+            matchedResult={resolvedMatchedResult}
+            fallbackColors={fallbackColors}
+            axes={axes}
+            t={t}
+            showAllScores={showAllScores}
+            setShowAllScores={setShowAllScores}
+            onRestart={handleStart}
+          />
+        </Suspense>
       );
     }
 

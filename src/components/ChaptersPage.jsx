@@ -295,9 +295,10 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
   const goNext = () => setActiveVol((prev) => Math.min(VOLUMES.length - 1, prev + 1));
 
   const unreadCount = useMemo(() => {
-    // Only count chapters available for reading (either via links or local pages)
-    const totalAvailable = CHAPTERS.filter(c => (/^(main|special)$/.test(c.category) || !c.category) && (c.links?.en || c.pages)).length;
-    const finishedCount = CHAPTERS.filter(c => (/^(main|special)$/.test(c.category) || !c.category) && isFinished(c.number)).length;
+    // Only count main-story chapters that are available for reading.
+    const isMainStoryChapter = (chapter) => chapter.category === 'main' || !chapter.category;
+    const totalAvailable = CHAPTERS.filter((chapter) => isMainStoryChapter(chapter) && (chapter.links?.en || chapter.pages)).length;
+    const finishedCount = CHAPTERS.filter((chapter) => isMainStoryChapter(chapter) && isFinished(chapter.number)).length;
     return Math.max(0, totalAvailable - finishedCount);
   }, [isFinished]);
 

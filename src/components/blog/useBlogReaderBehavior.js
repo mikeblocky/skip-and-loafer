@@ -145,12 +145,6 @@ export const useBlogReaderBehavior = ({
   }, [selectedBlog, markdownChunksLength, progressTarget, readerRefVersion, findScrollParent]);
 
   useEffect(() => {
-    if (isMobile && selectedBlog) {
-      setShowFloatingControls((prev) => (prev ? prev : true));
-      lastFloatingWantedRef.current = true;
-      return;
-    }
-
     const node = staticControlsRef.current;
     if (!node) return;
 
@@ -303,6 +297,11 @@ export const useBlogReaderBehavior = ({
     const parent = scrollParentRef.current || findScrollParent(staticControlsRef.current);
 
     const resetIdle = () => {
+      if (!lastFloatingWantedRef.current) {
+        setShowFloatingControls(false);
+        return;
+      }
+
       const now = Date.now();
       if (now - lastActivityAtRef.current < 180) return;
       lastActivityAtRef.current = now;

@@ -1,55 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Gift, Package, Sparkles, UserCheck, ArrowLeft, PawPrint } from 'lucide-react';
 import { CHARACTER_COLORS } from '../data/characters';
 import { triggerHaptic } from '../utils/haptics';
 import { UI_TEXT } from '../config/uiText';
-import QuizGame from './mystery/QuizGame';
-import AnimalQuizGame from './mystery/AnimalQuizGame';
+import useIdlePreload from '../hooks/app/useIdlePreload';
 import getAnimalQuizCopy from './mystery/animalQuiz/copy';
+import {
+  FALLBACK_COLORS,
+  getCharacterPrediction,
+  PORTRAIT_DATA,
+} from './mystery/mysteryData';
 import { toMysteryLabelCase } from './mystery/quizGame/ui';
 
-const PORTRAIT_DATA = [
-  { name: 'Fumi', src: '/portrait/fumi.png' },
-  { name: 'Kazakami', src: '/portrait/kazakami.png' },
-  { name: 'Yamada', src: '/portrait/yamada.png' },
-  { name: 'Makoto', src: '/portrait/makoto.png' },
-  { name: 'Mika', src: '/portrait/mika.png' },
-  { name: 'Mitsumi', src: '/portrait/mitsumi.png' },
-  { name: 'Nao', src: '/portrait/nao.png' },
-  { name: 'Kanechika', src: '/portrait/kanechika.png' },
-  { name: 'Omiso', src: '/portrait/omiso.webp' },
-  { name: 'Oshio', src: '/portrait/oshio.webp' },
-  { name: 'Satonosuke', src: '/portrait/satonosuke.png' },
-  { name: 'Shima', src: '/portrait/shima.png' },
-  { name: 'Takemine', src: '/portrait/tokiko.png' },
-  { name: 'Mukai', src: '/portrait/mukai.png' },
-  { name: 'Yuzuki', src: '/portrait/yuzuki.png' },
-  { name: 'Chris', src: '/portrait/chris.png' },
-  { name: 'Ririka', src: '/portrait/rirka.webp' },
-  { name: 'Ujiie', src: '/portrait/ujie.png' },
-];
+const loadQuizGame = () => import('./mystery/QuizGame');
+const loadAnimalQuizGame = () => import('./mystery/AnimalQuizGame');
+const QuizGame = lazy(loadQuizGame);
+const AnimalQuizGame = lazy(loadAnimalQuizGame);
 
-const NAME_TO_UI_KEY = {
-  Fumi: 'Fumino',
-  Kazakami: 'Hiroto',
-  Takemine: 'Tokiko',
-};
-
-const FALLBACK_COLORS = [
-  { bg: '#ffe4ec', border: '#f472b6', text: '#9d174d' },
-  { bg: '#e0f2fe', border: '#38bdf8', text: '#075985' },
-  { bg: '#fff1d6', border: '#fbbf24', text: '#92400e' },
-  { bg: '#dcfce7', border: '#34d399', text: '#065f46' },
-  { bg: '#f1edff', border: '#a78bfa', text: '#5b21b6' },
-  { bg: '#ffedd5', border: '#f97316', text: '#9a3412' },
-  { bg: '#fce7f3', border: '#db2777', text: '#831843' },
-];
-
-const getCharacterPrediction = (name, t) => {
-  const key = NAME_TO_UI_KEY[name] || name;
-  return t.quiz.characters[key]?.prediction || 'A nice day awaits you!';
-};
+const MysterySubviewFallback = ({ isMobile, label }) => (
+  <div
+    style={{
+      width: '100%',
+      minHeight: isMobile ? '320px' : '420px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#94a3b8',
+      fontSize: isMobile ? '1rem' : '1.1rem',
+      textAlign: 'center',
+      padding: '24px',
+    }}
+  >
+    {label}
+  </div>
+);
 
 const Confetti = () => {
   const [particles, setParticles] = useState([]);
@@ -96,6 +81,13 @@ const MysteryPage = ({ isMobile, uiLanguage }) => {
   const [view, setView] = useState('menu');
   const [pulledCharacter, setPulledCharacter] = useState(null);
   const [isOpening, setIsOpening] = useState(false);
+  const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame], []);
+
+  useIdlePreload(mysteryPreloaders, view === 'menu', {
+    delayMs: 260,
+    staggerMs: 180,
+    maxPreloadCount: isMobile ? 1 : 2,
+  });
 
   const handlePull = () => {
     if (isOpening || pulledCharacter) {
@@ -544,20 +536,24 @@ const MysteryPage = ({ isMobile, uiLanguage }) => {
       {view === 'menu' && renderMenu()}
       {view === 'gacha' && renderDrawView()}
       {view === 'quiz' && (
-        <QuizGame
-          isMobile={isMobile}
-          portraitData={PORTRAIT_DATA}
-          fallbackColors={FALLBACK_COLORS}
-          t={t}
-        />
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading quiz...'} />}>
+          <QuizGame
+            isMobile={isMobile}
+            portraitData={PORTRAIT_DATA}
+            fallbackColors={FALLBACK_COLORS}
+            t={t}
+          />
+        </Suspense>
       )}
       {view === 'animalQuiz' && (
-        <AnimalQuizGame
-          isMobile={isMobile}
-          portraitData={PORTRAIT_DATA}
-          t={t}
-          uiLanguage={uiLanguage}
-        />
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={animalQuizCopy.calculating || 'Loading animal quiz...'} />}>
+          <AnimalQuizGame
+            isMobile={isMobile}
+            portraitData={PORTRAIT_DATA}
+            t={t}
+            uiLanguage={uiLanguage}
+          />
+        </Suspense>
       )}
     </div>
   );

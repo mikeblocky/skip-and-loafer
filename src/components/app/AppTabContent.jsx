@@ -1,13 +1,17 @@
-import { Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-const PlannerPage = lazy(() => import('../PlannerPage'));
-const ChaptersPage = lazy(() => import('../ChaptersPage'));
-const BlogPage = lazy(() => import('../BlogPage'));
-const SyncPage = lazy(() => import('../SyncPage'));
-const BirthdayPage = lazy(() => import('../BirthdayPage'));
-const QuizPage = lazy(() => import('../QuizPage'));
-const MysteryPage = lazy(() => import('../MysteryPage'));
+import { Suspense, memo, useMemo } from 'react';
+import useIdlePreload from '../../hooks/app/useIdlePreload';
+import {
+  BlogPage,
+  BirthdayPage,
+  ChaptersPage,
+  ChatPage,
+  GalleryPage,
+  getAppTabPreloaders,
+  MysteryPage,
+  PlannerPage,
+  QuizPage,
+  SyncPage,
+} from './appPageLoaders';
 
 const PAGE_SHELL_STYLE = {
   width: '100%',
@@ -16,13 +20,70 @@ const PAGE_SHELL_STYLE = {
   backgroundSize: '100% 32px',
   borderRadius: '4px',
   flex: 1,
+  contain: 'layout paint style',
 };
 
 const TabFallback = ({ isMobile, label = 'Loading...' }) => (
-  <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-    <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.95rem' : '1rem', color: '#9ca3af' }}>
-      {label}
-    </span>
+  <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: isMobile ? '20px 16px' : '28px' }}>
+    <div
+      className="sketchbook-border"
+      style={{
+        minWidth: isMobile ? 'min(88vw, 260px)' : '280px',
+        padding: isMobile ? '16px 18px' : '18px 22px',
+        borderRadius: '22px',
+        border: '3px solid #bfdbfe',
+        borderBottom: '7px solid #93c5fd',
+        background: '#ffffff',
+        boxShadow: '0 10px 20px rgba(148, 163, 184, 0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '12px',
+      }}
+    >
+      <div
+        style={{
+          width: isMobile ? '132px' : '150px',
+          height: '8px',
+          borderRadius: '999px',
+          background: 'linear-gradient(90deg, #dbeafe 0%, #93c5fd 50%, #dbeafe 100%)',
+          backgroundSize: '200% 100%',
+          animation: 'plannerShimmer 1.3s linear infinite',
+        }}
+      />
+      <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.98rem' : '1rem', color: '#64748b', textAlign: 'center' }}>
+        {label}
+      </span>
+    </div>
+  </div>
+);
+
+const getFallbackLabel = (activePage, isMobile) => {
+  switch (activePage) {
+    case 'gallery':
+      return isMobile ? 'Loading gallery...' : 'Loading gallery view...';
+    case 'blog':
+      return isMobile ? 'Loading blog...' : 'Loading blog posts...';
+    case 'sync':
+      return isMobile ? 'Loading reading...' : 'Loading reading stats...';
+    case 'quiz':
+      return isMobile ? 'Loading quiz...' : 'Loading quiz page...';
+    case 'birthdays':
+      return isMobile ? 'Loading birthdays...' : 'Loading birthday page...';
+    case 'mystery':
+      return isMobile ? 'Loading mystery...' : 'Loading mystery page...';
+    case 'chat':
+      return isMobile ? 'Loading chat...' : 'Loading chat room...';
+    default:
+      return isMobile ? 'Loading...' : 'Loading page...';
+  }
+};
+
+const TabFrame = ({ activePage, children, isMobile, style, fallbackLabel }) => (
+  <div key={activePage} style={style}>
+    <Suspense fallback={<TabFallback isMobile={isMobile} label={fallbackLabel} />}>
+      {children}
+    </Suspense>
   </div>
 );
 
@@ -41,7 +102,6 @@ const AppTabContent = ({
   incrementReadCount,
   getRemainingCooldown,
   pendingLinks,
-  GalleryPage,
   finishedCount,
   finished,
   readCounts,
@@ -51,8 +111,123 @@ const AppTabContent = ({
   handleMainTouchStart,
   handleMainTouchEnd,
 }) => {
+  const tabPreloaders = useMemo(() => getAppTabPreloaders(activePage), [activePage]);
+  const fallbackLabel = useMemo(() => getFallbackLabel(activePage, isMobile), [activePage, isMobile]);
+  const isLargeText = !!accessibilityPrefs?.largeText;
+  const hasReadableSpacing = !!accessibilityPrefs?.readableSpacing;
+  const homeDesktopMinHeight = isLargeText ? '590px' : (hasReadableSpacing ? '560px' : '530px');
+  const homeDesktopPadding = isLargeText || hasReadableSpacing ? '10px 10px 14px' : '8px 8px 12px';
+  const sharedPageShellStyle = useMemo(
+    () => ({ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }),
+    [],
+  );
+
+  useIdlePreload(tabPreloaders, activePage !== 'home', {
+    delayMs: activePage === 'home' ? 1100 : 520,
+    staggerMs: isMobile ? 340 : 220,
+    maxPreloadCount: 1,
+  });
+
+  let tabContent = null;
+  let frameStyle = activePage === 'home'
+    ? (isMobile
+      ? { display: 'contents' }
+      : { ...sharedPageShellStyle, flexDirection: 'row', width: '100%', minHeight: homeDesktopMinHeight, margin: '0 auto', minWidth: 0 })
+    : sharedPageShellStyle;
+
+  switch (activePage) {
+    case 'home':
+      tabContent = (
+        <PlannerPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          largeText={isLargeText}
+          readableSpacing={hasReadableSpacing}
+        />
+      );
+      break;
+    case 'chapters':
+      tabContent = (
+        <ChaptersPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          subtabShortcut={subtabShortcut}
+          onReadChapter={(ch) => setReaderChapter(ch)}
+          isFinished={isFinished}
+          trackExternalLink={trackExternalLink}
+          cancelExternalLink={cancelExternalLink}
+          markFinished={markFinished}
+          unmarkFinished={unmarkFinished}
+          getReadCount={getReadCount}
+          incrementReadCount={incrementReadCount}
+          getRemainingCooldown={getRemainingCooldown}
+          pendingLinks={pendingLinks}
+        />
+      );
+      break;
+    case 'gallery':
+      tabContent = <GalleryPage isMobile={isMobile} uiLanguage={uiLanguage} subtabShortcut={subtabShortcut} />;
+      break;
+    case 'blog':
+      tabContent = <BlogPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'sync':
+      frameStyle = { ...sharedPageShellStyle, flexDirection: isMobile ? 'column' : 'row' };
+      tabContent = (
+        <SyncPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          subtabShortcut={subtabShortcut}
+          finishedCount={finishedCount}
+          finished={finished}
+          readCounts={readCounts}
+          reloadFromStorage={reloadFromStorage}
+          onReadChapter={(ch) => setReaderChapter(ch)}
+          trackExternalLink={trackExternalLink}
+          cancelExternalLink={cancelExternalLink}
+          markFinished={markFinished}
+          unmarkFinished={unmarkFinished}
+          incrementReadCount={incrementReadCount}
+          getRemainingCooldown={getRemainingCooldown}
+          pendingLinks={pendingLinks}
+          syncData={syncData}
+        />
+      );
+      break;
+    case 'quiz':
+      tabContent = <QuizPage isMobile={isMobile} uiLanguage={uiLanguage} subtabShortcut={subtabShortcut} />;
+      break;
+    case 'birthdays':
+      tabContent = (
+        <BirthdayPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          reduceMotion={accessibilityPrefs.reduceMotion}
+          simplifyVisuals={accessibilityPrefs.simplifyVisuals}
+        />
+      );
+      break;
+    case 'mystery':
+      tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'chat':
+      tabContent = <ChatPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    default:
+      tabContent = (
+        <PlannerPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          largeText={isLargeText}
+          readableSpacing={hasReadableSpacing}
+        />
+      );
+      frameStyle = { display: 'contents' };
+      break;
+  }
+
   return (
-    <motion.div
+    <div
       id="main-content"
       role="main"
       aria-live="polite"
@@ -61,178 +236,23 @@ const AppTabContent = ({
       onTouchEnd={handleMainTouchEnd}
       style={{
         width: '100%',
-        flex: 1,
+        flex: activePage === 'home' ? '0 0 auto' : 1,
         position: 'relative',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        padding: activePage === 'home' ? (isMobile ? '10px 8px 14px' : '14px') : 0,
+        padding: activePage === 'home' ? (isMobile ? '8px 0 0' : homeDesktopPadding) : 0,
         zIndex: 10,
         pointerEvents: 'auto',
         minHeight: isMobile ? 0 : undefined,
+        overflowX: undefined,
+        overflowY: 'hidden',
       }}
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <AnimatePresence mode="wait">
-        {activePage === 'home' && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ display: 'contents' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <PlannerPage isMobile={isMobile} uiLanguage={uiLanguage} />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'chapters' && (
-          <motion.div
-            key="chapters"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <ChaptersPage
-                isMobile={isMobile}
-                uiLanguage={uiLanguage}
-                subtabShortcut={subtabShortcut}
-                onReadChapter={(ch) => setReaderChapter(ch)}
-                isFinished={isFinished}
-                trackExternalLink={trackExternalLink}
-                cancelExternalLink={cancelExternalLink}
-                markFinished={markFinished}
-                unmarkFinished={unmarkFinished}
-                getReadCount={getReadCount}
-                incrementReadCount={incrementReadCount}
-                getRemainingCooldown={getRemainingCooldown}
-                pendingLinks={pendingLinks}
-              />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'gallery' && (
-          <motion.div
-            key="gallery"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} label="Loading gallery..." />}>
-              <GalleryPage isMobile={isMobile} uiLanguage={uiLanguage} subtabShortcut={subtabShortcut} />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'blog' && (
-          <motion.div
-            key="blog"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <BlogPage isMobile={isMobile} uiLanguage={uiLanguage} />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'sync' && (
-          <motion.div
-            key="sync"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <SyncPage
-                isMobile={isMobile}
-                uiLanguage={uiLanguage}
-                subtabShortcut={subtabShortcut}
-                finishedCount={finishedCount}
-                finished={finished}
-                readCounts={readCounts}
-                reloadFromStorage={reloadFromStorage}
-                onReadChapter={(ch) => setReaderChapter(ch)}
-                trackExternalLink={trackExternalLink}
-                cancelExternalLink={cancelExternalLink}
-                markFinished={markFinished}
-                unmarkFinished={unmarkFinished}
-                incrementReadCount={incrementReadCount}
-                getRemainingCooldown={getRemainingCooldown}
-                pendingLinks={pendingLinks}
-                syncData={syncData}
-              />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'quiz' && (
-          <motion.div
-            key="quiz"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <QuizPage isMobile={isMobile} uiLanguage={uiLanguage} subtabShortcut={subtabShortcut} />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'birthdays' && (
-          <motion.div
-            key="birthdays"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <BirthdayPage
-                isMobile={isMobile}
-                uiLanguage={uiLanguage}
-                reduceMotion={accessibilityPrefs.reduceMotion}
-                simplifyVisuals={accessibilityPrefs.simplifyVisuals}
-              />
-            </Suspense>
-          </motion.div>
-        )}
-
-        {activePage === 'mystery' && (
-          <motion.div
-            key="mystery"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }}
-          >
-            <Suspense fallback={<TabFallback isMobile={isMobile} />}>
-              <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />
-            </Suspense>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      <TabFrame activePage={activePage} isMobile={isMobile} fallbackLabel={fallbackLabel} style={frameStyle}>
+        {tabContent}
+      </TabFrame>
+    </div>
   );
 };
 
-export default AppTabContent;
+export default memo(AppTabContent);
