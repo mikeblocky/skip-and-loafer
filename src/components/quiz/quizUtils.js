@@ -101,6 +101,11 @@ const QUESTION_SET_COLORS = {
 
 export const getQuestionSetChipColor = (setKey) => QUESTION_SET_COLORS[Number(setKey)] || '#6b7280';
 
+export const normalizeScoreToHundred = (score) => {
+  const safeScore = Number(score) || 0;
+  return Math.max(0, Math.min(100, safeScore));
+};
+
 export const getDifficultyChipLabel = (key) => {
   if (key === 'easy') return 'Easy';
   if (key === 'medium') return 'Medium';
@@ -162,7 +167,9 @@ export const buildBellCurveQuizPool = (questions, desiredCount) => {
 
 export const sortLeaderboard = (entries) => {
   return [...entries].sort((a, b) => {
-    if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+    if (normalizeScoreToHundred(b.bestScore) !== normalizeScoreToHundred(a.bestScore)) {
+      return normalizeScoreToHundred(b.bestScore) - normalizeScoreToHundred(a.bestScore);
+    }
     if (a.played !== b.played) return a.played - b.played;
     return (a.name || '').localeCompare(b.name || '');
   });
@@ -176,7 +183,7 @@ export const upsertLeaderboard = (entries, name, score) => {
       ...entries,
       {
         name: normalizedName,
-        bestScore: score,
+        bestScore: normalizeScoreToHundred(score),
         played: 1,
         updatedAt: Date.now(),
       },
@@ -188,7 +195,7 @@ export const upsertLeaderboard = (entries, name, score) => {
     return {
       ...entry,
       name: normalizedName,
-      bestScore: Math.max(entry.bestScore || 0, score),
+      bestScore: Math.max(normalizeScoreToHundred(entry.bestScore), normalizeScoreToHundred(score)),
       played: (entry.played || 0) + 1,
       updatedAt: Date.now(),
     };

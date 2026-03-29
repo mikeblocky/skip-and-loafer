@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { History, Award, Calendar, ChevronRight } from 'lucide-react';
 import { ListRow } from '../../sync/syncSharedComponents';
-import { getDifficultyLabel, getQuestionSetLabel } from '../quizUtils';
+import { getDifficultyLabel, getQuestionSetLabel, normalizeScoreToHundred } from '../quizUtils';
 
 const smashVariant = {
   hidden: { y: -80, scale: 0.8, opacity: 0, rotate: -3 },
@@ -25,8 +25,9 @@ const containerVariant = {
 
 const HistoryTab = ({ isMobile, t, displayedHistory }) => {
   const totalAttempts = displayedHistory.length;
-  const bestScore = displayedHistory.length > 0 ? Math.max(...displayedHistory.map(h => h.score / (h.total || 1))) : 0;
-  const bestScorePercent = Math.round(bestScore * 100);
+  const bestScorePercent = displayedHistory.length > 0
+    ? Math.max(...displayedHistory.map((item) => normalizeScoreToHundred(item.score)))
+    : 0;
 
   return (
     <motion.div 

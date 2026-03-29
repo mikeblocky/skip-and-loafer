@@ -21,8 +21,8 @@ const ReaderControls = ({
       <span style={READER_CONTROLS_LABEL_STYLE}>{label}</span>
     )}
 
-    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap', flex: floating ? '0 0 auto' : 1, minWidth: 'max-content' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap', flex: floating ? '0 0 auto' : 1, minWidth: 'max-content', margin: isMobile ? '0 auto' : 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap', justifyContent: 'center' }}>
         {toggleControls.map(({ key, label: controlLabel, Icon }) => (
           <motion.button
             key={key}
@@ -33,14 +33,14 @@ const ReaderControls = ({
             aria-pressed={readerPrefs[key]}
             title={controlLabel}
           >
-            {isMobile ? <Icon size={20} strokeWidth={3} /> : controlLabel}
+            {isMobile ? <Icon size={18} strokeWidth={2.75} /> : controlLabel}
           </motion.button>
         ))}
       </div>
 
       <span style={getControlsSeparatorStyle(isMobile)} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px', flexWrap: 'nowrap', justifyContent: 'center' }}>
         {themeControls.map(({ key, label: controlLabel, Icon }) => {
           const isActive = readerPrefs.theme === key;
           return (
@@ -53,7 +53,7 @@ const ReaderControls = ({
               aria-pressed={isActive}
               title={controlLabel}
             >
-              {isMobile ? <Icon size={20} strokeWidth={3} /> : controlLabel}
+              {isMobile ? <Icon size={18} strokeWidth={2.75} /> : controlLabel}
             </motion.button>
           );
         })}

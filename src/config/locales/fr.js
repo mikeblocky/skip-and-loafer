@@ -40,6 +40,8 @@ export const fr = {
     sync: { label: 'Lecture', mobileLabel: 'Lecture' },
     quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
     birthdays: { label: 'Anniversaires', mobileLabel: 'Anniv.' },
+    mystery: { label: 'Mystère', mobileLabel: 'Mystère' },
+    chat: { label: 'Chat', mobileLabel: 'Chat' },
   },
   mystery: {
     title: "Cabane Mystérieuse",

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 export const useGalleryPrefetch = ({ activePage, loadGalleryPage }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
+    if (activePage === 'home') return undefined;
     if (window.innerWidth <= 768) return undefined;
 
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -21,7 +22,7 @@ export const useGalleryPrefetch = ({ activePage, loadGalleryPage }) => {
     if ('requestIdleCallback' in window) {
       idleId = window.requestIdleCallback(prefetch, { timeout: 2500 });
     } else {
-      timeoutId = window.setTimeout(prefetch, 2200);
+      timeoutId = window.setTimeout(prefetch, 2600);
     }
 
     return () => {

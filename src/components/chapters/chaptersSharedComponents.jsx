@@ -48,7 +48,7 @@ const CelebrationHearts = ({ show }) => {
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
       left: 30 + Math.random() * 40,
       animDelay: i * 0.08,
-      size: 14 + Math.random() * 10,
+      size: 20 + Math.random() * 14,
     }));
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setParticles(newParticles);

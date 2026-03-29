@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useCallback, lazy, useRef, Suspense, useEffect } from 'react';
+import { useState, useCallback, lazy, useRef, Suspense, useEffect, startTransition } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { ChevronUp } from 'lucide-react';
 
@@ -11,12 +11,8 @@ import { UI_TEXT } from './config/uiText';
 
 // Components
 import NavTabs from './components/NavTabs';
-import BirthdayNotification from './components/BirthdayNotification';
-import ChangelogPopup from './components/ChangelogPopup';
-import AppQuickControls from './components/app/AppQuickControls';
 import AppTabContent from './components/app/AppTabContent';
-import AppDisclaimerModal from './components/app/AppDisclaimerModal';
-import AppDecorativeLayer from './components/app/AppDecorativeLayer';
+import { loadGalleryPage } from './components/app/appPageLoaders';
 import { useReadProgress } from './hooks/useReadProgress';
 import { useSyncData } from './hooks/useSyncData';
 import { usePageHistorySync } from './hooks/app/usePageHistorySync';
@@ -29,16 +25,70 @@ import { useMainScrollTop } from './hooks/app/useMainScrollTop';
 import { useGalleryPrefetch } from './hooks/app/useGalleryPrefetch';
 import { useReaderChapterNavigation } from './hooks/app/useReaderChapterNavigation';
 import { useUiBootDelay } from './hooks/app/useUiBootDelay';
+import useIdlePreload from './hooks/app/useIdlePreload';
+import useDeferredMount from './hooks/app/useDeferredMount';
 import { getInitialUiLanguage } from './config/uiLanguage';
 import { registerHapticGesture } from './utils/haptics';
 
-const loadGalleryPage = () => import('./components/GalleryPage');
-const GalleryPage = lazy(loadGalleryPage);
-const MangaReader = lazy(() => import('./components/MangaReader'));
+const loadMangaReader = () => import('./components/MangaReader');
+const MangaReader = lazy(loadMangaReader);
+const AppQuickControls = lazy(() => import('./components/app/AppQuickControls'));
+const AppDisclaimerModal = lazy(() => import('./components/app/AppDisclaimerModal'));
+const AppDecorativeLayer = lazy(() => import('./components/app/AppDecorativeLayer'));
+const ChangelogPopup = lazy(() => import('./components/ChangelogPopup'));
+const BirthdayNotification = lazy(() => import('./components/BirthdayNotification'));
 const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
 const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
-const TAB_PAGES = ['home', 'chapters', 'gallery', 'blog', 'sync', 'quiz', 'birthdays'];
+const TAB_PAGES = ['home', 'chapters', 'gallery', 'blog', 'sync', 'quiz', 'birthdays', 'mystery', 'chat'];
+
+const ReaderOverlayFallback = ({ isMobile, label }) => (
+  <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 1300,
+      background: 'rgba(248, 250, 252, 0.82)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+    }}
+  >
+    <div
+      className="sketchbook-border"
+      style={{
+        width: isMobile ? 'min(88vw, 320px)' : '340px',
+        borderRadius: '24px',
+        border: '3px solid #bfdbfe',
+        borderBottom: '8px solid #60a5fa',
+        background: '#ffffff',
+        padding: isMobile ? '18px 18px 20px' : '20px 22px 22px',
+        boxShadow: '0 16px 32px rgba(148, 163, 184, 0.16)',
+        display: 'grid',
+        gap: '12px',
+      }}
+    >
+      <div
+        style={{
+          width: '44%',
+          height: '10px',
+          borderRadius: '999px',
+          background: 'linear-gradient(90deg, #dbeafe 0%, #93c5fd 50%, #dbeafe 100%)',
+          backgroundSize: '200% 100%',
+          animation: 'plannerShimmer 1.2s linear infinite',
+        }}
+      />
+      <div style={{ width: '100%', height: '12px', borderRadius: '999px', background: '#e0f2fe' }} />
+      <div style={{ width: '86%', height: '12px', borderRadius: '999px', background: '#e0f2fe' }} />
+      <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '1rem' : '1.02rem', color: '#475569' }}>
+        {label}
+      </span>
+    </div>
+  </div>
+);
 
 function App() {
   const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
@@ -50,7 +100,7 @@ function App() {
   const markFinished = useCallback((ch) => { rawMarkFinished(ch); pushNow(); }, [rawMarkFinished, pushNow]);
   const incrementReadCount = useCallback((ch) => { rawIncrementReadCount(ch); pushNow(); }, [rawIncrementReadCount, pushNow]);
 
-  const showUI = useUiBootDelay({ coverCount: COVER_IMAGES.length });
+  const showUI = useUiBootDelay();
   const [showDisclaimer, setShowDisclaimer] = useState(() => {
     try {
       return localStorage.getItem(DISCLAIMER_SEEN_KEY) !== '1';
@@ -145,6 +195,10 @@ function App() {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
+  const deferredShellMount = useDeferredMount(showUI, 180);
+  const showDecorativeLayer =
+    deferredShellMount &&
+    !accessibilityPrefs.simplifyVisuals;
 
   const {
     showAccessibilityPanel,
@@ -210,6 +264,11 @@ function App() {
   }, []);
 
   useGalleryPrefetch({ activePage, loadGalleryPage });
+  useIdlePreload([loadMangaReader], !readerChapter && (activePage === 'chapters' || activePage === 'sync'), {
+    delayMs: 420,
+    staggerMs: 180,
+    maxPreloadCount: 1,
+  });
 
   const toggleAccessibilityPref = useCallback((key) => {
     setAccessibilityPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -227,6 +286,18 @@ function App() {
     readerChapter,
     setReaderChapter,
   });
+
+  const handlePageChange = useCallback((nextPage) => {
+    startTransition(() => {
+      setActivePage(nextPage);
+    });
+  }, []);
+
+  const handleReaderChapterChange = useCallback((chapter) => {
+    startTransition(() => {
+      setReaderChapter(chapter);
+    });
+  }, []);
 
   const handlePositionUpdate = useCallback((id, pos) => {
     stickerPositionsRef.current[id] = pos;
@@ -296,24 +367,49 @@ function App() {
           {t.skipToContent}
         </a>
 
-      <AppDisclaimerModal showDisclaimer={showDisclaimer} onClose={closeDisclaimer} />
+      {showDisclaimer && deferredShellMount && (
+        <Suspense fallback={null}>
+          <AppDisclaimerModal showDisclaimer={showDisclaimer} onClose={closeDisclaimer} />
+        </Suspense>
+      )}
 
-      <AppDecorativeLayer
-        accessibilityPrefs={accessibilityPrefs}
-        isMobile={isMobile}
-        activePage={activePage}
-        handlePositionUpdate={handlePositionUpdate}
-        stickerPositions={stickerPositionsRef.current}
-        stickerLayoutById={stickerLayoutById}
-        cardPositions={cardPositions}
-      />
+      {showDecorativeLayer && (
+        <Suspense fallback={null}>
+          <AppDecorativeLayer
+            accessibilityPrefs={accessibilityPrefs}
+            isMobile={isMobile}
+            activePage={activePage}
+            handlePositionUpdate={handlePositionUpdate}
+            stickerPositions={stickerPositionsRef.current}
+            stickerLayoutById={stickerLayoutById}
+            cardPositions={cardPositions}
+          />
+        </Suspense>
+      )}
+
+      {showUI && isMobile && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 'calc(env(safe-area-inset-top, 0px) + 14px)',
+            background: 'rgba(253, 250, 248, 0.86)',
+            borderBottom: '1px solid rgba(219, 234, 254, 0.9)',
+            zIndex: 900,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
 
       {/* Main UI */}
       <AnimatePresence>
         {showUI && (
           <motion.div
             ref={mainScrollRef}
-            className="hide-scrollbar"
+            className="hide-scrollbar app-shell-scroll"
             style={{
               position: 'relative',
               zIndex: 500,
@@ -327,12 +423,13 @@ function App() {
               overflowY: 'auto',
               overflowX: 'visible',
               WebkitOverflowScrolling: 'touch',
-              padding: isMobile ? '82px 8px 40px 8px' : '40px',
+              overscrollBehaviorY: 'contain',
+              padding: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 58px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0' : '22px 18px 16px',
               pointerEvents: 'auto'
             }}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           >
             {showMitsumiReplayBanner && (
               <motion.a
@@ -365,31 +462,29 @@ function App() {
             )}
 
             {/* Spacer for safe centering */}
-            <div style={{ flexGrow: 1, minHeight: isMobile ? '24px' : '20px' }} />
+            <div style={{ flexGrow: isMobile ? 0 : 1, minHeight: isMobile ? '0' : '6px' }} />
 
             {/* Container to handle stacking contexts for tabs and planner */}
             <motion.div
-              initial={{ opacity: 0, rotateX: 35, scale: 0.95, y: 40 }}
-              animate={{ opacity: 1, rotateX: 0, scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.15 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.16, ease: 'easeOut', delay: 0.01 }}
               style={{
                 position: 'relative',
                 scrollMarginTop: '60px',
                 width: '100%',
-                maxWidth: isMobile ? '100%' : '1200px',
+                maxWidth: isMobile ? '100%' : (activePage === 'home' ? (accessibilityPrefs.largeText ? '1200px' : '1140px') : '1210px'),
                 minHeight: isMobile ? 0 : 'min-content',
                 display: 'flex',
                 flexDirection: 'column',
                 pointerEvents: 'auto',
                 flex: '0 0 auto',
                 flexShrink: 0,
-                transformPerspective: 2000,
-                transformOrigin: 'top center',
             }}>
               {/* Bookmark Nav Tabs */}
               <NavTabs
                 activePage={activePage}
-                onPageChange={setActivePage}
+                onPageChange={handlePageChange}
                 isMobile={isMobile}
                 labelsById={t.tabs}
                 openTabPrefix={t.openTabPrefix}
@@ -401,7 +496,7 @@ function App() {
                 isMobile={isMobile}
                 uiLanguage={uiLanguage}
                 subtabShortcut={subtabShortcut}
-                setReaderChapter={setReaderChapter}
+                setReaderChapter={handleReaderChapterChange}
                 isFinished={isFinished}
                 trackExternalLink={trackExternalLink}
                 cancelExternalLink={cancelExternalLink}
@@ -411,7 +506,6 @@ function App() {
                 incrementReadCount={incrementReadCount}
                 getRemainingCooldown={getRemainingCooldown}
                 pendingLinks={pendingLinks}
-                GalleryPage={GalleryPage}
                 finishedCount={finishedCount}
                 finished={finished}
                 readCounts={readCounts}
@@ -424,16 +518,24 @@ function App() {
             </motion.div>
 
             {/* Spacer for safe centering */}
-            <div style={{ flexGrow: 1, minHeight: isMobile ? '8px' : '20px' }} />
+            <div style={{ flexGrow: isMobile ? 0 : 1, minHeight: isMobile ? '0' : '8px' }} />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Changelog Popup */}
-      <ChangelogPopup isMobile={isMobile} uiLanguage={uiLanguage} />
+      {deferredShellMount && (
+        <Suspense fallback={null}>
+          <ChangelogPopup isMobile={isMobile} uiLanguage={uiLanguage} />
+        </Suspense>
+      )}
 
       {/* Birthday Notification */}
-      <BirthdayNotification isMobile={isMobile} uiLanguage={uiLanguage} />
+      {deferredShellMount && (
+        <Suspense fallback={null}>
+          <BirthdayNotification isMobile={isMobile} uiLanguage={uiLanguage} />
+        </Suspense>
+      )}
 
       {/* Copyright */}
       <div style={{ position: 'fixed', bottom: '8px', right: '14px', zIndex: 1000, fontFamily: 'var(--font-hand)', color: '#9ca3af', fontSize: '0.7rem', opacity: 0.6 }}>
@@ -442,7 +544,7 @@ function App() {
 
       {/* Global Scroll-to-Top Button */}
       <AnimatePresence>
-        {showScrollTop && !readerChapter && activePage !== 'blog' && activePage !== 'quiz' && (
+        {showScrollTop && !readerChapter && activePage !== 'blog' && activePage !== 'quiz' && activePage !== 'chat' && (
           <motion.button
             key="scroll-top"
             onClick={scrollToTop}
@@ -479,34 +581,39 @@ function App() {
         )}
       </AnimatePresence>
 
-      <AppQuickControls
-        quickControlsRef={quickControlsRef}
-        readerChapter={readerChapter}
-        isMobile={isMobile}
-        t={t}
-        uiText={UI_TEXT}
-        showAccessibilityPanel={showAccessibilityPanel}
-        showShortcutPanel={showShortcutPanel}
-        showLanguageMenu={showLanguageMenu}
-        showSettingsMain={showSettingsMain}
-        toggleAccessibilityPanel={toggleAccessibilityPanel}
-        toggleShortcutPanel={toggleShortcutPanel}
-        toggleLanguagePanel={toggleLanguagePanel}
-        toggleSettingsMain={toggleSettingsMain}
-        accessibilityPrefs={accessibilityPrefs}
-        toggleAccessibilityPref={toggleAccessibilityPref}
-        setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}
-        uiLanguage={uiLanguage}
-        setUiLanguage={setUiLanguage}
-        setShowLanguageMenu={setShowLanguageMenu}
-        shortcutStats={shortcutStats}
-      />
+      {deferredShellMount && (
+        <Suspense fallback={null}>
+          <AppQuickControls
+            quickControlsRef={quickControlsRef}
+            readerChapter={readerChapter}
+            isMobile={isMobile}
+            t={t}
+            uiText={UI_TEXT}
+            showAccessibilityPanel={showAccessibilityPanel}
+            showShortcutPanel={showShortcutPanel}
+            showLanguageMenu={showLanguageMenu}
+            showSettingsMain={showSettingsMain}
+            toggleAccessibilityPanel={toggleAccessibilityPanel}
+            toggleShortcutPanel={toggleShortcutPanel}
+            toggleLanguagePanel={toggleLanguagePanel}
+            toggleSettingsMain={toggleSettingsMain}
+            accessibilityPrefs={accessibilityPrefs}
+            toggleAccessibilityPref={toggleAccessibilityPref}
+            setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}
+            uiLanguage={uiLanguage}
+            setUiLanguage={setUiLanguage}
+            setShowLanguageMenu={setShowLanguageMenu}
+            shortcutStats={shortcutStats}
+            tabCount={TAB_PAGES.length}
+          />
+        </Suspense>
+      )}
 
       {/* Manga Reader Overlay */}
       <AnimatePresence>
-        {readerChapter && readerChapter.pages && (
-          <Suspense fallback={null}>
-            <MangaReader
+          {readerChapter && readerChapter.pages && (
+            <Suspense fallback={<ReaderOverlayFallback isMobile={isMobile} label={t.openingReader || 'Opening chapter...'} />}>
+              <MangaReader
               key={`reader-${readerChapter.number}`}
               chapter={readerChapter}
               pages={readerChapter.pages}
