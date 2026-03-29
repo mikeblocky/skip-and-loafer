@@ -3,7 +3,6 @@ import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motio
 import { Newspaper, ChevronLeft, CalendarDays, BookOpen, ALargeSmall, Space, Focus, Sun, Moon, FileText as FileTextIcon, ChevronUp, ArrowUpDown } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { BLOGS } from '../data/blogs';
-import ImageLightbox from './shared/ImageLightbox';
 import {
   UI_TEXT,
   formatDate,
@@ -14,9 +13,9 @@ import {
   chunkMarkdownContent,
 } from './blog/blogShared';
 import { getReaderTheme } from './blog/blogReaderTheme';
-import { createBlogMarkdownComponents } from './blog/blogMarkdownComponents';
 import { useBlogHistoryNavigation } from './blog/useBlogHistoryNavigation';
 import { useBlogReaderBehavior } from './blog/useBlogReaderBehavior';
+import useIdlePreload from '../hooks/app/useIdlePreload';
 import { CONTENT_SLIDE_COMPACT, TRANSITION_FAST, TAP_SCALE_DEFAULT, TAP_SCALE_SOFT } from './shared/animationPresets';
 import {
   getPageRootStyle,
@@ -31,11 +30,72 @@ import {
   getBackFabStyle,
   getTopFabStyle,
 } from './blog/blogStyles';
-import ReaderControls from './blog/ReaderControls';
 import BlogListView from './blog/BlogListView';
-import BlogDetailView from './blog/BlogDetailView';
 
-const BlogMarkdownRenderer = lazy(() => import('./blog/BlogMarkdownRenderer'));
+const loadBlogMarkdownRenderer = () => import('./blog/BlogMarkdownRenderer');
+const loadBlogDetailView = () => import('./blog/BlogDetailView');
+const loadReaderControls = () => import('./blog/ReaderControls');
+const loadImageLightbox = () => import('./shared/ImageLightbox');
+
+const BlogMarkdownRenderer = lazy(loadBlogMarkdownRenderer);
+const BlogDetailView = lazy(loadBlogDetailView);
+const ReaderControls = lazy(loadReaderControls);
+const ImageLightbox = lazy(loadImageLightbox);
+
+const BlogReaderFallback = ({ isMobile, label }) => (
+  <div
+    className="sketchbook-border"
+    style={{
+      marginTop: '8px',
+      border: '3px solid #fde68a',
+      borderBottom: '8px solid #f59e0b',
+      borderRadius: '24px',
+      background: '#fffdf5',
+      padding: isMobile ? '18px 16px' : '22px 20px',
+      display: 'grid',
+      gap: '12px',
+      boxShadow: '0 10px 22px rgba(245, 158, 11, 0.08)',
+    }}
+  >
+    <div
+      style={{
+        width: isMobile ? '42%' : '220px',
+        height: '10px',
+        borderRadius: '999px',
+        background: 'linear-gradient(90deg, #fde68a 0%, #fdba74 50%, #fde68a 100%)',
+        backgroundSize: '200% 100%',
+        animation: 'plannerShimmer 1.25s linear infinite',
+      }}
+    />
+    <div
+      style={{
+        width: '100%',
+        height: isMobile ? '12px' : '14px',
+        borderRadius: '999px',
+        background: '#fdecc8',
+      }}
+    />
+    <div
+      style={{
+        width: '88%',
+        height: isMobile ? '12px' : '14px',
+        borderRadius: '999px',
+        background: '#ffedd5',
+      }}
+    />
+    <div
+      style={{
+        width: '94%',
+        height: isMobile ? '12px' : '14px',
+        borderRadius: '999px',
+        background: '#ffedd5',
+      }}
+    />
+    <span style={{ color: '#9a3412', fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.98rem' : '1rem' }}>
+      {label}
+    </span>
+  </div>
+);
 
 const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
   const CHUNK_STEP = isMobile ? 5 : 4;
@@ -55,6 +115,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
   const progressSpring = useSpring(progressTarget, { stiffness: 170, damping: 30, mass: 0.4 });
   const [activeImageSrc, setActiveImageSrc] = useState(null);
   const [sortOrder, setSortOrder] = useState('desc');
+  const readerPreloaders = useMemo(() => [loadReaderControls, loadBlogDetailView], []);
 
   const blogs = useMemo(
     () => [...BLOGS].sort((a, b) => (sortOrder === 'asc'
@@ -66,6 +127,10 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
   const selectedBlog = useMemo(
     () => blogs.find((entry) => entry.id === selectedBlogId) || null,
     [blogs, selectedBlogId]
+  );
+  const activeReaderPreloaders = useMemo(
+    () => (selectedBlog ? [loadBlogMarkdownRenderer, loadImageLightbox] : []),
+    [selectedBlog],
   );
 
   const validBlogIds = useMemo(() => new Set(blogs.map((blog) => blog.id)), [blogs]);
@@ -161,6 +226,16 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
   }, [selectedBlogId]);
 
   const readerTheme = useMemo(() => getReaderTheme(readerPrefs.theme), [readerPrefs.theme]);
+  useIdlePreload(readerPreloaders, true, {
+    delayMs: 260,
+    staggerMs: 180,
+    maxPreloadCount: isMobile ? 1 : 2,
+  });
+  useIdlePreload(activeReaderPreloaders, Boolean(selectedBlog), {
+    delayMs: 60,
+    staggerMs: 120,
+    maxPreloadCount: isMobile ? 1 : 2,
+  });
 
   const defaultReadingScale = selectedBlog ? 1.24 : 1;
   const bodyFontScale = defaultReadingScale * (readerPrefs.largeText ? 1.2 : 1);
@@ -189,17 +264,6 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
       descriptionTag.setAttribute('content', previousDescription);
     };
   }, [selectedBlog]);
-
-
-  const markdownComponents = useMemo(() => createBlogMarkdownComponents({
-    isMobile,
-    readerTheme,
-    bodyFontScale,
-    headingFontScale,
-    paragraphLineHeight,
-    listLineHeight,
-    openImageBySrc,
-  }), [isMobile, readerTheme, bodyFontScale, headingFontScale, paragraphLineHeight, listLineHeight, openImageBySrc]);
 
   const TOGGLE_CONTROLS = [
     { key: 'largeText', label: t.largeTextMode || UI_TEXT.en.largeTextMode, Icon: ALargeSmall },
@@ -284,16 +348,18 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
 
       <div ref={staticControlsRef}>
         {selectedBlog && (
-          <ReaderControls
-            floating={false}
-            isMobile={isMobile}
-            showFloatingControls={showFloatingControls}
-            readerPrefs={readerPrefs}
-            setReaderPrefs={setReaderPrefs}
-            toggleControls={TOGGLE_CONTROLS}
-            themeControls={THEME_CONTROLS}
-            label={t.readerControls || UI_TEXT.en.readerControls}
-          />
+          <Suspense fallback={null}>
+            <ReaderControls
+              floating={false}
+              isMobile={isMobile}
+              showFloatingControls={showFloatingControls}
+              readerPrefs={readerPrefs}
+              setReaderPrefs={setReaderPrefs}
+              toggleControls={TOGGLE_CONTROLS}
+              themeControls={THEME_CONTROLS}
+              label={t.readerControls || UI_TEXT.en.readerControls}
+            />
+          </Suspense>
         )}
       </div>
 
@@ -329,32 +395,40 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             className="hide-scrollbar"
             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'hidden', minHeight: 0 }}
           >
-            <BlogDetailView
-              isMobile={isMobile}
-              t={t}
-              locale={locale}
-              selectedBlog={selectedBlog}
-              handleBackToList={handleBackToList}
-              readerTheme={readerTheme}
-              headingFontScale={headingFontScale}
-              bodyFontScale={bodyFontScale}
-              paragraphLineHeight={paragraphLineHeight}
-              readerPrefs={readerPrefs}
-              readScrollRef={readScrollRef}
-              renderedMarkdownChunks={(
-                <Suspense fallback={null}>
-                  <BlogMarkdownRenderer
-                    selectedBlogId={selectedBlog?.id || null}
-                    markdownChunks={markdownChunks}
-                    visibleChunkCount={visibleChunkCount}
-                    markdownComponents={markdownComponents}
-                  />
-                </Suspense>
-              )}
-              markdownChunksLength={markdownChunks.length}
-              visibleChunkCount={visibleChunkCount}
-              loadMoreRef={loadMoreRef}
-            />
+            <Suspense fallback={<BlogReaderFallback isMobile={isMobile} label={t.readerControls || UI_TEXT.en.readerControls} />}>
+              <BlogDetailView
+                isMobile={isMobile}
+                t={t}
+                locale={locale}
+                selectedBlog={selectedBlog}
+                handleBackToList={handleBackToList}
+                readerTheme={readerTheme}
+                headingFontScale={headingFontScale}
+                bodyFontScale={bodyFontScale}
+                paragraphLineHeight={paragraphLineHeight}
+                readerPrefs={readerPrefs}
+                readScrollRef={readScrollRef}
+                renderedMarkdownChunks={(
+                  <Suspense fallback={<BlogReaderFallback isMobile={isMobile} label={t.openingReader || 'Opening article...'} />}>
+                    <BlogMarkdownRenderer
+                      selectedBlogId={selectedBlog?.id || null}
+                      markdownChunks={markdownChunks}
+                      visibleChunkCount={visibleChunkCount}
+                      isMobile={isMobile}
+                      readerTheme={readerTheme}
+                      bodyFontScale={bodyFontScale}
+                      headingFontScale={headingFontScale}
+                      paragraphLineHeight={paragraphLineHeight}
+                      listLineHeight={listLineHeight}
+                      openImageBySrc={openImageBySrc}
+                    />
+                  </Suspense>
+                )}
+                markdownChunksLength={markdownChunks.length}
+                visibleChunkCount={visibleChunkCount}
+                loadMoreRef={loadMoreRef}
+              />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -391,28 +465,32 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
 
       <AnimatePresence>
         {activeImageSrc && (
-          <ImageLightbox
-            src={activeImageSrc}
-            images={blogImageSources}
-            onClose={closeImageViewer}
-            onNavigate={navigateImage}
-            isMobile={isMobile}
-            altText="Blog artwork"
-          />
+          <Suspense fallback={null}>
+            <ImageLightbox
+              src={activeImageSrc}
+              images={blogImageSources}
+              onClose={closeImageViewer}
+              onNavigate={navigateImage}
+              isMobile={isMobile}
+              altText="Blog artwork"
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
-      {selectedBlog && !isMobile && createPortal(
-        <ReaderControls
-          floating
-          isMobile={isMobile}
-          showFloatingControls={showFloatingControls}
-          readerPrefs={readerPrefs}
-          setReaderPrefs={setReaderPrefs}
-          toggleControls={TOGGLE_CONTROLS}
-          themeControls={THEME_CONTROLS}
-          label={t.readerControls || UI_TEXT.en.readerControls}
-        />,
+      {selectedBlog && createPortal(
+        <Suspense fallback={null}>
+          <ReaderControls
+            floating
+            isMobile={isMobile}
+            showFloatingControls={showFloatingControls}
+            readerPrefs={readerPrefs}
+            setReaderPrefs={setReaderPrefs}
+            toggleControls={TOGGLE_CONTROLS}
+            themeControls={THEME_CONTROLS}
+            label={t.readerControls || UI_TEXT.en.readerControls}
+          />
+        </Suspense>,
         document.body
       )}
     </div>

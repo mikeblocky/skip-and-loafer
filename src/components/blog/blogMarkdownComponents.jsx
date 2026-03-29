@@ -10,17 +10,17 @@ export const createBlogMarkdownComponents = ({
   openImageBySrc,
 }) => ({
   h1: ({ children }) => (
-    <h1 style={{ margin: '6px 0 10px 0', color: readerTheme.heading, fontFamily: 'var(--font-main)', fontSize: isMobile ? `${1.1 * headingFontScale}rem` : `${1.3 * headingFontScale}rem`, lineHeight: 1.2, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h1 style={{ margin: '6px 0 10px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.26 * headingFontScale}rem` : `${1.46 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.012em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 style={{ margin: '16px 0 8px 0', color: readerTheme.heading, fontFamily: 'var(--font-main)', fontSize: isMobile ? `${1 * headingFontScale}rem` : `${1.16 * headingFontScale}rem`, lineHeight: 1.25, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h2 style={{ margin: '16px 0 8px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.11 * headingFontScale}rem` : `${1.28 * headingFontScale}rem`, lineHeight: 1.28, letterSpacing: '0.01em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 style={{ margin: '14px 0 8px 0', color: readerTheme.heading, fontFamily: 'var(--font-main)', fontSize: isMobile ? `${0.95 * headingFontScale}rem` : `${1.05 * headingFontScale}rem`, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h3 style={{ margin: '14px 0 8px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.05 * headingFontScale}rem` : `${1.16 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.008em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h3>
   ),
@@ -50,7 +50,7 @@ export const createBlogMarkdownComponents = ({
             boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
           }}
         >
-          <em style={{ color: readerTheme.subtle, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
+          <em style={{ color: readerTheme.subtle, fontFamily: 'Sniglet, var(--font-main)', fontWeight: 400, fontSize: isMobile ? `${0.82 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, letterSpacing: '0.01em' }}>
             {nodes[0].props.children}
           </em>
         </div>
@@ -75,7 +75,7 @@ export const createBlogMarkdownComponents = ({
     }
  
     return (
-      <p style={{ margin: '0 0 16px 0', color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
+      <p style={{ margin: '0 0 16px 0', color: readerTheme.text, fontFamily: 'Sniglet, var(--font-main)', fontWeight: 400, fontSize: isMobile ? `${0.94 * bodyFontScale}rem` : `${1.02 * bodyFontScale}rem`, lineHeight: paragraphLineHeight + 0.08, letterSpacing: '0.01em', transition: 'all 0.3s ease', opacity: 0.96 }}>
         {children}
       </p>
     );
@@ -84,17 +84,17 @@ export const createBlogMarkdownComponents = ({
     <hr style={{ border: 0, borderTop: `3px dashed ${readerTheme.panelBorder}`, margin: '20px 0', opacity: 0.5 }} />
   ),
   blockquote: ({ children }) => (
-    <blockquote style={{ margin: '14px 0', padding: '12px 16px', borderLeft: `6px solid ${readerTheme.quoteBorder}`, background: readerTheme.quoteBg, borderRadius: '16px', color: readerTheme.quoteText, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.82 * bodyFontScale}rem` : `${0.9 * bodyFontScale}rem`, lineHeight: paragraphLineHeight, transition: 'all 0.3s ease' }}>
+    <blockquote style={{ margin: '14px 0', padding: '12px 16px', borderLeft: `6px solid ${readerTheme.quoteBorder}`, background: readerTheme.quoteBg, borderRadius: '16px', color: readerTheme.quoteText, fontFamily: 'Sniglet, var(--font-main)', fontWeight: 400, fontSize: isMobile ? `${0.96 * bodyFontScale}rem` : `${1.04 * bodyFontScale}rem`, lineHeight: paragraphLineHeight + 0.08, letterSpacing: '0.01em', transition: 'all 0.3s ease' }}>
       {children}
     </blockquote>
   ),
   ul: ({ children }) => (
-    <ul style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
+    <ul style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'Sniglet, var(--font-main)', fontWeight: 400, fontSize: isMobile ? `${0.94 * bodyFontScale}rem` : `${1.02 * bodyFontScale}rem`, lineHeight: listLineHeight + 0.08, letterSpacing: '0.01em', transition: 'all 0.3s ease', opacity: 0.96 }}>
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? `${0.8 * bodyFontScale}rem` : `${0.88 * bodyFontScale}rem`, lineHeight: listLineHeight, transition: 'all 0.3s ease', opacity: 0.9 }}>
+    <ol style={{ margin: '0 0 16px 20px', padding: 0, color: readerTheme.text, fontFamily: 'Sniglet, var(--font-main)', fontWeight: 400, fontSize: isMobile ? `${0.94 * bodyFontScale}rem` : `${1.02 * bodyFontScale}rem`, lineHeight: listLineHeight + 0.08, letterSpacing: '0.01em', transition: 'all 0.3s ease', opacity: 0.96 }}>
       {children}
     </ol>
   ),
@@ -102,10 +102,10 @@ export const createBlogMarkdownComponents = ({
     <li style={{ marginBottom: '8px' }}>{children}</li>
   ),
   strong: ({ children }) => (
-    <strong style={{ color: readerTheme.heading, fontWeight: 900 }}>{children}</strong>
+    <strong style={{ color: readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 900, letterSpacing: '0.01em' }}>{children}</strong>
   ),
   a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: '900' }}>
+    <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: 400 }}>
       {children}
     </a>
   ),

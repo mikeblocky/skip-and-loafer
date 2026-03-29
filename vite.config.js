@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 function localSyncApiPlugin() {
   const store = new Map();
   const globalReadsStore = new Map();
+  const chatRoomsStore = new Map();
   const TTL_MS = 36 * 24 * 60 * 60 * 1000; // 36 days (matches Redis TTL)
   const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -26,6 +27,43 @@ function localSyncApiPlugin() {
 
   function isExpired(entry) {
     return Date.now() - entry.createdAt > TTL_MS;
+  }
+
+  function createChatEntityId(prefix) {
+    return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function nowIso() {
+    return new Date().toISOString();
+  }
+
+  function clampText(value, maxLength) {
+    return String(value || '').trim().slice(0, maxLength);
+  }
+
+  function sanitizeDrawingDataUrl(value) {
+    const normalized = String(value || '').trim();
+    if (!normalized.startsWith('data:image/png;base64,')) return '';
+    if (normalized.length > 250000) return '';
+    return normalized;
+  }
+
+  function sendJson(res, statusCode, payload) {
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(payload));
+  }
+
+  function readJsonBody(req, res, onSuccess) {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        onSuccess(JSON.parse(body || '{}'));
+      } catch {
+        sendJson(res, 400, { error: 'Invalid JSON body' });
+      }
+    });
   }
 
   return {
@@ -147,6 +185,312 @@ function localSyncApiPlugin() {
           res.statusCode = 500; res.end(JSON.stringify({ error: 'Internal server error' }));
         }
       });
+
+      // Optional local chat room API for Vite dev server
+      if (process.env.SKIP_CHAT_LOCAL_DEV === '1') {
+        server.middlewares.use((req, res, next) => {
+        const urlObj = new URL(req.url, 'http://localhost');
+        const pathname = urlObj.pathname;
+        if (!pathname.startsWith('/api/chat/rooms')) return next();
+
+        const segments = pathname.split('/').filter(Boolean);
+        const roomId = segments[3] ? decodeURIComponent(segments[3]).toUpperCase() : '';
+        const action = segments[4] || '';
+
+        if (pathname === '/api/chat/rooms/create' && req.method === 'POST') {
+          readJsonBody(req, res, (body) => {
+            const participantId = clampText(body.participantId, 80);
+            const characterName = clampText(body.characterName, 40);
+            const displayName = clampText(body.displayName, 40) || characterName;
+            const portraitSrc = clampText(body.portraitSrc, 200);
+            const intro = clampText(body.intro, 280);
+            const roomTitle = clampText(body.roomTitle, 80) || `${characterName || displayName || 'Roleplay'} room`;
+            const visibility = clampText(body.visibility, 16) === 'public' ? 'public' : 'private';
+
+            if (!participantId || !characterName || !portraitSrc) {
+              sendJson(res, 400, { error: 'Missing required room setup fields' });
+              return;
+            }
+
+            let nextRoomId;
+            let attempts = 0;
+            do {
+              nextRoomId = generateKey();
+              attempts += 1;
+            } while (chatRoomsStore.has(nextRoomId) && attempts < 10);
+
+            const timestamp = nowIso();
+            const room = {
+              roomId: nextRoomId,
+              title: roomTitle,
+              visibility,
+              creatorId: participantId,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              typingParticipants: {},
+              participants: [
+                {
+                  id: participantId,
+                  displayName,
+                  characterName,
+                  portraitSrc,
+                  intro,
+                  isCreator: true,
+                  joinedAt: timestamp,
+                },
+              ],
+              messages: [
+                {
+                  id: createChatEntityId('system'),
+                  type: 'system',
+                  text: `${characterName} opened the room.`,
+                  createdAt: timestamp,
+                },
+              ],
+            };
+
+            chatRoomsStore.set(nextRoomId, room);
+            sendJson(res, 200, { room });
+          });
+          return;
+        }
+
+        if (pathname === '/api/chat/rooms/public' && req.method === 'GET') {
+          const rooms = Array.from(chatRoomsStore.values())
+            .filter((room) => (room.visibility || 'private') === 'public')
+            .sort((left, right) => new Date(right.updatedAt || 0).getTime() - new Date(left.updatedAt || 0).getTime())
+            .slice(0, 40);
+          sendJson(res, 200, { rooms });
+          return;
+        }
+
+        if (segments.length === 4 && req.method === 'GET' && roomId) {
+          const room = chatRoomsStore.get(roomId);
+          if (!room) {
+            sendJson(res, 404, { error: 'Room not found' });
+            return;
+          }
+
+          sendJson(res, 200, { room });
+          return;
+        }
+
+        if (action === 'join' && req.method === 'POST' && roomId) {
+          readJsonBody(req, res, (body) => {
+            const room = chatRoomsStore.get(roomId);
+            if (!room) {
+              sendJson(res, 404, { error: 'Room not found' });
+              return;
+            }
+
+            const participantId = clampText(body.participantId, 80);
+            const characterName = clampText(body.characterName, 40);
+            const displayName = clampText(body.displayName, 40) || characterName;
+            const portraitSrc = clampText(body.portraitSrc, 200);
+            const intro = clampText(body.intro, 280);
+
+            if (!participantId || !characterName || !portraitSrc) {
+              sendJson(res, 400, { error: 'Missing join fields' });
+              return;
+            }
+
+            const timestamp = nowIso();
+            const existingIndex = room.participants.findIndex((participant) => participant.id === participantId);
+            const nextParticipants = [...room.participants];
+            const nextMessages = [...room.messages];
+
+            if (existingIndex >= 0) {
+              nextParticipants[existingIndex] = {
+                ...nextParticipants[existingIndex],
+                displayName,
+                characterName,
+                portraitSrc,
+                intro: intro || nextParticipants[existingIndex].intro || '',
+              };
+            } else {
+              nextParticipants.push({
+                id: participantId,
+                displayName,
+                characterName,
+                portraitSrc,
+                intro: intro || '',
+                isCreator: false,
+                joinedAt: timestamp,
+              });
+
+              nextMessages.push({
+                id: createChatEntityId('system'),
+                type: 'system',
+                text: `${characterName} joined the room.`,
+                createdAt: timestamp,
+              });
+            }
+
+            const nextRoom = {
+              ...room,
+              participants: nextParticipants,
+              messages: nextMessages,
+              typingParticipants: {
+                ...(room.typingParticipants || {}),
+                [participantId]: false,
+              },
+              updatedAt: timestamp,
+            };
+
+            chatRoomsStore.set(roomId, nextRoom);
+            sendJson(res, 200, { room: nextRoom });
+          });
+          return;
+        }
+
+        if (action === 'message' && req.method === 'POST' && roomId) {
+          readJsonBody(req, res, (body) => {
+            const room = chatRoomsStore.get(roomId);
+            if (!room) {
+              sendJson(res, 404, { error: 'Room not found' });
+              return;
+            }
+
+            const participantId = clampText(body.participantId, 80);
+            const text = clampText(body.text, 500);
+            const drawing = sanitizeDrawingDataUrl(body.drawing);
+            const author = room.participants.find((participant) => participant.id === participantId);
+
+            if (!participantId || (!text && !drawing)) {
+              sendJson(res, 400, { error: 'Missing message fields' });
+              return;
+            }
+
+            if (!author) {
+              sendJson(res, 403, { error: 'You must join the room before sending messages' });
+              return;
+            }
+
+            const timestamp = nowIso();
+            const nextRoom = {
+              ...room,
+              updatedAt: timestamp,
+              typingParticipants: {
+                ...(room.typingParticipants || {}),
+                [participantId]: false,
+              },
+              messages: [
+                ...room.messages,
+                {
+                  id: createChatEntityId('message'),
+                  type: 'message',
+                  authorId: participantId,
+                  text,
+                  drawing,
+                  createdAt: timestamp,
+                },
+              ],
+            };
+
+            chatRoomsStore.set(roomId, nextRoom);
+            sendJson(res, 200, { room: nextRoom });
+          });
+          return;
+        }
+
+        if (action === 'typing' && req.method === 'POST' && roomId) {
+          readJsonBody(req, res, (body) => {
+            const room = chatRoomsStore.get(roomId);
+            if (!room) {
+              sendJson(res, 404, { error: 'Room not found' });
+              return;
+            }
+
+            const participantId = clampText(body.participantId, 80);
+            const isTyping = !!body.isTyping;
+            const author = room.participants.find((participant) => participant.id === participantId);
+
+            if (!participantId) {
+              sendJson(res, 400, { error: 'Missing typing fields' });
+              return;
+            }
+
+            if (!author) {
+              sendJson(res, 403, { error: 'You must join the room before updating typing state' });
+              return;
+            }
+
+            const nextRoom = {
+              ...room,
+              updatedAt: nowIso(),
+              typingParticipants: {
+                ...(room.typingParticipants || {}),
+                [participantId]: isTyping,
+              },
+            };
+
+            chatRoomsStore.set(roomId, nextRoom);
+            sendJson(res, 200, { room: nextRoom });
+          });
+          return;
+        }
+
+        if (action === 'settings' && req.method === 'POST' && roomId) {
+          readJsonBody(req, res, (body) => {
+            const room = chatRoomsStore.get(roomId);
+            if (!room) {
+              sendJson(res, 404, { error: 'Room not found' });
+              return;
+            }
+
+            const participantId = clampText(body.participantId, 80);
+            const visibility = clampText(body.visibility, 16) === 'public' ? 'public' : 'private';
+
+            if (!participantId) {
+              sendJson(res, 400, { error: 'Missing room settings fields' });
+              return;
+            }
+
+            if (room.creatorId !== participantId) {
+              sendJson(res, 403, { error: 'Only the room creator can change room settings' });
+              return;
+            }
+
+            const nextRoom = {
+              ...room,
+              visibility,
+              updatedAt: nowIso(),
+            };
+
+            chatRoomsStore.set(roomId, nextRoom);
+            sendJson(res, 200, { room: nextRoom });
+          });
+          return;
+        }
+
+        if (action === 'end' && req.method === 'POST' && roomId) {
+          readJsonBody(req, res, (body) => {
+            const room = chatRoomsStore.get(roomId);
+            if (!room) {
+              sendJson(res, 404, { error: 'Room not found' });
+              return;
+            }
+
+            const participantId = clampText(body.participantId, 80);
+            if (!participantId) {
+              sendJson(res, 400, { error: 'Missing end-session fields' });
+              return;
+            }
+
+            if (room.creatorId !== participantId) {
+              sendJson(res, 403, { error: 'Only the room creator can end this session' });
+              return;
+            }
+
+            chatRoomsStore.delete(roomId);
+            sendJson(res, 200, { ended: true });
+          });
+          return;
+        }
+
+        return next();
+        });
+      }
     }
   };
 }

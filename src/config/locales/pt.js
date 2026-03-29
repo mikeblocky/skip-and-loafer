@@ -40,6 +40,8 @@ export const pt = {
     sync: { label: 'Leitura', mobileLabel: 'Leitura' },
     quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
     birthdays: { label: 'Aniversários', mobileLabel: 'Aniversários' },
+    mystery: { label: 'Mistério', mobileLabel: 'Mistério' },
+    chat: { label: 'Chat', mobileLabel: 'Chat' },
   },
   mystery: {
     title: "Cabine Misteriosa",

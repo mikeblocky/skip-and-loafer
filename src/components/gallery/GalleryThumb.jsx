@@ -18,6 +18,44 @@ const CARD_PALETTES = [
 const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
 const isGifSrc = (value) => /\.gif($|\?)/i.test(value || '');
 
+const ThumbPlaceholder = ({ palette, selectedBorderColor }) => (
+  <div
+    style={{
+      width: '100%',
+      minHeight: '200px',
+      borderRadius: '12px',
+      background: '#f8fafc',
+      border: '2px solid rgba(255,255,255,0.92)',
+      position: 'relative',
+      overflow: 'hidden',
+    }}
+  >
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0) 100%)',
+        backgroundSize: '200% 100%',
+        animation: 'plannerShimmer 1.2s linear infinite',
+      }}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        right: '18px',
+        bottom: '18px',
+        width: '38px',
+        height: '38px',
+        background: '#ffffff',
+        border: `2.5px solid ${selectedBorderColor || palette.border}`,
+        borderBottom: `6px solid ${selectedBorderColor || palette.bottom}`,
+        borderRadius: '14px',
+        opacity: 0.72,
+      }}
+    />
+  </div>
+);
+
 const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artAltLabel }) => {
   const isVideo = isVideoSrc(src);
   const isGif = isGifSrc(src);
@@ -43,7 +81,7 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
           observer.disconnect();
         }
       },
-      { root: null, rootMargin: '12px 0px', threshold: 0.08 },
+      { root: null, rootMargin: '240px 0px', threshold: 0.01 },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -70,18 +108,19 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
     <motion.div
       ref={cardRef}
       key={src}
-      initial={{ opacity: 0, y: 30, rotate: rotation - 10 }}
+      initial={{ opacity: 0, y: 16, rotate: rotation - 4 }}
       animate={{ opacity: 1, y: 0, rotate: rotation }}
-      transition={{ type: 'spring', stiffness: 200, damping: 20, delay: Math.min(index * 0.03, 0.4) }}
-      whileHover={{ 
-        scale: 1.05, 
-        rotate: 0, 
+      transition={{ duration: 0.22, ease: 'easeOut', delay: Math.min(index * 0.018, 0.2) }}
+      whileHover={{
+        scale: 1.02,
+        y: -3,
         zIndex: 20,
-        transition: { type: 'spring', stiffness: 400, damping: 15 }
+        transition: { duration: 0.16, ease: 'easeOut' }
       }}
       className="break-inside-avoid relative group cursor-pointer overflow-visible"
       style={{ 
-        contentVisibility: 'auto', 
+        contentVisibility: 'auto',
+        containIntrinsicSize: '280px 320px',
         overflowAnchor: 'none',
         marginBottom: '30px'
       }}
@@ -140,6 +179,7 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
             border: '2px solid rgba(255,255,255,0.92)',
           }}
         >
+        {!isVisible && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} />}
         {isVisible && (
           isVideo ? (
             <video
@@ -173,9 +213,14 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
                   onLoaded(src);
                 }
               }}
+              style={{
+                opacity: isLoaded ? 1 : 0.01,
+                transition: 'opacity 0.18s ease-out',
+              }}
             />
           )
         )}
+        {isVisible && !isLoaded && !isVideo && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} />}
         </div>
         <div
           className="sketchbook-border"
@@ -198,8 +243,8 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
         >
           <ZoomIn color={selectedBorderColor || palette.label} size={16} strokeWidth={2.6} />
         </div>
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center rounded-[12px] m-[14px]">
-          <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" size={32} />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-200 flex items-center justify-center rounded-[12px] m-[14px]">
+          <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow-md" size={32} />
         </div>
       </div>
     </motion.div>

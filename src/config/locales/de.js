@@ -40,6 +40,8 @@ export const de = {
     sync: { label: 'Lesen', mobileLabel: 'Lesen' },
     quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
     birthdays: { label: 'Geburtstage', mobileLabel: 'Geburtstage' },
+    mystery: { label: 'Mysterium', mobileLabel: 'Mysterium' },
+    chat: { label: 'Chat', mobileLabel: 'Chat' },
   },
   mystery: {
     title: "Geheimnisvolle Hütte",

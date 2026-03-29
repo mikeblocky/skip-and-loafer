@@ -9,8 +9,6 @@ import { createClient } from 'redis';
 
 const PREFIX = 'quiz:';
 const RESULTS_KEY = `${PREFIX}results`;
-const MAX_RESULTS = 300;
-
 const normalizeName = (name) => {
   const trimmed = String(name || 'Player').trim().slice(0, 24);
   return trimmed || 'Player';
@@ -49,7 +47,7 @@ export default async function handler(req, res) {
     await client.connect();
 
     if (req.method === 'GET') {
-      const rawItems = await client.lRange(RESULTS_KEY, 0, 99);
+      const rawItems = await client.lRange(RESULTS_KEY, 0, -1);
       const results = rawItems
         .map(parseResult)
         .filter(Boolean)
@@ -80,9 +78,8 @@ export default async function handler(req, res) {
     }
 
     await client.lPush(RESULTS_KEY, JSON.stringify(payload));
-    await client.lTrim(RESULTS_KEY, 0, MAX_RESULTS - 1);
 
-    const rawItems = await client.lRange(RESULTS_KEY, 0, 99);
+    const rawItems = await client.lRange(RESULTS_KEY, 0, -1);
     const results = rawItems
       .map(parseResult)
       .filter(Boolean)

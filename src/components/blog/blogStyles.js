@@ -61,21 +61,21 @@ export const getSortButtonStyle = (isMobile) => ({
 
 export const getReaderControlButtonStyle = ({ active, isMobile }) => ({
   border: `2.5px solid ${active ? '#60a5fa' : '#cbd5e1'}`,
-  borderBottom: `${active ? '7px' : '5px'} solid ${active ? '#2563eb' : '#94a3b8'}`,
+  borderBottom: `${active ? (isMobile ? '6px' : '7px') : (isMobile ? '4px' : '5px')} solid ${active ? '#2563eb' : '#94a3b8'}`,
   background: active ? '#eff6ff' : '#ffffff',
   color: active ? '#1d4ed8' : '#475569',
-  borderRadius: '18px',
-  padding: isMobile ? '10px' : '10px 14px',
+  borderRadius: isMobile ? '16px' : '18px',
+  padding: isMobile ? '8px' : '10px 14px',
   fontFamily: 'Sniglet, var(--font-main)',
-  fontSize: isMobile ? '0.82rem' : '0.9rem',
+  fontSize: isMobile ? '0.78rem' : '0.9rem',
   fontWeight: '400',
   cursor: 'pointer',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '7px',
-  minWidth: isMobile ? '44px' : 'auto',
-  minHeight: isMobile ? '44px' : 'auto',
+  gap: isMobile ? '6px' : '7px',
+  minWidth: isMobile ? '40px' : 'auto',
+  minHeight: isMobile ? '40px' : 'auto',
   transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
   transform: active ? 'translateY(2px)' : 'none',
 });
@@ -83,31 +83,33 @@ export const getReaderControlButtonStyle = ({ active, isMobile }) => ({
 export const getReaderControlsContainerStyle = ({ floating, isMobile, showFloatingControls }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: isMobile ? '8px' : '12px',
+  gap: isMobile ? '6px' : '12px',
   flexWrap: 'nowrap',
   marginBottom: floating ? 0 : (isMobile ? '20px' : '24px'),
-  padding: isMobile ? '12px' : '14px',
-  borderRadius: '28px',
+  padding: isMobile ? '8px 10px' : '14px',
+  borderRadius: isMobile ? '22px' : '28px',
   background: 'rgba(255, 255, 255, 0.94)',
   backdropFilter: 'blur(14px) saturate(1.4)',
   border: '3px solid #dbeafe',
-  borderBottom: '8px solid #93c5fd',
+  borderBottom: isMobile ? '6px solid #93c5fd' : '8px solid #93c5fd',
   position: floating ? 'fixed' : 'relative',
-  left: floating ? '50%' : 'auto',
-  bottom: floating ? (isMobile ? '16px' : '24px') : 'auto',
+  left: floating ? (isMobile ? 'calc(50% + 14px)' : '50%') : 'auto',
+  top: floating && isMobile ? 'max(calc(env(safe-area-inset-top) + 8px), 8px)' : 'auto',
+  bottom: floating ? (isMobile ? 'auto' : '24px') : 'auto',
   transform: floating
-    ? `translateX(-50%) translateY(${showFloatingControls ? '0px' : '40px'})`
+    ? `translateX(-50%) translateY(${showFloatingControls ? '0px' : (isMobile ? '-18px' : '40px')}) scale(${showFloatingControls ? '1' : '0.96'})`
     : 'none',
-  width: floating ? (isMobile ? 'fit-content' : 'fit-content') : '100%',
-  maxWidth: floating ? 'calc(100% - 32px)' : 'none',
-  boxShadow: floating ? '0 12px 40px rgba(15, 23, 42, 0.15)' : '0 12px 24px rgba(96, 165, 250, 0.08)',
+  width: isMobile ? 'fit-content' : (floating ? 'fit-content' : '100%'),
+  maxWidth: floating ? (isMobile ? 'calc(100% - 84px)' : 'calc(100% - 24px)') : (isMobile ? '100%' : 'none'),
+  boxShadow: floating ? (isMobile ? '0 10px 24px rgba(15, 23, 42, 0.12)' : '0 14px 36px rgba(15, 23, 42, 0.16)') : '0 12px 24px rgba(96, 165, 250, 0.08)',
   zIndex: 2100,
-  justifyContent: floating ? 'center' : 'space-between',
+  justifyContent: isMobile ? 'center' : (floating ? 'center' : 'space-between'),
   overflowX: isMobile ? 'auto' : 'visible',
   overflowY: 'hidden',
   opacity: floating ? (showFloatingControls ? 1 : 0) : 1,
   pointerEvents: floating ? (showFloatingControls ? 'auto' : 'none') : 'auto',
-  transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+  transition: 'transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, box-shadow 0.24s ease',
+  marginInline: isMobile ? 'auto' : undefined,
 });
 
 export const READER_CONTROLS_LABEL_STYLE = {
@@ -127,9 +129,9 @@ export const READER_CONTROLS_LABEL_STYLE = {
 
 export const getControlsSeparatorStyle = (isMobile) => ({
   width: isMobile ? '2px' : '2px',
-  height: isMobile ? '26px' : '26px',
+  height: isMobile ? '22px' : '26px',
   background: '#dbeafe',
-  margin: isMobile ? '0 2px' : '0 4px',
+  margin: isMobile ? '0 1px' : '0 4px',
   borderRadius: '999px',
 });
 
@@ -260,18 +262,20 @@ export const getReaderHeadingStyle = (readerTheme, headingFontScale, isMobile) =
   color: readerTheme.heading,
   fontFamily: 'Sniglet, var(--font-main)',
   fontWeight: 400,
-  fontSize: isMobile ? `${1.45 * headingFontScale}rem` : `${1.78 * headingFontScale}rem`,
-  lineHeight: 1.08,
+  fontSize: isMobile ? `${1.56 * headingFontScale}rem` : `${1.94 * headingFontScale}rem`,
+  lineHeight: 1.12,
+  letterSpacing: '0.012em',
   transition: 'font-size 0.3s ease, color 0.3s ease',
 });
 
 export const getReaderDescriptionStyle = (readerTheme, bodyFontScale, paragraphLineHeight, isMobile) => ({
   margin: 0,
   color: readerTheme.subtle,
-  fontFamily: 'var(--font-main)',
-  fontWeight: 700,
-  fontSize: isMobile ? `${0.92 * bodyFontScale}rem` : `${0.98 * bodyFontScale}rem`,
-  lineHeight: paragraphLineHeight,
+  fontFamily: 'Sniglet, var(--font-main)',
+  fontWeight: 400,
+  fontSize: isMobile ? `${1.02 * bodyFontScale}rem` : `${1.08 * bodyFontScale}rem`,
+  lineHeight: paragraphLineHeight + 0.04,
+  letterSpacing: '0.01em',
   opacity: 0.92,
   transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease',
 });
@@ -297,9 +301,10 @@ export const getLoadMoreStyle = (isMobile, readerTheme) => ({
   padding: isMobile ? '14px 0 24px 0' : '20px 0 40px 0',
   textAlign: 'center',
   color: readerTheme.subtle,
-  fontFamily: 'var(--font-main)',
-  fontWeight: '900',
-  fontSize: isMobile ? '0.85rem' : '0.95rem',
+  fontFamily: 'Sniglet, var(--font-main)',
+  fontWeight: '400',
+  fontSize: isMobile ? '0.92rem' : '1rem',
+  letterSpacing: '0.01em',
   opacity: 0.6,
 });
 

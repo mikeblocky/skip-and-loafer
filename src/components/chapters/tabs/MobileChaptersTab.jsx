@@ -57,17 +57,17 @@ const MobileChaptersTab = ({
       <AnimatePresence mode="wait">
         <motion.div
           key={volume.number}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 18 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
           style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}
         >
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
             <motion.div
-              initial={{ scale: 0.9, rotate: -5 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 450 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
               style={getVolumeCardStyle(theme, true)}
             >
               <div style={{
@@ -90,9 +90,9 @@ const MobileChaptersTab = ({
  
               {volume.anime && (
                 <motion.div
-                  initial={{ scale: 0, rotate: -20 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.3, type: 'spring', stiffness: 500 }}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.08, duration: 0.16, ease: 'easeOut' }}
                   style={EXTRA_BADGE_STYLE(theme)}
                 >
                   <Tv size={12} strokeWidth={3} style={{ marginRight: '3px' }} />{volume.anime}

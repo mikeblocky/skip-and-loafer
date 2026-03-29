@@ -57,17 +57,17 @@ const DesktopChaptersTab = ({
       <AnimatePresence mode="wait">
         <motion.div
           key={volume.number}
-          initial={{ opacity: 0, y: 40, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -40, scale: 0.95 }}
-          transition={{ duration: 0.4, type: 'spring', stiffness: 450, damping: 14 }}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
           style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: '48px', alignItems: 'flex-start' }}
         >
           <div style={{ flexShrink: 0, width: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
             <motion.div
-              initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 500 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.04, duration: 0.18, ease: 'easeOut' }}
               style={getVolumeCardStyle(theme, false)}
             >
               <div style={{
@@ -90,9 +90,9 @@ const DesktopChaptersTab = ({
  
               {volume.anime && (
                 <motion.div
-                  initial={{ scale: 0, rotate: -20 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.4, type: 'spring', stiffness: 500 }}
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.08, duration: 0.16, ease: 'easeOut' }}
                   style={EXTRA_BADGE_STYLE(theme)}
                 >
                   <Tv size={14} strokeWidth={3} style={{ marginRight: '4px' }} />{volume.anime}
@@ -102,9 +102,9 @@ const DesktopChaptersTab = ({
  
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
               <motion.p
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
+                transition={{ delay: 0.06, duration: 0.16, ease: 'easeOut' }}
                 style={VOL_TITLE_STYLE(theme)}
               >
                 {getVolumeTitleFn(uiLanguage, volume.number)}

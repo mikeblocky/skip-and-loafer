@@ -2,16 +2,16 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-const InteractiveShape = ({ color, size, initialTop, initialLeft, index }) => {
+const InteractiveShape = ({ color, size, initialTop, initialLeft, index, subtle = false }) => {
     // Each shape gets a unique organic path
     const motion_config = useMemo(() => {
-        const spread = 35;
+        const spread = subtle ? 18 : 35;
         return {
             pathX: [0, spread * (Math.random() - 0.3), -spread * (Math.random() + 0.2), spread * (Math.random() - 0.5), 0],
             pathY: [0, -spread * (Math.random() + 0.3), spread * (Math.random() - 0.4), -spread * (Math.random() - 0.2), 0],
-            duration: 10 + index * 2.5 + Math.random() * 4,
+            duration: (subtle ? 14 : 10) + index * 2.5 + Math.random() * 4,
         };
-    }, [index]);
+    }, [index, subtle]);
 
     return (
         <motion.div
@@ -23,16 +23,16 @@ const InteractiveShape = ({ color, size, initialTop, initialLeft, index }) => {
                 width: size,
                 height: size,
                 background: color,
-                opacity: 0.35,
+                opacity: subtle ? 0.22 : 0.35,
                 zIndex: 2,
                 pointerEvents: 'none'
             }}
             animate={{
                 x: motion_config.pathX,
                 y: motion_config.pathY,
-                scale: [1, 1.18, 0.88, 1.12, 1],
-                rotate: [0, 12, -10, 6, 0],
-                opacity: [0.35, 0.28, 0.38, 0.3, 0.35],
+                scale: subtle ? [1, 1.08, 0.96, 1.03, 1] : [1, 1.18, 0.88, 1.12, 1],
+                rotate: subtle ? [0, 6, -5, 3, 0] : [0, 12, -10, 6, 0],
+                opacity: subtle ? [0.22, 0.19, 0.24, 0.2, 0.22] : [0.35, 0.28, 0.38, 0.3, 0.35],
             }}
             transition={{
                 repeat: Infinity,
