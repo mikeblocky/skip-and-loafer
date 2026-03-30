@@ -10,36 +10,37 @@ import { CHAPTERS } from './data/chapters';
 import { UI_TEXT } from './config/uiText';
 
 // Components
-import NavTabs from './components/NavTabs';
-import AppTabContent from './components/app/AppTabContent';
-import { loadGalleryPage } from './components/app/appPageLoaders';
-import { useReadProgress } from './hooks/useReadProgress';
-import { useSyncData } from './hooks/useSyncData';
-import { usePageHistorySync } from './hooks/app/usePageHistorySync';
-import { useQuickPanels } from './hooks/app/useQuickPanels';
-import { useTabSwipeNavigation } from './hooks/app/useTabSwipeNavigation';
-import { useKeyboardShortcuts } from './hooks/app/useKeyboardShortcuts';
-import { usePersistedAppState } from './hooks/app/usePersistedAppState';
-import { useWindowSize } from './hooks/app/useWindowSize';
-import { useMainScrollTop } from './hooks/app/useMainScrollTop';
-import { useGalleryPrefetch } from './hooks/app/useGalleryPrefetch';
-import { useReaderChapterNavigation } from './hooks/app/useReaderChapterNavigation';
-import { useUiBootDelay } from './hooks/app/useUiBootDelay';
-import useIdlePreload from './hooks/app/useIdlePreload';
-import useDeferredMount from './hooks/app/useDeferredMount';
+import NavTabs from './components/shared/NavTabs';
+import AppTabContent from './features/app/AppTabContent';
+import { loadGalleryPage } from './features/app/appPageLoaders';
+import { useReadProgress } from './features/chapters/hooks/useReadProgress';
+import { useSyncData } from './features/sync/hooks/useSyncData';
+import { usePageHistorySync } from './features/app/hooks/usePageHistorySync';
+import { useQuickPanels } from './features/app/hooks/useQuickPanels';
+import { useTabSwipeNavigation } from './features/app/hooks/useTabSwipeNavigation';
+import { useKeyboardShortcuts } from './features/app/hooks/useKeyboardShortcuts';
+import { usePersistedAppState } from './features/app/hooks/usePersistedAppState';
+import { useWindowSize } from './features/app/hooks/useWindowSize';
+import { useMainScrollTop } from './features/app/hooks/useMainScrollTop';
+import { useGalleryPrefetch } from './features/app/hooks/useGalleryPrefetch';
+import { useReaderChapterNavigation } from './features/app/hooks/useReaderChapterNavigation';
+import { useUiBootDelay } from './features/app/hooks/useUiBootDelay';
+import useIdlePreload from './features/app/hooks/useIdlePreload';
+import useDeferredMount from './features/app/hooks/useDeferredMount';
 import { getInitialUiLanguage } from './config/uiLanguage';
 import { registerHapticGesture } from './utils/haptics';
 
-const loadMangaReader = () => import('./components/MangaReader');
+const loadMangaReader = () => import('./features/mangaReader/MangaReader');
 const MangaReader = lazy(loadMangaReader);
-const AppQuickControls = lazy(() => import('./components/app/AppQuickControls'));
-const AppDisclaimerModal = lazy(() => import('./components/app/AppDisclaimerModal'));
-const AppDecorativeLayer = lazy(() => import('./components/app/AppDecorativeLayer'));
-const ChangelogPopup = lazy(() => import('./components/ChangelogPopup'));
-const BirthdayNotification = lazy(() => import('./components/BirthdayNotification'));
+const AppQuickControls = lazy(() => import('./features/app/AppQuickControls'));
+const AppDisclaimerModal = lazy(() => import('./features/app/AppDisclaimerModal'));
+const AppDecorativeLayer = lazy(() => import('./features/app/AppDecorativeLayer'));
+const ChangelogPopup = lazy(() => import('./components/shared/ChangelogPopup'));
+const BirthdayNotification = lazy(() => import('./components/shared/BirthdayNotification'));
 const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
 const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
+export const CHAT_FONT_FAMILY = "'Sniglet', 'Coming Soon', 'Pangolin', 'Comic Neue', 'Comic Sans MS', cursive";
 const TAB_PAGES = ['home', 'chapters', 'gallery', 'blog', 'sync', 'quiz', 'birthdays', 'mystery', 'chat'];
 
 const ReaderOverlayFallback = ({ isMobile, label }) => (
@@ -387,23 +388,6 @@ function App() {
         </Suspense>
       )}
 
-      {showUI && isMobile && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 'calc(env(safe-area-inset-top, 0px) + 14px)',
-            background: 'rgba(253, 250, 248, 0.86)',
-            borderBottom: '1px solid rgba(219, 234, 254, 0.9)',
-            zIndex: 900,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-
       {/* Main UI */}
       <AnimatePresence>
         {showUI && (
@@ -474,11 +458,11 @@ function App() {
                 scrollMarginTop: '60px',
                 width: '100%',
                 maxWidth: isMobile ? '100%' : (activePage === 'home' ? (accessibilityPrefs.largeText ? '1200px' : '1140px') : '1210px'),
-                minHeight: isMobile ? 0 : 'min-content',
+                minHeight: isMobile ? 'calc(100dvh - 160px)' : '800px',
                 display: 'flex',
                 flexDirection: 'column',
                 pointerEvents: 'auto',
-                flex: '0 0 auto',
+                flex: '1 0 auto',
                 flexShrink: 0,
             }}>
               {/* Bookmark Nav Tabs */}
