@@ -60,10 +60,20 @@ html {
 }
 
 .mystery-ui,
-.mystery-ui * {
+.mystery-ui *,
+[style*="Sniglet"],
+[style*="CHAT_FONT_FAMILY"] {
   font-family: "Sniglet", "Coming Soon", cursive !important;
   font-weight: 400 !important;
 }
+
+/* Force normal weight for Sniglet everywhere */
+@font-face {
+  font-family: "Sniglet";
+  font-weight: 700;
+  src: local("Sniglet"); /* Attempt to suppress bold if it's a separate file */
+}
+
 /* Emotional celebration hearts */
 @keyframes heartFloat {
   0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
@@ -95,7 +105,7 @@ html {
 /* ──────────────────────────────────
    Character Personality Keyframes
    (CSS prevents Framer Motion React re-render flashing)
-─────────────────────────────────── */
+ ─────────────────────────────────── */
 @keyframes idleMitsumi {
   0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
   25% { transform: translateY(-6px) scale(1.03) rotate(1.5deg); }
@@ -130,7 +140,7 @@ html {
 
 /* ──────────────────────────────────
    Scrapbook UI Elements
-─────────────────────────────────── */
+ ─────────────────────────────────── */
 .washi-tape {
   position: absolute;
   top: -12px;
@@ -162,7 +172,7 @@ html {
 
 /* ──────────────────────────────────
    Sketchbook Aesthetics & Interactions
-─────────────────────────────────── */
+ ─────────────────────────────────── */
 .sketchbook-border {
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
 }
@@ -291,7 +301,7 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
     0 0 0 1px rgba(0, 0, 0, 0.04),
     0 0 40px var(--warm-glow);
   border-radius: 4px;
-  overflow: hidden;
+  /* Removed overflow: hidden to allow content growth */
   transition: box-shadow 0.5s ease;
 }
 

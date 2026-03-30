@@ -21,6 +21,14 @@ function generateKey() {
     return key;
 }
 
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb',
+        },
+    },
+};
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -43,9 +51,9 @@ export default async function handler(req, res) {
         }
 
         const payload = JSON.stringify(data);
-        if (payload.length > 51200) {
+        if (payload.length > 10485760) {
             await client.disconnect();
-            return res.status(413).json({ error: 'Payload too large (max 50KB)' });
+            return res.status(413).json({ error: 'Payload too large (max 10MB)' });
         }
 
         // Update existing key if provided — re-create it if it expired
