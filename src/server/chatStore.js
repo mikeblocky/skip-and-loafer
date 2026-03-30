@@ -4,10 +4,44 @@ const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_PREFIX = 'chat:room:';
 const ROOM_INDEX_KEY = 'chat:rooms:index';
 const MAX_UPDATE_ATTEMPTS = 8;
+const BANNED_ROOM_IDS = ['EFYXT4CX'];
+
+class MemoryClient {
+  constructor() {
+    this.storage = new Map();
+  }
+
+  async connect() { return this; }
+  async get(key) { return this.storage.get(key) || null; }
+  async set(key, value) { this.storage.set(key, value); return 'OK'; }
+  async del(key) { this.storage.delete(key); return 1; }
+  async exists(key) { return this.storage.has(key) ? 1 : 0; }
+  async watch() { return 'OK'; }
+  async unwatch() { return 'OK'; }
+  multi() {
+    const queue = [];
+    return {
+      set: (key, value) => { queue.push(() => this.set(key, value)); return this; },
+      del: (key) => { queue.push(() => this.del(key)); return this; },
+      exec: async () => {
+        for (const op of queue) await op();
+        return ['OK'];
+      }
+    };
+  }
+  on() { return this; }
+}
+
+const memoryClient = new MemoryClient();
 
 export function createRedisClient() {
-  if (!process.env.REDIS_URL) {
-    throw new Error('REDIS_URL is required for chat persistence');
+  const isDev = process.env.NODE_ENV === 'development' || !process.env.REDIS_URL;
+  
+  if (isDev) {
+    if (!process.env.REDIS_URL) {
+      console.log('--- Chat Store: Using Local Memory Mode (Dev) ---');
+    }
+    return memoryClient;
   }
 
   const client = createClient({ url: process.env.REDIS_URL });
@@ -22,10 +56,13 @@ export function roomKey(roomId) {
 
 export function generateRoomId() {
   let key = '';
-  for (let i = 0; i < 8; i += 1) {
-    key += CHARSET[Math.floor(Math.random() * CHARSET.length)];
+  while (true) {
+    key = '';
+    for (let i = 0; i < 8; i += 1) {
+      key += CHARSET[Math.floor(Math.random() * CHARSET.length)];
+    }
+    if (!BANNED_ROOM_IDS.includes(key)) return key;
   }
-  return key;
 }
 
 export function createTimestamp() {
@@ -36,6 +73,56 @@ export function createEntityId(prefix) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function getParticipantCharacterName(room, participantId) {
+  const participant = (room?.participants || []).find((p) => p.id === participantId);
+  return participant?.characterName || '';
+}
+
+function decorateSystemMessage(room, message, index) {
+  if (!message || message.type !== 'system') return message;
+
+  const nextMessage = { ...message };
+  const existingKey = nextMessage.systemKey || nextMessage.systemType || nextMessage.event;
+  const text = String(nextMessage.text || '');
+
+  if (existingKey === 'room_opened' || (index === 0 && /opened the room\.$/i.test(text))) {
+    nextMessage.systemKey = 'room_opened';
+    nextMessage.actorId = nextMessage.actorId || room?.creatorId || null;
+    if (!nextMessage.actorName) {
+      nextMessage.actorName = getParticipantCharacterName(room, nextMessage.actorId) || text.replace(/ opened the room\.$/i, '');
+    }
+    return nextMessage;
+  }
+
+  if (existingKey === 'room_joined' || /joined the room\.$/i.test(text)) {
+    nextMessage.systemKey = 'room_joined';
+    if (!nextMessage.actorId) {
+      const matchedParticipant = (room?.participants || []).find((participant) =>
+        String(participant.joinedAt || '') === String(nextMessage.createdAt || '') ||
+        String(participant.updatedAt || '') === String(nextMessage.createdAt || '')
+      );
+      if (matchedParticipant) {
+        nextMessage.actorId = matchedParticipant.id;
+      }
+    }
+    if (!nextMessage.actorName) {
+      nextMessage.actorName = getParticipantCharacterName(room, nextMessage.actorId) || text.replace(/ joined the room\.$/i, '');
+    }
+    return nextMessage;
+  }
+
+  return message;
+}
+
+export function decorateRoomMessages(room) {
+  if (!room || !Array.isArray(room.messages)) return room;
+
+  return {
+    ...room,
+    messages: room.messages.map((message, index) => decorateSystemMessage(room, message, index)),
+  };
+}
+
 export async function connectRedis() {
   const client = createRedisClient();
   await client.connect();
@@ -43,6 +130,7 @@ export async function connectRedis() {
 }
 
 export async function readRoom(client, roomId) {
+  if (BANNED_ROOM_IDS.includes(String(roomId || '').toUpperCase())) return null;
   const raw = await client.get(roomKey(roomId));
   if (!raw) return null;
   return JSON.parse(raw);
@@ -51,7 +139,8 @@ export async function readRoom(client, roomId) {
 export async function readRoomIndex(client) {
   const raw = await client.get(ROOM_INDEX_KEY);
   const parsed = raw ? JSON.parse(raw) : [];
-  return Array.isArray(parsed) ? parsed : [];
+  const ids = Array.isArray(parsed) ? parsed : [];
+  return ids.filter((id) => !BANNED_ROOM_IDS.includes(id));
 }
 
 export async function writeRoomIndex(client, roomIds) {

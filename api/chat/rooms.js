@@ -5,6 +5,7 @@ import {
   createEntityId,
   createTimestamp,
   createUniqueRoomId,
+  decorateRoomMessages,
   listPublicRooms,
   sendJson,
   writeRoom,
@@ -12,7 +13,7 @@ import {
 
 function sanitizeRoom(room) {
   if (!room) return room;
-  const { creatorToken, ...safeRoom } = room;
+  const { creatorToken, ...safeRoom } = decorateRoomMessages(room);
   return safeRoom;
 }
 
@@ -96,6 +97,9 @@ export default async function handler(req, res) {
           {
             id: createEntityId('system'),
             type: 'system',
+            systemKey: 'room_opened',
+            actorId: creatorId,
+            actorName: selectedCharacter,
             text: `${selectedCharacter} opened the room.`,
             createdAt: timestamp,
           },

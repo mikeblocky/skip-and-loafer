@@ -4,16 +4,18 @@ import {
   connectRedis,
   createEntityId,
   createTimestamp,
+  decorateRoomMessages,
   readRoom,
   removeRoomFromIndex,
   sendJson,
   updateRoom,
 } from '../../../src/server/chatStore.js';
+import { MAX_DRAWING_DATA_URL_LENGTH } from '../../../src/features/chat/chatConstants.js';
 
 function sanitizeRoom(room) {
   if (!room) return room;
   // Note: We MUST NOT leak reclaimCode to other participants!
-  const { creatorToken, reclaimPin, ...safeRoom } = room;
+  const { creatorToken, reclaimPin, ...safeRoom } = decorateRoomMessages(room);
   return {
     ...safeRoom,
     participants: (room.participants || []).map((p) => {
@@ -26,7 +28,7 @@ function sanitizeRoom(room) {
 function sanitizeDrawingDataUrl(value) {
   const normalized = String(value || '').trim();
   if (!normalized.startsWith('data:image/png;base64,')) return '';
-  if (normalized.length > 250000) return '';
+  if (normalized.length > MAX_DRAWING_DATA_URL_LENGTH) return '';
   return normalized;
 }
 
@@ -38,20 +40,34 @@ export default async function handler(req, res) {
   const roomId = clampText(req.query?.roomId, 16).toUpperCase();
   if (!roomId) return sendJson(res, 400, { error: 'Missing room ID' });
 
+  const headerCreatorToken = req.headers['x-creator-token'];
+
   let client;
   try {
     client = await connectRedis();
 
-    if (req.method === 'GET' || req.method === 'HEAD') {
-      const room = await readRoom(client, roomId);
-      if (!room) {
-        return req.method === 'HEAD'
-          ? res.status(404).end()
-          : sendJson(res, 404, { error: 'Room not found' });
+      if (req.method === 'GET' || req.method === 'HEAD') {
+        const room = await readRoom(client, roomId);
+        if (!room) {
+          console.error(`[CHAT] Room not found in Redis: ${roomId}`);
+          return req.method === 'HEAD'
+            ? res.status(404).end()
+            : sendJson(res, 404, { 
+                error: 'Room not found', 
+                debugId: roomId,
+                serverTime: new Date().toISOString()
+              });
+        }
+        if (req.method === 'HEAD') return res.status(200).end();
+
+        const isOwner = headerCreatorToken && headerCreatorToken === room.creatorToken;
+        const payload = { room: sanitizeRoom(room) };
+        if (isOwner) {
+          payload.reclaimPin = room.reclaimPin;
+        }
+
+        return sendJson(res, 200, payload);
       }
-      if (req.method === 'HEAD') return res.status(200).end();
-      return sendJson(res, 200, { room: sanitizeRoom(room) });
-    }
 
     if (req.method !== 'POST') {
       return sendJson(res, 405, { error: 'Method not allowed' });
@@ -60,12 +76,9 @@ export default async function handler(req, res) {
     const action = clampText(req.body?.action, 20).toLowerCase();
 
     if (action === 'join') {
-      const participantId = clampText(req.body?.participantId, 80);
-      const characterName = clampText(req.body?.characterName, 40);
-      const portraitSrc = clampText(req.body?.portraitSrc, 200);
-
-      if (!participantId || !characterName || !portraitSrc) {
-        return sendJson(res, 400, { error: 'Missing join fields' });
+      const { characterName, portraitSrc, paletteIndex, participantId } = req.body || {};
+      if (!roomId || !participantId || !characterName) {
+        return sendJson(res, 400, { error: 'Missing roomId, participantId or characterName' });
       }
 
       const room = await updateRoom(client, roomId, (currentRoom) => {
@@ -75,16 +88,16 @@ export default async function handler(req, res) {
           throw error;
         }
 
-        const existingParticipantIndex = currentRoom.participants.findIndex((p) => p.id === participantId);
         const timestamp = Date.now();
+        const existingIndex = currentRoom.participants.findIndex((p) => p.id === participantId);
 
-        if (existingParticipantIndex !== -1) {
+        if (existingIndex >= 0) {
           const updatedParticipants = [...currentRoom.participants];
-          updatedParticipants[existingParticipantIndex] = {
-            ...updatedParticipants[existingParticipantIndex],
-            displayName: characterName,
+          updatedParticipants[existingIndex] = {
+            ...updatedParticipants[existingIndex],
             characterName,
             portraitSrc,
+            paletteIndex,
             updatedAt: timestamp,
           };
           return { ...currentRoom, participants: updatedParticipants, updatedAt: timestamp };
@@ -96,6 +109,7 @@ export default async function handler(req, res) {
           displayName: characterName,
           characterName,
           portraitSrc,
+          paletteIndex,
           reclaimCode,
           joinedAt: timestamp,
           updatedAt: timestamp,
@@ -104,15 +118,29 @@ export default async function handler(req, res) {
         return {
           ...currentRoom,
           participants: [...currentRoom.participants, newParticipant],
+          messages: [
+            ...(currentRoom.messages || []),
+            {
+              id: createEntityId('system'),
+              type: 'system',
+              systemKey: 'room_joined',
+              actorId: participantId,
+              actorName: characterName,
+              text: `${characterName} joined the room.`,
+              createdAt: timestamp,
+            },
+          ],
           updatedAt: timestamp,
         };
       });
 
       const participant = room.participants.find((p) => p.id === participantId);
+      const isOwner = headerCreatorToken && headerCreatorToken === room.creatorToken;
       return sendJson(res, 200, {
         room: sanitizeRoom(room),
         participantId,
         reclaimCode: participant?.reclaimCode,
+        reclaimPin: isOwner ? room.reclaimPin : undefined,
       });
     }
 
@@ -166,14 +194,28 @@ export default async function handler(req, res) {
         };
       });
 
-      // Response with the actual creatorToken so the client can store it if they are now the owner
-      return sendJson(res, 200, { room: sanitizeRoom(room), creatorToken: room.creatorToken, reclaimedParticipantId: newParticipantId });
+      const cleanedCode = String(providedCode).trim().toUpperCase();
+      const isMasterPinMatch = String(room.reclaimPin || '') === cleanedCode;
+      
+      const targetParticipant = room.participants.find((p) => {
+        if (isMasterPinMatch) return p.id === newParticipantId;
+        return p.reclaimCode === cleanedCode;
+      });
+
+      return sendJson(res, 200, {
+        room: sanitizeRoom(room),
+        creatorToken: room.creatorToken,
+        reclaimPin: room.reclaimPin,
+        reclaimedParticipantId: newParticipantId,
+        reclaimCode: targetParticipant?.reclaimCode,
+      });
     }
 
     if (action === 'message') {
       const participantId = clampText(req.body?.participantId, 80);
       const text = clampText(req.body?.text, 500);
       const drawing = sanitizeDrawingDataUrl(req.body?.drawing);
+      const repliedToId = clampText(req.body?.repliedToId || req.body?.replyToId, 80);
 
       if (!participantId || (!text && !drawing)) {
         return sendJson(res, 400, { error: 'Missing message fields' });
@@ -186,7 +228,7 @@ export default async function handler(req, res) {
           throw error;
         }
 
-        const author = currentRoom.participants.find((participant) => participant.id === participantId);
+        const author = currentRoom.participants.find((p) => p.id === participantId);
         if (!author) {
           const error = new Error('You must join the room before sending messages');
           error.statusCode = 403;
@@ -209,9 +251,157 @@ export default async function handler(req, res) {
               authorId: participantId,
               text,
               drawing,
+              repliedToId: repliedToId || null,
               createdAt: timestamp,
             },
           ],
+        };
+      });
+
+      return sendJson(res, 200, { room: sanitizeRoom(room) });
+    }
+
+    if (action === 'edit') {
+      const participantId = clampText(req.body?.participantId, 80);
+      const messageId = clampText(req.body?.messageId, 40);
+      const text = clampText(req.body?.text, 500);
+      const drawing = sanitizeDrawingDataUrl(req.body?.drawing);
+
+      if (!participantId || !messageId || (!text && !drawing)) {
+        return sendJson(res, 400, { error: 'Missing edit fields' });
+      }
+
+      const room = await updateRoom(client, roomId, (currentRoom) => {
+        if (!currentRoom) {
+          const error = new Error('Room not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const messageIndex = (currentRoom.messages || []).findIndex((m) => m.id === messageId);
+        if (messageIndex === -1) {
+          const error = new Error('Message not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const message = currentRoom.messages[messageIndex];
+        if (message.authorId !== participantId) {
+          const error = new Error('Only the author can edit this message');
+          error.statusCode = 403;
+          throw error;
+        }
+
+        const now = createTimestamp();
+        const updatedMessages = [...currentRoom.messages];
+        updatedMessages[messageIndex] = {
+          ...message,
+          text: text !== undefined ? text : message.text,
+          drawing: drawing !== undefined ? drawing : message.drawing,
+          isEdited: true,
+          updatedAt: now,
+        };
+
+        return {
+          ...currentRoom,
+          messages: updatedMessages,
+          updatedAt: now,
+        };
+      });
+
+      return sendJson(res, 200, { room: sanitizeRoom(room) });
+    }
+
+    if (action === 'react') {
+      const participantId = clampText(req.body?.participantId, 80);
+      const messageId = clampText(req.body?.messageId, 40);
+      const emoji = clampText(req.body?.emoji, 16);
+
+      console.debug(`[CHAT] Reaction requested: room=${roomId}, user=${participantId}, msg=${messageId}, emoji=${emoji}`);
+
+      if (!participantId || !messageId || !emoji) {
+        return sendJson(res, 400, { error: 'Missing reaction fields' });
+      }
+
+      const room = await updateRoom(client, roomId, (currentRoom) => {
+        if (!currentRoom) {
+          const error = new Error('Room not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const messageIndex = (currentRoom.messages || []).findIndex((m) => m.id === messageId);
+        if (messageIndex === -1) {
+          const error = new Error('Message not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const timestamp = createTimestamp();
+        const updatedMessages = [...currentRoom.messages];
+        const message = updatedMessages[messageIndex];
+        const reactions = message.reactions || {};
+        const currentReactionsForEmoji = reactions[emoji] || [];
+
+        // If user already reacted with THIS emoji, remove it (toggle off)
+        // BUT the user said "Add emoji reactions", usually toggle is good.
+        // Let's implement toggle.
+        let nextReactionsForEmoji;
+        if (currentReactionsForEmoji.includes(participantId)) {
+          nextReactionsForEmoji = currentReactionsForEmoji.filter((id) => id !== participantId);
+        } else {
+          nextReactionsForEmoji = [...currentReactionsForEmoji, participantId];
+        }
+
+        const nextReactions = { ...reactions };
+        if (nextReactionsForEmoji.length === 0) {
+          delete nextReactions[emoji];
+        } else {
+          nextReactions[emoji] = nextReactionsForEmoji;
+        }
+
+        updatedMessages[messageIndex] = {
+          ...message,
+          reactions: nextReactions,
+          updatedAt: timestamp,
+        };
+
+        return {
+          ...currentRoom,
+          messages: updatedMessages,
+          updatedAt: timestamp,
+        };
+      });
+
+      return sendJson(res, 200, { room: sanitizeRoom(room) });
+    }
+
+    if (action === 'read') {
+      const participantId = clampText(req.body?.participantId, 80);
+      const lastReadMessageId = clampText(req.body?.lastReadMessageId, 40);
+
+      if (!participantId || !lastReadMessageId) {
+        return sendJson(res, 400, { error: 'Missing read status fields' });
+      }
+
+      const room = await updateRoom(client, roomId, (currentRoom) => {
+        if (!currentRoom) {
+          const error = new Error('Room not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const lastReadMap = currentRoom.lastReadMap || {};
+        if (lastReadMap[participantId] === lastReadMessageId) return currentRoom;
+
+        const timestamp = createTimestamp();
+        return {
+          ...currentRoom,
+          lastReadMap: {
+            ...lastReadMap,
+            [participantId]: lastReadMessageId,
+          },
+          updatedAt: timestamp,
         };
       });
 
@@ -255,7 +445,8 @@ export default async function handler(req, res) {
 
     if (action === 'settings') {
       const participantId = clampText(req.body?.participantId, 80);
-      const nextVisibility = clampText(req.body?.visibility, 16) === 'public' ? 'public' : 'private';
+      const nextVisibility = req.body?.visibility === 'public' ? 'public' : 'private';
+      const nextTitle = clampText(req.body?.title, 80);
 
       if (!participantId) {
         return sendJson(res, 400, { error: 'Missing room settings fields' });
@@ -276,7 +467,8 @@ export default async function handler(req, res) {
 
         return {
           ...currentRoom,
-          visibility: nextVisibility,
+          visibility: nextVisibility || currentRoom.visibility,
+          title: nextTitle || currentRoom.title,
           updatedAt: createTimestamp(),
         };
       });
