@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ZoomIn } from 'lucide-react';
 import {
   IMAGE_DIMENSION_CACHE,
   IMAGE_LOADED_CACHE,
@@ -37,20 +36,6 @@ const ThumbPlaceholder = ({ palette, selectedBorderColor }) => (
         background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0) 100%)',
         backgroundSize: '200% 100%',
         animation: 'plannerShimmer 1.2s linear infinite',
-      }}
-    />
-    <div
-      style={{
-        position: 'absolute',
-        right: '18px',
-        bottom: '18px',
-        width: '38px',
-        height: '38px',
-        background: '#ffffff',
-        border: `2.5px solid ${selectedBorderColor || palette.border}`,
-        borderBottom: `6px solid ${selectedBorderColor || palette.bottom}`,
-        borderRadius: '14px',
-        opacity: 0.72,
       }}
     />
   </div>
@@ -221,30 +206,6 @@ const GalleryThumb = ({ src, index, onClick, onLoaded, selectedBorderColor, artA
           )
         )}
         {isVisible && !isLoaded && !isVideo && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} />}
-        </div>
-        <div
-          className="sketchbook-border"
-          style={{
-            position: 'absolute',
-            right: '18px',
-            bottom: '18px',
-            width: '38px',
-            height: '38px',
-            background: '#ffffff',
-            border: `2.5px solid ${selectedBorderColor || palette.border}`,
-            borderBottom: `6px solid ${selectedBorderColor || palette.bottom}`,
-            borderRadius: '14px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 16px rgba(15,23,42,0.08)',
-          }}
-          aria-hidden="true"
-        >
-          <ZoomIn color={selectedBorderColor || palette.label} size={16} strokeWidth={2.6} />
-        </div>
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-200 flex items-center justify-center rounded-[12px] m-[14px]">
-          <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow-md" size={32} />
         </div>
       </div>
     </motion.div>

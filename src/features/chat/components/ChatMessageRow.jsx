@@ -1,27 +1,27 @@
 import { memo, useState } from 'react';
 // cache-buster: v1.0.2 - Force reload of read indicators
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, PencilLine, Send, ImagePlus, Smile, X, LoaderCircle } from 'lucide-react';
+import { PencilLine, Send, ImagePlus, Smile, X, LoaderCircle } from 'lucide-react';
 import { CHAT_FONT_FAMILY, SPIN_ICON_STYLE } from '../chatConstants';
 import { formatTime } from '../chatStorage';
-import { getPaletteByIndex } from '../chatPalette';
 import { getSystemMessageText } from '../chatUtils';
 import { triggerHaptic } from '../../../utils/haptics';
 import { ChatFaceAvatar } from './ChatAvatars';
 
-export const ReadReceiptList = memo(({ messageId, lastReadMap, participants, activeParticipantId, palette, allMessages, isOwnMessage }) => {
+export const ReadReceiptList = memo(({ messageId, lastReadMap, participants, activeParticipantId, palette, messageIndexMap, isOwnMessage }) => {
   if (!messageId) return null;
   const currentReadMap = lastReadMap || {};
+  const resolvedMessageIndexMap = messageIndexMap || new Map();
 
   // Determine which participants have read THIS message or any LATER message
-  const myIndex = allMessages?.findIndex(m => m.id === messageId) ?? -1;
+  const myIndex = resolvedMessageIndexMap.get(String(messageId)) ?? -1;
   const readers = (participants || [])
     .filter((p) => {
       if (p.id === activeParticipantId) return false;
       const pLastReadId = currentReadMap[p.id];
       if (!pLastReadId) return false;
-      
-      const pLastReadIndex = allMessages?.findIndex(m => m.id === pLastReadId) ?? -1;
+
+      const pLastReadIndex = resolvedMessageIndexMap.get(String(pLastReadId)) ?? -1;
       return pLastReadIndex >= myIndex;
     })
     .map((p) => p.characterName);
@@ -64,8 +64,9 @@ export const ReadReceiptList = memo(({ messageId, lastReadMap, participants, act
 export const ChatMessageRow = memo(({ 
   message, author, palette, isOwnMessage, isMobile, fallbackPortraitSrc, 
   copy, index, onSelectReply, onSelectEdit, onRemixDrawing, onReact,
-  isOwnParticipant, allMessages, lastReadMap, participants, activeParticipantId,
-  onScrollToMessage, messageDirection = 'right'
+  lastReadMap, participants, activeParticipantId,
+  messageLookup, messageIndexMap, participantById, participantPaletteById,
+  onScrollToMessage, messageDirection = 'right',
 }) => {
   const [showPicker, setShowPicker] = useState(false);
 
@@ -88,11 +89,11 @@ export const ChatMessageRow = memo(({
   const drawingPreviewSize = isMobile ? 260 : 380;
 
   const parentId = message.repliedToId || message.replyToId;
-  const repliedMessage = (parentId && Array.isArray(allMessages)) 
-    ? allMessages.find(m => String(m.id) === String(parentId)) 
+  const repliedMessage = parentId
+    ? messageLookup?.get(String(parentId))
     : null;
-  const repliedAuthor = repliedMessage ? (participants || []).find(p => p.id === repliedMessage.authorId) : null;
-  const repliedPalette = repliedAuthor ? (repliedAuthor.paletteIndex !== undefined ? getPaletteByIndex(repliedAuthor.paletteIndex) : getPaletteByIndex(Math.max((participants || []).findIndex(p => p.id === repliedAuthor.id), 0))) : palette;
+  const repliedAuthor = repliedMessage ? participantById?.get(repliedMessage.authorId) : null;
+  const repliedPalette = repliedMessage ? (participantPaletteById?.get(repliedMessage.authorId) || palette) : palette;
   const handleReply = () => {
     triggerHaptic('tap');
     onSelectReply({ ...message, senderName: avatarName });
@@ -333,7 +334,7 @@ export const ChatMessageRow = memo(({
                    participants={participants} 
                    activeParticipantId={activeParticipantId} 
                    palette={palette} 
-                   allMessages={allMessages}
+                   messageIndexMap={messageIndexMap}
                    isOwnMessage={isOwnMessage}
                  />
               )}

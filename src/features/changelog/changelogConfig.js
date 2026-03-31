@@ -1,7 +1,7 @@
 import { BookMarked } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-03-27-v14.0';
-export const STORAGE_KEY = 'skip_changelogSeen';
+export const CHANGELOG_VERSION = '2026-03-31-v15.0';
+export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
 export const formatReleaseDate = (dateString) => {
@@ -25,6 +25,17 @@ export const getUtcOffsetLabel = () => {
 };
 
 export const CHANGELOG_SERIES = [
+  {
+    title: 'New release highlights',
+    icon: BookMarked,
+    lines: [
+      { type: 'added', text: 'Fan gallery is live, giving readers a dedicated space to browse community art.' },
+      { type: 'added', text: 'Sign (Message) now has its own page so sending and reading messages feels more polished.' },
+      { type: 'changed', text: 'The UI got a broader visual refresh across tabs, cards, and navigation for a cleaner, more cohesive look.' },
+      { type: 'added', text: 'Mystery now has 3 feature paths: character draw, who-are-you quiz, and daily message.' },
+      { type: 'changed', text: 'More localized translations were added and expanded across the app, including blog and changelog copy.' },
+    ],
+  },
   {
     title: 'Mystery quiz refresh',
     icon: BookMarked,

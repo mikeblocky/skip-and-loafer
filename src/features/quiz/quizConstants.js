@@ -24,8 +24,7 @@ export const DIFFICULTY_OPTIONS = [
 export const QUESTION_SET_OPTIONS = [
   { key: '10', label: '10' },
   { key: '20', label: '20' },
-  { key: '25', label: '25' },
-  { key: '40', label: '40' },
+  { key: '35', label: '35' },
   { key: '50', label: '50' },
   { key: '75', label: '75' },
   { key: '100', label: '100' },

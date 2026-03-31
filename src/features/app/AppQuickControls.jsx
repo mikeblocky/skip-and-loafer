@@ -126,10 +126,13 @@ const AppQuickControls = ({
     de: { reading: 'Lesen und Text', clarity: 'Klarheit und Kontrast', visuals: 'Bewegung und Visuals', color: 'Farbmodus' },
     it: { reading: 'Lettura e testo', clarity: 'Chiarezza e contrasto', visuals: 'Movimento e aspetto', color: 'Modalita colore' },
   }[uiLanguage] || { reading: 'Reading & text', clarity: 'Clarity & contrast', visuals: 'Motion & visuals', color: 'Color mode' };
-  const tabRange = `1..${tabCount}`;
-  const shortcutTip = (t.tip || uiText.en.tip || 'Tip: use 1..8 to jump tabs quickly.')
-    .replace(/1 to \d+/g, tabRange)
-    .replace(/1\.\.\d+/g, tabRange);
+  const tabRange = tabCount > 9 ? '1..9, 0' : `1..${tabCount}`;
+  const shortcutTipBase = t.tip || uiText.en.tip || 'Tip: use 1..8 to jump tabs quickly.';
+  const shortcutTip = tabCount > 9
+    ? 'Tip: use 1..9 and 0 to jump tabs quickly.'
+    : shortcutTipBase
+      .replace(/1 to \d+/g, tabRange)
+      .replace(/1\.\.\d+/g, tabRange);
   const colorBlindOptions = [
     { key: 'none', label: t.colorVisionOff || uiText.en.colorVisionOff || 'Off' },
     { key: 'protanopia', label: t.colorVisionProtanopia || uiText.en.colorVisionProtanopia || 'Protanopia' },

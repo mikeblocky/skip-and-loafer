@@ -62,11 +62,12 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     <div
       style={{
         width: '100%',
-        padding: isMobile ? '24px 8px 10px 8px' : '28px 40px',
+        padding: isMobile ? '24px 8px 18px 8px' : '28px 40px 34px',
         minHeight: isMobile ? 'auto' : '600px',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: 'visible',
         flex: 1,
         position: 'relative',
       }}
@@ -131,9 +132,9 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            overflowY: activeTab !== 0 && !isMobile ? 'auto' : 'visible',
-            maxHeight: activeTab !== 0 && !isMobile ? 'min(560px, calc(100vh - 280px))' : 'none',
-            padding: '4px',
+            overflow: 'visible',
+            minHeight: 0,
+            padding: '4px 4px 24px',
           }}
         >
           {activeTab === 0 && (

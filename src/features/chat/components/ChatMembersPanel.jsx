@@ -151,7 +151,7 @@ export function ChatMembersPanel({ savedRooms, publicRooms, activeRoomId, active
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           <div style={{ display: 'grid', gap: '6px', minWidth: 0 }}>
-            <div style={{ fontFamily: CHAT_FONT_FAMILY, fontSize: '1.14rem', color: '#0f172a', fontWeight: 400, lineHeight: 1 }}>Chat</div>
+            <div style={{ fontFamily: CHAT_FONT_FAMILY, fontSize: '1.14rem', color: '#0f172a', fontWeight: 400, lineHeight: 1 }}>{copy.roomDirectoryHeading || copy.headerLabel || 'Chat'}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               <span style={{ ...metaChipStyle, color: '#9d174d', borderColor: '#fbcfe8', background: '#fff5fb' }}>
                 {copy.yourRooms} {savedRooms.length}

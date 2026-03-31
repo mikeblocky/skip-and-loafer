@@ -43,7 +43,7 @@ export function DrawingPad({
   };
 
   const handleFill = () => {
-    if (window.confirm('Fill the entire canvas with the current color?')) {
+    if (window.confirm(copy.fillCanvasConfirm)) {
       onFill();
     }
   };
@@ -87,14 +87,14 @@ export function DrawingPad({
       minWidth: isMobile ? 'auto' : '60px'
     }}>
       <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: '8px' }}>
-        <ToolButton active={mode === 'brush' && !isEraser} onClick={() => onModeChange('brush')} icon={Pencil} title="Brush" color="#f97316" />
-        <ToolButton active={isEraser} onClick={() => onModeChange('eraser')} icon={Eraser} title="Eraser" color="#64748b" />
-        <ToolButton active={false} onClick={handleFill} icon={PaintBucket} title="Fill" color="#3b82f6" />
+        <ToolButton active={mode === 'brush' && !isEraser} onClick={() => onModeChange('brush')} icon={Pencil} title={copy.drawingBrush} color="#f97316" />
+        <ToolButton active={isEraser} onClick={() => onModeChange('eraser')} icon={Eraser} title={copy.drawingEraser} color="#64748b" />
+        <ToolButton active={false} onClick={handleFill} icon={PaintBucket} title={copy.drawingFill} color="#3b82f6" />
       </div>
       <div style={{ width: isMobile ? '2px' : '36px', height: isMobile ? '36px' : '2px', background: '#e2e8f0' }} />
       <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: '8px' }}>
-        <ToolButton active={false} onClick={onUndo} icon={Undo} title="Undo" color="#475569" />
-        <ToolButton active={false} onClick={onRedo} icon={Redo} title="Redo" color="#475569" />
+        <ToolButton active={false} onClick={onUndo} icon={Undo} title={copy.drawingUndo} color="#475569" />
+        <ToolButton active={false} onClick={onRedo} icon={Redo} title={copy.drawingRedo} color="#475569" />
       </div>
     </div>
   );
@@ -211,7 +211,7 @@ export function DrawingPad({
             }}
           >
             <Trash2 size={18} />
-            {isMobile ? "" : (clearTapCount === 0 ? "Clear" : `Tap ${3 - clearTapCount}x`)}
+            {isMobile ? "" : (clearTapCount === 0 ? copy.clearDrawing : copy.tapToClear.replace('{count}', String(3 - clearTapCount)))}
           </motion.button>
         </div>
 
@@ -240,7 +240,7 @@ export function DrawingPad({
           }}
         >
           <Check size={20} />
-          {isMobile ? "Done!" : "I'm done!"}
+          {isMobile ? copy.doneShort : copy.doneLong}
         </motion.button>
 
         <div style={{ display: 'flex', gap: isMobile ? '10px' : '14px', justifySelf: 'end' }}>

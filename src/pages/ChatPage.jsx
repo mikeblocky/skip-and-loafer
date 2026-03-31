@@ -1,15 +1,6 @@
-// src/pages/ChatPage.jsx
-import { CHAT_FONT_FAMILY } from '../features/chat/chatConstants';
-import { useChatManager } from '../features/chat/hooks/useChatManager';
-import { ChatLobby } from '../features/chat/components/ChatLobby';
-import { ChatActiveRoom } from '../features/chat/components/ChatActiveRoom';
+import { MessageSquareOff } from 'lucide-react';
 
-export const ChatPage = ({ isMobile, uiLanguage = 'en', syncData }) => {
-  const { state, actions, refs } = useChatManager(isMobile, uiLanguage, syncData);
-  const pagePadding = state.room
-    ? (isMobile ? '4px 10px' : '10px 24px 6px 24px')
-    : (isMobile ? '8px 12px' : '24px 32px 12px 32px');
-
+export const ChatPage = ({ isMobile }) => {
   return (
     <div
       className="planner-container planner-page"
@@ -18,44 +9,52 @@ export const ChatPage = ({ isMobile, uiLanguage = 'en', syncData }) => {
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        height: '100%',
-        minHeight: isMobile ? 'calc(100dvh - 90px)' : 'calc(100vh - 80px)',
-        padding: pagePadding,
-        fontFamily: CHAT_FONT_FAMILY,
-        fontWeight: 400,
         alignItems: 'center',
-        overflow: 'hidden',
-        position: 'relative'
+        justifyContent: 'center',
+        minHeight: isMobile ? 'calc(100dvh - 120px)' : 'calc(100vh - 120px)',
+        padding: isMobile ? '24px 14px' : '32px',
       }}
     >
-      {state.room && (
-        <div 
-          style={{ 
-            display: 'flex', 
-            width: '100%', 
-            maxWidth: '1600px',
-            height: '100%', 
-            padding: isMobile ? '0' : '2px 0 12px', 
-            gap: '12px' 
+      <div
+        className="sketchbook-border"
+        style={{
+          width: '100%',
+          maxWidth: '720px',
+          borderRadius: '30px',
+          border: '3px solid #cbd5e1',
+          borderBottom: '8px solid #94a3b8',
+          background: '#fffefc',
+          boxShadow: '0 18px 42px rgba(15, 23, 42, 0.12)',
+          padding: isMobile ? '24px 20px' : '30px 32px',
+          display: 'grid',
+          gap: '14px',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: '58px',
+            height: '58px',
+            margin: '0 auto',
+            borderRadius: '18px',
+            border: '3px solid #cbd5e1',
+            borderBottom: '8px solid #94a3b8',
+            background: '#f8fafc',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#64748b',
           }}
         >
-          <div style={{ flex: 1, minWidth: 0, height: '100%', width: '100%' }}>
-            <ChatActiveRoom 
-              isMobile={isMobile} 
-              copy={state.copy} 
-              state={{...state, ...refs}} 
-              actions={actions} 
-            />
-          </div>
+          <MessageSquareOff size={28} strokeWidth={2.4} />
         </div>
-      )}
-      {!state.room && (
-         <div style={{ display: 'flex', justifyContent: 'center', width: '100%', maxWidth: '1600px', flex: 1, height: '100%', minHeight: 0 }}>
-           <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <ChatLobby isMobile={isMobile} copy={state.copy} state={state} actions={actions} />
-           </div>
-         </div>
-      )}
+        <h2 style={{ margin: 0, fontFamily: '"Sniglet", "Coming Soon", cursive', fontSize: isMobile ? '1.5rem' : '1.7rem', color: '#334155' }}>
+          Character chat has been retired
+        </h2>
+        <p style={{ margin: 0, color: '#475569', lineHeight: 1.7 }}>
+          This page stays in the codebase for archival purposes only. Live rooms, Redis access, and navigation entry points have been disabled.
+        </p>
+      </div>
     </div>
   );
 };

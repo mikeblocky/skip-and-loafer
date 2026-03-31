@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { BookMarked } from 'lucide-react';
 
 const SideWorksTab = ({
   isMobile,
@@ -29,49 +28,23 @@ const SideWorksTab = ({
       flex: 1,
     }}
   >
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      gap: '16px', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '16px',
       marginBottom: isMobile ? '24px' : '32px',
-      textAlign: 'center'
+      textAlign: 'center',
     }}>
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '8px 22px',
-          borderRadius: '18px',
-          background: '#ffffff',
-          border: '3px solid #0ea5e9',
-          borderBottom: '8px solid #0ea5e9',
-          boxShadow: '0 4px 15px rgba(14, 165, 233, 0.1)',
-        }}
-      >
-        <BookMarked size={isMobile ? 22 : 20} style={{ color: '#0ea5e9' }} />
-        <span style={{ 
-          fontFamily: '"Coming Soon", cursive', 
-          color: '#0ea5e9', 
-          fontSize: isMobile ? '1.35rem' : '1.25rem', 
-          fontWeight: '900',
-          lineHeight: 1
-        }}>
-          {t.sideWorks}
-        </span>
-      </motion.div>
-      
       <p style={{
-        fontFamily: 'var(--font-main)',
+        fontFamily: 'Sniglet, var(--font-main)',
         color: '#64748b',
         fontSize: isMobile ? '0.9rem' : '1rem',
         lineHeight: 1.6,
         maxWidth: '500px',
         margin: 0,
-        opacity: 0.9
+        opacity: 0.9,
+        fontWeight: '400',
       }}>
         {t.sideWorksDescription || 'Side works by Takamatsu-sensei from earlier years or special events, unrelated to the main story.'}
       </p>

@@ -25,7 +25,10 @@ export const useKeyboardShortcuts = ({
 
       let usedShortcut = false;
 
-      const numericPageIndex = Number(event.key) - 1;
+      const numericPageIndex = event.key === '0'
+        ? 9
+        : Number(event.key) - 1;
+
       if (Number.isInteger(numericPageIndex) && numericPageIndex >= 0 && numericPageIndex < tabPages.length) {
         setActivePage(tabPages[numericPageIndex]);
         usedShortcut = true;

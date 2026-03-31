@@ -5,6 +5,11 @@ export const useTabSwipeNavigation = ({ activePage, setActivePage, tabPages, rea
   const touchSwipeStartRef = useRef(null);
 
   const handleMainTouchStart = useCallback((event) => {
+    if (document.body?.dataset?.lightboxOpen === '1') {
+      touchSwipeStartRef.current = null;
+      return;
+    }
+
     if (event.touches.length !== 1) {
       touchSwipeStartRef.current = null;
       return;
@@ -25,6 +30,11 @@ export const useTabSwipeNavigation = ({ activePage, setActivePage, tabPages, rea
   }, []);
 
   const handleMainTouchEnd = useCallback((event) => {
+    if (document.body?.dataset?.lightboxOpen === '1') {
+      touchSwipeStartRef.current = null;
+      return;
+    }
+
     if (!touchSwipeStartRef.current || event.changedTouches.length !== 1) {
       touchSwipeStartRef.current = null;
       return;
