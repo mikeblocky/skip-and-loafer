@@ -6,7 +6,12 @@ function localSyncApiPlugin() {
   const store = new Map();
   const globalReadsStore = new Map();
   const chatRoomsStore = new Map();
+  const communitySignaturesStore = [];
+  const communityFanGalleryStore = [];
   const TTL_MS = 36 * 24 * 60 * 60 * 1000; // 36 days (matches Redis TTL)
+  const COMMUNITY_SIGNATURE_LIMIT = 80;
+  const COMMUNITY_FAN_GALLERY_LIMIT = 20;
+  const MAX_COMMUNITY_IMAGE_DATA_URL_LENGTH = 8000000;
   const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
   function generateKey() {
@@ -33,6 +38,10 @@ function localSyncApiPlugin() {
     return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
   }
 
+  function createLocalEntityId(prefix) {
+    return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   function nowIso() {
     return new Date().toISOString();
   }
@@ -46,6 +55,19 @@ function localSyncApiPlugin() {
     if (!normalized.startsWith('data:image/png;base64,')) return '';
     if (normalized.length > 250000) return '';
     return normalized;
+  }
+
+  function sanitizeCommunityImageDataUrl(value) {
+    const normalized = String(value || '').trim();
+    if (!/^data:image\/[^;]+;base64,/i.test(normalized)) return '';
+    if (normalized.length > MAX_COMMUNITY_IMAGE_DATA_URL_LENGTH) return '';
+    return normalized;
+  }
+
+  function normalizePositiveInt(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) return null;
+    return Math.round(number);
   }
 
   function sendJson(res, statusCode, payload) {
@@ -184,6 +206,91 @@ function localSyncApiPlugin() {
         } catch {
           res.statusCode = 500; res.end(JSON.stringify({ error: 'Internal server error' }));
         }
+      });
+
+      server.middlewares.use('/api/community/signatures', (req, res, next) => {
+        if (req.method === 'OPTIONS') {
+          sendJson(res, 200, {});
+          return;
+        }
+
+        if (req.method === 'GET') {
+          sendJson(res, 200, { signatures: [...communitySignaturesStore] });
+          return;
+        }
+
+        if (req.method !== 'POST') return next();
+
+        readJsonBody(req, res, (body) => {
+          const name = clampText(body.name, 48);
+          const message = clampText(body.message, 280);
+
+          if (!name) {
+            sendJson(res, 400, { error: 'Name is required' });
+            return;
+          }
+
+          if (!message) {
+            sendJson(res, 400, { error: 'Message is required' });
+            return;
+          }
+
+          const entry = {
+            id: createLocalEntityId('sign'),
+            name,
+            message,
+            createdAt: nowIso(),
+          };
+
+          communitySignaturesStore.unshift(entry);
+          communitySignaturesStore.splice(COMMUNITY_SIGNATURE_LIMIT);
+
+          sendJson(res, 200, { entry, signatures: [...communitySignaturesStore] });
+        });
+      });
+
+      server.middlewares.use('/api/community/fan-gallery', (req, res, next) => {
+        if (req.method === 'OPTIONS') {
+          sendJson(res, 200, {});
+          return;
+        }
+
+        if (req.method === 'GET') {
+          sendJson(res, 200, { entries: [...communityFanGalleryStore] });
+          return;
+        }
+
+        if (req.method !== 'POST') return next();
+
+        readJsonBody(req, res, (body) => {
+          const imageDataUrl = sanitizeCommunityImageDataUrl(body.imageDataUrl);
+          const name = clampText(body.name, 60);
+          const description = clampText(body.description, 240);
+          const mimeType = clampText(body.mimeType, 24);
+          const width = normalizePositiveInt(body.width);
+          const height = normalizePositiveInt(body.height);
+
+          if (!imageDataUrl) {
+            sendJson(res, 400, { error: 'A sanitized image upload is required' });
+            return;
+          }
+
+          const entry = {
+            id: createLocalEntityId('fan'),
+            name,
+            description,
+            imageDataUrl,
+            mimeType,
+            width,
+            height,
+            createdAt: nowIso(),
+          };
+
+          communityFanGalleryStore.unshift(entry);
+          communityFanGalleryStore.splice(COMMUNITY_FAN_GALLERY_LIMIT);
+
+          sendJson(res, 200, { entry, entries: [...communityFanGalleryStore] });
+        });
       });
 
       // Optional local chat room API for Vite dev server

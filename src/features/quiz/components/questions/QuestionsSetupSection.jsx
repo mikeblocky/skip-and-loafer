@@ -1,11 +1,13 @@
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { NotebookText, UserRound, Rows3, Gauge, Play, CircleDot } from 'lucide-react';
+import { CircleDot, Gauge, Lock, Play, Rows3, UserRound } from 'lucide-react';
 import { DIFFICULTY_MODE_OPTIONS } from '../../quizConstants';
-import { getDifficultyChipLabel, getQuestionSetChipColor } from '../../quizUtils';
+import { getDifficultyLabel, getDifficultyTimerLabel, getQuestionSetChipColor } from '../../quizUtils';
 import { triggerHaptic } from '../../../../utils/haptics';
 import { toUiLabelCase } from '../../../../utils/textCase';
 
 const PANEL_TRANSITION = { type: 'spring', stiffness: 320, damping: 20 };
+const QUESTION_SET_PREVIEW_COUNTS = ['10', '20', '35', '50', '75', '100'];
 
 const panelStyle = (background, border, bottom) => ({
   background,
@@ -26,6 +28,109 @@ const sectionTitleStyle = {
   color: '#0f172a',
 };
 
+const StepCard = ({
+  isMobile,
+  title,
+  description,
+  stepLabel,
+  icon: Icon,
+  locked = false,
+  lockedLabel,
+  children,
+  background = '#ffffff',
+  border = '#dbe4f0',
+  bottom = '#b8c7da',
+}) => (
+  <div
+    className="sketchbook-border"
+    style={{
+      ...panelStyle(background, border, bottom),
+      padding: isMobile ? '18px' : '22px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '14px',
+      position: 'relative',
+      overflow: 'hidden',
+      height: '100%',
+      minHeight: isMobile ? 'auto' : '360px',
+      opacity: locked ? 0.52 : 1,
+      filter: locked ? 'grayscale(0.35)' : 'none',
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+      <div style={{ display: 'grid', gap: '6px' }}>
+        <span style={sectionTitleStyle}>
+          <Icon size={18} strokeWidth={2.4} />
+          {stepLabel}
+        </span>
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: 'Sniglet, var(--font-main)',
+            fontSize: isMobile ? '1.4rem' : '1.55rem',
+            lineHeight: 1.08,
+            fontWeight: '400',
+            color: '#0f172a',
+          }}
+        >
+          {title}
+        </h2>
+        {description && (
+          <p
+            style={{
+              margin: 0,
+              fontFamily: 'var(--font-main)',
+              color: '#475569',
+              fontSize: isMobile ? '0.94rem' : '0.98rem',
+              lineHeight: 1.5,
+            }}
+          >
+            {description}
+          </p>
+        )}
+      </div>
+
+      {locked && (
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 10px',
+            borderRadius: '999px',
+            background: 'rgba(255,255,255,0.8)',
+            border: '2px solid rgba(148,163,184,0.55)',
+            color: '#64748b',
+            fontFamily: 'Sniglet, var(--font-main)',
+            fontSize: '0.8rem',
+            lineHeight: 1,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <Lock size={14} strokeWidth={2.4} />
+          {lockedLabel}
+        </span>
+      )}
+    </div>
+
+    <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {children}
+      {locked && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '20px',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.45), rgba(248,250,252,0.68))',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+    </div>
+  </div>
+);
+
 const QuestionsSetupSection = ({
   isMobile,
   t,
@@ -41,124 +146,68 @@ const QuestionsSetupSection = ({
   isQuestionBankLoading,
   availableQuestionSetOptions,
 }) => {
-  const selectedDifficulty = DIFFICULTY_MODE_OPTIONS.find((option) => option.key === difficultyMode) || DIFFICULTY_MODE_OPTIONS[0];
-  const selectedQuestionSet = availableQuestionSetOptions.find((option) => option.key === questionSet) || availableQuestionSetOptions[0];
-  const isStartDisabled = isQuestionBankLoading || normalizedQuestions.length === 0;
-  const summaryName = playerName.trim() || t.namePlaceholder;
+  const selectedQuestionSet = availableQuestionSetOptions.find((option) => option.key === questionSet) || null;
+  const selectedDifficultyOption = DIFFICULTY_MODE_OPTIONS.find((option) => option.key === difficultyMode) || null;
+  const [showNameWarning, setShowNameWarning] = useState(false);
+  const nameInputRef = useRef(null);
+  const hasPlayerName = !!playerName.trim();
+  const canPickDifficulty = hasPlayerName;
+  const canPickQuestions = hasPlayerName && !!difficultyMode;
+  const hasAvailableQuestions = normalizedQuestions.length > 0;
+  const isSelectionComplete = hasPlayerName && !!selectedDifficultyOption && !!selectedQuestionSet && hasAvailableQuestions;
+  const isStartDisabled = isQuestionBankLoading || !isSelectionComplete;
+  const stepGridColumns = isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))';
+  const selectedDifficultyColor = selectedDifficultyOption?.color || '#94a3b8';
+  const selectedSetColor = selectedQuestionSet ? getQuestionSetChipColor(questionSet) : '#94a3b8';
+
+  useEffect(() => {
+    if (hasPlayerName && showNameWarning) {
+      setShowNameWarning(false);
+    }
+  }, [hasPlayerName, showNameWarning]);
+
+  const handleStart = () => {
+    if (!hasPlayerName) {
+      setShowNameWarning(true);
+      nameInputRef.current?.focus?.();
+      triggerHaptic('warning');
+      return;
+    }
+
+    if (isStartDisabled) return;
+
+    triggerHaptic('success');
+    startQuiz();
+  };
 
   return (
     <div style={{ display: 'grid', gap: '20px', paddingBottom: '32px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.15fr) minmax(280px, 0.85fr)', gap: '18px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 24, rotate: -1.4 }}
-          animate={{ opacity: 1, y: 0, rotate: -0.6 }}
-          transition={PANEL_TRANSITION}
-          className="sketchbook-border"
-          style={{
-            ...panelStyle('#fff7e7', '#fbbf24', '#f59e0b'),
-            padding: isMobile ? '22px 20px' : '26px 26px 24px',
-            display: 'grid',
-            gap: '16px',
-          }}
+      <div style={{ display: 'grid', gridTemplateColumns: stepGridColumns, gap: '16px', alignItems: 'stretch' }}>
+        <StepCard
+          isMobile={isMobile}
+          title={toUiLabelCase(t.nameLabel)}
+          description={t.namePlaceholder}
+          stepLabel={`${toUiLabelCase(t.step)} 1`}
+          icon={UserRound}
+          background="#eef6ff"
+          border="#93c5fd"
+          bottom="#3b82f6"
+          locked={false}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={sectionTitleStyle}>
-              <NotebookText size={18} strokeWidth={2.4} />
-              {toUiLabelCase(t.setupTitle)}
-            </span>
-            <span
-              style={{
-                fontFamily: 'Sniglet, var(--font-main)',
-                fontSize: '0.92rem',
-                lineHeight: 1,
-                color: '#92400e',
-                background: '#ffffff',
-                border: '2.5px solid #f59e0b',
-                borderBottom: '6px solid #d97706',
-                borderRadius: '999px',
-                padding: '8px 12px',
-                fontWeight: '400',
-              }}
-            >
-              {availableQuestionCount || normalizedQuestions.length} {toUiLabelCase(t.questionsTab)}
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gap: '12px' }}>
-            <h2
-              style={{
-                margin: 0,
-                fontFamily: 'Sniglet, var(--font-main)',
-                fontSize: isMobile ? '1.8rem' : '2.15rem',
-                lineHeight: 1.08,
-                fontWeight: '400',
-                color: '#7c2d12',
-              }}
-            >
-              {toUiLabelCase(t.setupTitle)}
-            </h2>
-            <p
-              style={{
-                margin: 0,
-                fontFamily: 'var(--font-main)',
-                color: '#7c5f3a',
-                fontSize: isMobile ? '0.98rem' : '1.02rem',
-                lineHeight: 1.5,
-                maxWidth: isMobile ? '100%' : '40ch',
-              }}
-            >
-              {toUiLabelCase(t.setupSetTitle)}. {toUiLabelCase(t.setupDifficultyTitle)}.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
-            <div className="sketchbook-border" style={{ background: '#ffffff', border: '3px solid #fed7aa', borderBottom: '7px solid #fb923c', borderRadius: '20px', padding: '14px 16px', display: 'grid', gap: '6px' }}>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, color: '#c2410c', fontWeight: '400' }}>
-                {toUiLabelCase(t.question)}
-              </span>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.5rem' : '1.7rem', lineHeight: 1, color: '#7c2d12', fontWeight: '400' }}>
-                {selectedQuestionSet?.label || questionSet}
-              </span>
-            </div>
-            <div className="sketchbook-border" style={{ background: '#ffffff', border: '3px solid #c4b5fd', borderBottom: '7px solid #8b5cf6', borderRadius: '20px', padding: '14px 16px', display: 'grid', gap: '6px' }}>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, color: '#6d28d9', fontWeight: '400' }}>
-                {toUiLabelCase(t.difficulty)}
-              </span>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.3rem' : '1.55rem', lineHeight: 1.05, color: '#4c1d95', fontWeight: '400' }}>
-                {toUiLabelCase(getDifficultyChipLabel(selectedDifficulty.key))}
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24, rotate: 1.2 }}
-          animate={{ opacity: 1, y: 0, rotate: 0.5 }}
-          transition={{ ...PANEL_TRANSITION, delay: 0.06 }}
-          className="sketchbook-border"
-          style={{
-            ...panelStyle('#eef6ff', '#93c5fd', '#3b82f6'),
-            padding: isMobile ? '20px' : '24px',
-            display: 'grid',
-            gap: '16px',
-            alignContent: 'start',
-          }}
-        >
-          <span style={sectionTitleStyle}>
-            <UserRound size={18} strokeWidth={2.4} />
-            {toUiLabelCase(t.nameLabel)}
-          </span>
-
           <div style={{ display: 'grid', gap: '10px' }}>
             <input
+              ref={nameInputRef}
               value={playerName}
-              onChange={(event) => setPlayerName(event.target.value)}
+              onChange={(event) => {
+                setPlayerName(event.target.value);
+                if (showNameWarning) setShowNameWarning(false);
+              }}
               placeholder={toUiLabelCase(t.namePlaceholder)}
               maxLength={24}
               style={{
                 width: '100%',
-                border: '3.5px solid #bfdbfe',
-                borderBottom: '8px solid #60a5fa',
+                border: `3.5px solid ${showNameWarning ? '#fca5a5' : '#bfdbfe'}`,
+                borderBottom: `8px solid ${showNameWarning ? '#ef4444' : '#60a5fa'}`,
                 borderRadius: '22px',
                 background: '#ffffff',
                 padding: isMobile ? '16px 18px' : '18px 20px',
@@ -171,139 +220,202 @@ const QuestionsSetupSection = ({
                 boxShadow: 'inset 0 4px 12px rgba(148, 163, 184, 0.08)',
               }}
             />
+            {showNameWarning && (
+            <p style={{ margin: 0, color: '#b91c1c', fontFamily: 'var(--font-main)', fontSize: '0.92rem', lineHeight: 1.4 }}>
+                {t.nameRequired}
+              </p>
+            )}
           </div>
-        </motion.div>
+        </StepCard>
+
+        <StepCard
+          isMobile={isMobile}
+          title={toUiLabelCase(t.setupDifficultyTitle)}
+          description={null}
+          stepLabel={`${toUiLabelCase(t.step)} 2`}
+          icon={Gauge}
+          background="#f5f3ff"
+          border="#c4b5fd"
+          bottom="#8b5cf6"
+          locked={!canPickDifficulty}
+          lockedLabel="Name first"
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '12px',
+              pointerEvents: canPickDifficulty ? 'auto' : 'none',
+            }}
+          >
+            {DIFFICULTY_MODE_OPTIONS.map((option) => {
+              const isSelected = difficultyMode === option.key;
+
+              return (
+                <motion.button
+                  key={option.key}
+                  whileHover={canPickDifficulty ? { y: -3, scale: 1.02 } : undefined}
+                  whileTap={canPickDifficulty ? { scale: 0.96, y: 4 } : undefined}
+                  onClick={() => {
+                    triggerHaptic('selection');
+                    setDifficultyMode(option.key);
+                  }}
+                  className="sketchbook-border paper-interact"
+                  style={{
+                    background: '#ffffff',
+                    border: `3.5px solid ${option.color}55`,
+                    borderBottom: `8px solid ${option.color}`,
+                    borderRadius: '22px',
+                    padding: '14px',
+                    display: 'grid',
+                    gap: '8px',
+                    textAlign: 'left',
+                    cursor: canPickDifficulty ? 'pointer' : 'not-allowed',
+                    boxShadow: isSelected ? `0 12px 20px ${option.color}22` : `0 8px 18px rgba(148, 163, 184, 0.08)`,
+                    opacity: canPickDifficulty ? 1 : 0.62,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <div style={{ display: 'grid', gap: '4px' }}>
+                      <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: option.color, fontSize: '1.08rem', lineHeight: 1.1, fontWeight: '400' }}>
+                        {toUiLabelCase(getDifficultyLabel(option.key, t))}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-main)', color: '#64748b', fontSize: '0.82rem', lineHeight: 1 }}>
+                        {getDifficultyTimerLabel(option.key)}
+                      </span>
+                    </div>
+                    {isSelected && <CircleDot size={18} strokeWidth={2.6} color={option.color} />}
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        </StepCard>
+
+        <StepCard
+          isMobile={isMobile}
+          title={toUiLabelCase(t.setupSetTitle)}
+          description={null}
+          stepLabel={`${toUiLabelCase(t.step)} 3`}
+          icon={Rows3}
+          background="#f0fdf4"
+          border="#86efac"
+          bottom="#22c55e"
+          locked={!canPickQuestions}
+          lockedLabel={canPickDifficulty ? t.difficultyFirst : 'Name first'}
+        >
+          {canPickQuestions ? (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(120px, 1fr))',
+                gap: '12px',
+                pointerEvents: 'auto',
+                flex: 1,
+                alignContent: 'start',
+              }}
+            >
+              {availableQuestionSetOptions.map((option) => {
+                const isSelected = questionSet === option.key;
+                const accent = getQuestionSetChipColor(option.key);
+
+                return (
+                <motion.button
+                  key={option.key}
+                  whileHover={{ y: -3, scale: 1.02 }}
+                  whileTap={{ scale: 0.96, y: 4 }}
+                    onClick={() => {
+                      triggerHaptic('selection');
+                      setQuestionSet(option.key);
+                    }}
+                  className="sketchbook-border paper-interact"
+                  style={{
+                    background: '#ffffff',
+                    border: `3.5px solid ${accent}55`,
+                    borderBottom: `8px solid ${accent}`,
+                    borderRadius: '22px',
+                    padding: '14px',
+                    display: 'grid',
+                    gap: '8px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? `0 12px 20px ${accent}22` : `0 8px 18px rgba(148, 163, 184, 0.08)`,
+                  }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                      <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: accent, fontSize: '1.35rem', lineHeight: 1, fontWeight: '400' }}>
+                        {option.label}
+                      </span>
+                      {isSelected && <CircleDot size={18} strokeWidth={2.6} color={accent} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              style={{
+                minHeight: isMobile ? '220px' : '240px',
+                borderRadius: '24px',
+                border: '2.5px solid rgba(148, 163, 184, 0.2)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(240,253,244,0.72))',
+                display: 'grid',
+                gap: '14px',
+                alignContent: 'start',
+                padding: '18px',
+                color: '#64748b',
+                fontFamily: 'var(--font-main)',
+                fontSize: '0.96rem',
+                lineHeight: 1.5,
+                flex: 1,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: '#64748b' }}>
+                <Lock size={18} strokeWidth={2.4} />
+                <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '1rem', lineHeight: 1 }}>
+                  {t.difficultyFirst}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+                  gap: '10px',
+                  opacity: 0.68,
+                }}
+              >
+                {QUESTION_SET_PREVIEW_COUNTS.map((count) => {
+                  const accent = getQuestionSetChipColor(count);
+
+                  return (
+                    <div
+                      key={count}
+                      style={{
+                        background: '#ffffff',
+                        border: `3px solid ${accent}33`,
+                        borderBottom: `7px solid ${accent}`,
+                        borderRadius: '20px',
+                        padding: '12px 14px',
+                        minHeight: '68px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: `0 8px 18px ${accent}10`,
+                      }}
+                    >
+                      <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: accent, fontSize: '1.28rem', lineHeight: 1 }}>
+                        {count}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </StepCard>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 26, rotate: -0.8 }}
-        animate={{ opacity: 1, y: 0, rotate: -0.2 }}
-        transition={{ ...PANEL_TRANSITION, delay: 0.12 }}
-        className="sketchbook-border"
-        style={{
-          ...panelStyle('#f0fdf4', '#86efac', '#22c55e'),
-          padding: isMobile ? '20px' : '24px',
-          display: 'grid',
-          gap: '16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={sectionTitleStyle}>
-            <Rows3 size={18} strokeWidth={2.4} />
-            {toUiLabelCase(t.setupSetTitle)}
-          </span>
-          <span style={{ fontFamily: 'var(--font-main)', color: '#166534', fontSize: '0.92rem', fontWeight: '700' }}>
-            {availableQuestionSetOptions.length}
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
-          {availableQuestionSetOptions.map((option) => {
-            const isSelected = questionSet === option.key;
-            const accent = getQuestionSetChipColor(option.key);
-
-            return (
-              <motion.button
-                key={option.key}
-                whileHover={{ y: -3, scale: 1.02 }}
-                whileTap={{ scale: 0.96, y: 4 }}
-                onClick={() => {
-                  triggerHaptic('selection');
-                  setQuestionSet(option.key);
-                }}
-                className="sketchbook-border paper-interact"
-                style={{
-                  background: isSelected ? `${accent}18` : '#ffffff',
-                  border: `3.5px solid ${isSelected ? accent : '#d7e0ec'}`,
-                  borderBottom: `8px solid ${isSelected ? accent : '#b9c8d8'}`,
-                  borderRadius: '22px',
-                  padding: '14px 14px 12px',
-                  display: 'grid',
-                  gap: '8px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? `0 12px 20px ${accent}22` : '0 8px 18px rgba(148, 163, 184, 0.08)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                  <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: accent, fontSize: '1.35rem', lineHeight: 1, fontWeight: '400' }}>
-                    {option.label}
-                  </span>
-                  {isSelected && <CircleDot size={18} strokeWidth={2.6} color={accent} />}
-                </div>
-                <span style={{ fontFamily: 'var(--font-main)', color: isSelected ? '#1f2937' : '#64748b', fontSize: '0.9rem', lineHeight: 1.3, fontWeight: '700' }}>
-                  {toUiLabelCase(t.questionsTab)}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 26, rotate: 0.8 }}
-        animate={{ opacity: 1, y: 0, rotate: 0.2 }}
-        transition={{ ...PANEL_TRANSITION, delay: 0.18 }}
-        className="sketchbook-border"
-        style={{
-          ...panelStyle('#f5f3ff', '#c4b5fd', '#8b5cf6'),
-          padding: isMobile ? '20px' : '24px',
-          display: 'grid',
-          gap: '16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-          <span style={sectionTitleStyle}>
-            <Gauge size={18} strokeWidth={2.4} />
-            {toUiLabelCase(t.setupDifficultyTitle)}
-          </span>
-          <span style={{ fontFamily: 'var(--font-main)', color: '#6d28d9', fontSize: '0.92rem', fontWeight: '700' }}>
-            {toUiLabelCase(t.timeLeft)}
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-          {DIFFICULTY_MODE_OPTIONS.map((option) => {
-            const isSelected = difficultyMode === option.key;
-            const timerLabel = option.key === 'hard' || option.key === 'really-hard' ? '45s' : '30s';
-
-            return (
-              <motion.button
-                key={option.key}
-                whileHover={{ y: -3, scale: 1.02 }}
-                whileTap={{ scale: 0.96, y: 4 }}
-                onClick={() => {
-                  triggerHaptic('selection');
-                  setDifficultyMode(option.key);
-                }}
-                className="sketchbook-border paper-interact"
-                style={{
-                  background: isSelected ? `${option.color}18` : '#ffffff',
-                  border: `3.5px solid ${isSelected ? option.color : '#ddd6fe'}`,
-                  borderBottom: `8px solid ${isSelected ? option.color : '#c4b5fd'}`,
-                  borderRadius: '22px',
-                  padding: '14px',
-                  display: 'grid',
-                  gap: '8px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? `0 12px 20px ${option.color}22` : '0 8px 18px rgba(139, 92, 246, 0.08)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                  <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: isSelected ? option.color : '#0f172a', fontSize: '1.08rem', lineHeight: 1.1, fontWeight: '400' }}>
-                    {toUiLabelCase(getDifficultyChipLabel(option.key))}
-                  </span>
-                  {isSelected && <CircleDot size={18} strokeWidth={2.6} color={option.color} />}
-                </div>
-                <span style={{ fontFamily: 'var(--font-main)', color: '#64748b', fontSize: '0.88rem', lineHeight: 1.25, fontWeight: '700' }}>
-                  {timerLabel}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 28 }}
@@ -319,40 +431,80 @@ const QuestionsSetupSection = ({
           alignItems: 'center',
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {[
-            summaryName,
-            `${selectedQuestionSet?.label || questionSet} ${toUiLabelCase(t.questionsTab)}`,
-            toUiLabelCase(getDifficultyChipLabel(selectedDifficulty.key)),
-          ].map((item) => (
+          <div style={{ display: 'grid', gap: '10px' }}>
+            <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#9f1239', fontSize: '1rem', lineHeight: 1 }}>
+              Review before starting
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <span
-              key={item}
               className="sketchbook-border"
               style={{
                 background: '#ffffff',
-                border: '2.5px solid #fecdd3',
-                borderBottom: '6px solid #fda4af',
+                border: `2.5px solid ${hasPlayerName ? '#fda4af' : '#fecdd3'}`,
+                borderBottom: `6px solid ${hasPlayerName ? '#ef4444' : '#fda4af'}`,
                 borderRadius: '999px',
                 padding: '8px 12px',
                 fontFamily: 'Sniglet, var(--font-main)',
                 fontSize: '0.94rem',
                 lineHeight: 1,
-                color: '#9f1239',
+                color: hasPlayerName ? '#b91c1c' : '#ef4444',
                 fontWeight: '400',
               }}
             >
-              {item}
+              {hasPlayerName ? playerName.trim() : t.namePlaceholder}
             </span>
-          ))}
+            <span
+              className="sketchbook-border"
+              style={{
+                background: '#ffffff',
+                border: `2.5px solid ${selectedDifficultyColor}55`,
+                borderBottom: `6px solid ${selectedDifficultyColor}`,
+                borderRadius: '999px',
+                padding: '8px 12px',
+                fontFamily: 'Sniglet, var(--font-main)',
+                fontSize: '0.94rem',
+                lineHeight: 1,
+                color: selectedDifficultyColor,
+                fontWeight: '400',
+              }}
+            >
+              {selectedDifficultyOption ? (
+                <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span>{toUiLabelCase(getDifficultyLabel(selectedDifficultyOption.key, t))}</span>
+                  <span style={{ fontFamily: 'var(--font-main)', fontSize: '0.8rem', lineHeight: 1, color: '#64748b' }}>
+                    {getDifficultyTimerLabel(selectedDifficultyOption.key)}
+                  </span>
+                </span>
+              ) : (
+                t.setupDifficultyTitle
+              )}
+            </span>
+            <span
+              className="sketchbook-border"
+              style={{
+                background: '#ffffff',
+                border: `2.5px solid ${selectedSetColor}55`,
+                borderBottom: `6px solid ${selectedSetColor}`,
+                borderRadius: '999px',
+                padding: '8px 12px',
+                fontFamily: 'Sniglet, var(--font-main)',
+                fontSize: '0.94rem',
+                lineHeight: 1,
+                color: selectedSetColor,
+                fontWeight: '400',
+              }}
+            >
+              <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: selectedSetColor }}>
+                {selectedQuestionSet ? `${selectedQuestionSet.label} ${t.questionsSuffix || 'questions'}` : t.setupSetTitle}
+              </span>
+            </span>
+          </div>
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.03, y: -4 }}
-          whileTap={{ scale: 0.94, y: 6 }}
-          onClick={() => {
-            triggerHaptic('success');
-            startQuiz();
-          }}
+          whileHover={isStartDisabled ? undefined : { scale: 1.03, y: -4 }}
+          whileTap={isStartDisabled ? undefined : { scale: 0.94, y: 6 }}
+          onClick={handleStart}
           disabled={isStartDisabled}
           className="sketchbook-border paper-interact"
           style={{
@@ -377,7 +529,7 @@ const QuestionsSetupSection = ({
           }}
         >
           <Play size={isMobile ? 22 : 24} strokeWidth={2.8} fill="#ffffff" />
-          {isQuestionBankLoading ? `${toUiLabelCase(t.start || 'Start')}...` : toUiLabelCase(t.start || 'Start')}
+          {toUiLabelCase(t.start || 'Start')}
         </motion.button>
       </motion.div>
     </div>

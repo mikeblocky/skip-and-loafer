@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, CalendarDays, NotebookText, Rows3 } from 'lucide-react';
-import { UI_TEXT, NOTE_PALETTES, formatDate, getPreview, getReadMinutes } from './blogShared';
+import { UI_TEXT, NOTE_PALETTES, formatDate, formatReadMinutes, getPreview, getReadMinutes } from './blogShared';
 
 const statCardStyle = (background, border, bottom, text) => ({
   background,
@@ -170,7 +170,7 @@ const BlogListView = ({
               }}
             >
               <BookOpen size={14} strokeWidth={2.8} />
-              {latestReadMinutes} {t.minutesRead}
+              {formatReadMinutes(latestReadMinutes, t)}
             </span>
           </div>
         </div>
@@ -179,7 +179,7 @@ const BlogListView = ({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
             <div className="sketchbook-border" style={statCardStyle('#ffffff', '#fecdd3', '#f472b6', '#9d174d')}>
               <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400' }}>
-                Posts
+                {t.postsLabel || 'Posts'}
               </span>
               <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.55rem' : '1.7rem', lineHeight: 1, fontWeight: '400' }}>
                 {blogs.length}
@@ -187,10 +187,10 @@ const BlogListView = ({
             </div>
             <div className="sketchbook-border" style={statCardStyle('#ffffff', '#bfdbfe', '#60a5fa', '#1d4ed8')}>
               <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400' }}>
-                Total
+                {t.totalLabel || 'Total time'}
               </span>
               <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.55rem' : '1.7rem', lineHeight: 1, fontWeight: '400' }}>
-                {totalMinutes}m
+                {totalMinutes} {t.minuteUnit || 'min'}
               </span>
             </div>
           </div>
@@ -330,7 +330,7 @@ const BlogListView = ({
                       }}
                     >
                       <BookOpen size={13} strokeWidth={2.8} />
-                      {readMinutes} {t.minutesRead}
+                      {formatReadMinutes(readMinutes, t)}
                     </span>
                   </div>
 

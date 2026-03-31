@@ -257,7 +257,7 @@ export function ChatSettingsSheet({
                   flexShrink: 0,
                   transition: 'background 0.15s ease',
                 }}
-                aria-label="Close"
+                aria-label={copy.closeLabel}
               >
                 <X size={18} strokeWidth={2.4} />
               </button>
@@ -335,7 +335,7 @@ export function ChatSettingsSheet({
                           <div style={{ color: participantPalette.text, fontFamily: CHAT_FONT_FAMILY, fontWeight: 400, fontSize: '1.1rem' }}>{participant.characterName}</div>
                         </div>
                         {participant.isCreator && (
-                          <div title="Room Creator" style={{ color: '#eab308' }}>
+                        <div title={copy.roomCreatorLabel} style={{ color: '#eab308' }}>
                             <ShieldCheck size={18} strokeWidth={2.5} />
                           </div>
                         )}
@@ -369,7 +369,7 @@ export function ChatSettingsSheet({
                     </div>
                     <button type="button" onClick={withHaptic(onCopyCode, 'tap')} style={{ ...BUTTON_STYLE, padding: '8px 12px', borderRadius: '14px', fontSize: '0.9rem' }}>
                       <Copy size={16} strokeWidth={2.3} />
-                      {copy.copyCode.includes(' ') ? 'Copy' : copy.copyCode}
+                      {copy.copyCode}
                     </button>
                   </div>
                 </div>
@@ -414,11 +414,11 @@ export function ChatSettingsSheet({
 
                 {/* Message Direction */}
                 <div style={{ display: 'grid', gap: '8px', marginTop: '6px' }}>
-                  <div style={{ color: '#94a3b8', fontSize: '0.84rem', fontFamily: CHAT_FONT_FAMILY }}>Message side (your messages)</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.84rem', fontFamily: CHAT_FONT_FAMILY }}>{copy.messageSideLabel}</div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     {[
-                      { value: 'right', label: 'Right (Default)' },
-                      { value: 'left', label: 'Left (Alternative)' },
+                      { value: 'right', label: copy.messageSideRight },
+                      { value: 'left', label: copy.messageSideLeft },
                     ].map((opt) => {
                       const selected = (messageDirection || 'right') === opt.value;
                       return (
@@ -500,7 +500,7 @@ export function ChatSettingsSheet({
                     <div style={{ color: '#64748b', fontSize: '0.92rem', fontFamily: CHAT_FONT_FAMILY, fontWeight: 400 }}>{copy.syncKeyLabel || 'Global sync key'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ flex: 1, padding: '8px 12px', background: '#f1f5f9', borderRadius: '99px', fontSize: '1rem', color: '#334155', letterSpacing: '0.08em', fontFamily: CHAT_FONT_FAMILY, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {showPersonalKey ? (localStorage.getItem('skip_syncKey') || '--- NO SYNC KEY ---') : '••••••••••••••••'}
+                        {showPersonalKey ? (localStorage.getItem('skip_syncKey') || copy.noSyncKey || '---') : '••••••••••••••••'}
                       </div>
                       <button type="button" onClick={withHaptic(() => setShowPersonalKey(!showPersonalKey), 'selection')} style={{ width: '42px', height: '42px', minWidth: '42px', borderRadius: '14px', border: '1.5px solid #dbe2ea', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', cursor: 'pointer', background: '#ffffff' }}>
                         {showPersonalKey ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -511,10 +511,9 @@ export function ChatSettingsSheet({
                     </div>
                     
                     <div style={{ fontSize: '0.86rem', color: '#64748b', lineHeight: 1.5, marginTop: '4px', background: '#f1f5f9', padding: '10px 14px', borderRadius: '14px', border: '1px dashed #cbd5e1' }}>
-                      To manage your identity or link other devices, visit the Progress (Sync) tab. 
+                      {copy.syncKeyHint}
                       <div style={{ marginTop: '5px', fontSize: '0.82rem', color: '#475569', fontWeight: 400 }}>
-                        All your character choices, palettes, and room history are instantly linked to your global key. 
-                        The Sync tab provides additional tools to manage your character's cloud presence, and with reading history.
+                        {copy.syncKeyDetails}
                       </div>
                     </div>
                   </div>

@@ -1,21 +1,20 @@
 import {
-  MessageCircle, MessageCircleHeart, PlusCircle, UserPlus, UserRoundPlus, DoorOpen,
-  ArrowLeft, ArrowDown, RefreshCw, LoaderCircle, MoreHorizontal, Send, ImagePlus, Check, CheckCircle2, Copy, X, PencilLine, Trash2, CornerUpLeft, Bomb
+  MessageCircle, PlusCircle, UserRoundPlus, DoorOpen,
+  ArrowLeft, ArrowDown, RefreshCw, LoaderCircle, MoreHorizontal, Send, X, PencilLine, Trash2, CornerUpLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CHAT_FONT_FAMILY, BUTTON_STYLE, INPUT_STYLE, SPIN_ICON_STYLE, PANEL_STYLE, MAX_MESSAGE_LENGTH } from '../chatConstants';
+import { CHAT_FONT_FAMILY, BUTTON_STYLE, SPIN_ICON_STYLE, PANEL_STYLE, MAX_MESSAGE_LENGTH } from '../chatConstants';
 import { formatTime, getStoredCreatorToken } from '../chatStorage';
 import { getPaletteByIndex } from '../chatPalette';
 import { getRoomPreviewText, getRoomLastMessageTime, getRoomDisplayName } from '../chatUtils';
 import { triggerHaptic } from '../../../utils/haptics';
 import { RoomStackAvatar, ChatFaceAvatar, LiveSessionTimer } from './ChatAvatars';
-import { PortraitPicker } from './ChatPickers';
 import { PORTRAIT_DATA } from '../../mystery/mysteryData';
-import { ChatMessageRow, ReadReceiptList } from './ChatMessageRow';
+import { ChatMessageRow } from './ChatMessageRow';
 import { DrawingPad } from './DrawingPad';
 import { ChatMembersPanel } from './ChatMembersPanel';
 import { ChatSettingsSheet } from './ChatSettingsSheet';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 const withAlpha = (hex, alpha = '22') => {
   const normalized = String(hex || '').replace('#', '');
@@ -27,12 +26,12 @@ export function ChatActiveRoom({
   isMobile,
   copy,
   state: {
-    room, chatOpen, savedRooms, visiblePublicRooms, busyAction,
+    room, chatOpen, roomDirectoryRooms, busyAction,
     filteredSavedRooms, roomSearch, participants, activeParticipantId,
-    typingParticipants, activeParticipantPalette: _activeParticipantPalette, composerActive, messageDraft,
+    typingParticipants, composerActive, messageDraft,
     messageListRef, messageInputRef, drawingOpen, drawingDraft,
     drawingBrushSize, drawingMode, drawingBrushColor, settingsOpen,
-    pinInput, isCreator, activeParticipant, profile, statusMessage, errorMessage,
+    pinInput, isCreator, profile, statusMessage, errorMessage,
     selectedPortrait, drawingCanvasRef, entryTime,
     replyToMessage, editingMessage, typingFocused,
   },
@@ -40,7 +39,6 @@ export function ChatActiveRoom({
 }) {
   const [lobbyTab, setLobbyTab] = useState('list'); // 'create' | 'join' | 'list'
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const caretCanvasRef = useRef(null);
   const caretMirrorRef = useRef(null);
   const caretRef = useRef(null);
   const caretTrailRef = useRef(null);
@@ -68,18 +66,58 @@ export function ChatActiveRoom({
     handleReact, scrollToMessageId, takeDrawingSnapshot, handleUpdateRoomTitle
   } = actions;
 
-  const liveParticipants = (participants || []).map((p) => {
-    if (p.id === activeParticipantId) {
-      const portrait = PORTRAIT_DATA.find((pd) => pd.name === (profile?.characterName || 'Mitsumi')) || PORTRAIT_DATA[0];
-      return {
-        ...p,
-        characterName: profile?.characterName || 'Mitsumi',
-        portraitSrc: portrait.src,
-        paletteIndex: typeof profile?.paletteIndex === 'number' ? profile.paletteIndex : 5,
-      };
-    }
-    return p;
-  });
+  const liveParticipants = useMemo(
+    () => (participants || []).map((participant) => {
+      if (participant.id === activeParticipantId) {
+        const portrait = PORTRAIT_DATA.find((pd) => pd.name === (profile?.characterName || 'Mitsumi')) || PORTRAIT_DATA[0];
+        return {
+          ...participant,
+          characterName: profile?.characterName || 'Mitsumi',
+          portraitSrc: portrait.src,
+          paletteIndex: typeof profile?.paletteIndex === 'number' ? profile.paletteIndex : 5,
+        };
+      }
+
+      return participant;
+    }),
+    [activeParticipantId, participants, profile],
+  );
+  const messages = useMemo(() => room?.messages || [], [room?.messages]);
+  const participantById = useMemo(
+    () => new Map(liveParticipants.map((participant) => [participant.id, participant])),
+    [liveParticipants],
+  );
+  const participantPaletteById = useMemo(
+    () => new Map(
+      liveParticipants.map((participant, index) => [
+        participant.id,
+        getPaletteByIndex(participant.paletteIndex !== undefined ? participant.paletteIndex : index),
+      ]),
+    ),
+    [liveParticipants],
+  );
+  const messageLookup = useMemo(
+    () => {
+      const nextLookup = new Map();
+      messages.forEach((message) => {
+        if (!message?.id) return;
+        nextLookup.set(String(message.id), message);
+      });
+      return nextLookup;
+    },
+    [messages],
+  );
+  const messageIndexMap = useMemo(
+    () => {
+      const nextIndexMap = new Map();
+      messages.forEach((message, index) => {
+        if (!message?.id) return;
+        nextIndexMap.set(String(message.id), index);
+      });
+      return nextIndexMap;
+    },
+    [messages],
+  );
 
   const activeParticipantPalette = getPaletteByIndex(
     typeof profile?.paletteIndex === 'number' ? profile.paletteIndex : 5
@@ -185,10 +223,7 @@ export function ChatActiveRoom({
 
   useEffect(() => {
     const scroller = messageListRef.current;
-    if (!scroller) {
-      setShowScrollToBottom(false);
-      return undefined;
-    }
+    if (!scroller) return undefined;
 
     let frameId = 0;
     const updateScrollButtonVisibility = () => {
@@ -333,9 +368,9 @@ export function ChatActiveRoom({
                     padding: isMobile ? '2px 0 8px' : '2px',
                   }}
                 >
-                  {[...savedRooms, ...visiblePublicRooms.filter((pr) => !savedRooms.some((sr) => sr.roomId === pr.roomId))].map((savedRoom, index) => {
+                  {roomDirectoryRooms.map((savedRoom, index) => {
                     const palette = getPaletteByIndex(index);
-                    const isCurrentRoom = savedRoom.roomId === room.roomId;
+                    const isCurrentRoom = savedRoom.roomId === room?.roomId;
                     return (
                       <button
                         key={savedRoom.roomId}
@@ -389,7 +424,7 @@ export function ChatActiveRoom({
                 }}
               >
                 <div style={{ color: '#64748b', fontSize: '1rem', fontStyle: 'italic', padding: '40px', textAlign: 'center', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '24px' }}>
-                  {lobbyTab === 'create' ? "Configure your new room in the lobby..." : "Enter a code to join a room..."}
+                  {lobbyTab === 'create' ? copy.lobbyCreateHint : copy.lobbyJoinHint}
                   <div style={{ marginTop: '20px' }}>
                     <button
                       onClick={() => handleHeaderAction(() => handleStartRoomFlow(lobbyTab), 'tap')}
@@ -543,7 +578,7 @@ export function ChatActiveRoom({
                   flexShrink: 0,
                   opacity: !isMobile && busyAction === 'refresh' ? 0.6 : 1,
                 }}
-                aria-label={isMobile ? 'Back' : copy.refresh}
+                aria-label={isMobile ? copy.backLabel : copy.refresh}
               >
                 {!isMobile && busyAction === 'refresh' ? <LoaderCircle size={15} style={SPIN_ICON_STYLE} /> : (isMobile ? <ArrowLeft size={15} strokeWidth={2.2} /> : <RefreshCw size={15} strokeWidth={2.2} />)}
               </button>
@@ -623,7 +658,7 @@ export function ChatActiveRoom({
                     cursor: 'pointer',
                     flexShrink: 0,
                   }}
-                  aria-label="Settings"
+                  aria-label={copy.settingsLabel}
                 >
                   <MoreHorizontal size={17} strokeWidth={2.2} />
                 </button>
@@ -659,25 +694,27 @@ export function ChatActiveRoom({
                   {copy.noMessages}
                 </div>
               )}
-              {(room?.messages || []).map((message, index) => {
-                const author = (liveParticipants || []).find((participant) => participant.id === message.authorId);
+              {messages.map((message, index) => {
+                const author = participantById.get(message.authorId);
                 const isOwnMessage = message.authorId === activeParticipantId;
                 return (
                   <ChatMessageRow
                     key={message.id}
                     message={message}
                     author={author}
-                    palette={isOwnMessage ? activeParticipantPalette : (author?.paletteIndex !== undefined ? getPaletteByIndex(author.paletteIndex) : getPaletteByIndex(Math.max((liveParticipants || []).findIndex((p) => p.id === author?.id), 0)))}
+                    palette={isOwnMessage ? activeParticipantPalette : (participantPaletteById.get(author?.id) || getPaletteByIndex(0))}
                     isOwnMessage={isOwnMessage}
                     isMobile={isMobile}
                     fallbackPortraitSrc={selectedPortrait.src}
                     copy={copy}
                     index={index}
-                    allMessages={room?.messages || []}
+                    messageLookup={messageLookup}
+                    messageIndexMap={messageIndexMap}
                     participants={liveParticipants}
+                    participantById={participantById}
+                    participantPaletteById={participantPaletteById}
                     activeParticipantId={activeParticipantId}
                     lastReadMap={room.lastReadMap}
-                    isOwnParticipant={!!activeParticipantId}
                     onSelectReply={setReplyToMessage}
                     onSelectEdit={setEditingMessage}
                     onRemixDrawing={(dataUrl) => {

@@ -19,6 +19,7 @@ import {
   DEFAULT_CHAT_COPY,
   DRAWING_COLORS,
   POLL_INTERVAL_MS,
+  getLocalizedChatCopy,
   TYPING_DEBOUNCE_MS,
 } from '../chatConstants';
 import {
@@ -28,6 +29,8 @@ import {
   getStoredIdentityKey,
   getStoredParticipant,
   getUniversalUserId,
+  isRoomMarkedMissing,
+  markRoomMissing,
   readCatalogCache,
   readLastRoomId,
   readMemberships,
@@ -50,12 +53,17 @@ import {
   writeEntryTime,
 } from '../chatStorage';
 import { getPaletteByIndex } from '../chatPalette';
-import { getSystemMessageText } from '../chatUtils';
+import {
+  areRoomCatalogEntriesEqual,
+  createRoomCatalogEntry,
+  getSystemMessageText,
+  mergeRoomDirectoryRooms,
+} from '../chatUtils';
 
 export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const copy = useMemo(
-    () => ({ ...DEFAULT_CHAT_COPY, ...(UI_TEXT.en.chat || {}), ...(t.chat || {}) }),
+    () => ({ ...DEFAULT_CHAT_COPY, ...(UI_TEXT.en.chat || {}), ...getLocalizedChatCopy(uiLanguage), ...(t.chat || {}) }),
     [t],
   );
   const initialProfile = useMemo(() => readProfile(), []);
@@ -207,6 +215,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     () =>
       (savedRoomIds || [])
         .filter((id) => !(BANNED_ROOM_IDS || []).includes(id))
+        .filter((id) => !isRoomMarkedMissing(id))
         .map((roomId) => {
           if (room?.roomId === roomId) return room;
           const cached = roomCatalog[roomId];
@@ -216,11 +225,20 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
         }),
     [room, roomCatalog, savedRoomIds],
   );
+  const savedRoomIdSet = useMemo(
+    () => new Set((savedRoomIds || []).map((roomId) => getNormalizedRoomId(roomId))),
+    [savedRoomIds],
+  );
   const visiblePublicRooms = useMemo(
     () => (publicRooms || [])
-      .filter((publicRoom) => !savedRooms.some((savedRoom) => savedRoom.roomId === publicRoom.roomId))
+      .filter((publicRoom) => !isRoomMarkedMissing(publicRoom.roomId))
+      .filter((publicRoom) => !savedRoomIdSet.has(getNormalizedRoomId(publicRoom.roomId)))
       .filter((publicRoom) => !(BANNED_ROOM_IDS || []).includes(publicRoom.roomId)),
-    [publicRooms, savedRooms],
+    [publicRooms, savedRoomIdSet],
+  );
+  const roomDirectoryRooms = useMemo(
+    () => mergeRoomDirectoryRooms(savedRooms, visiblePublicRooms),
+    [savedRooms, visiblePublicRooms],
   );
   const filteredSavedRooms = useMemo(() => {
     const query = roomSearch.trim().toLowerCase();
@@ -264,6 +282,28 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       : (activeParticipantIndex || profile.paletteIndex)
   );
   const isCreator = !!room && !!activeParticipant && (room.creatorId === activeParticipantId || !!activeParticipant.isCreator);
+  const updateRoomCatalogCache = useCallback((rooms) => {
+    const nextRooms = (Array.isArray(rooms) ? rooms : [rooms]).filter(Boolean);
+    if (!nextRooms.length) return;
+
+    setRoomCatalog((current) => {
+      let hasChanges = false;
+      const next = { ...current };
+
+      nextRooms.forEach((roomSnapshot) => {
+        const catalogEntry = createRoomCatalogEntry(roomSnapshot);
+        if (!catalogEntry?.roomId) return;
+        if (areRoomCatalogEntriesEqual(current[catalogEntry.roomId], catalogEntry)) return;
+        next[catalogEntry.roomId] = catalogEntry;
+        hasChanges = true;
+      });
+
+      if (!hasChanges) return current;
+
+      writeCatalogCache(next);
+      return next;
+    });
+  }, []);
 
   const persistLastRoomId = useCallback((nextRoomId) => {
     writeLastRoomId(nextRoomId);
@@ -301,14 +341,33 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       return next;
     });
   }, [syncData]);
+  const removeRoomFromPublicRooms = useCallback((roomId) => {
+    if (!roomId) return;
+    const normalizedId = getNormalizedRoomId(roomId);
+    setPublicRooms((current) =>
+      current.filter((publicRoom) => getNormalizedRoomId(publicRoom.roomId) !== normalizedId),
+    );
+  }, []);
+  const retireRoomLocally = useCallback((roomId) => {
+    if (!roomId) return;
+    const normalizedId = getNormalizedRoomId(roomId);
+    if (!normalizedId) return;
+
+    markRoomMissing(normalizedId);
+    forgetSavedRoom(normalizedId);
+    removeStoredParticipant(normalizedId);
+    removeStoredCreatorToken(normalizedId);
+    removeRoomFromPublicRooms(normalizedId);
+
+    if (getNormalizedRoomId(readLastRoomId()) === normalizedId) {
+      persistLastRoomId('');
+    }
+  }, [forgetSavedRoom, persistLastRoomId, removeRoomFromPublicRooms]);
 
   const handleMissingRoom = useCallback((missingRoomId, message) => {
     if (!missingRoomId) return;
 
-    forgetSavedRoom(missingRoomId);
-    removeStoredParticipant(missingRoomId);
-    removeStoredCreatorToken(missingRoomId);
-    persistLastRoomId('');
+    retireRoomLocally(missingRoomId);
     setRoomCode(missingRoomId);
     setRoom(null);
     setChatOpen(false);
@@ -317,7 +376,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     setActiveParticipantId('');
     setStatusMessage(message || `Room ${missingRoomId} is no longer active.`);
     setErrorMessage('');
-  }, [forgetSavedRoom, persistLastRoomId]);
+  }, [retireRoomLocally]);
 
   const resolveRoomSession = useCallback(async (targetRoomId, { autoJoinPublic = false } = {}) => {
     const { room: fetchedRoom } = await fetchChatRoom(targetRoomId);
@@ -394,12 +453,8 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
   useEffect(() => {
     if (!room?.roomId) return;
-    setRoomCatalog((current) => {
-      const next = { ...current, [room.roomId]: room };
-      writeCatalogCache(next);
-      return next;
-    });
-  }, [room]);
+    updateRoomCatalogCache(room);
+  }, [room, updateRoomCatalogCache]);
 
   useEffect(() => {
     if (!room?.visibility) return;
@@ -689,16 +744,10 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
         if (participantId) {
           setStoredParticipant(nextRoom.roomId, participantId);
         }
-        setStatusMessage(`Reconnected to ${nextRoom.roomId}.`);
+        setStatusMessage((copy.reconnectedRoomStatus || 'Reconnected to {roomId}.').replace('{roomId}', nextRoom.roomId));
         persistLastRoomId(nextRoom.roomId);
         rememberSavedRoom(nextRoom.roomId);
-        
-        // Immediately sync catalog so it persists for the Room List
-        setRoomCatalog((current) => {
-          const next = { ...current, [nextRoom.roomId]: nextRoom };
-          writeCatalogCache(next);
-          return next;
-        });
+        updateRoomCatalogCache(nextRoom);
 
         // Note: We don't overwrite local profile from server record anymore to avoid "drifting"
         // back to defaults when a user intentionally changes character in the lobby.
@@ -734,7 +783,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     return () => {
       cancelled = true;
     };
-  }, [handleMissingRoom, savedLastRoomId]); // Keep dependencies minimal to avoid loops
+  }, [handleMissingRoom, rememberSavedRoom, persistLastRoomId, resolveRoomSession, savedLastRoomId, updateRoomCatalogCache]); // Keep dependencies minimal to avoid loops
 
   useEffect(() => {
     if (!(savedRoomIds || []).length) return undefined;
@@ -742,7 +791,9 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     let cancelled = false;
 
     const syncSavedRooms = async () => {
-      const filteredIds = (savedRoomIds || []).filter((id) => !(BANNED_ROOM_IDS || []).includes(id));
+      const filteredIds = (savedRoomIds || [])
+        .filter((id) => !(BANNED_ROOM_IDS || []).includes(id))
+        .filter((id) => !isRoomMarkedMissing(id));
       if (!filteredIds.length) return;
 
       const results = await Promise.all(
@@ -758,24 +809,20 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
       if (cancelled) return;
 
-      const nextCatalog = {};
+      const nextCatalogRooms = [];
       const endedRooms = [];
 
       results.forEach(({ roomId: fId, room: fRoom, error: fError }) => {
         if (fRoom) {
-          nextCatalog[fId] = fRoom;
+          nextCatalogRooms.push(fRoom);
         } else if (fError?.status === 404) {
           // Auto-clean: if room is gone from Redis, stop tracking it
-          forgetSavedRoom(fId);
+          retireRoomLocally(fId);
         }
       });
 
-      if (Object.keys(nextCatalog).length) {
-        setRoomCatalog((current) => {
-          const next = { ...current, ...nextCatalog };
-          writeCatalogCache(next);
-          return next;
-        });
+      if (nextCatalogRooms.length) {
+        updateRoomCatalogCache(nextCatalogRooms);
       }
 
       if (!(endedRooms || []).length) return;
@@ -800,7 +847,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [forgetSavedRoom, persistLastRoomId, room?.roomId, savedLastRoomId, savedRoomIds]);
+  }, [retireRoomLocally, room?.roomId, savedRoomIds, updateRoomCatalogCache]);
 
   useEffect(() => {
     let cancelled = false;
@@ -809,7 +856,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       try {
         const rooms = await fetchPublicChatRooms();
         if (!cancelled) {
-          setPublicRooms(rooms);
+          setPublicRooms((rooms || []).filter((publicRoom) => !isRoomMarkedMissing(publicRoom.roomId)));
         }
       } catch {
         if (!cancelled) {
@@ -1052,12 +1099,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       writeEntryTime(nextRoom.roomId, now);
     }
     
-    // Immediately persist to roomCatalog so it's not a placeholder on refresh
-    setRoomCatalog((current) => {
-      const next = { ...current, [nextRoom.roomId]: nextRoom };
-      writeCatalogCache(next);
-      return next;
-    });
+    updateRoomCatalogCache(nextRoom);
 
     // Ensure our local profile state matches what we used to join/reclaim
     const me = (nextRoom.participants || []).find(p => p.id === participantId);
@@ -1067,7 +1109,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     }
 
     triggerHaptic('success');
-  }, [persistLastRoomId, rememberSavedRoom, updateProfileField]);
+  }, [persistLastRoomId, rememberSavedRoom, updateProfileField, updateRoomCatalogCache]);
 
   const handleCreateRoom = useCallback(async () => {
     const validationError = validateProfile();
@@ -1103,7 +1145,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       if (reclaimCode) {
         writeIdentityKey(nextRoom.roomId, reclaimCode);
       }
-      handleRoomConnected(nextRoom, participantId, `Room ${nextRoom.roomId} is live.`);
+      handleRoomConnected(nextRoom, participantId, (copy.roomLiveStatus || 'Room {roomId} is live.').replace('{roomId}', nextRoom.roomId));
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -1114,7 +1156,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
   const handleJoinRoom = useCallback(async () => {
     const trimmedCode = roomCode.trim();
     if (!trimmedCode) {
-      setErrorMessage('Enter a room code.');
+      setErrorMessage(copy.roomCodeRequired || 'Enter a room code.');
       return;
     }
 
@@ -1126,7 +1168,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
     const normalizedRoomCode = getNormalizedRoomId(trimmedCode);
     if (normalizedRoomCode.length < 5) {
-      setErrorMessage('Enter a valid room code.');
+      setErrorMessage(copy.roomCodeInvalid || 'Enter a valid room code.');
       return;
     }
 
@@ -1140,7 +1182,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       if (reclaimPin) {
         writeRoomPin(nextRoom.roomId, reclaimPin);
       }
-      handleRoomConnected(nextRoom, joinedId, `Joined ${nextRoom.roomId}.`);
+      handleRoomConnected(nextRoom, joinedId, (copy.joinedRoomStatus || 'Joined {roomId}.').replace('{roomId}', nextRoom.roomId));
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -1167,7 +1209,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to redeem key');
+        throw new Error(data.error || (copy.failedToRedeemKey || 'Failed to redeem key'));
       }
 
       const { room: nextRoom, creatorToken, reclaimedParticipantId, reclaimCode, reclaimPin } = await response.json();
@@ -1182,7 +1224,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
         writeIdentityKey(nextRoom.roomId, reclaimCode);
       }
       
-      handleRoomConnected(nextRoom, reclaimedParticipantId || participantId, 'Identity reclaimed successfully!');
+      handleRoomConnected(nextRoom, reclaimedParticipantId || participantId, copy.identityReclaimed || 'Identity reclaimed successfully!');
       setPinInput('');
       setShowPinEntry(false);
     } catch (error) {
@@ -1199,43 +1241,26 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     try {
       const { room: nextRoom } = await fetchChatRoom(room.roomId);
       setRoom(nextRoom);
-      setRoomCatalog((current) => {
-        const next = { ...current, [nextRoom.roomId]: nextRoom };
-        writeCatalogCache(next);
-        return next;
-      });
-      setStatusMessage(`Room ${room.roomId} refreshed.`);
+      updateRoomCatalogCache(nextRoom);
+      setStatusMessage((copy.roomRefreshedStatus || 'Room {roomId} refreshed.').replace('{roomId}', room.roomId));
       setErrorMessage('');
       } catch (error) {
         if (error.status === 404) {
-          handleMissingRoom(room.roomId, `Room ${room.roomId} is no longer active.`);
+          handleMissingRoom(room.roomId, (copy.roomInactiveStatus || 'Room {roomId} is no longer active.').replace('{roomId}', room.roomId));
         } else {
           setErrorMessage(error.message);
         }
       } finally {
         setBusyAction('');
       }
-  }, [handleMissingRoom, room]);
+  }, [handleMissingRoom, room, updateRoomCatalogCache]);
 
   const handleSendMessage = useCallback(async () => {
     const trimmed = messageDraft.trim();
     const drawing = sanitizeDrawingDataUrl(drawingDraft);
     const currentId = activeParticipantId || getUniversalUserId();
-    console.log('handleSendMessage triggered', {
-      roomId: room?.roomId,
-      activeParticipantId: currentId,
-      hasTrimmed: !!trimmed,
-      hasDrawing: !!drawing,
-      isEditing: !!editingMessage,
-      isReply: !!replyToMessage
-    });
-    
+
     if (!room?.roomId || !currentId || (!trimmed && !drawing)) {
-      console.warn('Cannot send message: missing required data or empty content', {
-        id: currentId,
-        hasRoom: !!room?.roomId,
-        content: !!(trimmed || drawing)
-      });
       return;
     }
 
@@ -1444,10 +1469,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     setBusyAction('end');
     try {
       await endChatRoom(room.roomId, { participantId: activeParticipantId });
-      forgetSavedRoom(room.roomId);
-      removeStoredParticipant(room.roomId);
-      removeStoredCreatorToken(room.roomId);
-      persistLastRoomId('');
+      retireRoomLocally(room.roomId);
       setStatusMessage(`Room ${room.roomId} ended.`);
       setErrorMessage('');
       setRoomCode(room.roomId);
@@ -1459,7 +1481,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     } finally {
       setBusyAction(''); 
     }
-  }, [activeParticipantId, forgetSavedRoom, persistLastRoomId, room]);
+  }, [activeParticipantId, retireRoomLocally, room]);
 
   const handleReclaimOwnership = useCallback(async () => {
     if (!room?.roomId || !activeParticipantId) return;
@@ -1511,10 +1533,10 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
     try {
       await navigator.clipboard.writeText(room.roomId);
-      setStatusMessage(`Copied ${room.roomId}.`);
+      setStatusMessage((copy.copiedRoomCodeStatus || 'Copied {roomId}.').replace('{roomId}', room.roomId));
       setErrorMessage('');
     } catch {
-      setErrorMessage('Could not copy the room code from this browser.');
+      setErrorMessage(copy.roomCodeCopyError || 'Could not copy the room code from this browser.');
     }
   }, [room?.roomId]);
 
@@ -1536,10 +1558,10 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
 
     try {
       await navigator.clipboard.writeText(transcript);
-      setStatusMessage(`Copied chat from ${room.title}.`);
+      setStatusMessage((copy.copiedRoomChatStatus || 'Copied chat from {roomTitle}.').replace('{roomTitle}', room.title));
       setErrorMessage('');
     } catch {
-      setErrorMessage('Could not copy the room chat from this browser.');
+      setErrorMessage(copy.roomChatCopyError || 'Could not copy the room chat from this browser.');
     }
   }, [activeParticipantId, copy.drawingLabel, copy.you, room]);
 
@@ -1641,10 +1663,10 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     try {
       const { room: nextRoom, participantId, reclaimCode } = await resolveRoomSession(lastRoomId);
       if (reclaimCode) writeIdentityKey(nextRoom.roomId, reclaimCode);
-      handleRoomConnected(nextRoom, participantId, `Reconnected to ${nextRoom.roomId}.`);
+      handleRoomConnected(nextRoom, participantId, (copy.reconnectedRoomStatus || 'Reconnected to {roomId}.').replace('{roomId}', nextRoom.roomId));
     } catch (error) {
       if (error.status === 404) {
-        handleMissingRoom(lastRoomId, `Room ${lastRoomId} is no longer active.`);
+        handleMissingRoom(lastRoomId, (copy.roomInactiveStatus || 'Room {roomId} is no longer active.').replace('{roomId}', lastRoomId));
       } else {
         persistLastRoomId('');
         setErrorMessage(error.message);
@@ -1652,7 +1674,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
     } finally {
       setBusyAction('');
     }
-  }, [handleMissingRoom, handleRoomConnected, persistLastRoomId, resolveRoomSession]);
+  }, [copy.reconnectedRoomStatus, copy.roomInactiveStatus, handleMissingRoom, handleRoomConnected, persistLastRoomId, resolveRoomSession]);
 
   const onSelectReply = useCallback((message) => {
     setEditingMessage(null);
@@ -1677,7 +1699,7 @@ export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
       showPinEntry, errorMessage, busyAction, hydrating, drawingOpen,
       drawingDraft, drawingBrushSize, drawingBrushColor, drawingMode, drawingSnapshots, drawingRedoStack,
       composerActive, chatOpen, settingsOpen, roomSearch, sendPulse, typingFocused,
-      selectedPortrait, participants, savedRooms, visiblePublicRooms, 
+      selectedPortrait, participants, activeParticipant, savedRooms, visiblePublicRooms, roomDirectoryRooms,
       filteredSavedRooms, isCreator, activeParticipantPalette,
       typingParticipants, entryTime
     },

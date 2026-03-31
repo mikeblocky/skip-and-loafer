@@ -57,7 +57,7 @@ const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderbo
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#065f46', fontSize: '1.5rem', lineHeight: 1 }}>{totalPlayed}</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#10b981', fontSize: '0.9rem', marginTop: '2px' }}>Games played</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#10b981', fontSize: '0.9rem', marginTop: '2px' }}>{t.gamesPlayedLabel || 'Games played'}</div>
           </div>
         </motion.div>
 
@@ -81,7 +81,7 @@ const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderbo
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#1e3a8a', fontSize: '1.5rem', lineHeight: 1 }}>{totalEntries}</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#3b82f6', fontSize: '0.9rem', marginTop: '2px' }}>Total players</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#3b82f6', fontSize: '0.9rem', marginTop: '2px' }}>{t.totalPlayersLabel || 'Total players'}</div>
           </div>
         </motion.div>
       </div>
@@ -92,7 +92,7 @@ const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderbo
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px' }}
         >
            <span style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#1f2937', fontSize: '1.2rem', letterSpacing: '0.5px' }}>
-            Rankings
+            {t.leaderboardHeading || 'Rankings'}
            </span>
         </motion.div>
 

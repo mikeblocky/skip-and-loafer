@@ -25,8 +25,8 @@ import {
 
 export const useQuizGameController = ({ t }) => {
   const [playerName, setPlayerName] = useState('');
-  const [questionSet, setQuestionSet] = useState('10');
-  const [difficultyMode, setDifficultyMode] = useState('easy');
+  const [questionSet, setQuestionSet] = useState('');
+  const [difficultyMode, setDifficultyMode] = useState('');
   const [gameState, setGameState] = useState('setup');
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -77,6 +77,7 @@ export const useQuizGameController = ({ t }) => {
   }, [availableQuestionCount]);
 
   useEffect(() => {
+    if (!questionSet) return;
     if (availableQuestionSetOptions.length === 0) return;
     const selectedCount = Number(questionSet);
     const isAvailable = availableQuestionSetOptions.some((option) => Number(option.key) === selectedCount);
@@ -206,6 +207,7 @@ export const useQuizGameController = ({ t }) => {
 
   const startQuiz = () => {
     if (isQuestionBankLoading || normalizedQuestions.length === 0) return;
+    if (!playerName.trim() || !questionSet || !difficultyMode) return;
 
     const resolvedCount = Number(questionSet);
     const modeKey = `${difficultyMode}:${questionSet}`;

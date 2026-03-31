@@ -4,12 +4,13 @@ import {
   BlogPage,
   BirthdayPage,
   ChaptersPage,
-  ChatPage,
+  FanGalleryPage,
   GalleryPage,
   getAppTabPreloaders,
   MysteryPage,
   PlannerPage,
   QuizPage,
+  SignPage,
   SyncPage,
 } from './appPageLoaders';
 
@@ -62,6 +63,10 @@ const getFallbackLabel = (activePage, isMobile) => {
   switch (activePage) {
     case 'gallery':
       return isMobile ? 'Loading gallery...' : 'Loading gallery view...';
+    case 'sign':
+      return isMobile ? 'Loading sign page...' : 'Loading sign page...';
+    case 'fanGallery':
+      return isMobile ? 'Loading fan gallery...' : 'Loading fan gallery...';
     case 'blog':
       return isMobile ? 'Loading blog...' : 'Loading blog posts...';
     case 'sync':
@@ -72,8 +77,6 @@ const getFallbackLabel = (activePage, isMobile) => {
       return isMobile ? 'Loading birthdays...' : 'Loading birthday page...';
     case 'mystery':
       return isMobile ? 'Loading mystery...' : 'Loading mystery page...';
-    case 'chat':
-      return isMobile ? 'Loading chat...' : 'Loading chat room...';
     default:
       return isMobile ? 'Loading...' : 'Loading page...';
   }
@@ -116,7 +119,7 @@ const AppTabContent = ({
   const isLargeText = !!accessibilityPrefs?.largeText;
   const hasReadableSpacing = !!accessibilityPrefs?.readableSpacing;
   const homeDesktopMinHeight = isLargeText ? '590px' : (hasReadableSpacing ? '560px' : '530px');
-  const homeDesktopPadding = isLargeText || hasReadableSpacing ? '10px 10px 14px' : '8px 8px 12px';
+  const homeDesktopPadding = isLargeText || hasReadableSpacing ? '28px 10px 14px' : '24px 8px 12px';
   const sharedPageShellStyle = useMemo(
     () => ({ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }),
     [],
@@ -132,7 +135,15 @@ const AppTabContent = ({
   let frameStyle = activePage === 'home'
     ? (isMobile
       ? { display: 'contents' }
-      : { ...sharedPageShellStyle, flexDirection: 'row', width: '100%', minHeight: homeDesktopMinHeight, margin: '0 auto', minWidth: 0 })
+      : {
+          ...sharedPageShellStyle,
+          flexDirection: 'row',
+          width: 'min(100%, 1160px)',
+          minHeight: homeDesktopMinHeight,
+          margin: '0 auto',
+          minWidth: 0,
+          alignSelf: 'center',
+        })
     : sharedPageShellStyle;
 
   switch (activePage) {
@@ -167,6 +178,12 @@ const AppTabContent = ({
       break;
     case 'gallery':
       tabContent = <GalleryPage isMobile={isMobile} uiLanguage={uiLanguage} subtabShortcut={subtabShortcut} />;
+      break;
+    case 'sign':
+      tabContent = <SignPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'fanGallery':
+      tabContent = <FanGalleryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
     case 'blog':
       tabContent = <BlogPage isMobile={isMobile} uiLanguage={uiLanguage} />;
@@ -209,9 +226,6 @@ const AppTabContent = ({
       break;
     case 'mystery':
       tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
-      break;
-    case 'chat':
-      tabContent = <ChatPage isMobile={isMobile} uiLanguage={uiLanguage} syncData={syncData} />;
       break;
     default:
       tabContent = (

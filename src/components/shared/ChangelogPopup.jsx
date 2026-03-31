@@ -20,21 +20,20 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
     const utcOffsetLabel = getUtcOffsetLabel();
     const releaseDateLabel = formatReleaseDate(RELEASE_DATE);
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+    const seenVersionKey = `${STORAGE_KEY}_${CHANGELOG_VERSION}`;
 
     useEffect(() => {
         try {
-            const dismissed = localStorage.getItem(STORAGE_KEY + '_dismissed');
-            if (!dismissed) {
+            const seenVersion = localStorage.getItem(seenVersionKey);
+            if (seenVersion !== CHANGELOG_VERSION) {
                 setShow(true);
+                localStorage.setItem(seenVersionKey, CHANGELOG_VERSION);
             }
         } catch { /* ignore */ }
-    }, []);
+    }, [seenVersionKey]);
 
     const handleClose = () => {
         setShow(false);
-        try {
-            localStorage.setItem(STORAGE_KEY + '_dismissed', 'true');
-        } catch { /* ignore */ }
     };
 
     return (

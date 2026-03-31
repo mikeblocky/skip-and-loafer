@@ -41,7 +41,7 @@ const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
 const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const CHAT_FONT_FAMILY = "'Sniglet', 'Coming Soon', 'Pangolin', 'Comic Neue', 'Comic Sans MS', cursive";
-const TAB_PAGES = ['home', 'chapters', 'gallery', 'blog', 'sync', 'quiz', 'birthdays', 'mystery', 'chat'];
+const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery'];
 
 const ReaderOverlayFallback = ({ isMobile, label }) => (
   <div
@@ -458,7 +458,7 @@ function App() {
                 scrollMarginTop: '60px',
                 width: '100%',
                 maxWidth: isMobile ? '100%' : (activePage === 'home' ? (accessibilityPrefs.largeText ? '1200px' : '1140px') : '1210px'),
-                minHeight: isMobile ? 'calc(100dvh - 160px)' : '800px',
+                minHeight: isMobile ? 'calc(100dvh - 160px)' : 'calc(100dvh - 170px)',
                 display: 'flex',
                 flexDirection: 'column',
                 pointerEvents: 'auto',
@@ -528,7 +528,7 @@ function App() {
 
       {/* Global Scroll-to-Top Button */}
       <AnimatePresence>
-        {showScrollTop && !readerChapter && activePage !== 'blog' && activePage !== 'quiz' && activePage !== 'chat' && (
+        {showScrollTop && !readerChapter && activePage !== 'blog' && activePage !== 'quiz' && (
           <motion.button
             key="scroll-top"
             onClick={scrollToTop}
