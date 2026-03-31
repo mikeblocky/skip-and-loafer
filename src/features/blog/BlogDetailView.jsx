@@ -11,7 +11,7 @@ import {
   getReaderPanelStyle,
   getReaderScrollStyle,
 } from './blogStyles';
-import { formatDate, getReadMinutes } from './blogShared';
+import { formatDate, formatReadMinutes, getReadMinutes } from './blogShared';
 
 const BlogDetailView = ({
   isMobile,
@@ -58,7 +58,7 @@ const BlogDetailView = ({
           <span style={getDetailMetaStyle(isMobile)}>
             <CalendarDays size={14} strokeWidth={3} /> {formatDate(selectedBlog.date, locale)}
             <span style={BLOG_META_DOT_STYLE}>•</span>
-            <BookOpen size={14} strokeWidth={3} /> {getReadMinutes(selectedBlog.content)} {t.minutesRead}
+            <BookOpen size={14} strokeWidth={3} /> {formatReadMinutes(getReadMinutes(selectedBlog.content), t)}
           </span>
         </div>
       </div>

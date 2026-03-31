@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Pin } from 'lucide-react';
-import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS } from '../data/chapters';
+import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS, isMainChapter } from '../data/chapters';
 import { JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../components/shared/animationPresets';
 import { triggerHaptic } from '../utils/haptics';
 import MobileChaptersTab from '../features/chapters/tabs/MobileChaptersTab';
@@ -295,10 +295,8 @@ const ChaptersPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, onReadChapt
   const goNext = () => setActiveVol((prev) => Math.min(VOLUMES.length - 1, prev + 1));
 
   const unreadCount = useMemo(() => {
-    // Only count main-story chapters that are available for reading.
-    const isMainStoryChapter = (chapter) => chapter.category === 'main' || !chapter.category;
-    const totalAvailable = CHAPTERS.filter((chapter) => isMainStoryChapter(chapter) && (chapter.links?.en || chapter.pages)).length;
-    const finishedCount = CHAPTERS.filter((chapter) => isMainStoryChapter(chapter) && isFinished(chapter.number)).length;
+    const totalAvailable = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && (chapter.links?.en || chapter.pages)).length;
+    const finishedCount = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && isFinished(chapter.number)).length;
     return Math.max(0, totalAvailable - finishedCount);
   }, [isFinished]);
 

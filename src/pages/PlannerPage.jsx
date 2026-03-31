@@ -27,17 +27,17 @@ const LOCALE_BY_UI_LANGUAGE = {
 const AgendaBadge = ({ isMobile, label, largeText = false }) => (
   <div style={{ display: 'inline-flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
     <Star size={isMobile ? 20 : 24} fill="#ffc93c" color="#f4b400" strokeWidth={2.2} />
-    <span
-      style={{
-        fontFamily: 'Sniglet, var(--font-main)',
-        fontSize: isMobile ? '1.2rem' : (largeText ? '1.42rem' : '1.3rem'),
-        lineHeight: 1,
-        fontWeight: '400',
-        color: '#66789b',
-        letterSpacing: '0.05em',
-        whiteSpace: 'nowrap',
-      }}
-    >
+      <span
+        style={{
+          fontFamily: 'Sniglet, var(--font-main)',
+          fontSize: isMobile ? '1.2rem' : (largeText ? '1.42rem' : '1.3rem'),
+          lineHeight: 1,
+          fontWeight: '400',
+          color: '#425b86',
+          letterSpacing: '0.05em',
+          whiteSpace: 'nowrap',
+        }}
+      >
       {label}
     </span>
     <Star size={isMobile ? 20 : 24} fill="#ffc93c" color="#f4b400" strokeWidth={2.2} />
@@ -227,7 +227,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
     ? pageStyle
     : {
       ...pageStyle,
-      padding: largeText ? '36px 24px 28px 36px' : '30px 18px 26px 30px',
+      padding: largeText ? '36px 28px 30px' : '30px 24px 28px',
       flex: largeText ? '0.7 1 0' : '0.68 1 0',
       minWidth: 0,
     };
@@ -321,8 +321,8 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
           <YearSticker isMobile={isMobile} largeText={largeText} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-          <div style={{ display: 'grid', gap: '6px', justifyItems: 'start', width: '100%', paddingTop: desktopTitlePaddingTop }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gap: '6px', justifyItems: 'center', width: '100%', paddingTop: desktopTitlePaddingTop }}>
             <h1
               data-planner-title="1"
               style={{
@@ -331,7 +331,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
                 fontSize: desktopTitleSize,
                 lineHeight: 0.9,
                 fontWeight: '400',
-                textAlign: 'left',
+                textAlign: 'center',
                 maxWidth: '100%',
               }}
             >
@@ -342,7 +342,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
             </h1>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', marginTop: 'auto', paddingTop: desktopQuotePaddingTop }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: 'auto', paddingTop: desktopQuotePaddingTop }}>
             <QuoteCard quote={randomQuote} isMobile={isMobile} largeText={largeText} readableSpacing={readableSpacing} />
           </div>
         </div>

@@ -58,7 +58,7 @@ const HistoryTab = ({ isMobile, t, displayedHistory }) => {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#5b21b6', fontSize: '1.5rem', lineHeight: 1 }}>{totalAttempts}</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#8b5cf6', fontSize: '0.9rem', marginTop: '2px' }}>Global attempts</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#8b5cf6', fontSize: '0.9rem', marginTop: '2px' }}>{t.historyGlobalAttempts || 'Global attempts'}</div>
           </div>
         </motion.div>
 
@@ -82,7 +82,7 @@ const HistoryTab = ({ isMobile, t, displayedHistory }) => {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#92400e', fontSize: '1.5rem', lineHeight: 1 }}>{bestScorePercent}%</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#f59e0b', fontSize: '0.9rem', marginTop: '2px' }}>Top record</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#f59e0b', fontSize: '0.9rem', marginTop: '2px' }}>{t.historyTopRecord || 'Top record'}</div>
           </div>
         </motion.div>
       </div>
@@ -93,7 +93,7 @@ const HistoryTab = ({ isMobile, t, displayedHistory }) => {
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px' }}
         >
            <span style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#1f2937', fontSize: '1.2rem', letterSpacing: '0.5px' }}>
-            Recent records
+            {t.historyHeading || 'Recent records'}
            </span>
         </motion.div>
 
@@ -126,7 +126,7 @@ const HistoryTab = ({ isMobile, t, displayedHistory }) => {
                   <span style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#1e293b', fontSize: '1.05rem' }}>
                     {item.name}
                   </span>
-                  <span style={{ fontFamily: 'var(--font-hand)', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 'bold' }}>scored {item.score}/{item.total}</span>
+                  <span style={{ fontFamily: 'var(--font-hand)', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 'bold' }}>{t.historyScored || 'scored'} {item.score}/{item.total}</span>
                 </div>
               }
               isMobile={isMobile}

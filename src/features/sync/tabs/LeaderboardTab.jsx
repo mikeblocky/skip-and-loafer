@@ -105,7 +105,7 @@ const LeaderboardTab = ({ isMobile, isLoadingLeaderboard, leaderboard, t, uiLang
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#92400e', fontSize: '1.8rem', lineHeight: 1 }}>{totalReads}</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#f59e0b', fontSize: '1rem', marginTop: '4px' }}>Total community reads</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#f59e0b', fontSize: '1rem', marginTop: '4px' }}>{t.totalCommunityReads || 'Total community reads'}</div>
           </div>
         </motion.div>
 
@@ -129,7 +129,7 @@ const LeaderboardTab = ({ isMobile, isLoadingLeaderboard, leaderboard, t, uiLang
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: '#9d174d', fontSize: '1.8rem', lineHeight: 1 }}>{totalRanked}</div>
-            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#ec4899', fontSize: '1rem', marginTop: '4px' }}>Ranked chapters</div>
+            <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#ec4899', fontSize: '1rem', marginTop: '4px' }}>{t.rankedChapters || 'Ranked chapters'}</div>
           </div>
         </motion.div>
       </div>
@@ -140,7 +140,7 @@ const LeaderboardTab = ({ isMobile, isLoadingLeaderboard, leaderboard, t, uiLang
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px', marginTop: '8px' }}
         >
            <span style={{ fontFamily: '"Coming Soon", cursive', fontWeight: '900', color: '#1f2937', fontSize: '1.45rem', letterSpacing: '0.5px' }}>
-             Manga rankings
+             {t.leaderboardHeading || 'Manga rankings'}
            </span>
         </motion.div>
 
@@ -218,7 +218,9 @@ const LeaderboardTab = ({ isMobile, isLoadingLeaderboard, leaderboard, t, uiLang
                 subtitle={
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ fontFamily: 'var(--font-hand)', fontWeight: 'bold', fontSize: '0.9rem', color: rank === 1 ? '#ef4444' : '#94a3b8', letterSpacing: '0.2px' }}>
-                      {rank === 1 ? `Leading by ${entries[1] ? entry.count - entries[1].count : entry.count} reads` : (gap > 0 ? `${gap} reads behind rank #${rank - 1}` : null)}
+                      {rank === 1
+                        ? (t.leadingByReads || 'Leading by {count} reads').replace('{count}', String(entries[1] ? entry.count - entries[1].count : entry.count))
+                        : (gap > 0 ? (t.readsBehindRank || '{count} reads behind rank #{rank}').replace('{count}', String(gap)).replace('{rank}', String(rank - 1)) : null)}
                     </div>
                   </div>
                 }
@@ -240,7 +242,7 @@ const LeaderboardTab = ({ isMobile, isLoadingLeaderboard, leaderboard, t, uiLang
                       gap: '8px',
                       boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
                     }}>
-                      {entry.count} reads
+                      {entry.count} {t.readsLabel || 'reads'}
                     </div>
                     <span style={{ 
                       fontFamily: 'var(--font-hand)', 
@@ -267,7 +269,6 @@ const getSafeChapterNumber = (chap) => {
 };
 
 export default LeaderboardTab;
-
 
 
 

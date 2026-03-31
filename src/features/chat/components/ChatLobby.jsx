@@ -19,7 +19,7 @@ export function ChatLobby({
   state: {
     room, mode, roomTitle, roomCode, roomVisibility,
     busyAction, statusMessage, errorMessage,
-    savedRooms, visiblePublicRooms, profile
+    roomDirectoryRooms, profile
   },
   actions: {
     handleStartRoomFlow, setRoomTitle, setRoomCode, setRoomVisibility,
@@ -98,7 +98,7 @@ export function ChatLobby({
               {[
                 { id: 'create', icon: PlusCircle, label: copy.createLabel },
                 { id: 'join', icon: UserRoundPlus, label: copy.joinLabel },
-                { id: 'saved', icon: RefreshCw, label: 'Room directory' }
+                { id: 'saved', icon: RefreshCw, label: copy.roomDirectoryTab || copy.roomDirectory }
               ].map((tab) => {
                 const isActive = mode === tab.id;
                 return (
@@ -112,7 +112,7 @@ export function ChatLobby({
             </div>
           )}
           <div style={{ flex: 1 }} /><button onClick={handleReconnectPress} style={{ ...BUTTON_STYLE, padding: '12px 18px', background: '#ffffff', color: '#64748b', borderColor: '#e2e8f0', borderBottomColor: '#cbd5e1', borderBottomWidth: 4, fontSize: '0.94rem' }}>
-            <RefreshCw size={17} strokeWidth={2.4} />{copy.reconnect || 'Reconnect'}
+            <RefreshCw size={17} strokeWidth={2.4} />{copy.reconnectLabel}
           </button>
         </div>
         <div className="hide-scrollbar" style={{ minWidth: 0, display: 'grid', gap: '24px', alignContent: 'start', height: '100%', overflowY: 'auto', paddingRight: '8px' }}>
@@ -146,9 +146,9 @@ export function ChatLobby({
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflowX: 'auto', paddingTop: '8px', paddingBottom: '18px' }} className="hide-scrollbar">
         {[
-          { id: 'create', icon: PlusCircle, label: 'Create' },
-          { id: 'join', icon: UserRoundPlus, label: 'Join' },
-          { id: 'saved', icon: RefreshCw, label: 'Rooms' }
+          { id: 'create', icon: PlusCircle, label: copy.createLabel },
+          { id: 'join', icon: UserRoundPlus, label: copy.joinLabel },
+          { id: 'saved', icon: RefreshCw, label: copy.roomDirectoryTab || copy.roomDirectory }
         ].map((tab) => {
           const isActive = mode === tab.id;
           return (
@@ -195,7 +195,7 @@ export function ChatLobby({
         {copy.roomDirectory}
       </div>
       <div className="hide-scrollbar" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(340px, 1fr))', gap: isMobile ? '12px' : '16px', padding: '2px' }}>
-        {[...savedRooms, ...visiblePublicRooms.filter((pr) => !savedRooms.some((sr) => sr.roomId === pr.roomId))].map((r, i) => (
+        {roomDirectoryRooms.map((r) => (
           <button key={r.roomId} onClick={() => handleOpenRoom(r.roomId)} style={{
             display: 'flex', alignItems: 'center', gap: '16px', padding: isMobile ? '14px' : '16px 20px', background: '#ffffff', border: '2.5px solid #e2e8f0', borderRadius: '24px', borderBottomWidth: '7px', boxShadow: '0 4px 0 rgba(0,0,0,0.02)', transition: 'transform 120ms ease'
           }} className="paper-interact">
@@ -207,8 +207,8 @@ export function ChatLobby({
             <ArrowRight size={20} color="#94a3b8" strokeWidth={2.5} flexShrink={0} />
           </button>
         ))}
-        {!savedRooms.length && !visiblePublicRooms.length && (
-          <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>{copy.noRooms || 'No rooms available'}</div>
+        {!roomDirectoryRooms.length && (
+          <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>{copy.noRooms}</div>
         )}
       </div>
     </div>

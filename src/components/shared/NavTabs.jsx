@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, Package, MessageCircleHeart, ChevronDown } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, Package, PenLine, ImagePlus, ChevronDown } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
@@ -8,41 +8,17 @@ const TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', desktopFlex: 1 },
     { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', desktopFlex: 1.18 },
     { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#7c4dff', desktopFlex: 1 },
+    { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan gallery', icon: ImagePlus, color: '#2563eb', desktopFlex: 1.42 },
+    { id: 'sign', label: 'Sign', mobileLabel: 'Sign', icon: PenLine, color: '#f97316', desktopFlex: 0.96 },
     { id: 'blog', label: 'Blog', mobileLabel: 'Blog', icon: FileText, color: '#ff7a1a', desktopFlex: 1 },
-    { id: 'sync', label: 'Reading', mobileLabel: 'Reading', icon: BarChart3, color: '#38c972', desktopFlex: 1.02 },
+    { id: 'sync', label: 'Reading', mobileLabel: 'Reading', icon: BarChart3, color: '#38c972', desktopFlex: 1.16 },
     { id: 'quiz', label: 'Quiz', mobileLabel: 'Quiz', icon: Trophy, color: '#ff5757', desktopFlex: 1 },
     { id: 'birthdays', label: 'Birthdays', mobileLabel: 'Birthdays', icon: Cake, color: '#ffb11f', desktopFlex: 1.22 },
-    { id: 'mystery', label: 'Mystery', mobileLabel: 'Mystery', icon: Package, color: '#ff4f96', desktopFlex: 1 },
-    { id: 'chat', label: 'Character chat', mobileLabel: 'Chat', icon: MessageCircleHeart, color: '#14b8a6', desktopFlex: 1.42 },
+    { id: 'mystery', label: 'Mystery', mobileLabel: 'Mystery', icon: Package, color: '#ff4f96', desktopFlex: 1.18 },
 ];
 
 const DARK_OUTLINE = '#0f172a';
 const USE_COMPACT_MOBILE_NAV = false;
-
-const BetaBadge = ({ color, mobile = false, active = false }) => (
-  <span
-    style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: mobile ? '2px 7px' : '2px 7px',
-      borderRadius: '999px',
-      background: active ? color : '#ffffff',
-      color: active ? '#ffffff' : color,
-      border: `2px solid ${color}`,
-      borderBottom: `3px solid ${color}`,
-      fontSize: mobile ? '0.64rem' : '0.6rem',
-      lineHeight: 1,
-      fontWeight: '400',
-      marginLeft: mobile ? '0' : '4px',
-      boxShadow: `0 2px 0 ${color}22`,
-      flexShrink: 0,
-      textTransform: 'none',
-    }}
-  >
-    Beta
-  </span>
-);
 
 const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
   const railRef = useRef(null);
@@ -255,7 +231,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                         </div>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '1.06rem', fontWeight: '400', color: isActive ? tab.color : '#0f172a', flex: 1 }}>
                           <span>{label}</span>
-                          {tab.id === 'chat' && <BetaBadge color={tab.color} mobile active={isActive} />}
                         </span>
                       </motion.button>
                     );
@@ -304,13 +279,16 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
           const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);
           const mobileLabel = toUiLabelCase(labelsById?.[tab.id]?.mobileLabel || tab.mobileLabel || label);
           const iconSize = isMobile ? (tab.iconSizeMobile || 21) : 21;
+          const desktopBasis = Math.max(96, Math.min(192, Math.round(label.length * 9.4) + 32));
+          const mobileBasis = Math.max(112, Math.min(214, Math.round(mobileLabel.length * 9.1) + 42));
           return (
             <div
               key={`wrap-${tab.id}`}
               style={{
                 display: 'flex',
-                flex: isMobile ? '0 0 auto' : `${tab.desktopFlex || 1} 1 0`,
-                minWidth: isMobile ? '112px' : 0,
+                flex: isMobile ? '0 0 auto' : `1 1 ${desktopBasis}px`,
+                minWidth: isMobile ? `${mobileBasis}px` : 0,
+                maxWidth: isMobile ? 'none' : '200px',
               }}
             >
               <button
@@ -326,13 +304,13 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: isMobile ? '7px' : '6px',
-                  padding: isMobile ? '14px 14px 20px' : '9px 11px 14px',
+                  padding: isMobile ? '14px 14px 20px' : '10px 12px 14px',
                   background: isActive ? '#ffffff' : tab.color,
                   border: `3px solid ${DARK_OUTLINE}`,
                   borderBottom: isActive ? '7px solid #ffffff' : `7px solid ${DARK_OUTLINE}`,
                   cursor: 'pointer',
                   fontFamily: 'Sniglet, var(--font-main)',
-                  fontSize: isMobile ? '0.96rem' : '0.8rem',
+                  fontSize: isMobile ? '0.94rem' : '0.76rem',
                   lineHeight: 1.15,
                   fontWeight: 'normal',
                   color: isActive ? tab.color : '#ffffff',
@@ -342,9 +320,11 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                     : '0 8px 18px rgba(15,23,42,0.16)',
                   zIndex: isActive ? 30 : 5,
                   whiteSpace: 'nowrap',
-                  flex: '1 1 100%',
-                  minHeight: isMobile ? '70px' : '50px',
-                  minWidth: isMobile ? '112px' : 'auto',
+                  width: '100%',
+                  flex: '1 1 auto',
+                  minHeight: isMobile ? '70px' : '52px',
+                  minWidth: 0,
+                  maxWidth: '100%',
                   scrollSnapAlign: isMobile ? 'start' : 'none',
                   overflow: 'hidden',
                   transform: `translateY(${isActive ? (isMobile ? -6 : -5) : 0}px)`,
@@ -363,9 +343,8 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                 >
                   <Icon size={iconSize} strokeWidth={2.5} />
                 </span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                   <span>{isMobile ? mobileLabel : label}</span>
-                  {tab.id === 'chat' && <BetaBadge color={tab.color} mobile={isMobile} active={isActive} />}
                 </span>
               </button>
             </div>

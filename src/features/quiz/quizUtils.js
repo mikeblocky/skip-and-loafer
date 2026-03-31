@@ -1,4 +1,4 @@
-import { DIFFICULTY_OPTIONS } from './quizConstants';
+import { DIFFICULTY_OPTIONS, QUESTION_TIME_BY_DIFFICULTY, QUESTION_TIME_RANDOM_SECONDS } from './quizConstants';
 
 export const shuffle = (array) => {
   const next = [...array];
@@ -77,7 +77,11 @@ export const normalizeQuizDifficulties = (questions) => {
 };
 
 export const getDifficultyLabel = (difficultyKey, t) => {
-  if (difficultyKey === 'random-bell') return t.randomBell;
+  if (difficultyKey === 'easy') return t?.difficultyEasy || 'Easy';
+  if (difficultyKey === 'medium') return t?.difficultyMedium || 'Medium';
+  if (difficultyKey === 'hard') return t?.difficultyHard || 'Hard';
+  if (difficultyKey === 'really-hard') return t?.difficultyReallyHard || 'Really hard';
+  if (difficultyKey === 'random-bell') return t?.difficultyRandom || t?.randomBell || 'Random';
   return DIFFICULTY_OPTIONS.find((option) => option.key === difficultyKey)?.label || difficultyKey;
 };
 
@@ -90,13 +94,12 @@ export const withOpacity = (hexColor, alphaHex = '22') => `${hexColor}${alphaHex
 
 const QUESTION_SET_COLORS = {
   10: '#22c55e',
-  25: '#3b82f6',
+  20: '#10b981',
+  30: '#14b8a6',
+  35: '#3b82f6',
   50: '#06b6d4',
+  75: '#8b5cf6',
   100: '#f59e0b',
-  125: '#f97316',
-  150: '#ef4444',
-  175: '#ec4899',
-  200: '#8b5cf6',
 };
 
 export const getQuestionSetChipColor = (setKey) => QUESTION_SET_COLORS[Number(setKey)] || '#6b7280';
@@ -112,6 +115,12 @@ export const getDifficultyChipLabel = (key) => {
   if (key === 'hard') return 'Hard';
   if (key === 'really-hard') return 'Really hard';
   return 'Random';
+};
+
+export const getDifficultyTimerLabel = (key) => {
+  if (key === 'random-bell') return `${QUESTION_TIME_RANDOM_SECONDS}s`;
+  const seconds = QUESTION_TIME_BY_DIFFICULTY[key] || QUESTION_TIME_BY_DIFFICULTY.medium;
+  return `${seconds}s`;
 };
 
 export const buildBellCurveQuizPool = (questions, desiredCount) => {
