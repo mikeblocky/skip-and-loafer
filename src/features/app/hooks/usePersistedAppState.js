@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { ACTIVE_PAGE_STORAGE_KEY, READER_CHAPTER_STORAGE_KEY } from '../appConstants';
 
 export const usePersistedAppState = ({
   activePage,
@@ -11,16 +12,26 @@ export const usePersistedAppState = ({
   shortcutStatsKey,
 }) => {
   useEffect(() => {
-    localStorage.setItem('skip_activePage', activePage);
+    try {
+      localStorage.setItem(ACTIVE_PAGE_STORAGE_KEY, activePage);
+    } catch {
+      // ignore storage failures
+    }
   }, [activePage]);
 
   useEffect(() => {
-    if (readerChapter) {
-      localStorage.setItem('skip_readerChapter', JSON.stringify(readerChapter));
-      return;
-    }
+    try {
+      if (readerChapter) {
+        localStorage.setItem(READER_CHAPTER_STORAGE_KEY, JSON.stringify({
+          number: readerChapter.number,
+        }));
+        return;
+      }
 
-    localStorage.removeItem('skip_readerChapter');
+      localStorage.removeItem(READER_CHAPTER_STORAGE_KEY);
+    } catch {
+      // ignore storage failures
+    }
   }, [readerChapter]);
 
   useEffect(() => {

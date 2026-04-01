@@ -52,11 +52,11 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <span style={{ 
-          fontFamily: 'var(--font-main)', 
+          fontFamily: 'Sniglet, var(--font-main)', 
           color: isCorrect ? '#064e3b' : isWrong ? '#7f1d1d' : isLocked ? '#64748b' : '#1e293b', 
-          fontWeight: '900', 
-          fontSize: isMobile ? '1rem' : '1.1rem', 
-          lineHeight: 1.25 
+          fontWeight: '400', 
+          fontSize: isMobile ? '1.14rem' : '1.24rem', 
+          lineHeight: 1.2 
         }}>
           {text}
         </span>

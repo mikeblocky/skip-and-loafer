@@ -26,9 +26,15 @@ import { CONTENT_SLIDE, TRANSITION_TAB } from '../components/shared/animationPre
 import { ListRow, MiniChapterRow, TabSelector } from '../features/sync/syncSharedComponents';
 import { useSubtabShortcutNavigation } from '../hooks/shared/useSubtabShortcutNavigation';
 import { toUiLabelCase } from '../utils/textCase';
+import usePageTitle from '../hooks/shared/usePageTitle';
+import APP_UI_TEXT_GLOBAL from '../config/appUiText';
 
 const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+    const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+
+    usePageTitle(tGlobal.tabs?.sync?.label || 'Reading');
+
     const locale = LOCALE_BY_UI_LANGUAGE[uiLanguage] || 'en-US';
     const tabs = [
         { ...TAB_META[0], title: t.progress, short: t.overview },
@@ -244,4 +250,3 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
 };
 
 export default SyncPage;
-

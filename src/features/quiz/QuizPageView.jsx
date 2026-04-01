@@ -10,9 +10,14 @@ import HistoryTab from './components/HistoryTab';
 import { useQuizGameController } from './hooks/useQuizGameController';
 import { useQuizTabNavigation } from './hooks/useQuizTabNavigation';
 import { toUiLabelCase } from '../../utils/textCase';
+import usePageTitle from '../../hooks/shared/usePageTitle';
+import APP_UI_TEXT_GLOBAL from '../../config/appUiText';
 
 const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+
+  usePageTitle(tGlobal.tabs?.quiz?.label || 'Quiz');
 
   const tabs = useMemo(
     () => [
@@ -258,6 +263,3 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
 };
 
 export default QuizPageView;
-
-
-

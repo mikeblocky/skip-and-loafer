@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 void motion;
@@ -20,6 +20,7 @@ import {
   SYNERGY_CHECK_LOGIC,
   hashString,
 } from './quizGame/config';
+import { QuizStageShell } from './quizGame/QuizStagePrimitives';
 
 const loadQuizIntegrityCheckpoint = () => import('./quizGame/QuizIntegrityCheckpoint');
 const loadQuizIntro = () => import('./quizGame/QuizIntro');
@@ -52,6 +53,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   const [integrityCheckpoint, setIntegrityCheckpoint] = useState(null);
   const [matchedResult, setMatchedResult] = useState(null);
   const [showAllScores, setShowAllScores] = useState(false);
+  const resultRevealTimeoutRef = useRef(null);
   const evidenceTrailRef = useRef([]);
   const axisSignalRef = useRef({ social: 0, planning: 0, focus: 0, drive: 0 });
   const axisPolarityRef = useRef({
@@ -100,8 +102,18 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     maxPreloadCount: isMobile ? 2 : 3,
   });
 
+  useEffect(() => () => {
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+    }
+  }, []);
+
   const handleStart = () => {
     triggerHaptic('selection');
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+      resultRevealTimeoutRef.current = null;
+    }
     
     // Use stratified sampling for broad type coverage, then adaptively reorder at runtime.
     const sampled = buildHumanQuestionSet({ localizedQuestionBank, count: 35 });
@@ -122,6 +134,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     setRhythmPattern([]);
     setConstellationSelection([]);
     setIntegrityCheckpoint(null);
+    setMatchedResult(null);
     setShowAllScores(false);
     evidenceTrailRef.current = [];
     axisSignalRef.current = { social: 0, planning: 0, focus: 0, drive: 0 };
@@ -727,10 +740,14 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       evidenceTrail: evidenceTrailRef.current,
       recoveryRounds: recoveryRoundRef.current,
     });
-    setTimeout(() => {
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+    }
+    resultRevealTimeoutRef.current = setTimeout(() => {
       triggerHaptic('success');
       setMatchedResult(nextMatchedResult);
       setCurrentStep(questions.length + 2);
+      resultRevealTimeoutRef.current = null;
     }, 2400);
   };
 
@@ -817,7 +834,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     if (currentStep === questions.length + 1) {
       return (
         <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Calculating...'} />}>
-          <QuizLoadingState t={t} />
+          <QuizLoadingState isMobile={isMobile} t={t} />
         </Suspense>
       );
     }
@@ -843,25 +860,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   };
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        width: '100%',
-        minHeight: isMobile ? '460px' : '580px',
-        paddingTop: isMobile ? '4px' : '8px',
-      }}
-    >
-      <div style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <AnimatePresence mode="wait">
-          {renderContent()}
-        </AnimatePresence>
-      </div>
-    </div>
+    <QuizStageShell isMobile={isMobile}>
+      <AnimatePresence mode="wait">
+        {renderContent()}
+      </AnimatePresence>
+    </QuizStageShell>
   );
 };
 

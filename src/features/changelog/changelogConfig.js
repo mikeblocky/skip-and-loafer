@@ -29,29 +29,11 @@ export const CHANGELOG_SERIES = [
     title: 'New release highlights',
     icon: BookMarked,
     lines: [
-      { type: 'added', text: 'Fan gallery is live, giving readers a dedicated space to browse community art.' },
-      { type: 'added', text: 'Sign (Message) now has its own page so sending and reading messages feels more polished.' },
+      { type: 'added', text: 'Fan gallery is now the home for series art, fan creations, fanarts, images, and other community uploads.' },
+      { type: 'added', text: 'Sign (Message) is a place to write messages about the series and share other notes.' },
       { type: 'changed', text: 'The UI got a broader visual refresh across tabs, cards, and navigation for a cleaner, more cohesive look.' },
-      { type: 'added', text: 'Mystery now has 3 feature paths: character draw, who-are-you quiz, and daily message.' },
+      { type: 'added', text: 'Mystery now includes a daily character draw, a who-are-you character quiz, and a which animal are you quiz.' },
       { type: 'changed', text: 'More localized translations were added and expanded across the app, including blog and changelog copy.' },
-    ],
-  },
-  {
-    title: 'Mystery quiz refresh',
-    icon: BookMarked,
-    lines: [
-      { type: 'added', text: 'New question mechanics are live: spectrum sliders, 4-point stance prompts, and more mixed question sets.' },
-      { type: 'added', text: 'Results now include a full all-characters ranking, plus dynamic reason and daily prediction text per run.' },
-      { type: 'changed', text: 'Result layout is cleaner and more compact, with clearer instructions and updated color mapping for choice confidence.' },
-      { type: 'fixed', text: 'Improved mobile tab behavior to prevent active-tab clipping and tuned reliability checks to reduce unnecessary calibration rounds.' },
-      { type: 'fixed', text: 'Extreme response handling is now adaptive, so coherent high-intensity answers are less likely to be unfairly penalized.' },
-    ],
-  },
-  {
-    title: 'Side works',
-    icon: BookMarked,
-    lines: [
-      { type: 'added', text: 'Side works tab added to Chapters — read Sakura Tayori, Awai Yoru, and the March 5th tweet in-app!' },
     ],
   },
 ];

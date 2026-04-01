@@ -1,0 +1,28 @@
+export const ACTIVE_PAGE_STORAGE_KEY = 'skip_activePage';
+export const READER_CHAPTER_STORAGE_KEY = 'skip_readerChapter';
+export const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
+export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
+export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
+export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
+
+export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery'];
+export const DEFAULT_PAGE = TAB_PAGES[0];
+export const VALID_COLOR_BLIND_MODES = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'black-white'];
+
+export const DEFAULT_SHORTCUT_STATS = {
+  usageCount: 0,
+  coachSeen: false,
+};
+
+export const DEFAULT_ACCESSIBILITY_PREFS = {
+  reduceMotion: false,
+  largeText: false,
+  largeControls: false,
+  highContrast: false,
+  readableSpacing: false,
+  underlineLinks: false,
+  reduceTransparency: false,
+  simplifyVisuals: false,
+  dimNonEssentialColors: false,
+  colorBlindMode: 'none',
+};

@@ -586,7 +586,78 @@ function localSyncApiPlugin() {
   };
 }
 
+function manualChunks(id) {
+  if (id.includes('/src/components/shared/ImageLightbox')) {
+    return 'lightbox';
+  }
+
+  if (id.includes('/src/data/chapters')) {
+    return 'chapters-data';
+  }
+
+  if (
+    id.includes('/src/features/blog/BlogReaderPane') ||
+    id.includes('/src/features/blog/BlogDetailView') ||
+    id.includes('/src/features/blog/BlogMarkdownRenderer') ||
+    id.includes('/src/features/blog/blogMarkdownComponents') ||
+    id.includes('/src/features/blog/ReaderControls') ||
+    id.includes('/src/features/blog/useBlogReaderBehavior') ||
+    id.includes('/src/features/blog/useSelectedBlogArticle') ||
+    id.includes('/src/features/blog/blogReaderTheme')
+  ) {
+    return 'blog-reader';
+  }
+
+  if (id.includes('/src/features/blog/') || id.includes('/src/pages/BlogPage') || id.includes('/src/data/blogs')) {
+    return 'blog';
+  }
+
+  if (id.includes('/src/features/community/') || id.includes('/src/pages/SignPage') || id.includes('/src/pages/FanGalleryPage')) {
+    return 'community';
+  }
+
+  if (!id.includes('node_modules')) return undefined;
+
+  if (
+    id.includes('/react-markdown/') ||
+    id.includes('/remark-gfm/') ||
+    id.includes('/rehype-raw/') ||
+    id.includes('/mdast-') ||
+    id.includes('/micromark') ||
+    id.includes('/unified/') ||
+    id.includes('/remark-') ||
+    id.includes('/rehype-')
+  ) {
+    return 'vendor-markdown';
+  }
+
+  if (id.includes('/framer-motion/')) {
+    return 'vendor-motion';
+  }
+
+  if (id.includes('/lucide-react/')) {
+    return 'vendor-icons';
+  }
+
+  if (
+    id.includes('/react/') ||
+    id.includes('/react-dom/') ||
+    id.includes('/scheduler/')
+  ) {
+    return 'vendor-react';
+  }
+
+  return undefined;
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), localSyncApiPlugin()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks,
+      },
+    },
+  },
 })

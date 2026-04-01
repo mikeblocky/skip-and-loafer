@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Accessibility, Keyboard, Languages, Settings } from 'lucide-react';
+import { APP_LANGUAGE_OPTIONS, APP_UI_TEXT } from '../../config/appUiText';
 
 const PANEL_BASE_STYLE = {
   background: '#fffefc',
@@ -98,7 +99,6 @@ const AppQuickControls = ({
   readerChapter,
   isMobile,
   t,
-  uiText,
   showAccessibilityPanel,
   showShortcutPanel,
   showLanguageMenu,
@@ -117,7 +117,8 @@ const AppQuickControls = ({
   tabCount = 8,
 }) => {
   const [activeAccessibilityGroup, setActiveAccessibilityGroup] = useState('reading');
-  const colorBlindLabel = t.colorVisionMode || uiText.en.colorVisionMode || 'Color vision mode';
+  const fallbackText = APP_UI_TEXT.en;
+  const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
   const groupedLabels = {
     en: { reading: 'Reading & text', clarity: 'Clarity & contrast', visuals: 'Motion & visuals', color: 'Color mode' },
     es: { reading: 'Lectura y texto', clarity: 'Claridad y contraste', visuals: 'Movimiento y visuales', color: 'Modo de color' },
@@ -127,38 +128,38 @@ const AppQuickControls = ({
     it: { reading: 'Lettura e testo', clarity: 'Chiarezza e contrasto', visuals: 'Movimento e aspetto', color: 'Modalita colore' },
   }[uiLanguage] || { reading: 'Reading & text', clarity: 'Clarity & contrast', visuals: 'Motion & visuals', color: 'Color mode' };
   const tabRange = tabCount > 9 ? '1..9, 0' : `1..${tabCount}`;
-  const shortcutTipBase = t.tip || uiText.en.tip || 'Tip: use 1..8 to jump tabs quickly.';
+  const shortcutTipBase = t.tip || fallbackText.tip || 'Tip: use 1..8 to jump tabs quickly.';
   const shortcutTip = tabCount > 9
     ? 'Tip: use 1..9 and 0 to jump tabs quickly.'
     : shortcutTipBase
       .replace(/1 to \d+/g, tabRange)
       .replace(/1\.\.\d+/g, tabRange);
   const colorBlindOptions = [
-    { key: 'none', label: t.colorVisionOff || uiText.en.colorVisionOff || 'Off' },
-    { key: 'protanopia', label: t.colorVisionProtanopia || uiText.en.colorVisionProtanopia || 'Protanopia' },
-    { key: 'deuteranopia', label: t.colorVisionDeuteranopia || uiText.en.colorVisionDeuteranopia || 'Deuteranopia' },
-    { key: 'tritanopia', label: t.colorVisionTritanopia || uiText.en.colorVisionTritanopia || 'Tritanopia' },
-    { key: 'black-white', label: t.colorVisionBlackWhite || uiText.en.colorVisionBlackWhite || 'Black & White' },
+    { key: 'none', label: t.colorVisionOff || fallbackText.colorVisionOff || 'Off' },
+    { key: 'protanopia', label: t.colorVisionProtanopia || fallbackText.colorVisionProtanopia || 'Protanopia' },
+    { key: 'deuteranopia', label: t.colorVisionDeuteranopia || fallbackText.colorVisionDeuteranopia || 'Deuteranopia' },
+    { key: 'tritanopia', label: t.colorVisionTritanopia || fallbackText.colorVisionTritanopia || 'Tritanopia' },
+    { key: 'black-white', label: t.colorVisionBlackWhite || fallbackText.colorVisionBlackWhite || 'Black & White' },
   ];
 
   const shortcutRows = [
-    { keyLabel: tabRange, description: t.mainTabShortcut || uiText.en.mainTabShortcut || 'Jump to a main tab' },
-    { keyLabel: 'Q / E', description: t.prevNextSubtab || uiText.en.prevNextSubtab || 'Previous / next subtab' },
+    { keyLabel: tabRange, description: t.mainTabShortcut || fallbackText.mainTabShortcut || 'Jump to a main tab' },
+    { keyLabel: 'Q / E', description: t.prevNextSubtab || fallbackText.prevNextSubtab || 'Previous / next subtab' },
     { keyLabel: 'Alt+A', description: t.accessibility },
     { keyLabel: 'Alt+K', description: t.shortcuts },
     { keyLabel: 'Esc', description: t.close },
   ];
 
   const accessibilityOptions = [
-    { key: 'reduceMotion', label: t.reduceMotion || uiText.en.reduceMotion },
-    { key: 'largeText', label: t.largeText || uiText.en.largeText },
-    { key: 'largeControls', label: t.largeControls || uiText.en.largeControls },
-    { key: 'highContrast', label: t.highContrast || uiText.en.highContrast },
-    { key: 'readableSpacing', label: t.readableSpacing || uiText.en.readableSpacing },
-    { key: 'underlineLinks', label: t.underlineLinks || uiText.en.underlineLinks },
-    { key: 'reduceTransparency', label: t.reduceTransparency || uiText.en.reduceTransparency },
-    { key: 'simplifyVisuals', label: t.simplifyVisuals || uiText.en.simplifyVisuals },
-    { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || uiText.en.dimNonEssentialColors || 'Dim non-essential colors' },
+    { key: 'reduceMotion', label: t.reduceMotion || fallbackText.reduceMotion },
+    { key: 'largeText', label: t.largeText || fallbackText.largeText },
+    { key: 'largeControls', label: t.largeControls || fallbackText.largeControls },
+    { key: 'highContrast', label: t.highContrast || fallbackText.highContrast },
+    { key: 'readableSpacing', label: t.readableSpacing || fallbackText.readableSpacing },
+    { key: 'underlineLinks', label: t.underlineLinks || fallbackText.underlineLinks },
+    { key: 'reduceTransparency', label: t.reduceTransparency || fallbackText.reduceTransparency },
+    { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals },
+    { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors' },
   ];
   const accessibilitySections = [
     { key: 'reading', title: groupedLabels.reading, accent: '#60a5fa', options: accessibilityOptions.filter((option) => ['largeText', 'largeControls', 'readableSpacing', 'underlineLinks'].includes(option.key)) },
@@ -481,7 +482,8 @@ const AppQuickControls = ({
               zIndex: 2000,
             }}
           >
-            {Object.keys(uiText).map((lang) => {
+            {APP_LANGUAGE_OPTIONS.map(({ code, name }) => {
+              const lang = code;
               const selected = lang === uiLanguage;
               return (
                 <button
@@ -516,7 +518,7 @@ const AppQuickControls = ({
                   onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = '#fff'; }}
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', height: '32px', borderRadius: '10px', border: `2px solid ${selected ? '#93c5fd' : '#dbe7f3'}`, borderBottom: `4px solid ${selected ? '#60a5fa' : '#cbd5e1'}`, background: selected ? '#ffffff' : '#f8fafc', color: selected ? '#2563eb' : '#64748b', fontSize: '0.72rem', lineHeight: 1, textTransform: 'uppercase' }}>{lang}</span>
-                  <span style={{ display: 'block', lineHeight: 1.1, flex: 1 }}>{uiText[lang].languageName}</span>
+                  <span style={{ display: 'block', lineHeight: 1.1, flex: 1 }}>{name}</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '30px', height: '30px', borderRadius: '10px', border: `2px solid ${selected ? '#93c5fd' : '#dbe7f3'}`, borderBottom: `4px solid ${selected ? '#60a5fa' : '#cbd5e1'}`, background: selected ? '#ffffff' : '#f8fafc', color: selected ? '#2563eb' : '#94a3b8', flexShrink: 0, fontSize: '0.86rem', lineHeight: 1 }}>{selected ? '✓' : ''}</span>
                 </button>
               );
