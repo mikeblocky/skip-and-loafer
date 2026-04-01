@@ -87,21 +87,19 @@ const ChaptersPage = ({
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
   const chaptersTitle = t.chapters || 'Chapters';
+  const subtabPages = useMemo(() => (uiLanguage === 'ja' ? ['main'] : SUBTABS), [uiLanguage]);
 
   usePageTitle(tGlobal.tabs?.chapters?.label || 'Chapters');
 
   const [countryCode, setCountryCode] = useState(null);
-  const [activeSubtab, _setActiveSubtab] = useState(() => {
-    const saved = localStorage.getItem('skip_chaptersSubtab');
-    return saved === 'side' ? 'side' : 'main';
-  });
+  const [activeSubtab, _setActiveSubtab] = useState('main');
 
   const setActiveSubtab = (valueOrFn) => {
     startTransition(() => {
       _setActiveSubtab((previous) => {
         const next = typeof valueOrFn === 'function' ? valueOrFn(previous) : valueOrFn;
-        localStorage.setItem('skip_chaptersSubtab', next);
-        return next;
+        const normalized = subtabPages.includes(next) ? next : (subtabPages[0] || 'main');
+        return normalized;
       });
     });
   };
@@ -203,14 +201,24 @@ const ChaptersPage = ({
     .replace('{count}', unreadCount)
     .replace('{suffix}', getCountryPluralSuffix(uiLanguage, unreadCount));
 
+  const displaySubtab = subtabPages.includes(activeSubtab) ? activeSubtab : (subtabPages[0] || 'main');
+
+  useEffect(() => {
+    if (activeSubtab === displaySubtab) return;
+    startTransition(() => {
+      _setActiveSubtab(displaySubtab);
+    });
+  }, [activeSubtab, displaySubtab]);
+
   useSubtabShortcutNavigation({
     subtabShortcut,
-    tabCount: SUBTABS.length,
+    tabCount: subtabPages.length,
     onNavigate: (nextIndexOrFn) => {
-      const currentIndex = SUBTABS.indexOf(activeSubtab);
-      const computed = typeof nextIndexOrFn === 'function' ? nextIndexOrFn(currentIndex) : nextIndexOrFn;
-      const bounded = ((computed % SUBTABS.length) + SUBTABS.length) % SUBTABS.length;
-      setActiveSubtab(SUBTABS[bounded]);
+      const currentIndex = subtabPages.indexOf(displaySubtab);
+      const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
+      const computed = typeof nextIndexOrFn === 'function' ? nextIndexOrFn(safeCurrentIndex) : nextIndexOrFn;
+      const bounded = ((computed % subtabPages.length) + subtabPages.length) % subtabPages.length;
+      setActiveSubtab(subtabPages[bounded]);
     },
   });
 
@@ -254,15 +262,17 @@ const ChaptersPage = ({
         <ChaptersPageHeader
           isMobile={isMobile}
           title={chaptersTitle}
-          activeSubtab={activeSubtab}
+          activeSubtab={displaySubtab}
           setActiveSubtab={setActiveSubtab}
+          tabs={subtabPages}
           t={t}
+          uiLanguage={uiLanguage}
           unreadCount={unreadCount}
           unreadLabel={unreadLabel}
         />
       </div>
 
-      {activeSubtab === 'main' ? (
+      {displaySubtab === 'main' ? (
         isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />
       ) : (
         <SideWorksTab
