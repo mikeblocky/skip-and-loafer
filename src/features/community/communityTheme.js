@@ -1,4 +1,12 @@
-export const COMMUNITY_FONT_FAMILY = '"Sniglet", "Coming Soon", cursive';
+import {
+  PAPER_FONT_FAMILY,
+  PAPER_PANEL_STYLE,
+  createPaperButtonStyle,
+  createPaperChipStyle,
+  createPaperCounterStyle,
+} from '../../components/shared/paper/paperTheme';
+
+export const COMMUNITY_FONT_FAMILY = PAPER_FONT_FAMILY;
 
 export const COMMUNITY_PAGE_STYLE = {
   width: '100%',
@@ -8,13 +16,7 @@ export const COMMUNITY_PAGE_STYLE = {
   padding: '24px 0 12px',
 };
 
-export const COMMUNITY_PANEL_STYLE = {
-  background: '#fffefc',
-  border: '3px solid #cbd5e1',
-  borderBottom: '8px solid #94a3b8',
-  borderRadius: '28px',
-  boxShadow: '0 18px 42px rgba(15, 23, 42, 0.12)',
-};
+export const COMMUNITY_PANEL_STYLE = PAPER_PANEL_STYLE;
 
 export const COMMUNITY_INPUT_STYLE = {
   width: '100%',
@@ -37,22 +39,13 @@ export const COMMUNITY_TEXTAREA_STYLE = {
 };
 
 export function createCommunityChipStyle({ borderColor, bottomColor, background, color = '#475569' }) {
-  return {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
+  return createPaperChipStyle({
+    borderColor,
+    bottomColor,
     background,
-    border: `2.5px solid ${borderColor}`,
-    borderBottom: `6px solid ${bottomColor}`,
-    borderRadius: '16px',
-    padding: '6px 10px',
-    minHeight: '32px',
     color,
     fontFamily: COMMUNITY_FONT_FAMILY,
-    fontSize: '0.78rem',
-    lineHeight: 1,
-    fontWeight: '400',
-  };
+  });
 }
 
 export function createCommunityTimestampStyle({ borderColor, bottomColor, background, color = '#475569' }) {
@@ -66,34 +59,22 @@ export function createCommunityTimestampStyle({ borderColor, bottomColor, backgr
 }
 
 export function createCommunityButtonStyle({ borderColor, bottomColor, background, color = '#ffffff' }) {
-  return {
-    border: `3px solid ${borderColor}`,
-    borderBottom: `8px solid ${bottomColor}`,
-    borderRadius: '16px',
+  return createPaperButtonStyle({
+    borderColor,
+    bottomColor,
     background,
     color,
-    cursor: 'pointer',
     fontFamily: COMMUNITY_FONT_FAMILY,
-    fontSize: '1.1rem',
-    lineHeight: 1,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-    padding: '15px 26px',
-    minHeight: '54px',
-    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.1)',
-  };
+  });
 }
 
 export function createCommunityCounterStyle({ borderColor, bottomColor, background, color = '#475569' }) {
-  return {
-    ...createCommunityButtonStyle({ borderColor, bottomColor, background, color }),
-    padding: '14px 22px',
-    minWidth: '112px',
-    justifyContent: 'center',
-    borderRadius: '999px',
-  };
+  return createPaperCounterStyle({
+    borderColor,
+    bottomColor,
+    background,
+    color,
+  });
 }
 
 export function formatCommunityTimestamp(value, locale) {

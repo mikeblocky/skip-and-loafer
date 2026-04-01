@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, CalendarDays, NotebookText, Rows3 } from 'lucide-react';
-import { UI_TEXT, NOTE_PALETTES, formatDate, formatReadMinutes, getPreview, getReadMinutes } from './blogShared';
+import { ArrowRight, BookOpen, CalendarDays, Zap } from 'lucide-react';
+import { UI_TEXT, NOTE_PALETTES, formatDate, formatReadMinutes } from './blogShared';
 
 const statCardStyle = (background, border, bottom, text) => ({
   background,
@@ -20,6 +21,7 @@ const BlogListView = ({
   locale,
   bodyFontScale,
   readerPrefs,
+  sortOrder,
   onSelectBlog,
 }) => {
   if (blogs.length === 0) {
@@ -43,16 +45,16 @@ const BlogListView = ({
 
   const featuredBlog = blogs[0];
   const remainingBlogs = blogs.slice(1);
-  const totalMinutes = blogs.reduce((sum, blog) => sum + getReadMinutes(blog.content), 0);
-  const latestPreview = featuredBlog.description || getPreview(featuredBlog.content);
-  const latestReadMinutes = getReadMinutes(featuredBlog.content);
+  const totalMinutes = blogs.reduce((sum, blog) => sum + (blog.readMinutes || 0), 0);
+  const latestPreview = featuredBlog.description || t.empty || UI_TEXT.en.empty;
+  const latestReadMinutes = featuredBlog.readMinutes || 1;
 
   return (
     <div style={{ display: 'grid', gap: isMobile ? '18px' : '22px' }}>
       <motion.div
         initial={{ opacity: 0, y: 18, rotate: -0.8 }}
         animate={{ opacity: 1, y: 0, rotate: -0.2 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.1 }}
         className="sketchbook-border"
         style={{
           background: '#fff7ed',
@@ -61,8 +63,8 @@ const BlogListView = ({
           borderRadius: '30px',
           padding: isMobile ? '20px 18px' : '26px 28px',
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.3fr) minmax(240px, 0.7fr)',
-          gap: '18px',
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) auto',
+          gap: '24px',
           boxShadow: '0 16px 34px rgba(249, 115, 22, 0.12)',
         }}
       >
@@ -86,8 +88,8 @@ const BlogListView = ({
                 fontWeight: '400',
               }}
             >
-              <NotebookText size={16} strokeWidth={2.4} />
-              {t.listHint || UI_TEXT.en.listHint}
+              <Zap size={16} strokeWidth={2.4} fill="#fb923c30" />
+              {sortOrder === 'asc' ? t.oldestLabel : t.latestLabel}
             </span>
             <span
               style={{
@@ -175,33 +177,15 @@ const BlogListView = ({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '12px', alignContent: 'start' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
-            <div className="sketchbook-border" style={statCardStyle('#ffffff', '#fecdd3', '#f472b6', '#9d174d')}>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400' }}>
-                {t.postsLabel || 'Posts'}
-              </span>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.55rem' : '1.7rem', lineHeight: 1, fontWeight: '400' }}>
-                {blogs.length}
-              </span>
-            </div>
-            <div className="sketchbook-border" style={statCardStyle('#ffffff', '#bfdbfe', '#60a5fa', '#1d4ed8')}>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400' }}>
-                {t.totalLabel || 'Total time'}
-              </span>
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.55rem' : '1.7rem', lineHeight: 1, fontWeight: '400' }}>
-                {totalMinutes} {t.minuteUnit || 'min'}
-              </span>
-            </div>
-          </div>
-
+        <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'end' }}>
           <motion.button
             whileHover={{ scale: 1.03, y: -4 }}
             whileTap={{ scale: 0.94, y: 6 }}
             onClick={() => onSelectBlog(featuredBlog.id)}
             className="sketchbook-border paper-interact"
             style={{
-              width: '100%',
+              width: isMobile ? '100%' : 'auto',
+              minWidth: isMobile ? 'unset' : '160px',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -210,7 +194,7 @@ const BlogListView = ({
               border: '3.5px solid #c2410c',
               borderBottom: '9px solid #9a3412',
               borderRadius: '24px',
-              padding: isMobile ? '14px 16px' : '16px 18px',
+              padding: isMobile ? '14px 16px' : '16px 24px',
               color: '#ffffff',
               fontFamily: 'Sniglet, var(--font-main)',
               fontSize: isMobile ? '1.04rem' : '1.12rem',
@@ -226,12 +210,11 @@ const BlogListView = ({
         </div>
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.28fr) minmax(250px, 0.72fr)', gap: '18px' }}>
-        <div style={{ display: 'grid', gap: '16px' }}>
+      <div style={{ display: 'grid', gap: '16px' }}>
           {remainingBlogs.map((blog, index) => {
             const note = NOTE_PALETTES[(index + 1) % NOTE_PALETTES.length];
-            const preview = blog.description || getPreview(blog.content);
-            const readMinutes = getReadMinutes(blog.content);
+            const preview = blog.description || t.empty || UI_TEXT.en.empty;
+            const readMinutes = blog.readMinutes || 1;
 
             return (
               <motion.div
@@ -272,7 +255,6 @@ const BlogListView = ({
                   <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: note.accent, fontSize: '0.8rem', lineHeight: 1, fontWeight: '400' }}>
                     {String(index + 2).padStart(2, '0')}
                   </span>
-                  <Rows3 size={16} strokeWidth={2.6} color={note.accent} />
                 </div>
 
                 <div style={{ minWidth: 0, display: 'grid', gap: '10px' }}>
@@ -379,69 +361,9 @@ const BlogListView = ({
               </motion.div>
             );
           })}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20, rotate: 0.8 }}
-          animate={{ opacity: 1, y: 0, rotate: 0.2 }}
-          transition={{ type: 'spring', stiffness: 240, damping: 18, delay: 0.1 }}
-          className="sketchbook-border"
-          style={{
-            background: '#f8fbff',
-            border: '3px solid #bfdbfe',
-            borderBottom: '9px solid #60a5fa',
-            borderRadius: '28px',
-            padding: isMobile ? '18px 16px' : '20px 18px',
-            boxShadow: '0 14px 24px rgba(96, 165, 250, 0.12)',
-            display: 'grid',
-            gap: '14px',
-            alignContent: 'start',
-          }}
-        >
-          <div style={{ display: 'grid', gap: '6px' }}>
-            <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#1d4ed8', fontSize: '1.06rem', lineHeight: 1, fontWeight: '400' }}>
-              {t.header}
-            </span>
-            <span style={{ fontFamily: 'var(--font-main)', color: '#64748b', fontSize: '0.86rem', lineHeight: 1.45, fontWeight: '700' }}>
-              {t.listHint || UI_TEXT.en.listHint}
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gap: '10px' }}>
-            {blogs.map((blog, index) => {
-              const note = NOTE_PALETTES[index % NOTE_PALETTES.length];
-              return (
-                <button
-                  key={`rail-${blog.id}`}
-                  onClick={() => onSelectBlog(blog.id)}
-                  className="sketchbook-border paper-interact"
-                  style={{
-                    width: '100%',
-                    background: '#ffffff',
-                    border: `3px solid ${note.border}`,
-                    borderBottom: `7px solid ${note.border}`,
-                    borderRadius: '18px',
-                    padding: '12px 14px',
-                    display: 'grid',
-                    gap: '6px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#1e293b', fontSize: '0.96rem', lineHeight: 1.15, fontWeight: '400' }}>
-                    {blog.title}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-main)', color: note.accent, fontSize: '0.78rem', lineHeight: 1, fontWeight: '800' }}>
-                    {formatDate(blog.date, locale)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
       </div>
     </div>
   );
 };
 
-export default BlogListView;
+export default memo(BlogListView);

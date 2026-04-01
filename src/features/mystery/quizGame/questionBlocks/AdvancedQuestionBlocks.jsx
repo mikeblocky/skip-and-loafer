@@ -3,23 +3,14 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { triggerHaptic } from '../../../../utils/haptics';
 import { STANCE_PALETTES } from '../config';
-import { instructionStyle } from '../interactive/utils';
+import { QuizActionButton, QuizPanel, QUIZ_BUTTON_PALETTES } from '../QuizPrimitives';
+import { getLocalizedQuizOption, getLocalizedQuizText } from '../quizCopy';
 import { toMysteryLabelCase } from '../ui';
-
-const continueButtonStyle = (enabled, palette, isMobile) => ({
-  background: enabled ? palette.bg : '#94a3b8',
-  color: 'white',
-  border: `3.5px solid ${palette.border}`,
-  borderBottom: `9.5px solid ${palette.bottom}`,
-  padding: isMobile ? '12px 32px' : '14px 48px',
-  fontFamily: 'var(--font-main)',
-  fontSize: '1.15rem',
-  cursor: enabled ? 'pointer' : 'not-allowed',
-  borderRadius: '24px',
-  fontWeight: 'bold',
-  boxShadow: enabled ? palette.shadow : 'none',
-  opacity: enabled ? 1 : 0.6,
-});
+import {
+  QuestionContinueAction,
+  QuestionInstructionBlock,
+  QuestionMetricCard,
+} from './QuestionBlockPrimitives';
 
 export const HoldQuestion = React.memo(function HoldQuestion({
   getQuestionInstruction,
@@ -38,48 +29,59 @@ export const HoldQuestion = React.memo(function HoldQuestion({
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', width: '100%' }}>
-        <div className="sketchbook-border" style={{ background: '#eff6ff', border: '3px solid #93c5fd', borderBottom: '7px solid #2563eb', borderRadius: '18px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
-          <span style={{ color: '#64748b', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.84rem', lineHeight: 1, fontWeight: '400' }}>{localizedQuestion.lowLabel || question.lowLabel}</span>
-          <span style={{ color: '#1e3a8a', fontFamily: 'var(--font-main)', fontSize: '0.92rem', lineHeight: 1.2, fontWeight: '700' }}>{Math.round((1 - (holdLevel ?? 0)) * 100)}%</span>
-        </div>
-        <div className="sketchbook-border" style={{ background: '#fdf2f8', border: '3px solid #f9a8d4', borderBottom: '7px solid #db2777', borderRadius: '18px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
-          <span style={{ color: '#64748b', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.84rem', lineHeight: 1, fontWeight: '400' }}>{localizedQuestion.highLabel || question.highLabel}</span>
-          <span style={{ color: '#9d174d', fontFamily: 'var(--font-main)', fontSize: '0.92rem', lineHeight: 1.2, fontWeight: '700' }}>{Math.round((holdLevel ?? 0) * 100)}%</span>
-        </div>
+        <QuestionMetricCard
+          palette={{ background: '#eff6ff', borderColor: '#93c5fd', bottomColor: '#2563eb', valueColor: '#1e3a8a' }}
+          label={localizedQuestion.lowLabel || question.lowLabel}
+          value={`${Math.round((1 - (holdLevel ?? 0)) * 100)}%`}
+        />
+        <QuestionMetricCard
+          palette={{ background: '#fdf2f8', borderColor: '#f9a8d4', bottomColor: '#db2777', valueColor: '#9d174d' }}
+          label={localizedQuestion.highLabel || question.highLabel}
+          value={`${Math.round((holdLevel ?? 0) * 100)}%`}
+        />
       </div>
 
-      <div className="sketchbook-border" style={{ width: '100%', background: '#f8fafc', border: '3.5px solid #cbd5e1', borderBottom: '9.5px solid #94a3b8', borderRadius: '28px', padding: isMobile ? '18px 16px' : '22px 18px', display: 'grid', gap: '14px' }}>
+      <QuizPanel
+        palette={{ background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8' }}
+        style={{
+          width: '100%',
+          padding: isMobile ? '18px 16px' : '22px 18px',
+          gap: '14px',
+        }}
+      >
         <div style={{ width: '100%', height: isMobile ? '18px' : '20px', background: 'rgba(255,255,255,0.65)', borderRadius: '999px', border: '3px solid #cbd5e1', overflow: 'hidden' }}>
           <div style={{ width: `${Math.round((holdLevel ?? 0) * 100)}%`, height: '100%', background: '#60a5fa', transition: holdActive ? 'none' : 'width 140ms ease' }} />
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.03, y: -2 }}
-          whileTap={{ scale: 0.97, y: 6 }}
+        <QuizActionButton
+          isMobile={isMobile}
           onPointerDown={startHold}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
           onPointerCancel={stopHold}
-          className="sketchbook-border paper-interact"
-          style={{ background: '#ffffff', border: '3.5px solid #94a3b8', borderBottom: '9.5px solid #64748b', color: '#334155', padding: isMobile ? '18px 20px' : '22px 26px', fontFamily: 'var(--font-main)', fontSize: isMobile ? '1.05rem' : '1.15rem', cursor: 'pointer', borderRadius: '24px', fontWeight: 'bold', boxShadow: '0 8px 20px rgba(100, 116, 139, 0.16)' }}
+          palette={QUIZ_BUTTON_PALETTES.whiteSlate}
+          whileHover={{ scale: 1.03, y: -2 }}
+          whileTap={{ scale: 0.97, y: 6 }}
+          style={{
+            padding: isMobile ? '18px 20px' : '22px 26px',
+            fontSize: isMobile ? '1.05rem' : '1.15rem',
+            boxShadow: '0 8px 20px rgba(100, 116, 139, 0.16)',
+          }}
         >
           {toMysteryLabelCase(t.quiz.interactionUi?.pressAndHold || 'Press and hold')}
-        </motion.button>
-      </div>
+        </QuizActionButton>
+      </QuizPanel>
 
-      <div style={instructionStyle(isMobile)}>{getQuestionInstruction(question)}</div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.92, y: 10 }}
-          onClick={() => onSubmitHold(question)}
-          disabled={!enabled}
-          className="sketchbook-border paper-interact"
-          style={continueButtonStyle(enabled, { bg: '#3b82f6', border: '#2563eb', bottom: '#1d4ed8', shadow: '0 10px 24px rgba(59, 130, 246, 0.3)' }, isMobile)}
-        >
-          {toMysteryLabelCase(t.quiz.btns.continue)}
-        </motion.button>
-      </div>
+      <QuestionInstructionBlock isMobile={isMobile}>{getQuestionInstruction(question)}</QuestionInstructionBlock>
+      <QuestionContinueAction
+        isMobile={isMobile}
+        onClick={() => onSubmitHold(question)}
+        disabled={!enabled}
+        palette={QUIZ_BUTTON_PALETTES.blue}
+        marginTop="6px"
+      >
+        {toMysteryLabelCase(t.quiz.btns.continue)}
+      </QuestionContinueAction>
     </div>
   );
 });
@@ -99,28 +101,36 @@ export const RhythmQuestion = React.memo(function RhythmQuestion({
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', width: '100%' }}>
-        <div className="sketchbook-border" style={{ background: '#eff6ff', border: '3px solid #93c5fd', borderBottom: '7px solid #2563eb', borderRadius: '18px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
-          <span style={{ color: '#64748b', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.84rem', lineHeight: 1, fontWeight: '400' }}>{localizedQuestion.slowLabel || question.slowLabel} / {localizedQuestion.fastLabel || question.fastLabel}</span>
-          <span style={{ color: '#1e3a8a', fontFamily: 'var(--font-main)', fontSize: '0.92rem', lineHeight: 1.2, fontWeight: '700' }}>
-            {rhythmPattern.length >= 2 ? `${Math.round((rhythmPattern[rhythmPattern.length - 1] - rhythmPattern[0]) / Math.max(1, rhythmPattern.length - 1))} ${t.quiz.interactionUi?.averageMs || 'ms avg'}` : (t.quiz.interactionUi?.waiting || 'Waiting')}
-          </span>
-        </div>
-        <div className="sketchbook-border" style={{ background: '#fdf2f8', border: '3px solid #f9a8d4', borderBottom: '7px solid #db2777', borderRadius: '18px', padding: '10px 12px', display: 'grid', gap: '6px' }}>
-          <span style={{ color: '#64748b', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.84rem', lineHeight: 1, fontWeight: '400' }}>{localizedQuestion.steadyLabel || question.steadyLabel} / {localizedQuestion.wildLabel || question.wildLabel}</span>
-          <span style={{ color: '#9d174d', fontFamily: 'var(--font-main)', fontSize: '0.92rem', lineHeight: 1.2, fontWeight: '700' }}>
-            {(t.quiz.interactionUi?.tapCount || '{count}/4 taps')
-              .replace('{count}', String(rhythmPattern.length))
-              .replace('{total}', '4')}
-          </span>
-        </div>
+        <QuestionMetricCard
+          palette={{ background: '#eff6ff', borderColor: '#93c5fd', bottomColor: '#2563eb', valueColor: '#1e3a8a' }}
+          label={`${localizedQuestion.slowLabel || question.slowLabel} / ${localizedQuestion.fastLabel || question.fastLabel}`}
+          value={rhythmPattern.length >= 2 ? `${Math.round((rhythmPattern[rhythmPattern.length - 1] - rhythmPattern[0]) / Math.max(1, rhythmPattern.length - 1))} ${t.quiz.interactionUi?.averageMs || 'ms avg'}` : (t.quiz.interactionUi?.waiting || 'Waiting')}
+        />
+        <QuestionMetricCard
+          palette={{ background: '#fdf2f8', borderColor: '#f9a8d4', bottomColor: '#db2777', valueColor: '#9d174d' }}
+          label={`${localizedQuestion.steadyLabel || question.steadyLabel} / ${localizedQuestion.wildLabel || question.wildLabel}`}
+          value={(t.quiz.interactionUi?.tapCount || '{count}/4 taps').replace('{count}', String(rhythmPattern.length)).replace('{total}', '4')}
+        />
       </div>
 
-      <motion.button
+      <QuizActionButton
+        isMobile={isMobile}
+        onClick={tapRhythm}
+        palette={{ background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#1e293b', shadow: '0 8px 20px rgba(15, 23, 42, 0.08)' }}
         whileHover={{ scale: 1.03, y: -2 }}
         whileTap={{ scale: 0.96, y: 6 }}
-        onClick={tapRhythm}
-        className="sketchbook-border paper-interact"
-        style={{ width: '100%', minHeight: isMobile ? '170px' : '190px', background: '#f8fafc', border: '3.5px solid #cbd5e1', borderBottom: '9.5px solid #94a3b8', borderRadius: '30px', display: 'grid', alignContent: 'center', justifyItems: 'center', gap: '16px', cursor: 'pointer', padding: '18px' }}
+        style={{
+          width: '100%',
+          minHeight: isMobile ? '170px' : '190px',
+          padding: '18px',
+          borderRadius: '30px',
+          display: 'grid',
+          alignContent: 'center',
+          justifyItems: 'center',
+          gap: '16px',
+          whiteSpace: 'normal',
+          height: 'auto',
+        }}
       >
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: 4 }).map((_, index) => {
@@ -130,24 +140,21 @@ export const RhythmQuestion = React.memo(function RhythmQuestion({
             );
           })}
         </div>
-        <div style={{ fontFamily: 'var(--font-hand)', color: '#1e293b', fontSize: isMobile ? '1.45rem' : '1.7rem', lineHeight: 1.15, textAlign: 'center', fontWeight: 'bold' }}>
+        <div style={{ fontFamily: 'var(--font-hand)', color: '#1e293b', fontSize: isMobile ? '1.45rem' : '1.7rem', lineHeight: 1.15, textAlign: 'center', fontWeight: '700' }}>
           {ready ? (t.quiz.interactionUi?.patternCaptured || 'Pattern captured') : (t.quiz.interactionUi?.tapYourPace || 'Tap your pace')}
         </div>
-      </motion.button>
+      </QuizActionButton>
 
-      <div style={instructionStyle(isMobile)}>{getQuestionInstruction(question)}</div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.92, y: 10 }}
-          onClick={() => onSubmitRhythm(question)}
-          disabled={!ready}
-          className="sketchbook-border paper-interact"
-          style={continueButtonStyle(ready, { bg: '#7c3aed', border: '#6d28d9', bottom: '#5b21b6', shadow: '0 10px 24px rgba(124, 58, 237, 0.3)' }, isMobile)}
-        >
-          {toMysteryLabelCase(t.quiz.btns.continue)}
-        </motion.button>
-      </div>
+      <QuestionInstructionBlock isMobile={isMobile}>{getQuestionInstruction(question)}</QuestionInstructionBlock>
+      <QuestionContinueAction
+        isMobile={isMobile}
+        onClick={() => onSubmitRhythm(question)}
+        disabled={!ready}
+        palette={QUIZ_BUTTON_PALETTES.violet}
+        marginTop="6px"
+      >
+        {toMysteryLabelCase(t.quiz.btns.continue)}
+      </QuestionContinueAction>
     </div>
   );
 });
@@ -166,54 +173,60 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
-        <div className="sketchbook-border" style={{ background: '#eff6ff', border: '3.5px solid #93c5fd', borderBottom: '9.5px solid #2563eb', borderRadius: '24px', padding: '16px 18px', display: 'grid', gap: '10px' }}>
+        <QuizPanel
+          palette={{ background: '#eff6ff', borderColor: '#93c5fd', bottomColor: '#2563eb' }}
+          style={{ padding: '16px 18px', gap: '10px' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#1d4ed8', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
-              {t.quiz.questions[question.id]?.leftLabel || question.leftLabel || 'A'}
+              {getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel || 'A')}
             </span>
             <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: '#ffffff', border: '2px solid #93c5fd', color: '#1d4ed8', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffLeft}
             </span>
           </div>
-          <div style={{ fontFamily: 'var(--font-main)', color: '#1e3a8a', fontSize: '1rem', lineHeight: 1.35, fontWeight: 'bold' }}>
-            {t.quiz.questions[question.id]?.left || question.left.text}
+          <div style={{ color: '#1e3a8a', fontSize: '1rem', lineHeight: 1.35, fontWeight: '700' }}>
+            {getLocalizedQuizText(t, question.id, 'left', question.left.text)}
           </div>
-        </div>
+        </QuizPanel>
 
-        <div className="sketchbook-border" style={{ background: '#fdf2f8', border: '3.5px solid #f9a8d4', borderBottom: '9.5px solid #db2777', borderRadius: '24px', padding: '16px 18px', display: 'grid', gap: '10px' }}>
+        <QuizPanel
+          palette={{ background: '#fdf2f8', borderColor: '#f9a8d4', bottomColor: '#db2777' }}
+          style={{ padding: '16px 18px', gap: '10px' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#be185d', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
-              {t.quiz.questions[question.id]?.rightLabel || question.rightLabel || 'B'}
+              {getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel || 'B')}
             </span>
             <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: '#ffffff', border: '2px solid #f9a8d4', color: '#be185d', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffRight}
             </span>
           </div>
-          <div style={{ fontFamily: 'var(--font-main)', color: '#9d174d', fontSize: '1rem', lineHeight: 1.35, fontWeight: 'bold' }}>
-            {t.quiz.questions[question.id]?.right || question.right.text}
+          <div style={{ color: '#9d174d', fontSize: '1rem', lineHeight: 1.35, fontWeight: '700' }}>
+            {getLocalizedQuizText(t, question.id, 'right', question.right.text)}
           </div>
-        </div>
+        </QuizPanel>
       </div>
 
       <div style={{ display: 'grid', gap: '10px', justifyItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.9, y: 6 }}
+          <QuizActionButton
+            isMobile={isMobile}
             onClick={() => {
               triggerHaptic('selection');
               setTradeoffValue(Math.max(0, tradeoffLeft - 1));
             }}
-            className="sketchbook-border paper-interact"
-            style={{ background: '#ffffff', border: '3px solid #cbd5e1', borderBottom: '7px solid #94a3b8', width: '40px', height: '40px', borderRadius: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#475569', cursor: 'pointer' }}
+            palette={QUIZ_BUTTON_PALETTES.whiteSlate}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.9, y: 6 }}
+            style={{ width: '40px', height: '40px', padding: 0, borderRadius: '14px' }}
           >
             <ChevronLeft size={18} strokeWidth={2.8} />
-          </motion.button>
+          </QuizActionButton>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {Array.from({ length: tradeoffBudget }).map((_, index) => {
               const selected = index < tradeoffLeft;
-
               return (
                 <motion.button
                   key={`tradeoff-${index}`}
@@ -230,18 +243,19 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
             })}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.9, y: 6 }}
+          <QuizActionButton
+            isMobile={isMobile}
             onClick={() => {
               triggerHaptic('selection');
               setTradeoffValue(Math.min(tradeoffBudget, tradeoffLeft + 1));
             }}
-            className="sketchbook-border paper-interact"
-            style={{ background: '#ffffff', border: '3px solid #cbd5e1', borderBottom: '7px solid #94a3b8', width: '40px', height: '40px', borderRadius: '14px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#475569', cursor: 'pointer' }}
+            palette={QUIZ_BUTTON_PALETTES.whiteSlate}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.9, y: 6 }}
+            style={{ width: '40px', height: '40px', padding: 0, borderRadius: '14px' }}
           >
             <ChevronRight size={18} strokeWidth={2.8} />
-          </motion.button>
+          </QuizActionButton>
         </div>
 
         <div style={{ fontFamily: 'var(--font-hand)', color: '#64748b', fontSize: '0.95rem', textAlign: 'center' }}>
@@ -249,18 +263,16 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
         </div>
       </div>
 
-      <div style={instructionStyle(isMobile)}>{getQuestionInstruction(question)}</div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '4px' }}>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.92, y: 10 }}
-          onClick={() => onSubmitTradeoff(question)}
-          className="sketchbook-border paper-interact"
-          style={continueButtonStyle(true, { bg: '#0ea5e9', border: '#0284c7', bottom: '#0369a1', shadow: '0 10px 24px rgba(14, 165, 233, 0.3)' }, isMobile)}
-        >
-          {toMysteryLabelCase(t.quiz.btns.continue)}
-        </motion.button>
-      </div>
+      <QuestionInstructionBlock isMobile={isMobile}>{getQuestionInstruction(question)}</QuestionInstructionBlock>
+      <QuestionContinueAction
+        isMobile={isMobile}
+        onClick={() => onSubmitTradeoff(question)}
+        disabled={false}
+        palette={QUIZ_BUTTON_PALETTES.sky}
+        marginTop="4px"
+      >
+        {toMysteryLabelCase(t.quiz.btns.continue)}
+      </QuestionContinueAction>
     </div>
   );
 });
@@ -280,19 +292,35 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
         const selected = confidenceSelection.optionIndex === index;
 
         return (
-          <motion.button
+          <QuizActionButton
             key={index}
-            whileHover={{ scale: 1.02, x: isMobile ? 0 : 8, y: -2 }}
-            whileTap={{ scale: 0.95, y: 8 }}
+            isMobile={isMobile}
             onClick={() => {
               triggerHaptic('selection');
               setConfidenceSelection((previous) => ({ ...previous, optionIndex: index }));
             }}
-            className="sketchbook-border paper-interact"
-            style={{ background: selected ? '#eff6ff' : '#ffffff', border: `3.5px solid ${selected ? '#3b82f6' : '#cbd5e1'}`, borderBottom: `9.5px solid ${selected ? '#2563eb' : '#94a3b8'}`, padding: isMobile ? '16px 18px' : '18px 20px', fontFamily: 'var(--font-main)', color: selected ? '#1e40af' : '#1e293b', fontSize: '1.05rem', lineHeight: 1.35, textAlign: 'left', cursor: 'pointer', borderRadius: '24px', fontWeight: 'bold', boxShadow: selected ? '0 6px 0 rgba(37, 99, 235, 0.1)' : '0 4px 0 rgba(0,0,0,0.02)' }}
+            aria-pressed={selected}
+            palette={{
+              background: selected ? '#eff6ff' : '#ffffff',
+              borderColor: selected ? '#3b82f6' : '#cbd5e1',
+              bottomColor: selected ? '#2563eb' : '#94a3b8',
+              color: selected ? '#1e40af' : '#1e293b',
+              shadow: selected ? '0 6px 0 rgba(37, 99, 235, 0.1)' : '0 4px 0 rgba(0,0,0,0.02)',
+            }}
+            whileHover={{ scale: 1.02, x: isMobile ? 0 : 8, y: -2 }}
+            whileTap={{ scale: 0.95, y: 8 }}
+            style={{
+              width: '100%',
+              justifyContent: 'flex-start',
+              textAlign: 'left',
+              whiteSpace: 'normal',
+              height: 'auto',
+              padding: isMobile ? '16px 18px' : '18px 20px',
+              lineHeight: 1.35,
+            }}
           >
-            {t.quiz.questions[question.id]?.options?.[index] || option.text}
-          </motion.button>
+            {getLocalizedQuizOption(t, question.id, index, option.text)}
+          </QuizActionButton>
         );
       })}
 
@@ -300,10 +328,11 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
         {[1, 2, 3].map((level) => {
           const active = confidenceSelection.level === level;
           const palette = level === 1
-            ? { bg: '#f8fafc', border: '#cbd5e1', bottom: '#94a3b8', text: '#475569', activeBg: '#fef2f2', activeBorder: '#fca5a5', activeBottom: '#ef4444', activeText: '#7f1d1d' }
+            ? { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#fef2f2', activeBorderColor: '#fca5a5', activeBottomColor: '#ef4444', activeColor: '#7f1d1d' }
             : level === 2
-              ? { bg: '#f8fafc', border: '#cbd5e1', bottom: '#94a3b8', text: '#475569', activeBg: '#fffbeb', activeBorder: '#fcd34d', activeBottom: '#f59e0b', activeText: '#92400e' }
-              : { bg: '#f8fafc', border: '#cbd5e1', bottom: '#94a3b8', text: '#475569', activeBg: '#ecfeff', activeBorder: '#67e8f9', activeBottom: '#06b6d4', activeText: '#155e75' };
+              ? { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#fffbeb', activeBorderColor: '#fcd34d', activeBottomColor: '#f59e0b', activeColor: '#92400e' }
+              : { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#ecfeff', activeBorderColor: '#67e8f9', activeBottomColor: '#06b6d4', activeColor: '#155e75' };
+
           const label = ({
             1: toMysteryLabelCase(t.quiz.intense.subtly),
             2: toMysteryLabelCase(t.quiz.intense.moderately),
@@ -311,36 +340,40 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
           })[level] || '';
 
           return (
-            <motion.button
+            <QuizActionButton
               key={level}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.9, y: 6 }}
+              isMobile={isMobile}
               onClick={() => {
                 triggerHaptic('selection');
                 setConfidenceSelection((previous) => ({ ...previous, level }));
               }}
-              className="sketchbook-border paper-interact"
-              style={{ background: active ? palette.activeBg : palette.bg, border: `3px solid ${active ? palette.activeBorder : palette.border}`, borderBottom: `7px solid ${active ? palette.activeBottom : palette.bottom}`, color: active ? palette.activeText : palette.text, padding: '10px 8px', fontFamily: 'var(--font-main)', fontSize: '0.9rem', cursor: 'pointer', borderRadius: '16px', fontWeight: 'bold' }}
+              aria-pressed={active}
+              palette={{
+                background: active ? palette.activeBackground : palette.background,
+                borderColor: active ? palette.activeBorderColor : palette.borderColor,
+                bottomColor: active ? palette.activeBottomColor : palette.bottomColor,
+                color: active ? palette.activeColor : palette.color,
+                shadow: '0 4px 10px rgba(15, 23, 42, 0.05)',
+              }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.9, y: 6 }}
+              style={{ padding: '10px 8px', borderRadius: '16px', fontSize: '0.9rem' }}
             >
               {label}
-            </motion.button>
+            </QuizActionButton>
           );
         })}
       </div>
 
-      <div style={instructionStyle(isMobile)}>{getQuestionInstruction(question)}</div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
-        <motion.button
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.92, y: 10 }}
-          onClick={() => onSubmitConfidenceChoice(question)}
-          disabled={confidenceSelection.optionIndex == null}
-          className="sketchbook-border paper-interact"
-          style={continueButtonStyle(confidenceSelection.optionIndex != null, { bg: '#0ea5e9', border: '#0284c7', bottom: '#0369a1', shadow: '0 10px 24px rgba(14, 165, 233, 0.3)' }, isMobile)}
-        >
-          {toMysteryLabelCase(t.quiz.btns.continue)}
-        </motion.button>
-      </div>
+      <QuestionInstructionBlock isMobile={isMobile}>{getQuestionInstruction(question)}</QuestionInstructionBlock>
+      <QuestionContinueAction
+        isMobile={isMobile}
+        onClick={() => onSubmitConfidenceChoice(question)}
+        disabled={confidenceSelection.optionIndex == null}
+        palette={QUIZ_BUTTON_PALETTES.sky}
+      >
+        {toMysteryLabelCase(t.quiz.btns.continue)}
+      </QuestionContinueAction>
     </div>
   );
 });
@@ -357,28 +390,36 @@ export const StanceQuestion = React.memo(function StanceQuestion({
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '8px' }}>
         {(question.labels || [t.quiz.btns.false, t.quiz.intense.subtly, t.quiz.intense.moderately, t.quiz.btns.true]).map((label, index) => {
-          const displayLabel = t.quiz.questions[question.id]?.options?.[index] || label;
+          const displayLabel = getLocalizedQuizOption(t, question.id, index, label);
           const palette = STANCE_PALETTES[index] || STANCE_PALETTES[0];
           const active = stanceSelection === index;
 
           return (
-            <motion.button
+            <QuizActionButton
               key={typeof displayLabel === 'string' ? toMysteryLabelCase(displayLabel) : displayLabel}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.9, y: 8 }}
+              isMobile={isMobile}
               onClick={() => {
                 triggerHaptic('success');
                 onSubmitStance(question, index);
               }}
-              className="sketchbook-border paper-interact"
-              style={{ background: active ? '#eff6ff' : palette.bg, border: `3.5px solid ${active ? '#3b82f6' : palette.border}`, borderBottom: `9.5px solid ${active ? '#2563eb' : palette.bottom}`, padding: isMobile ? '14px 10px' : '16px 12px', fontFamily: 'var(--font-main)', color: active ? '#1e40af' : palette.text, fontSize: isMobile ? '0.95rem' : '1rem', lineHeight: 1.2, cursor: 'pointer', textAlign: 'center', borderRadius: '20px', fontWeight: 'bold' }}
+              aria-pressed={active}
+              palette={{
+                background: active ? '#eff6ff' : palette.bg,
+                borderColor: active ? '#3b82f6' : palette.border,
+                bottomColor: active ? '#2563eb' : palette.bottom,
+                color: active ? '#1e40af' : palette.text,
+                shadow: '0 4px 10px rgba(15, 23, 42, 0.05)',
+              }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.9, y: 8 }}
+              style={{ padding: isMobile ? '14px 10px' : '16px 12px', textAlign: 'center', borderRadius: '20px', fontSize: isMobile ? '0.95rem' : '1rem', lineHeight: 1.2 }}
             >
               {typeof displayLabel === 'string' ? toMysteryLabelCase(displayLabel) : displayLabel}
-            </motion.button>
+            </QuizActionButton>
           );
         })}
       </div>
-      <div style={instructionStyle(isMobile)}>{getQuestionInstruction(question)}</div>
+      <QuestionInstructionBlock isMobile={isMobile}>{getQuestionInstruction(question)}</QuestionInstructionBlock>
     </div>
   );
 });

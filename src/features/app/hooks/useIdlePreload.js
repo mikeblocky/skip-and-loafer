@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const warmedLoaders = new Set();
 
@@ -26,19 +26,19 @@ const isConstrainedConnection = () => {
 };
 
 const useIdlePreload = (loaders, enabled = true, optionsInput = 120) => {
+  const normalizedOptions = useMemo(() => normalizeOptions(optionsInput), [optionsInput]);
+  const {
+    delayMs = 120,
+    staggerMs = 180,
+    maxPreloadCount,
+    respectConnection = true,
+    respectDevice = true,
+  } = normalizedOptions;
+
   useEffect(() => {
     if (!enabled || !Array.isArray(loaders) || !loaders.length || typeof window === 'undefined') {
       return undefined;
     }
-
-    const options = normalizeOptions(optionsInput);
-    const {
-      delayMs = 120,
-      staggerMs = 180,
-      maxPreloadCount,
-      respectConnection = true,
-      respectDevice = true,
-    } = options;
 
     if ((respectConnection && isConstrainedConnection()) || (respectDevice && isConstrainedDevice())) {
       return undefined;
@@ -95,7 +95,7 @@ const useIdlePreload = (loaders, enabled = true, optionsInput = 120) => {
         idleIds.forEach((idleId) => window.cancelIdleCallback(idleId));
       }
     };
-  }, [enabled, loaders, optionsInput]);
+  }, [delayMs, enabled, loaders, maxPreloadCount, respectConnection, respectDevice, staggerMs]);
 };
 
 export default useIdlePreload;

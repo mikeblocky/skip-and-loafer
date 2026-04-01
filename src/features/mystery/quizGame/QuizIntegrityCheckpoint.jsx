@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 
 void motion;
 import { Zap } from 'lucide-react';
+import { QuizActionButton, QuizChip, QuizPanel, QUIZ_BUTTON_PALETTES } from './QuizPrimitives';
 import { toMysteryLabelCase } from './ui';
 
 const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume }) => {
@@ -14,18 +15,16 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
       animate={{ opacity: 1, scale: 1 }}
       style={{ width: '100%', maxWidth: isMobile ? '360px' : '520px', zIndex: 100 }}
     >
-      <div
-        className="sketchbook-border"
-        style={{
+      <QuizPanel
+        palette={{
           background: isCalibration ? '#fefce8' : '#fff7ed',
-          border: `2px solid ${isCalibration ? '#fde047' : '#fdba74'}`,
-          borderBottom: `6px solid ${isCalibration ? '#eab308' : '#f97316'}`,
-          borderRadius: '16px',
+          borderColor: isCalibration ? '#fde047' : '#fdba74',
+          bottomColor: isCalibration ? '#eab308' : '#f97316',
+          shadow: '0 10px 25px rgba(0,0,0,0.1)',
+        }}
+        style={{
           padding: isMobile ? '20px 16px' : '24px 20px',
-          display: 'flex',
-          flexDirection: 'column',
           gap: '12px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -40,13 +39,29 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '0 4px', flexWrap: 'wrap' }}>
-          <div style={{ color: '#9a3412', fontSize: '0.85rem' }}>
+          <QuizChip
+            palette={{
+              background: '#ffffff',
+              borderColor: isCalibration ? '#facc15' : '#fdba74',
+              bottomColor: isCalibration ? '#eab308' : '#f97316',
+              color: '#9a3412',
+            }}
+            style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+          >
             {toMysteryLabelCase(t.quiz.signalStrength)}: {integrityCheckpoint.integrity}%
-          </div>
+          </QuizChip>
           {integrityCheckpoint.reliability != null && (
-            <div style={{ color: '#9a3412', fontSize: '0.85rem' }}>
+            <QuizChip
+              palette={{
+                background: '#ffffff',
+                borderColor: isCalibration ? '#facc15' : '#fdba74',
+                bottomColor: isCalibration ? '#eab308' : '#f97316',
+                color: '#9a3412',
+              }}
+              style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+            >
               {toMysteryLabelCase(t.quiz.reliability)}: {integrityCheckpoint.reliability}%
-            </div>
+            </QuizChip>
           )}
         </div>
 
@@ -55,27 +70,23 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
-          <motion.button
+          <QuizActionButton
+            isMobile={isMobile}
+            onClick={onResume}
+            palette={QUIZ_BUTTON_PALETTES.indigo}
             whileHover={{ scale: 1.05, boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }}
             whileTap={{ scale: 0.95 }}
-            onClick={onResume}
-            className="sketchbook-border paper-interact"
             style={{
-              background: '#312e81',
-              color: 'white',
-              border: '3.5px solid #1e1b4b',
-              borderBottom: '9.5px solid #0f172a',
               padding: isMobile ? '12px 28px' : '14px 42px',
               fontSize: '1.25rem',
-              cursor: 'pointer',
               borderRadius: '16px',
               boxShadow: '0 8px 0 rgba(15, 23, 42, 0.15)',
             }}
           >
             {toMysteryLabelCase(t.quiz.proceedBtn)}
-          </motion.button>
+          </QuizActionButton>
         </div>
-      </div>
+      </QuizPanel>
     </motion.div>
   );
 };

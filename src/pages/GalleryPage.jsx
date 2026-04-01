@@ -1,21 +1,23 @@
 /* VITE_CACHE_BUST_3 */
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera } from 'lucide-react';
-import { GALLERY_CATEGORIES } from '../data/gallery';
+import React, { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { UI_TEXT, TAB_LABELS, TABS } from '../features/gallery/galleryConfig';
+import GalleryPageHeader from '../features/gallery/GalleryPageHeader';
 import GallerySubtabPanel from '../features/gallery/tabs/GallerySubtabPanel';
-import {
-  IMAGE_LOADED_CACHE,
-} from '../features/gallery/thumbnailCache';
-import ImageLightbox from '../components/shared/ImageLightbox';
-import GalleryTabSelector from '../features/gallery/GalleryTabSelector';
+import { IMAGE_LOADED_CACHE } from '../features/gallery/thumbnailCache';
 import GalleryThumb from '../features/gallery/GalleryThumb';
 import { useSubtabShortcutNavigation } from '../hooks/shared/useSubtabShortcutNavigation';
+import usePageTitle from '../hooks/shared/usePageTitle';
+import useIdlePreload from '../features/app/hooks/useIdlePreload';
+import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { loadGalleryTabImages, preloadGalleryTabImages } from '../features/gallery/galleryTabDataLoader';
+
+const loadImageLightbox = () => import('../components/shared/ImageLightbox');
+const ImageLightbox = lazy(loadImageLightbox);
 
 function shuffleInSession(arr) {
   const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
+  for (let i = result.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
@@ -23,41 +25,104 @@ function shuffleInSession(arr) {
 }
 
 const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
+const hasLoadedTab = (imagesByTab, tabId) => Object.prototype.hasOwnProperty.call(imagesByTab, tabId);
+const GALLERY_TAB_PRELOADERS = Object.fromEntries(
+  TABS.map((tab) => [tab.id, () => preloadGalleryTabImages(tab.id)]),
+);
 
 const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
   const tabLabels = TAB_LABELS[uiLanguage] || TAB_LABELS.en;
+
+  usePageTitle(tGlobal.tabs?.gallery?.label || 'Gallery');
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [visitedTabs, setVisitedTabs] = useState(() => new Set([TABS[0].id]));
+  const [loadingTabs, setLoadingTabs] = useState({});
+  const [orderedImagesByTab, setOrderedImagesByTab] = useState({});
   const [, forceLoadedRefresh] = useState(0);
-
-  const [orderedImagesByTab] = useState(() => {
-    const initial = {};
-    TABS.forEach((tab) => {
-      const source = GALLERY_CATEGORIES[tab.id] || [];
-      initial[tab.id] = shuffleInSession(source);
-    });
-    return initial;
-  });
+  const isMountedRef = useRef(true);
 
   const currentTab = TABS[activeTab];
   const images = useMemo(() => orderedImagesByTab[currentTab.id] || [], [orderedImagesByTab, currentTab.id]);
-
+  const currentTabHasLoaded = hasLoadedTab(orderedImagesByTab, currentTab.id);
+  const currentTabIsLoading = !currentTabHasLoaded && !!loadingTabs[currentTab.id];
   const handleClose = useCallback(() => setSelectedImage(null), []);
   const handleNavigate = useCallback((src) => setSelectedImage(src), []);
+  const handleSetActiveTab = useCallback((nextTab) => {
+    startTransition(() => {
+      setActiveTab((previous) => (typeof nextTab === 'function' ? nextTab(previous) : nextTab));
+    });
+  }, []);
 
   const markLoaded = useCallback((src) => {
     if (!IMAGE_LOADED_CACHE.has(src)) {
       IMAGE_LOADED_CACHE.add(src);
-      forceLoadedRefresh(v => v + 1);
+      forceLoadedRefresh((value) => value + 1);
     }
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const tabId = currentTab.id;
+
+    if (currentTabHasLoaded || currentTabIsLoading) {
+      return undefined;
+    }
+
+    setLoadingTabs((previous) => ({ ...previous, [tabId]: true }));
+
+    loadGalleryTabImages(tabId)
+      .then((loadedImages) => {
+        if (!isMountedRef.current) return;
+        setOrderedImagesByTab((previous) => {
+          if (hasLoadedTab(previous, tabId)) {
+            return previous;
+          }
+
+          return {
+            ...previous,
+            [tabId]: shuffleInSession(loadedImages),
+          };
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!isMountedRef.current) return;
+        setLoadingTabs((previous) => ({ ...previous, [tabId]: false }));
+      });
+  }, [currentTab.id, currentTabHasLoaded, currentTabIsLoading]);
+
+  const galleryPreloaders = useMemo(() => {
+    const adjacentTabIds = [TABS[activeTab + 1]?.id, TABS[activeTab - 1]?.id]
+      .filter(Boolean)
+      .filter((tabId) => !hasLoadedTab(orderedImagesByTab, tabId));
+
+    return [
+      loadImageLightbox,
+      ...adjacentTabIds.map((tabId) => GALLERY_TAB_PRELOADERS[tabId]),
+    ];
+  }, [activeTab, orderedImagesByTab]);
+
+  useIdlePreload(galleryPreloaders, true, {
+    delayMs: 180,
+    staggerMs: 120,
+    maxPreloadCount: isMobile ? 2 : 3,
+  });
+
+  useEffect(() => {
     if (!selectedImage) return;
-    const i = images.indexOf(selectedImage);
-    const toPreload = [images[i - 1], images[i + 1]].filter(Boolean);
+    const selectedIndex = images.indexOf(selectedImage);
+    const toPreload = [images[selectedIndex - 1], images[selectedIndex + 1]].filter(Boolean);
+
     toPreload.forEach((url) => {
       if (IMAGE_LOADED_CACHE.has(url)) return;
 
@@ -75,16 +140,18 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     });
   }, [selectedImage, images]);
 
-  useEffect(() => { setSelectedImage(null); }, [activeTab]);
+  useEffect(() => {
+    setSelectedImage(null);
+  }, [activeTab]);
 
   useEffect(() => {
     const tabId = TABS[activeTab].id;
     if (!visitedTabs.has(tabId)) {
-        setVisitedTabs((prev) => {
-            const next = new Set(prev);
-            next.add(tabId);
-            return next;
-        });
+      setVisitedTabs((previous) => {
+        const next = new Set(previous);
+        next.add(tabId);
+        return next;
+      });
     }
   }, [activeTab, visitedTabs]);
 
@@ -95,73 +162,46 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   });
 
   return (
-    <div style={{ width: '100%', padding: isMobile ? '24px 8px 10px 8px' : '28px 40px', minHeight: isMobile ? 'auto' : '600px', display: 'flex', flexDirection: 'column', overflow: 'visible', flex: 1 }}>
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        marginBottom: isMobile ? '20px' : '32px', 
-        flexDirection: isMobile ? 'column' : 'row', 
-        gap: isMobile ? '16px' : '0',
-        position: 'relative',
+    <div
+      style={{
         width: '100%',
-        padding: isMobile ? '0 10px' : '0'
-      }}>
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '12px', 
-            padding: '10px 24px', 
-            borderRadius: '24px', 
-            background: '#ffffff', 
-            border: '3.5px solid #8b5cf6',
-            borderBottom: '9.5px solid #8b5cf6',
-            boxShadow: '0 8px 18px rgba(139, 92, 246, 0.1)',
-            zIndex: 1
-          }}
-        >
-          <Camera size={isMobile ? 28 : 24} strokeWidth={2.5} style={{ color: '#8b5cf6' }} />
-          <span style={{ 
-            fontFamily: '"Sniglet", "Coming Soon", cursive', 
-            color: '#8b5cf6', 
-            fontSize: isMobile ? '1.45rem' : '1.35rem', 
-            fontWeight: '400',
-            letterSpacing: '0.2px',
-            lineHeight: 1
-          }}>
-            {t.header}
-          </span>
-        </motion.div>
-        
-        <div style={{ position: isMobile ? 'static' : 'absolute', right: isMobile ? 'auto' : '0' }}>
-          <GalleryTabSelector 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
-            isMobile={isMobile} 
-            tabLabels={tabLabels} 
-          />
-        </div>
-      </div>
+        padding: isMobile ? '24px 8px 10px 8px' : '28px 40px',
+        minHeight: isMobile ? 'auto' : '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'visible',
+        flex: 1,
+      }}
+    >
+      <GalleryPageHeader
+        isMobile={isMobile}
+        title={t.header}
+        activeTab={activeTab}
+        setActiveTab={handleSetActiveTab}
+        tabLabels={tabLabels}
+      />
 
       <AnimatePresence>
-        {selectedImage && (
-          <ImageLightbox
-            src={selectedImage}
-            images={images}
-            onClose={handleClose}
-            onNavigate={handleNavigate}
-            isMobile={isMobile}
-            altText="Gallery artwork"
-          />
-        )}
+        {selectedImage ? (
+          <Suspense fallback={null}>
+            <ImageLightbox
+              src={selectedImage}
+              images={images}
+              onClose={handleClose}
+              onNavigate={handleNavigate}
+              isMobile={isMobile}
+              altText="Gallery artwork"
+            />
+          </Suspense>
+        ) : null}
       </AnimatePresence>
 
       <div style={{ position: 'relative', flex: 1, overflow: 'visible' }}>
         {TABS.map((tab, tabIndex) => {
-          if (!visitedTabs.has(tab.id) && tabIndex !== activeTab) return null;
+          if (!visitedTabs.has(tab.id) && tabIndex !== activeTab) {
+            return null;
+          }
+
           const tabImages = orderedImagesByTab[tab.id] || [];
 
           return (
@@ -173,8 +213,9 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
               isMobile={isMobile}
               selectedImage={selectedImage}
               images={tabImages}
+              isLoading={!hasLoadedTab(orderedImagesByTab, tab.id) && !!loadingTabs[tab.id]}
               t={t}
-              setSelectedImage={setSelectedImage}
+              onSelectImage={setSelectedImage}
               markLoaded={markLoaded}
               GalleryThumbComponent={GalleryThumb}
             />

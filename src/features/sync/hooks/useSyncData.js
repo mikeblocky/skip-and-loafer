@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const SYNC_API_BASE = '/api/sync';
 const POLL_INTERVAL = 15000;
+const RESUME_SYNC_DEBOUNCE_MS = 1200;
 
 /* ─── Sync data helpers ─── */
 const collectSyncData = () => {
@@ -13,6 +14,10 @@ const collectSyncData = () => {
     }
     return data;
 };
+
+const serializeSyncSnapshot = (data) => JSON.stringify(
+    Object.entries(data || {}).sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+);
 
 /**
  * Merge remote sync data with local data.
@@ -92,6 +97,9 @@ export const useSyncData = (reloadFromStorage) => {
     const [lastSynced, setLastSynced] = useState(null);
     const pollRef = useRef(null);
     const pushPendingRef = useRef(false);
+    const lastPushedKeyRef = useRef('');
+    const lastPushedHashRef = useRef('');
+    const lastResumeSyncAtRef = useRef(0);
 
     // Refs to avoid stale closures in callbacks/timers
     const syncKeyRef = useRef(syncKey);
@@ -105,16 +113,31 @@ export const useSyncData = (reloadFromStorage) => {
         else localStorage.removeItem('skip_syncKey');
     }, [syncKey]);
 
-    const pushData = useCallback(async (key) => {
+    const pushData = useCallback(async (key, options = {}) => {
         if (!key) return;
+        const {
+            force = false,
+            dataOverride = null,
+        } = options;
         try {
-            const data = collectSyncData();
+            const data = dataOverride || collectSyncData();
+            const nextHash = serializeSyncSnapshot(data);
+
+            if (!force && key === lastPushedKeyRef.current && nextHash === lastPushedHashRef.current) {
+                return false;
+            }
+
             await fetch(`${SYNC_API_BASE}/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data, key })
             });
+            lastPushedKeyRef.current = key;
+            lastPushedHashRef.current = nextHash;
+            setLastSynced(new Date());
+            return true;
         } catch { /* silent */ }
+        return false;
     }, []);
 
     const pullData = useCallback(async (key) => {
@@ -140,8 +163,17 @@ export const useSyncData = (reloadFromStorage) => {
      */
     const syncCycle = useCallback(async (key) => {
         if (!key) return;
-        await pullData(key);   // merge remote → local
-        await pushData(key);   // push merged result → server
+        const pulled = await pullData(key);
+        const nextData = collectSyncData();
+        const nextHash = serializeSyncSnapshot(nextData);
+        const localChanged = key !== lastPushedKeyRef.current || nextHash !== lastPushedHashRef.current;
+
+        if (pulled || localChanged) {
+            await pushData(key, {
+                force: pulled,
+                dataOverride: nextData,
+            });
+        }
     }, [pullData, pushData]);
 
     /**
@@ -169,6 +201,8 @@ export const useSyncData = (reloadFromStorage) => {
         setSyncKey('');
         setSyncActive(false);
         setLastSynced(null);
+        lastPushedKeyRef.current = '';
+        lastPushedHashRef.current = '';
         clearProgressData();
         reloadFromStorage?.();
     }, [reloadFromStorage]);
@@ -193,11 +227,17 @@ export const useSyncData = (reloadFromStorage) => {
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
                 const key = syncKeyRef.current;
+                const now = Date.now();
+                if (now - lastResumeSyncAtRef.current < RESUME_SYNC_DEBOUNCE_MS) return;
+                lastResumeSyncAtRef.current = now;
                 if (key) syncCycle(key);
             }
         };
         const handleFocus = () => {
             const key = syncKeyRef.current;
+            const now = Date.now();
+            if (now - lastResumeSyncAtRef.current < RESUME_SYNC_DEBOUNCE_MS) return;
+            lastResumeSyncAtRef.current = now;
             if (key) syncCycle(key);
         };
 

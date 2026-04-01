@@ -3,11 +3,19 @@ export const THUMBNAIL_CACHE = new Map();
 export const THUMBNAIL_PROMISE_CACHE = new Map();
 export const IMAGE_DIMENSION_CACHE = new Map();
 
-const THUMBNAIL_MAX_WIDTH = 480;
-const THUMBNAIL_QUALITY = 0.62;
+const THUMBNAIL_MAX_WIDTH = 320;
+const THUMBNAIL_QUALITY = 0.58;
 const THUMBNAIL_MAX_CONCURRENT = 1;
 const THUMBNAIL_QUEUE = [];
 let thumbnailActiveJobs = 0;
+
+export function rememberImageDimensions(src, width, height) {
+  if (!src || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return;
+  }
+
+  IMAGE_DIMENSION_CACHE.set(src, { width, height });
+}
 
 const scheduleThumbnailIdle = (cb) => {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -35,10 +43,8 @@ const runThumbnailQueue = () => {
         image.src = task.src;
       });
 
-      IMAGE_DIMENSION_CACHE.set(task.src, {
-        width: image.naturalWidth,
-        height: image.naturalHeight,
-      });
+      IMAGE_LOADED_CACHE.add(task.src);
+      rememberImageDimensions(task.src, image.naturalWidth, image.naturalHeight);
 
       const scale = Math.min(1, THUMBNAIL_MAX_WIDTH / image.naturalWidth);
       const width = Math.max(1, Math.round(image.naturalWidth * scale));

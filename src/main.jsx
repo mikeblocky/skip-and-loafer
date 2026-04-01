@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 import './index.css'
 
 const App = lazy(() => import('./App.jsx'))
@@ -48,5 +49,6 @@ createRoot(document.getElementById('root')).render(
       {isMitsumiPage ? <MitsumiBirthday /> : <App />}
     </Suspense>
     <SpeedInsights />
+    <Analytics />
   </StrictMode>,
 )

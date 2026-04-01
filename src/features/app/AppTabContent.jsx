@@ -1,4 +1,5 @@
 import { Suspense, memo, useMemo } from 'react';
+import PaperLoadingState from '../../components/shared/paper/PaperLoadingState';
 import useIdlePreload from './hooks/useIdlePreload';
 import {
   BlogPage,
@@ -25,38 +26,31 @@ const PAGE_SHELL_STYLE = {
 };
 
 const TabFallback = ({ isMobile, label = 'Loading...' }) => (
-  <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: isMobile ? '20px 16px' : '28px' }}>
-    <div
-      className="sketchbook-border"
-      style={{
-        minWidth: isMobile ? 'min(88vw, 260px)' : '280px',
-        padding: isMobile ? '16px 18px' : '18px 22px',
-        borderRadius: '22px',
-        border: '3px solid #bfdbfe',
-        borderBottom: '7px solid #93c5fd',
-        background: '#ffffff',
-        boxShadow: '0 10px 20px rgba(148, 163, 184, 0.12)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '12px',
-      }}
-    >
-      <div
-        style={{
-          width: isMobile ? '132px' : '150px',
-          height: '8px',
-          borderRadius: '999px',
-          background: 'linear-gradient(90deg, #dbeafe 0%, #93c5fd 50%, #dbeafe 100%)',
-          backgroundSize: '200% 100%',
-          animation: 'plannerShimmer 1.3s linear infinite',
-        }}
-      />
-      <span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.98rem' : '1rem', color: '#64748b', textAlign: 'center' }}>
-        {label}
-      </span>
-    </div>
-  </div>
+  <PaperLoadingState
+    isMobile={isMobile}
+    label={label}
+    containerStyle={{
+      display: 'flex',
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? '20px 16px' : '28px',
+    }}
+    cardStyle={{
+      minWidth: isMobile ? 'min(88vw, 260px)' : '280px',
+      padding: isMobile ? '16px 18px' : '18px 22px',
+      borderRadius: '22px',
+      borderBottom: '7px solid #93c5fd',
+      boxShadow: '0 10px 20px rgba(148, 163, 184, 0.12)',
+    }}
+    shimmerWidth={isMobile ? '132px' : '150px'}
+    shimmerHeight="8px"
+    skeletonLines={[]}
+    labelStyle={{
+      fontSize: isMobile ? '0.98rem' : '1rem',
+      color: '#64748b',
+    }}
+  />
 );
 
 const getFallbackLabel = (activePage, isMobile) => {

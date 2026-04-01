@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import {
   getReaderControlButtonStyle,
@@ -62,4 +63,4 @@ const ReaderControls = ({
   </div>
 );
 
-export default ReaderControls;
+export default memo(ReaderControls);

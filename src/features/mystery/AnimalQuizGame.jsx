@@ -1,11 +1,10 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { PawPrint } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import useIdlePreload from '../app/hooks/useIdlePreload';
 import { QUESTION_TYPE_WEIGHT } from './quizGame/config';
 import QuizStageFallback from './quizGame/QuizStageFallback';
-import { toMysteryLabelCase } from './quizGame/ui';
 import getAnimalQuizCopy from './animalQuiz/copy';
 import {
   buildAnimalReason,
@@ -25,6 +24,7 @@ import {
 } from './animalQuiz/engine';
 import { ANIMAL_AXES, ANIMAL_DISPLAY_TRAITS } from '../../data/animalQuizData';
 import { ANIMAL_INSTRUCTION_COPY, buildAnimalQuestionBank, buildAnimalRecoveryBank } from '../../data/animalQuizQuestions';
+import { QuizIntroCard, QuizLoadingCard, QuizStageShell } from './quizGame/QuizStagePrimitives';
 
 const loadQuizIntegrityCheckpoint = () => import('./quizGame/QuizIntegrityCheckpoint');
 const loadQuizQuestionStep = () => import('./quizGame/QuizQuestionStep');
@@ -80,6 +80,7 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   const [constellationSelection, setConstellationSelection] = useState([]);
   const [integrityCheckpoint, setIntegrityCheckpoint] = useState(null);
   const [matchedResult, setMatchedResult] = useState(null);
+  const resultRevealTimeoutRef = useRef(null);
   const axisSignalRef = useRef(zeroAnimalAxes());
   const axisPolarityRef = useRef(createAnimalPolarity());
   const typeCountRef = useRef({});
@@ -101,6 +102,12 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     staggerMs: 140,
     maxPreloadCount: isMobile ? 2 : 3,
   });
+
+  useEffect(() => () => {
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+    }
+  }, []);
 
   const resolvedMatchedResult = useMemo(() => {
     if (!matchedResult?.matchKey || !matchedResult?.animalFactors) return matchedResult;
@@ -163,6 +170,10 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
 
   const handleStart = () => {
     triggerHaptic('selection');
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+      resultRevealTimeoutRef.current = null;
+    }
     setQuestionIds(buildAnimalQuestionSet({ questionBank, count: 35 }).map((question) => question.id));
     setCurrentStep(1);
     setAxes(zero());
@@ -708,33 +719,40 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       evidenceTrail: evidenceTrailRef.current,
       recoveryRounds: recoveryRoundRef.current,
     });
-    setTimeout(() => {
+    if (resultRevealTimeoutRef.current) {
+      clearTimeout(resultRevealTimeoutRef.current);
+    }
+    resultRevealTimeoutRef.current = setTimeout(() => {
       triggerHaptic('success');
       setMatchedResult(nextMatchedResult);
       setCurrentStep(questions.length + 2);
+      resultRevealTimeoutRef.current = null;
     }, 2200);
   };
 
   const renderIntro = () => (
-    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} style={{ textAlign: 'center', width: '100%', maxWidth: isMobile ? '390px' : '500px' }}>
-      <div className="sketchbook-border" style={{ background: '#f8fbff', border: '3.5px solid #bfdbfe', borderBottom: '9.5px solid #93c5fd', borderRadius: '28px', padding: isMobile ? '24px 20px' : '32px 24px', boxShadow: '0 12px 32px rgba(59, 130, 246, 0.1)' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}><PawPrint size={isMobile ? 56 : 72} color="#3b82f6" strokeWidth={3.5} /></div>
-        <h2 style={{ fontSize: isMobile ? '2.4rem' : '3rem', color: '#1e40af', margin: '0 0 18px 0', transform: 'rotate(-2deg)' }}>{toMysteryLabelCase(copy.menuTitle)}</h2>
-        <p style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', color: '#1e293b', marginBottom: '12px', lineHeight: 1.5, background: '#eff6ff', padding: '16px 20px', borderRadius: '20px', border: '3px dashed #bfdbfe' }}>{copy.menuDescription}</p>
-        <p style={{ color: '#64748b', fontSize: isMobile ? '0.95rem' : '1rem', lineHeight: 1.45, margin: '0 0 28px 0' }}>{copy.introNote}</p>
-        <motion.button whileHover={{ scale: 1.06, rotate: 2, y: -6 }} whileTap={{ scale: 0.9, y: 12 }} onClick={handleStart} className="sketchbook-border paper-interact" style={{ background: '#3b82f6', color: 'white', border: '3.5px solid #2563eb', borderBottom: '9.5px solid #1d4ed8', padding: isMobile ? '14px 42px' : '18px 64px', fontSize: isMobile ? '1.25rem' : '1.45rem', cursor: 'pointer', borderRadius: '24px', boxShadow: '0 10px 0 rgba(37, 99, 235, 0.2)' }}>{toMysteryLabelCase(t.quiz.startBtn)}</motion.button>
-      </div>
-    </motion.div>
+    <QuizIntroCard
+      isMobile={isMobile}
+      icon={PawPrint}
+      title={copy.menuTitle}
+      description={copy.menuDescription}
+      note={copy.introNote}
+      actionLabel={t.quiz.startBtn}
+      onStart={handleStart}
+      maxWidthMobile="390px"
+      maxWidthDesktop="500px"
+      descriptionFontSizeMobile="1.1rem"
+      descriptionFontSizeDesktop="1.3rem"
+    />
   );
 
   const renderLoading = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-      <PawPrint size={64} color="#3b82f6" className="pulse-slow" />
-      <div style={{ textAlign: 'center' }}>
-        <h3 style={{ fontSize: '2rem', color: '#1e40af', margin: 0 }}>{toMysteryLabelCase(t.quiz.thinking)}</h3>
-        <p style={{ color: '#64748b', fontSize: '1.25rem', margin: '4px 0 0 0' }}>{copy.calculating}</p>
-      </div>
-    </div>
+    <QuizLoadingCard
+      isMobile={isMobile}
+      icon={PawPrint}
+      title={t.quiz.thinking}
+      subtitle={copy.calculating}
+    />
   );
 
   const renderContent = () => {
@@ -766,11 +784,9 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', minHeight: isMobile ? '460px' : '580px', paddingTop: isMobile ? '4px' : '8px' }}>
-      <div style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
-      </div>
-    </div>
+    <QuizStageShell isMobile={isMobile}>
+      <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
+    </QuizStageShell>
   );
 };
 

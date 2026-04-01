@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 const isVideoSrc = (value) => /\.mp4($|\?)/i.test(value || '');
 
@@ -77,6 +77,21 @@ const stopLightboxTouchMoveEvent = (event) => {
   event.stopPropagation();
 };
 
+const warmMediaSource = (value) => {
+  if (!value || typeof document === 'undefined') return;
+
+  if (isVideoSrc(value)) {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = value;
+    return;
+  }
+
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = value;
+};
+
 const NavButton = ({ side, visible, onClick, metrics }) => (
   <div
     data-lightbox-control="true"
@@ -137,14 +152,19 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   const hasPrev = idx > 0;
   const hasNext = idx < images.length - 1;
   const isVideo = isVideoSrc(src);
-  const controlMetrics = getControlMetrics(isMobile);
+  const controlMetrics = useMemo(() => getControlMetrics(isMobile), [isMobile]);
 
-  const [zoom, setZoom] = useState(1);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
   const [isWheeling, setIsWheeling] = useState(false);
-  const [slideOffsetX, setSlideOffsetX] = useState(0);
+  const zoomMotion = useMotionValue(1);
+  const panXMotion = useMotionValue(0);
+  const panYMotion = useMotionValue(0);
+  const slideOffsetXMotion = useMotionValue(0);
+  const composedX = useTransform(() => panXMotion.get() + slideOffsetXMotion.get());
+  const zoomRef = useRef(1);
+  const panOffsetRef = useRef({ x: 0, y: 0 });
+  const slideOffsetXRef = useRef(0);
 
   const panStart = useRef({ x: 0, y: 0 });
   const gestureStart = useRef({ x: 0, y: 0 });
@@ -158,24 +178,41 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   const rafRef = useRef(null);
   const pendingGestureRef = useRef(null);
   const wheelTimeout = useRef(null);
+  const lastTapRef = useRef(0);
+
+  const setZoomValue = useCallback((value) => {
+    zoomRef.current = value;
+    zoomMotion.set(value);
+  }, [zoomMotion]);
+
+  const setPanValue = useCallback((nextPan) => {
+    panOffsetRef.current = nextPan;
+    panXMotion.set(nextPan.x);
+    panYMotion.set(nextPan.y);
+  }, [panXMotion, panYMotion]);
+
+  const setSlideOffsetValue = useCallback((value) => {
+    slideOffsetXRef.current = value;
+    slideOffsetXMotion.set(value);
+  }, [slideOffsetXMotion]);
 
   const doZoom = useCallback((delta) => {
-    setZoom((current) => {
-      const next = Math.max(0.5, Math.min(5, +(current + delta).toFixed(3)));
-      if (next === 1) setPanOffset({ x: 0, y: 0 });
-      return next;
-    });
-  }, []);
+    const next = Math.max(0.5, Math.min(5, +(zoomRef.current + delta).toFixed(3)));
+    setZoomValue(next);
+    if (next === 1) {
+      setPanValue({ x: 0, y: 0 });
+    }
+  }, [setPanValue, setZoomValue]);
 
   const resetZoom = useCallback(() => {
-    setZoom(1);
-    setPanOffset({ x: 0, y: 0 });
-  }, []);
+    setZoomValue(1);
+    setPanValue({ x: 0, y: 0 });
+  }, [setPanValue, setZoomValue]);
 
   const settleSlide = useCallback(() => {
-    setSlideOffsetX(0);
+    setSlideOffsetValue(0);
     isSlideDragging.current = false;
-  }, []);
+  }, [setSlideOffsetValue]);
 
   const navigateToImage = useCallback((nextSrc) => {
     settleSlide();
@@ -185,13 +222,19 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
 
   useEffect(() => () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (wheelTimeout.current) clearTimeout(wheelTimeout.current);
   }, []);
 
   useEffect(() => {
     resetZoom();
     settleSlide();
     didDragRef.current = false;
-  }, [src, resetZoom, settleSlide]);
+  }, [resetZoom, settleSlide, src]);
+
+  useEffect(() => {
+    warmMediaSource(images[idx - 1]);
+    warmMediaSource(images[idx + 1]);
+  }, [idx, images]);
 
   useEffect(() => {
     const onKey = (event) => {
@@ -214,7 +257,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [idx, hasPrev, hasNext, images, onClose, navigateToImage, doZoom, resetZoom, isMobile, isVideo]);
+  }, [doZoom, hasNext, hasPrev, idx, images, isMobile, isVideo, navigateToImage, onClose, resetZoom]);
 
   useEffect(() => {
     document.body.dataset.lightboxOpen = '1';
@@ -239,18 +282,21 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
 
     const isMouseWheel = Math.abs(event.deltaX) === 0 && Math.abs(event.deltaY) >= 30;
 
-    if (isMouseWheel || zoom === 1) {
+    if (isMouseWheel || zoomRef.current === 1) {
       doZoom(event.deltaY > 0 ? -0.25 : 0.25);
       return;
     }
 
-    if (zoom > 1) {
+    if (zoomRef.current > 1) {
       setIsWheeling(true);
       clearTimeout(wheelTimeout.current);
       wheelTimeout.current = setTimeout(() => setIsWheeling(false), 150);
-      setPanOffset((prev) => ({ x: prev.x - event.deltaX, y: prev.y - event.deltaY }));
+      setPanValue({
+        x: panOffsetRef.current.x - event.deltaX,
+        y: panOffsetRef.current.y - event.deltaY,
+      });
     }
-  }, [doZoom, zoom, isVideo]);
+  }, [doZoom, isVideo, setPanValue]);
 
   useEffect(() => {
     const preventBrowserZoom = (event) => {
@@ -259,6 +305,14 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
     document.addEventListener('wheel', preventBrowserZoom, { passive: false });
     return () => document.removeEventListener('wheel', preventBrowserZoom);
   }, []);
+
+  useEffect(() => {
+    const node = overlayRef.current;
+    if (!node) return undefined;
+
+    node.addEventListener('wheel', handleWheel, { passive: false });
+    return () => node.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
 
   const onPointerDown = (event) => {
     if (isVideo) return;
@@ -275,15 +329,18 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       setIsPinching(true);
       const points = Array.from(activePointers.current.values());
       initialPinchDist.current = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-      initialZoom.current = zoom;
+      initialZoom.current = zoomRef.current;
       initialPinchMid.current = {
         x: (points[0].x + points[1].x) / 2,
         y: (points[0].y + points[1].y) / 2,
       };
-      pinchPanStart.current = panOffset;
-    } else if (activePointers.current.size === 1 && zoom > 1) {
+      pinchPanStart.current = panOffsetRef.current;
+    } else if (activePointers.current.size === 1 && zoomRef.current > 1) {
       setIsPanning(true);
-      panStart.current = { x: event.clientX - panOffset.x, y: event.clientY - panOffset.y };
+      panStart.current = {
+        x: event.clientX - panOffsetRef.current.x,
+        y: event.clientY - panOffsetRef.current.y,
+      };
     } else if (activePointers.current.size === 1) {
       setIsPanning(false);
       settleSlide();
@@ -293,6 +350,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   const onPointerMove = (event) => {
     if (isVideo) return;
     if (!activePointers.current.has(event.pointerId)) return;
+
     activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
     if (activePointers.current.size === 2) {
@@ -302,7 +360,10 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       if (initialPinchDist.current) {
         const scale = dist / initialPinchDist.current;
         const nextZoom = Math.max(0.5, Math.min(5, initialZoom.current * scale));
-        const mid = { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 };
+        const mid = {
+          x: (points[0].x + points[1].x) / 2,
+          y: (points[0].y + points[1].y) / 2,
+        };
         const dx = mid.x - initialPinchMid.current.x;
         const dy = mid.y - initialPinchMid.current.y;
         const nextPan = nextZoom === 1
@@ -316,8 +377,8 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
             rafRef.current = null;
             const pending = pendingGestureRef.current;
             if (!pending) return;
-            setZoom(pending.zoom);
-            setPanOffset(pending.pan);
+            setZoomValue(pending.zoom);
+            setPanValue(pending.pan);
           });
         }
       }
@@ -329,9 +390,12 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
     const dx = event.clientX - gestureStart.current.x;
     const dy = event.clientY - gestureStart.current.y;
 
-    if (zoom > 1 && isPanning) {
+    if (zoomRef.current > 1 && isPanning) {
       didDragRef.current = true;
-      setPanOffset({ x: event.clientX - panStart.current.x, y: event.clientY - panStart.current.y });
+      setPanValue({
+        x: event.clientX - panStart.current.x,
+        y: event.clientY - panStart.current.y,
+      });
       return;
     }
 
@@ -346,7 +410,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
 
     didDragRef.current = true;
     const isEdgeDrag = (dx > 0 && !hasPrev) || (dx < 0 && !hasNext);
-    setSlideOffsetX(isEdgeDrag ? dx * SLIDE_EDGE_RESISTANCE : dx);
+    setSlideOffsetValue(isEdgeDrag ? dx * SLIDE_EDGE_RESISTANCE : dx);
   };
 
   const onPointerUp = (event) => {
@@ -363,16 +427,19 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       setIsPinching(false);
     }
 
-    if (activePointers.current.size === 1 && zoom > 1) {
+    if (activePointers.current.size === 1 && zoomRef.current > 1) {
       const point = Array.from(activePointers.current.values())[0];
       setIsPanning(true);
-      panStart.current = { x: point.x - panOffset.x, y: point.y - panOffset.y };
+      panStart.current = {
+        x: point.x - panOffsetRef.current.x,
+        y: point.y - panOffsetRef.current.y,
+      };
       return;
     }
 
-    if (activePointers.current.size === 0 && isSlideDragging.current && zoom <= 1) {
-      const shouldGoPrev = slideOffsetX >= SLIDE_COMMIT_DISTANCE && hasPrev;
-      const shouldGoNext = slideOffsetX <= -SLIDE_COMMIT_DISTANCE && hasNext;
+    if (activePointers.current.size === 0 && isSlideDragging.current && zoomRef.current <= 1) {
+      const shouldGoPrev = slideOffsetXRef.current >= SLIDE_COMMIT_DISTANCE && hasPrev;
+      const shouldGoNext = slideOffsetXRef.current <= -SLIDE_COMMIT_DISTANCE && hasNext;
 
       if (shouldGoPrev) {
         navigateToImage(images[idx - 1]);
@@ -392,24 +459,18 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
     }
   };
 
-  const lastTapRef = useRef(0);
   const handleDoubleTap = (event) => {
     if (didDragRef.current) return;
     const now = Date.now();
+
     if (now - lastTapRef.current < 300) {
       event.stopPropagation();
-      if (zoom > 1) resetZoom();
+      if (zoomRef.current > 1) resetZoom();
       else doZoom(1);
     }
+
     lastTapRef.current = now;
   };
-
-  useEffect(() => {
-    const node = overlayRef.current;
-    if (!node) return;
-    node.addEventListener('wheel', handleWheel, { passive: false });
-    return () => node.removeEventListener('wheel', handleWheel);
-  }, [handleWheel]);
 
   const overlay = (
     <motion.div
@@ -425,7 +486,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
       onClick={(event) => {
         if (event.target !== event.currentTarget) return;
         if (didDragRef.current) return;
-        if (zoom <= 1) onClose();
+        if (zoomRef.current <= 1) onClose();
         else resetZoom();
       }}
       style={{
@@ -479,7 +540,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
               borderWidth: controlMetrics.borderWidth,
               bottomBorderWidth: controlMetrics.bottomBorderWidth,
               elevated: false,
-              isMobile: isMobile,
+              isMobile,
             })}
           >
             <X
@@ -491,23 +552,23 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
         </div>
       </motion.div>
 
-      {!isMobile && (
+      {!isMobile ? (
         <NavButton
           side="left"
           visible={hasPrev}
           onClick={() => navigateToImage(images[idx - 1])}
           metrics={controlMetrics}
         />
-      )}
+      ) : null}
 
-      {!isMobile && (
+      {!isMobile ? (
         <NavButton
           side="right"
           visible={hasNext}
           onClick={() => navigateToImage(images[idx + 1])}
           metrics={controlMetrics}
         />
-      )}
+      ) : null}
 
       <div
         onPointerDown={onPointerDown}
@@ -517,7 +578,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
         onClick={(event) => {
           if (didDragRef.current) return;
           if (event.target === event.currentTarget) {
-            if (zoom <= 1 || isVideo) onClose();
+            if (zoomRef.current <= 1 || isVideo) onClose();
             else resetZoom();
           }
         }}
@@ -550,7 +611,7 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
             }}
           />
         ) : (
-          <img
+          <motion.img
             src={src}
             alt={altText}
             draggable={false}
@@ -559,11 +620,13 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
               handleDoubleTap(event);
             }}
             style={{
+              x: composedX,
+              y: panYMotion,
+              scale: zoomMotion,
               maxWidth: '100vw',
               maxHeight: '100vh',
               objectFit: 'contain',
               borderRadius: '0',
-              transform: `translateX(${slideOffsetX}px) scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
               transition: isWheeling || isPanning || isPinching || isSlideDragging.current ? 'none' : 'transform 0.2s ease-out',
               willChange: 'transform',
               userSelect: 'none',
@@ -596,4 +659,12 @@ const ImageLightbox = ({ src, images, onClose, onNavigate, isMobile, altText = '
   return createPortal(overlay, document.body);
 };
 
-export default ImageLightbox;
+const areEqual = (previous, next) =>
+  previous.src === next.src &&
+  previous.images === next.images &&
+  previous.onClose === next.onClose &&
+  previous.onNavigate === next.onNavigate &&
+  previous.isMobile === next.isMobile &&
+  previous.altText === next.altText;
+
+export default memo(ImageLightbox, areEqual);

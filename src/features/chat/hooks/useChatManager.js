@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { UI_TEXT } from '../../../config/uiText';
 import { triggerHaptic } from '../../../utils/haptics';
 import { PORTRAIT_DATA } from '../../mystery/mysteryData';
 import {
@@ -16,10 +15,9 @@ import {
 import {
   ACTIVE_ROOM_POLL_INTERVAL_MS,
   BANNED_ROOM_IDS,
-  DEFAULT_CHAT_COPY,
   DRAWING_COLORS,
   POLL_INTERVAL_MS,
-  getLocalizedChatCopy,
+  getChatCopy,
   TYPING_DEBOUNCE_MS,
 } from '../chatConstants';
 import {
@@ -61,11 +59,8 @@ import {
 } from '../chatUtils';
 
 export function useChatManager(isMobile, uiLanguage = 'en', syncData = null) {
-  const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const copy = useMemo(
-    () => ({ ...DEFAULT_CHAT_COPY, ...(UI_TEXT.en.chat || {}), ...getLocalizedChatCopy(uiLanguage), ...(t.chat || {}) }),
-    [t],
-  );
+  const copy = useMemo(() => getChatCopy(uiLanguage), [uiLanguage]);
+  const t = useMemo(() => ({ chat: copy }), [copy]);
   const initialProfile = useMemo(() => readProfile(), []);
   const initialLastRoomId = useMemo(() => readLastRoomId(), []);
   const [savedLastRoomId, setSavedLastRoomId] = useState(initialLastRoomId);
