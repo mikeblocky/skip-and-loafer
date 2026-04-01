@@ -1,6 +1,25 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
+import { getCachedChapterData, loadChapterData } from '../chapterDataLoader';
 
-export const useReaderChapterNavigation = ({ chapters, readerChapter, setReaderChapter }) => {
+export const useReaderChapterNavigation = ({ readerChapter, setReaderChapter }) => {
+  const [chapters, setChapters] = useState(() => getCachedChapterData() || []);
+
+  useEffect(() => {
+    if (!readerChapter) return undefined;
+    if (chapters.length) return undefined;
+
+    let active = true;
+
+    loadChapterData().then((nextChapters) => {
+      if (!active) return;
+      setChapters(nextChapters);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [chapters.length, readerChapter]);
+
   const activeChapterIndex = useMemo(() => {
     if (!readerChapter) return -1;
     return chapters.findIndex((chapter) => chapter.number === readerChapter.number);
@@ -10,16 +29,20 @@ export const useReaderChapterNavigation = ({ chapters, readerChapter, setReaderC
     ? chapters[activeChapterIndex + 1]
     : null;
 
+  const prevChapter = activeChapterIndex > 0
+    ? chapters[activeChapterIndex - 1]
+    : null;
+
   const hasNextChapter = !!(nextChapter && nextChapter.pages && nextChapter.pages.length > 0);
-  const hasPrevChapter = activeChapterIndex > 0;
+  const hasPrevChapter = !!prevChapter;
 
   const handleNextChapter = useCallback(() => {
-    if (hasNextChapter) setReaderChapter(chapters[activeChapterIndex + 1]);
-  }, [activeChapterIndex, chapters, hasNextChapter, setReaderChapter]);
+    if (nextChapter) setReaderChapter(nextChapter);
+  }, [nextChapter, setReaderChapter]);
 
   const handlePrevChapter = useCallback(() => {
-    if (hasPrevChapter) setReaderChapter(chapters[activeChapterIndex - 1]);
-  }, [activeChapterIndex, chapters, hasPrevChapter, setReaderChapter]);
+    if (prevChapter) setReaderChapter(prevChapter);
+  }, [prevChapter, setReaderChapter]);
 
   return {
     hasNextChapter,

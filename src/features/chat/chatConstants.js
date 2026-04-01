@@ -529,3 +529,10 @@ const CHAT_COPY_BY_LANGUAGE = {
 export function getLocalizedChatCopy(uiLanguage = 'en') {
   return CHAT_COPY_BY_LANGUAGE[uiLanguage] || {};
 }
+
+export function getChatCopy(uiLanguage = 'en') {
+  return {
+    ...DEFAULT_CHAT_COPY,
+    ...getLocalizedChatCopy(uiLanguage),
+  };
+}

@@ -4,14 +4,6 @@ export const useBlogHistoryNavigation = ({ selectedBlogId, setSelectedBlogId, va
   const blogHistoryPopRef = useRef(false);
 
   const handleBackToList = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      const state = window.history.state;
-      if (state?.skipApp && state.page === 'blog' && state.blogId) {
-        window.history.back();
-        return;
-      }
-    }
-
     setSelectedBlogId(null);
   }, [setSelectedBlogId]);
 

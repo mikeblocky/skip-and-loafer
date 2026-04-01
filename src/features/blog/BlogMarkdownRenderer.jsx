@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -40,10 +40,10 @@ const BlogMarkdownRenderer = ({
     ]
   );
 
-  const renderedMarkdownChunks = useMemo(() => {
+  const allRenderedMarkdownChunks = useMemo(() => {
     if (!selectedBlogId) return null;
 
-    return markdownChunks.slice(0, visibleChunkCount).map((chunk, index) => (
+    return markdownChunks.map((chunk, index) => (
       <ReactMarkdown
         key={`${selectedBlogId}-chunk-${index}`}
         remarkPlugins={REMARK_PLUGINS}
@@ -53,9 +53,14 @@ const BlogMarkdownRenderer = ({
         {chunk}
       </ReactMarkdown>
     ));
-  }, [selectedBlogId, markdownChunks, visibleChunkCount, markdownComponents]);
+  }, [selectedBlogId, markdownChunks, markdownComponents]);
+
+  const renderedMarkdownChunks = useMemo(
+    () => allRenderedMarkdownChunks?.slice(0, visibleChunkCount) || null,
+    [allRenderedMarkdownChunks, visibleChunkCount],
+  );
 
   return <>{renderedMarkdownChunks}</>;
 };
 
-export default BlogMarkdownRenderer;
+export default memo(BlogMarkdownRenderer);

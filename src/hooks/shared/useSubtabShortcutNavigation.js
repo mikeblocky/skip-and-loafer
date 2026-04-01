@@ -15,3 +15,6 @@ export const useSubtabShortcutNavigation = ({ subtabShortcut, tabCount, onNaviga
     }
   }, [subtabShortcut?.token, tabCount, onNavigate]);
 };
+
+export default useSubtabShortcutNavigation;
+
