@@ -303,7 +303,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         borderBottom: `6px solid ${theme.border}`,
         boxShadow: `0 4px 0 rgba(0,0,0,0.1)`,
       }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: theme.accent }}>{chapterBadge}</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '900', color: theme.accent }}>{chapterBadge}</span>
       </div>
  
       <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -523,7 +523,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 borderRadius: '16px',
                 fontFamily: 'var(--font-paper)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',
-                fontWeight: '900',
+                fontWeight: '400',
                 cursor: 'pointer',
                 position: 'relative',
                 transition: 'border-bottom-width 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.2s',
