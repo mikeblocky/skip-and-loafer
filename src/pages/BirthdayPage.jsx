@@ -59,6 +59,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
         isBirthdayToday={Boolean(todayBirthday)}
         t={t}
         referenceDate={today}
+        uiLanguage={uiLanguage}
       />
 
       <div
@@ -81,6 +82,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
             monthLabels={monthLabels}
             reduceMotion={reduceMotion}
             referenceDate={today}
+            uiLanguage={uiLanguage}
           />
         ))}
       </div>

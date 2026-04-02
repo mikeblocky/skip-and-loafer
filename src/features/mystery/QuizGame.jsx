@@ -14,6 +14,10 @@ import {
   pickMostInformativeHumanQuestion,
 } from './quizGame/humanQuizUtils';
 import {
+  formatQuizConfidenceLabel,
+  formatQuizEvidenceLabel,
+} from './quizGame/jpHelpers';
+import {
   AXES,
   QUESTION_TYPE_WEIGHT,
   RELIABILITY_RECOVERY_BANK,
@@ -21,6 +25,65 @@ import {
   hashString,
 } from './quizGame/config';
 import { QuizStageShell } from './quizGame/QuizStagePrimitives';
+
+const JAPANESE_RECOVERY_BANK_COPY = {
+  901: { text: '普段は、たくさんの軽い交流より、少数の深いつながりのほうをかなり好む。' },
+  902: { text: '一日にたくさんの人との接点があると、かなり強く元気になる。' },
+  903: {
+    text: '高い不確実性のとき、絶対的なデフォルト傾向として近いのはどっち？',
+    leftLabel: 'まず完全な構造と明確さ',
+    rightLabel: 'まず純粋な適応と動き',
+  },
+  904: {
+    text: '予定が完全に変わったとき、最初に向かうのはどっち？',
+    leftLabel: '厳密で明確な計画を組み直す',
+    rightLabel: '生の勢いにそのまま乗る',
+  },
+  905: {
+    text: 'あなたにとって最も根本的に本当だと感じるものに10ポイントを配分してください。',
+    options: [
+      '明確な期待値が絶対に必要。',
+      '社交の流れと協働で力が出る。',
+      '最大の速度と行動を優先する。',
+      '守られた静かな集中時間が必要。',
+    ],
+  },
+  906: {
+    text: '本当にいちばん一貫している土台として、最も近いものを1つ選んでください。',
+    options: [
+      '疲れていても、予測できる構造化した人である。',
+      '忙しくても、人の気持ちに敏感で共感的である。',
+      '圧がかかると、実行と推進に強くなる。',
+      '騒がしい場でも、落ち着いていて観察的である。',
+    ],
+  },
+  907: {
+    text: '危機の瞬間、思わず最初に出る反応は？',
+    left: '論理と手順をすぐ直す',
+    right: 'グループの感情をまず落ち着かせる',
+  },
+  908: { text: '目標の成功のためなら、自分の気持ちを無視するのはかなり簡単だと感じる。' },
+};
+
+const localizeRecoveryQuestion = (question, uiLanguage) => {
+  if (uiLanguage !== 'ja') return question;
+  const copy = JAPANESE_RECOVERY_BANK_COPY[question.id];
+  if (!copy) return question;
+
+  const next = { ...question };
+  if (copy.text) next.text = copy.text;
+  if (copy.leftLabel) next.leftLabel = copy.leftLabel;
+  if (copy.rightLabel) next.rightLabel = copy.rightLabel;
+  if (copy.left) next.left = { ...next.left, text: copy.left };
+  if (copy.right) next.right = { ...next.right, text: copy.right };
+  if (Array.isArray(copy.options) && Array.isArray(next.options)) {
+    next.options = next.options.map((option, index) => ({
+      ...option,
+      text: copy.options[index] || option.text,
+    }));
+  }
+  return next;
+};
 
 const loadQuizIntegrityCheckpoint = () => import('./quizGame/QuizIntegrityCheckpoint');
 const loadQuizIntro = () => import('./quizGame/QuizIntro');
@@ -34,7 +97,19 @@ const QuizLoadingState = lazy(loadQuizLoadingState);
 const QuizQuestionStep = lazy(loadQuizQuestionStep);
 const QuizResultView = lazy(loadQuizResultView);
 
-const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
+const QuizGame = ({ isMobile, portraitData, fallbackColors, t, uiLanguage = 'en' }) => {
+  const isJapanese = uiLanguage === 'ja';
+  const loadingQuizLabel = isJapanese ? 'クイズを読み込み中...' : 'Loading quiz...';
+  const loadingQuestionLabel = isJapanese ? '問題を読み込み中...' : 'Loading question...';
+  const loadingResultLabel = isJapanese ? '結果を読み込み中...' : 'Loading result...';
+  const calculatingLabel = isJapanese ? '計算中...' : 'Calculating...';
+  const balancedMiddleLabel = t.quiz.interactionUi?.balancedMiddle || (isJapanese ? 'ちょうど中間' : 'balanced middle');
+  const holdInstructionFallback = isJapanese
+    ? 'ちょうどよいと感じるまで押し続けてから離してください。'
+    : 'Press and hold until the intensity feels right, then release.';
+  const rhythmInstructionFallback = isJapanese
+    ? '自然に感じるリズムで4回タップしてください。'
+    : 'Tap 4 times in the pace that honestly feels like you.';
   const [currentStep, setCurrentStep] = useState(0); 
   const [questionIds, setQuestionIds] = useState([]);
   const [axes, setAxes] = useState({ social: 0, planning: 0, focus: 0, drive: 0 });
@@ -179,12 +254,14 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
         axis,
         delta,
         label,
-        insight: `${label} indicates ${delta > 0 ? 'higher' : 'lower'} ${axisLabelMap[axis] || axis}.`,
+        insight: uiLanguage === 'ja'
+          ? `${label} は ${axisLabelMap[axis] || axis} が ${delta > 0 ? '高め' : '低め'} だと示しています。`
+          : `${label} indicates ${delta > 0 ? 'higher' : 'lower'} ${axisLabelMap[axis] || axis}.`,
       },
     ];
   };
 
-  const applyModifiers = (modifiers, evidenceLabel = 'Response', questionType = 'choice', qualityMeta = {}) => {
+  const applyModifiers = (modifiers, evidenceLabel = isJapanese ? '回答' : 'Response', questionType = 'choice', qualityMeta = {}) => {
     const liveQuality = computeHumanLiveQuality({
       responseQuality: responseQualityRef.current,
       pairResponses: pairResponsesRef.current,
@@ -245,7 +322,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     responseQualityRef.current.sliderCount += 1;
     if (sliderValue === 1 || sliderValue === 5) responseQualityRef.current.sliderExtreme += 1;
     setAxes(newAxes);
-    accumulateEvidence(`${q.text} (${sliderValue}/5)`, { [q.axis]: weightedVal });
+    accumulateEvidence(formatQuizEvidenceLabel(uiLanguage, q.text, `(${sliderValue}/5)`), { [q.axis]: weightedVal });
     setSliderValue(3);
     advanceStep(newAxes);
   };
@@ -262,7 +339,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       });
     });
     setMultiSelection([]);
-    applyModifiers(merged, `${q.text} -> ${labels.join(' + ')}`, 'multi', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, labels.join(uiLanguage === 'ja' ? ' ・ ' : ' + ')), 'multi', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: multiSelection.length ? 0.65 : 0,
@@ -279,9 +356,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
         weightedMerge[axis] += Math.round(value * weight);
       });
     });
-    const labels = rankSelection.map((idx, i) => `#${i + 1} ${q.options[idx].text}`);
+    const labels = rankSelection.map((idx, i) => (uiLanguage === 'ja'
+      ? `第${i + 1}位 ${q.options[idx].text}`
+      : `#${i + 1} ${q.options[idx].text}`));
     setRankSelection([]);
-    applyModifiers(weightedMerge, `${q.text} -> ${labels.join(' | ')}`, 'rank2', {
+    applyModifiers(weightedMerge, formatQuizEvidenceLabel(uiLanguage, q.text, labels.join(uiLanguage === 'ja' ? ' ・ ' : ' | ')), 'rank2', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: rankSelection.length >= 2 ? 0.7 : 0,
@@ -297,10 +376,10 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       const base = selected?.modifiers?.[axis] || 0;
       merged[axis] = Math.round(base * confidenceMultiplier);
     });
-    const confidenceLabel = confidenceSelection.level === 1 ? 'low confidence' : confidenceSelection.level === 3 ? 'high confidence' : 'medium confidence';
+    const confidenceLabel = formatQuizConfidenceLabel(uiLanguage, confidenceSelection.level);
     const selectedIndex = confidenceSelection.optionIndex;
     setConfidenceSelection({ optionIndex: null, level: 2 });
-    applyModifiers(merged, `${q.text} -> ${selected?.text || '-'} (${confidenceLabel})`, 'confidenceChoice', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, selected?.text || '-', confidenceLabel), 'confidenceChoice', {
       optionIndex: selectedIndex,
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
@@ -315,9 +394,11 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     AXES.forEach((axis) => {
       merged[axis] = Math.round((q.modifiers?.[axis] || 0) * factor);
     });
-    const labels = q.labels || ['Strongly disagree', 'Disagree', 'Agree', 'Strongly agree'];
+    const labels = q.labels || (uiLanguage === 'ja'
+      ? ['かなり違う', '少し違う', '少しそう思う', 'かなりそう思う']
+      : ['Strongly disagree', 'Disagree', 'Agree', 'Strongly agree']);
     setStanceSelection(selectionIndex);
-    applyModifiers(merged, `${q.text} -> ${labels[selectionIndex] || 'stance'}`, 'stance', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, labels[selectionIndex] || (uiLanguage === 'ja' ? '態度' : 'stance')), 'stance', {
       optionIndex: selectionIndex,
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
@@ -335,9 +416,9 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
         ((q.highModifiers?.[axis] || 0) * level)
       );
     });
-    const label = level < 0.34 ? q.lowLabel : level > 0.66 ? q.highLabel : (t.quiz.interactionUi?.balancedMiddle || 'balanced middle');
+    const label = level < 0.34 ? q.lowLabel : level > 0.66 ? q.highLabel : (t.quiz.interactionUi?.balancedMiddle || (uiLanguage === 'ja' ? 'ちょうど中間' : 'balanced middle'));
     setHoldLevel(0);
-    applyModifiers(merged, `${q.text} -> ${label} (${Math.round(level * 100)}%)`, 'hold', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, label, `(${Math.round(level * 100)}%)`), 'hold', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: (level * 2) - 1,
@@ -366,7 +447,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     const shapeLabel = steadyWeight >= 0.5 ? q.steadyLabel : q.wildLabel;
     const pairValue = ((fastWeight - slowWeight) + (wildWeight - steadyWeight)) / 2;
     setRhythmPattern([]);
-    applyModifiers(merged, `${q.text} -> ${paceLabel} / ${shapeLabel}`, 'rhythm', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, `${paceLabel} / ${shapeLabel}`), 'rhythm', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue,
@@ -392,7 +473,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     });
     const labels = constellationSelection.slice(0, pickCount).map((idx) => q.options?.[idx]?.text).filter(Boolean);
     setConstellationSelection([]);
-    applyModifiers(merged, `${q.text} -> ${labels.join(' -> ')}`, 'constellation', {
+    applyModifiers(merged, formatQuizEvidenceLabel(uiLanguage, q.text, labels.join(uiLanguage === 'ja' ? ' ・ ' : ' -> ')), 'constellation', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: labels.length / 3,
@@ -421,11 +502,13 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
         case 'confidenceChoice':
           return t.quiz.instructions.confidenceChoice;
         case 'hold':
-          return t.quiz.interactionUi?.holdInstruction || 'Press and hold until the intensity feels right, then release.';
+          return t.quiz.interactionUi?.holdInstruction || holdInstructionFallback;
         case 'rhythm':
-          return t.quiz.interactionUi?.rhythmInstruction || 'Tap 4 times in the pace that honestly feels like you.';
+          return t.quiz.interactionUi?.rhythmInstruction || rhythmInstructionFallback;
         case 'constellation':
-          return 'Build a 3-step pattern from first instinct to last instinct.';
+          return isJapanese
+            ? '最初の直感から最後の直感まで、3段階の流れを作ってください。'
+            : 'Build a 3-step pattern from first instinct to last instinct.';
         case 'stance':
           return t.quiz.instructions.stance;
       default:
@@ -445,14 +528,20 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       combined[axis] = plus - Math.round(minus * 0.8);
     });
 
-    const label = `${q.text} -> most: ${most?.text || '-'} | least: ${least?.text || '-'}`;
     setIpsativeMost(null);
     setIpsativeLeast(null);
-    applyModifiers(combined, label, 'ipsative', {
+    applyModifiers(
+      combined,
+      uiLanguage === 'ja'
+        ? `${q.text} ・ 最も近い: ${most?.text || '-'} ・ 最も遠い: ${least?.text || '-'}`
+        : `${q.text} -> most: ${most?.text || '-'} | least: ${least?.text || '-'}`,
+      'ipsative',
+      {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: 0.75,
-    });
+      },
+    );
   };
 
   const handleSubmitSpectrum = (q) => {
@@ -470,12 +559,12 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
     const leftText = q.leftLabel || 'left';
     const rightText = q.rightLabel || 'right';
-    const selectedText = ratio < 0 ? leftText : ratio > 0 ? rightText : 'balanced middle';
+    const selectedText = ratio < 0 ? leftText : ratio > 0 ? rightText : balancedMiddleLabel;
     const strength = Math.round(Math.abs(ratio) * 100);
     responseQualityRef.current.spectrumCount += 1;
     if (spectrumValue === 1 || spectrumValue === 5) responseQualityRef.current.spectrumExtreme += 1;
     setSpectrumValue(3);
-    applyModifiers(combined, `${q.text} -> ${selectedText} (${strength}%)`, 'spectrum', {
+    applyModifiers(combined, formatQuizEvidenceLabel(uiLanguage, q.text, selectedText, `(${strength}%)`), 'spectrum', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: ratio,
@@ -517,7 +606,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     responseQualityRef.current.allocationConcentrationSum += (budget > 0 ? maxAllocated / budget : 0);
 
     setAllocationPoints({});
-    applyModifiers(combined, `${q.text} -> ${labels.join(' | ')}`, 'allocation', {
+    applyModifiers(combined, formatQuizEvidenceLabel(uiLanguage, q.text, labels.join(uiLanguage === 'ja' ? ' ・ ' : ' | ')), 'allocation', {
       pairKey: q.pairKey,
       pairSlot: q.pairSlot,
       pairValue: 0.7,
@@ -526,9 +615,15 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
   const buildDynamicReason = (characterKey, standardizedAxes, reliabilityIndex) => {
     const style = t.quiz.characters[characterKey] || {
-      openers: [t.quiz.reasonFallbacks?.opener || 'This profile matched your overall response pattern.'],
-      anchor: t.quiz.reasonFallbacks?.anchor || 'Your answers held together enough to point in a clear direction.',
-      growth: t.quiz.reasonFallbacks?.growth || 'Keep tracking what works for you and adjust based on real situations.',
+      openers: [uiLanguage === 'ja'
+        ? (t.quiz.reasonFallbacks?.opener || 'このプロフィールは、あなたの全体的な回答パターンと一致しました。')
+        : (t.quiz.reasonFallbacks?.opener || 'This profile matched your overall response pattern.')],
+      anchor: uiLanguage === 'ja'
+        ? (t.quiz.reasonFallbacks?.anchor || '回答が十分にまとまっていたため、はっきりした方向が見えました。')
+        : (t.quiz.reasonFallbacks?.anchor || 'Your answers held together enough to point in a clear direction.'),
+      growth: uiLanguage === 'ja'
+        ? (t.quiz.reasonFallbacks?.growth || '自分に合うものを見つけながら、実際の状況に合わせて調整していきましょう。')
+        : (t.quiz.reasonFallbacks?.growth || 'Keep tracking what works for you and adjust based on real situations.'),
     };
 
     const baseSeed = `${characterKey}-${standardizedAxes.social}-${standardizedAxes.planning}-${standardizedAxes.focus}-${standardizedAxes.drive}-${reliabilityIndex}`;
@@ -536,7 +631,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     
     // 1. Core Opener
     const openersPool = style.openers || [];
-    const opener = openersPool.length ? openersPool[seed % openersPool.length] : 'You matched this profile.';
+    const opener = openersPool.length ? openersPool[seed % openersPool.length] : (uiLanguage === 'ja' ? 'このプロフィールに当てはまりました。' : 'You matched this profile.');
 
     // 2. Magnitude-Aware Axis Lines
     const getIntensity = (val) => {
@@ -568,7 +663,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
         .sort((a, b) => Math.abs(b.delta || 0) - Math.abs(a.delta || 0))
         .slice(0, 1)
         .map((entry) =>
-          (t.quiz.clueLead || 'A clear clue came from {label}.').replace('{label}', String(entry.label || ''))
+          (t.quiz.clueLead || (isJapanese ? '{label} からはっきりした手がかりが出ました。' : 'A clear clue came from {label}.')).replace('{label}', String(entry.label || ''))
         )
         .find(Boolean);
 
@@ -580,10 +675,10 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
     // 4. Reliability Context
     const reliabilityLine = reliabilityIndex < 58
-      ? t.quiz.reliabilityContext?.exploratory || 'Treat this as a strong first read that may shift as your environment settles.'
+      ? t.quiz.reliabilityContext?.exploratory || (isJapanese ? '今の読みとしてはかなり強めです。回答が安定すると、さらにくっきりします。' : 'Treat this as a strong first read that may shift as your environment settles.')
       : reliabilityIndex < 72
-        ? t.quiz.reliabilityContext?.stable || 'This profile is fairly stable and reflects your current underlying rhythm well.'
-        : t.quiz.reliabilityContext?.consistent || 'The pattern is remarkably consistent across all your responses.';
+        ? t.quiz.reliabilityContext?.stable || (isJapanese ? 'このパターンはかなり安定していて、質問形式が変わっても保たれやすいです。' : 'This profile is fairly stable and reflects your current underlying rhythm well.')
+        : t.quiz.reliabilityContext?.consistent || (isJapanese ? '形式や圧が変わっても、とても一貫したパターンです。' : 'The pattern is remarkably consistent across all your responses.');
 
       const summaryLine = [primaryLine, secondaryLine].filter(Boolean).join(' ');
 
@@ -602,7 +697,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   };
 
   const buildDynamicPrediction = (characterKey) => {
-    return t.quiz.characters[characterKey]?.prediction || t.quiz.predictionFallback || 'A good day is waiting for you.';
+    return t.quiz.characters[characterKey]?.prediction || t.quiz.predictionFallback || (uiLanguage === 'ja' ? 'きっと良い一日になります。' : 'A good day is waiting for you.');
   };
 
   const resolvedMatchedResult = React.useMemo(() => {
@@ -616,7 +711,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       ),
       prediction: buildDynamicPrediction(matchedResult.matchKey),
     };
-  }, [matchedResult, t]);
+  }, [matchedResult, t, uiLanguage]);
 
   const maybeInjectRecoveryRound = (nextAxes) => {
     const live = computeHumanLiveQuality({
@@ -638,7 +733,9 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
     if (recoveryRoundRef.current >= maxRecoveryRounds) return false;
 
     const askedIds = new Set(questionIds);
-    const pool = RELIABILITY_RECOVERY_BANK.filter((q) => !askedIds.has(q.id));
+    const pool = RELIABILITY_RECOVERY_BANK
+      .map((question) => localizeRecoveryQuestion(question, uiLanguage))
+      .filter((q) => !askedIds.has(q.id));
     if (!pool.length) return false;
 
     const byId = (id) => pool.find((q) => q.id === id);
@@ -739,6 +836,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       portraitData,
       evidenceTrail: evidenceTrailRef.current,
       recoveryRounds: recoveryRoundRef.current,
+      uiLanguage,
     });
     if (resultRevealTimeoutRef.current) {
       clearTimeout(resultRevealTimeoutRef.current);
@@ -754,7 +852,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
   const renderContent = () => {
     if (integrityCheckpoint) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading quiz...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || loadingQuizLabel} />}>
           <QuizIntegrityCheckpoint
             isMobile={isMobile}
             integrityCheckpoint={integrityCheckpoint}
@@ -767,7 +865,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
     if (currentStep === 0) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading quiz...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || loadingQuizLabel} />}>
           <QuizIntro isMobile={isMobile} t={t} onStart={handleStart} />
         </Suspense>
       );
@@ -777,13 +875,14 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
       const question = questions[currentStep - 1];
 
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading question...'} />}>
-          <QuizQuestionStep
-            isMobile={isMobile}
-            currentStep={currentStep}
-            totalQuestions={questions.length}
-            question={question}
-            t={t}
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || loadingQuestionLabel} />}>
+        <QuizQuestionStep
+          isMobile={isMobile}
+          currentStep={currentStep}
+          totalQuestions={questions.length}
+          question={question}
+          t={t}
+          uiLanguage={uiLanguage}
             state={{
               sliderValue,
               spectrumValue,
@@ -833,7 +932,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
     if (currentStep === questions.length + 1) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Calculating...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || calculatingLabel} />}>
           <QuizLoadingState isMobile={isMobile} t={t} />
         </Suspense>
       );
@@ -841,13 +940,14 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t }) => {
 
     if (currentStep === questions.length + 2 && resolvedMatchedResult) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || 'Loading result...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={t.quiz?.thinking || loadingResultLabel} />}>
           <QuizResultView
             isMobile={isMobile}
             matchedResult={resolvedMatchedResult}
             fallbackColors={fallbackColors}
             axes={axes}
             t={t}
+            uiLanguage={uiLanguage}
             showAllScores={showAllScores}
             setShowAllScores={setShowAllScores}
             onRestart={handleStart}

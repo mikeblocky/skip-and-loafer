@@ -1,5 +1,6 @@
 import { BarChart3, CheckCircle2, FileText } from 'lucide-react';
 import { CHARACTER_COLORS } from '../../../data/characters';
+import { getCharacterDisplayName } from '../../../data/characterNames';
 import {
   MysteryResultBody,
   MysteryResultCharacterCard,
@@ -77,17 +78,23 @@ const QuizResultView = ({
   matchedResult,
   fallbackColors,
   t,
+  uiLanguage = 'en',
   showAllScores,
   setShowAllScores,
   onRestart,
 }) => {
   const characterName = matchedResult?.topMatch || matchedResult?.character?.name || '';
+  const displayCharacterName = getCharacterDisplayName(characterName, uiLanguage);
   const colors = getMatchColors(characterName, fallbackColors);
   const rankingTitle = (t.quiz.traits.suitabilityRankingTitle || t.quiz.suitabilityRanking || '')
     .replace('{confidence}', matchedResult.confidence);
   const visibleScores = showAllScores
     ? matchedResult.characterScores
     : matchedResult.characterScores.slice(0, 5);
+  const localizedScores = visibleScores.map((entry) => ({
+    ...entry,
+    name: getCharacterDisplayName(entry.name, uiLanguage),
+  }));
 
   const traitRows = [
     ...PRIMARY_AXIS_KEYS.map((axisKey) => ({
@@ -168,16 +175,16 @@ const QuizResultView = ({
       <MysteryResultHeader
         isMobile={isMobile}
         title={t.quiz.resultTitle}
-        subtitle={characterName}
+        subtitle={displayCharacterName}
       />
 
       <MysteryResultBody
         isMobile={isMobile}
-        artwork={(
+        artwork={uiLanguage === 'ja' ? null : (
           <MysteryResultCharacterCard
             isMobile={isMobile}
             colors={colors}
-            name={characterName}
+            name={displayCharacterName}
             imageSrc={matchedResult.character?.src}
           />
         )}
@@ -278,7 +285,7 @@ const QuizResultView = ({
               </QuizActionButton>
             </div>
           ) : null}
-          scores={visibleScores}
+          scores={localizedScores}
           scoreFormatter={(entry) => formatPercent(entry.score)}
           bottomStats={bottomStats}
           maxBottomColumns={5}

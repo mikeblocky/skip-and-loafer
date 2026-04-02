@@ -36,6 +36,20 @@ const AnimalQuizResultView = lazy(loadAnimalQuizResultView);
 
 const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
   const copy = React.useMemo(() => getAnimalQuizCopy(uiLanguage, t), [uiLanguage, t]);
+  const isJapanese = uiLanguage === 'ja';
+  const reactionEarlyLabel = isJapanese ? '信号より先に動きました。' : 'You moved before the signal landed.';
+  const introTitle = isJapanese ? 'あなたはどの動物？' : copy.menuTitle;
+  const introDescription = isJapanese
+    ? 'サトノスケ、オシオ、オミソに近い本能を探す深めのクイズです。'
+    : copy.menuDescription;
+  const introNote = isJapanese
+    ? '温かさ、慎重さ、遊び心、習慣、そして気ままな動きを見ます。'
+    : copy.introNote;
+  const loadingLabel = isJapanese ? '動物クイズを読み込み中...' : (copy.calculating || t.quiz?.thinking || 'Loading quiz...');
+  const balancedMiddleLabel = isJapanese ? '中間バランス' : (copy.balancedMiddle || 'balanced middle');
+  const predictionFallbackLabel = isJapanese
+    ? '今日は静かな動物の気配がついてきます。'
+    : (copy.predictionFallback || 'A quiet animal mood follows you today.');
   const questionBank = useMemo(() => buildAnimalQuestionBank(uiLanguage), [uiLanguage]);
   const recoveryBank = useMemo(() => buildAnimalRecoveryBank(uiLanguage), [uiLanguage]);
   const localizedQuestionLookup = useMemo(
@@ -141,11 +155,10 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       ),
       prediction:
         t.quiz?.characters?.[matchedResult.matchKey]?.prediction ||
-        copy.predictionFallback ||
-        'A quiet animal mood follows you today.',
+        predictionFallbackLabel,
       displayTraits,
     };
-  }, [copy, matchedResult, t, localizedQuestionLookup]);
+  }, [copy, matchedResult, t, localizedQuestionLookup, predictionFallbackLabel]);
 
   const accumulateAnimalEvidence = (label, modifiers, detail = '', meta = {}) => {
     const dominant = Object.entries(modifiers || {}).sort((a, b) => Math.abs((b[1] || 0)) - Math.abs((a[1] || 0)))[0];
@@ -207,7 +220,7 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     recoveryRoundRef.current = 0;
     evidenceTrailRef.current = [];
   };
-  const applyModifiers = (modifiers, _label = 'Response', questionType = 'choice', qualityMeta = {}) => {
+  const applyModifiers = (modifiers, _label = isJapanese ? '回答' : 'Response', questionType = 'choice', qualityMeta = {}) => {
     const liveQuality = computeLiveQuality();
     const typeWeight = QUESTION_TYPE_WEIGHT[questionType] || 1;
     const finalWeight = typeWeight * Math.max(0.72, Math.min(1.1, 0.82 + ((liveQuality.integrity / 100) * 0.28)));
@@ -249,7 +262,14 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     responseQualityRef.current.sliderCount += 1;
     if (sliderValue === 1 || sliderValue === 5) responseQualityRef.current.sliderExtreme += 1;
     setAxes(nextAxes);
-    accumulateAnimalEvidence(question.text, { [question.axis]: weightedValue }, `Slider landed at ${sliderValue}/5 on ${question.axis}.`, { questionId: question.id });
+    accumulateAnimalEvidence(
+      question.text,
+      { [question.axis]: weightedValue },
+      isJapanese
+        ? `${question.axis} で ${sliderValue}/5 でした。`
+        : `Slider landed at ${sliderValue}/5 on ${question.axis}.`,
+      { questionId: question.id }
+    );
     setSliderValue(3);
     advanceStep(nextAxes);
   };
@@ -449,8 +469,10 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
         ((question.highModifiers?.[axis] || 0) * level)
       );
     });
-    const label = level < 0.34 ? question.lowLabel : level > 0.66 ? question.highLabel : (copy.balancedMiddle || 'balanced middle');
-    const detail = `You held closest to ${String(label || '').toLowerCase()} at ${Math.round(level * 100)}%.`;
+    const label = level < 0.34 ? question.lowLabel : level > 0.66 ? question.highLabel : balancedMiddleLabel;
+    const detail = isJapanese
+      ? `${Math.round(level * 100)}% で ${String(label || '')} にいちばん近い選択でした。`
+      : `You held closest to ${String(label || '').toLowerCase()} at ${Math.round(level * 100)}%.`;
     setHoldLevel(0);
     accumulateAnimalEvidence(question.text, merged, detail, { questionId: question.id });
     applyModifiers(merged, `${question.text} -> ${label}`, 'hold', {
@@ -480,7 +502,9 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
 
     const paceLabel = slowWeight >= 0.5 ? question.slowLabel : question.fastLabel;
     const shapeLabel = steadyWeight >= 0.5 ? question.steadyLabel : question.wildLabel;
-    const detail = `Your taps came through ${String(paceLabel || '').toLowerCase()} and ${String(shapeLabel || '').toLowerCase()}.`;
+    const detail = isJapanese
+      ? `${String(paceLabel || '')} と ${String(shapeLabel || '')} の流れでした。`
+      : `Your taps came through ${String(paceLabel || '').toLowerCase()} and ${String(shapeLabel || '').toLowerCase()}.`;
     const firstSelection = fastWeight >= slowWeight ? 1 : 0;
     setRhythmPattern([]);
     accumulateAnimalEvidence(question.text, merged, detail, { questionId: question.id });
@@ -510,7 +534,9 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       merged[axis] += trioBonus?.[axis] || 0;
     });
     const labels = constellationSelection.slice(0, pickCount).map((selectedIndex) => question.options?.[selectedIndex]?.text).filter(Boolean);
-    const detail = `Your pattern linked ${labels.join(' -> ')}.`;
+    const detail = isJapanese
+      ? `${labels.join(' ・ ')} がつながりました。`
+      : `Your pattern linked ${labels.join(' -> ')}.`;
     const firstSelection = constellationSelection[0] ?? 0;
     setConstellationSelection([]);
     accumulateAnimalEvidence(question.text, merged, detail, { questionId: question.id });
@@ -531,7 +557,7 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       ANIMAL_AXES.forEach((axis) => {
         merged[axis] = question.falseStartModifiers?.[axis] || 0;
       });
-      accumulateAnimalEvidence(question.text, merged, `You moved before the signal landed.`, { questionId: question.id });
+      accumulateAnimalEvidence(question.text, merged, reactionEarlyLabel, { questionId: question.id });
       applyModifiers(merged, `${question.text} -> early`, 'reaction', {
         pairKey: question.pairKey,
         pairSlot: question.pairSlot,
@@ -554,7 +580,14 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     });
 
     const paceLabel = latency <= fastCutoff ? question.quickLabel : latency <= steadyCutoff ? question.steadyLabel : question.slowLabel;
-    accumulateAnimalEvidence(question.text, merged, `You reacted in ${Math.round(latency)} ms, closest to ${String(paceLabel || '').toLowerCase()}.`, { questionId: question.id });
+    accumulateAnimalEvidence(
+      question.text,
+      merged,
+      isJapanese
+        ? `${Math.round(latency)} ミリ秒で反応しました。${String(paceLabel || '')} に近いです。`
+        : `You reacted in ${Math.round(latency)} ms, closest to ${String(paceLabel || '').toLowerCase()}.`,
+      { questionId: question.id }
+    );
     applyModifiers(merged, `${question.text} -> ${paceLabel}`, 'reaction', {
       pairKey: question.pairKey,
       pairSlot: question.pairSlot,
@@ -584,7 +617,14 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       merged[axis] = sourceModifiers?.[axis] || 0;
     });
 
-    accumulateAnimalEvidence(question.text, merged, `You stopped at ${Math.round(accuracy * 100)}% accuracy, closest to ${String(label || '').toLowerCase()}.`, { questionId: question.id });
+    accumulateAnimalEvidence(
+      question.text,
+      merged,
+      isJapanese
+        ? `${Math.round(accuracy * 100)}% の精度で止まりました。${String(label || '')} に近いです。`
+        : `You stopped at ${Math.round(accuracy * 100)}% accuracy, closest to ${String(label || '').toLowerCase()}.`,
+      { questionId: question.id }
+    );
     applyModifiers(merged, `${question.text} -> ${label}`, 'timing', {
       pairKey: question.pairKey,
       pairSlot: question.pairSlot,
@@ -734,9 +774,9 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     <QuizIntroCard
       isMobile={isMobile}
       icon={PawPrint}
-      title={copy.menuTitle}
-      description={copy.menuDescription}
-      note={copy.introNote}
+      title={introTitle}
+      description={introDescription}
+      note={introNote}
       actionLabel={t.quiz.startBtn}
       onStart={handleStart}
       maxWidthMobile="390px"
@@ -751,14 +791,14 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
       isMobile={isMobile}
       icon={PawPrint}
       title={t.quiz.thinking}
-      subtitle={copy.calculating}
+      subtitle={loadingLabel}
     />
   );
 
   const renderContent = () => {
     if (integrityCheckpoint) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading quiz...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={loadingLabel} />}>
           <QuizIntegrityCheckpoint isMobile={isMobile} integrityCheckpoint={integrityCheckpoint} t={t} onResume={resumeAfterIntegrityCheckpoint} />
         </Suspense>
       );
@@ -767,7 +807,7 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     if (currentStep > 0 && currentStep <= questions.length) {
       const question = questions[currentStep - 1];
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading question...'} />}>
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={loadingLabel} />}>
           <QuizQuestionStep isMobile={isMobile} currentStep={currentStep} totalQuestions={questions.length} question={question} t={t} portraitData={portraitData} state={{ sliderValue, spectrumValue, stanceSelection, multiSelection, rankSelection, confidenceSelection, ipsativeMost, ipsativeLeast, allocationPoints, driftSelection, sortSelection, pairMatchSelection, tradeoffValue, holdLevel, rhythmPattern, constellationSelection }} setters={{ setSliderValue, setSpectrumValue, setMultiSelection, setRankSelection, setConfidenceSelection, setIpsativeMost, setIpsativeLeast, setDriftSelection, setSortSelection, setPairMatchSelection, setTradeoffValue, setHoldLevel, setRhythmPattern, setConstellationSelection }} handlers={{ onApplyModifiers: applyModifiers, onNextSlider: handleNextSlider, onSubmitMulti: handleSubmitMulti, onSubmitRank: handleSubmitRank, onSubmitIpsative: handleSubmitIpsative, onSubmitSpectrum: handleSubmitSpectrum, onAdjustAllocation: handleAdjustAllocation, onSubmitAllocation: handleSubmitAllocation, onSubmitDrift: handleSubmitDrift, onSubmitSort4: handleSubmitSort4, onSubmitPairMatch: handleSubmitPairMatch, onSubmitConfidenceChoice: handleSubmitConfidenceChoice, onSubmitStance: handleSubmitStance, onSubmitTradeoff: handleSubmitTradeoff, onSubmitHold: handleSubmitHold, onSubmitRhythm: handleSubmitRhythm, onSubmitConstellation: handleSubmitConstellation, onSubmitReaction: handleSubmitReaction, onSubmitTiming: handleSubmitTiming }} getQuestionInstruction={getQuestionInstruction} />
         </Suspense>
       );
@@ -775,8 +815,8 @@ const AnimalQuizGame = ({ isMobile, portraitData, t, uiLanguage = 'en' }) => {
     if (currentStep === questions.length + 1) return renderLoading();
     if (currentStep === questions.length + 2 && resolvedMatchedResult) {
       return (
-        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={copy.calculating || t.quiz?.thinking || 'Loading result...'} />}>
-          <AnimalQuizResultView isMobile={isMobile} matchedResult={resolvedMatchedResult} copy={copy} onRestart={handleStart} />
+        <Suspense fallback={<QuizStageFallback isMobile={isMobile} label={loadingLabel} />}>
+          <AnimalQuizResultView isMobile={isMobile} matchedResult={resolvedMatchedResult} copy={copy} onRestart={handleStart} uiLanguage={uiLanguage} />
         </Suspense>
       );
     }

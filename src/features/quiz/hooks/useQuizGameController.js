@@ -23,7 +23,7 @@ import {
   updateRecentQuestionIds,
 } from '../quizPersistence';
 
-export const useQuizGameController = ({ t }) => {
+export const useQuizGameController = ({ t, uiLanguage = 'en' }) => {
   const [playerName, setPlayerName] = useState('');
   const [questionSet, setQuestionSet] = useState('');
   const [difficultyMode, setDifficultyMode] = useState('');
@@ -48,7 +48,7 @@ export const useQuizGameController = ({ t }) => {
   );
 
   const currentQuestion = questions[currentIndex] || null;
-  const orderingHintLines = useMemo(() => getOrderingHintLines(currentQuestion), [currentQuestion]);
+  const orderingHintLines = useMemo(() => getOrderingHintLines(currentQuestion, uiLanguage), [currentQuestion, uiLanguage]);
   const displayedLeaderboard = useMemo(() => sortLeaderboard(leaderboard), [leaderboard]);
   const displayedHistory = useMemo(
     () => [...history].sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0)),

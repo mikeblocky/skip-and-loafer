@@ -1,4 +1,5 @@
 import { FALLBACK_COLORS } from '../chat/chatPalette';
+import { getCharacterDisplayName } from '../../data/characterNames';
 
 export const PORTRAIT_DATA = [
   { name: 'Fumi', src: '/portrait/fumi.png' },
@@ -27,7 +28,11 @@ const NAME_TO_UI_KEY = {
   Takemine: 'Tokiko',
 };
 
-export const getCharacterPrediction = (name, t) => {
+export const getCharacterPrediction = (name, t, uiLanguage = 'en') => {
   const key = NAME_TO_UI_KEY[name] || name;
-  return t.quiz.characters[key]?.prediction || 'A nice day awaits you!';
+  return t.quiz.characters[key]?.prediction || (
+    uiLanguage === 'ja'
+      ? `${getCharacterDisplayName(key, uiLanguage)}には、きっと良い一日が待っています。`
+      : 'A nice day awaits you!'
+  );
 };

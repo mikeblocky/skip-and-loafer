@@ -33,6 +33,7 @@ import {
   getNavButtonStyle,
   getVolSelectorButtonStyle,
 } from './chapterStyles';
+import { getChapterDisplayTitle } from '../../data/chapterTitles';
 
 void motion;
  
@@ -174,9 +175,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
     : (typeof rawChapterBadge?.number === 'string' || typeof rawChapterBadge?.number === 'number')
       ? rawChapterBadge.number
       : '';
-  const chapterTitle = typeof chapter.title === 'string'
-    ? chapter.title
-    : (typeof chapter.title?.title === 'string' ? chapter.title.title : '');
+  const chapterTitle = getChapterDisplayTitle(chapter, uiLanguage);
  
   const [cooldown, setCooldown] = useState(() => getRemainingCooldown?.(chapter.number) || 0);
  
@@ -308,9 +307,11 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       </div>
  
       <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: '#111827', fontWeight: '900', lineHeight: 1.2 }}>
-          {chapterTitle}
-        </span>
+        {chapterTitle && (
+          <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: '#111827', fontWeight: '900', lineHeight: 1.2 }}>
+            {chapterTitle}
+          </span>
+        )}
         {chapter.latest && (
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
@@ -363,7 +364,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             }}
           >
             {cooldown > 0 ? <Timer size={16} strokeWidth={3} /> : <Plus size={16} strokeWidth={3} />}
-            {cooldown > 0 ? `${cooldown}s` : t.plusRead}
+            {cooldown > 0 ? `${cooldown}${t.secondsUnit || 's'}` : t.plusRead}
           </motion.button>
         )}
         {chapter.readInApp && chapter.pages && chapter.pages.length > 0 && (
@@ -520,7 +521,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 border: `3.5px solid ${theme.accent}`,
                 borderBottom: isActive ? `8px solid ${theme.accent}` : `4px solid ${theme.accent}`,
                 borderRadius: '16px',
-                fontFamily: '"Coming Soon", cursive',
+                fontFamily: 'var(--font-paper)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',
                 fontWeight: '900',
                 cursor: 'pointer',

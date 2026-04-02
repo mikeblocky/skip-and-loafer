@@ -159,6 +159,8 @@ const QuestionsSetupSection = ({
   const stepGridColumns = isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))';
   const selectedDifficultyColor = selectedDifficultyOption?.color || '#94a3b8';
   const selectedSetColor = selectedQuestionSet ? getQuestionSetChipColor(questionSet) : '#94a3b8';
+  const isJapanese = t.questionsSuffix === '問';
+  const questionSetSeparator = t.questionsSuffix === '問' ? '' : ' ';
 
   useEffect(() => {
     if (hasPlayerName && showNameWarning) {
@@ -238,7 +240,7 @@ const QuestionsSetupSection = ({
           border="#c4b5fd"
           bottom="#8b5cf6"
           locked={!canPickDifficulty}
-          lockedLabel="Name first"
+          lockedLabel={t.nameFirst || 'Name first'}
         >
           <div
             style={{
@@ -281,7 +283,7 @@ const QuestionsSetupSection = ({
                         {toUiLabelCase(getDifficultyLabel(option.key, t))}
                       </span>
                       <span style={{ fontFamily: 'var(--font-main)', color: '#64748b', fontSize: '0.82rem', lineHeight: 1 }}>
-                        {getDifficultyTimerLabel(option.key)}
+                        {getDifficultyTimerLabel(option.key, isJapanese ? 'ja' : 'en')}
                       </span>
                     </div>
                     {isSelected && <CircleDot size={18} strokeWidth={2.6} color={option.color} />}
@@ -302,7 +304,7 @@ const QuestionsSetupSection = ({
           border="#86efac"
           bottom="#22c55e"
           locked={!canPickQuestions}
-          lockedLabel={canPickDifficulty ? t.difficultyFirst : 'Name first'}
+          lockedLabel={canPickDifficulty ? t.difficultyFirst : (t.nameFirst || 'Name first')}
         >
           {canPickQuestions ? (
             <div
@@ -370,7 +372,7 @@ const QuestionsSetupSection = ({
                 flex: 1,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: '#64748b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: '#64748b' }}>
                 <Lock size={18} strokeWidth={2.4} />
                 <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '1rem', lineHeight: 1 }}>
                   {t.difficultyFirst}
@@ -433,7 +435,7 @@ const QuestionsSetupSection = ({
       >
           <div style={{ display: 'grid', gap: '10px' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#9f1239', fontSize: '1rem', lineHeight: 1 }}>
-              Review before starting
+              {t.reviewBeforeStarting || 'Review before starting'}
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <span
@@ -472,7 +474,7 @@ const QuestionsSetupSection = ({
                 <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '8px' }}>
                   <span>{toUiLabelCase(getDifficultyLabel(selectedDifficultyOption.key, t))}</span>
                   <span style={{ fontFamily: 'var(--font-main)', fontSize: '0.8rem', lineHeight: 1, color: '#64748b' }}>
-                    {getDifficultyTimerLabel(selectedDifficultyOption.key)}
+                    {getDifficultyTimerLabel(selectedDifficultyOption.key, isJapanese ? 'ja' : 'en')}
                   </span>
                 </span>
               ) : (
@@ -495,7 +497,7 @@ const QuestionsSetupSection = ({
               }}
             >
               <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: selectedSetColor }}>
-                {selectedQuestionSet ? `${selectedQuestionSet.label} ${t.questionsSuffix || 'questions'}` : t.setupSetTitle}
+                {selectedQuestionSet ? `${selectedQuestionSet.label}${questionSetSeparator}${t.questionsSuffix || 'questions'}` : t.setupSetTitle}
               </span>
             </span>
           </div>

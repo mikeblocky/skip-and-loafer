@@ -4,6 +4,7 @@ import DotSlider from '../DotSlider';
 import { CHOICE_COLORS } from '../config';
 import { QuizActionButton, QuizInstruction, QUIZ_BUTTON_PALETTES } from '../QuizPrimitives';
 import { getLocalizedQuizOption, getLocalizedQuizText } from '../quizCopy';
+import { formatQuizBinaryLabel } from '../jpHelpers';
 import { toMysteryLabelCase } from '../ui';
 
 const optionButtonStyle = (isMobile) => ({
@@ -178,6 +179,7 @@ export const YesNoQuestion = React.memo(function YesNoQuestion({
   isMobile,
   onApplyModifiers,
   question,
+  uiLanguage,
   t,
 }) {
   return (
@@ -188,7 +190,7 @@ export const YesNoQuestion = React.memo(function YesNoQuestion({
           palette={{ background: '#ecfdf5', borderColor: '#10b981', bottomColor: '#059669', color: '#064e3b', shadow: '0 8px 0 rgba(16, 185, 129, 0.1)' }}
           onClick={() => {
             triggerHaptic('success');
-            onApplyModifiers(question.yesModifiers, `${question.text} -> yes`, 'yesno', {
+            onApplyModifiers(question.yesModifiers, `${question.text} ・ ${formatQuizBinaryLabel(uiLanguage, true)}`, 'yesno', {
               optionIndex: 0,
               pairKey: question.pairKey,
               pairSlot: question.pairSlot,
@@ -206,7 +208,7 @@ export const YesNoQuestion = React.memo(function YesNoQuestion({
           palette={{ background: '#fff1f2', borderColor: '#f43f5e', bottomColor: '#e11d48', color: '#881337', shadow: '0 8px 0 rgba(244, 63, 94, 0.1)' }}
           onClick={() => {
             triggerHaptic('success');
-            onApplyModifiers(question.noModifiers, `${question.text} -> no`, 'yesno', {
+            onApplyModifiers(question.noModifiers, `${question.text} ・ ${formatQuizBinaryLabel(uiLanguage, false)}`, 'yesno', {
               optionIndex: 1,
               pairKey: question.pairKey,
               pairSlot: question.pairSlot,

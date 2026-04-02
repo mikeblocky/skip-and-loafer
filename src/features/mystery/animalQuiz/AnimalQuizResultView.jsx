@@ -1,5 +1,6 @@
 import { BarChart3, CheckCircle2, FileText } from 'lucide-react';
 import { ANIMAL_CARD_COLORS } from '../../../data/animalQuizData';
+import { getCharacterDisplayName } from '../../../data/characterNames';
 import {
   MysteryResultBody,
   MysteryResultCharacterCard,
@@ -35,8 +36,9 @@ const getTierLabel = (value, copy) => {
   return copy.tierLabels?.quiet || 'Quiet';
 };
 
-const AnimalQuizResultView = ({ isMobile, matchedResult, copy, onRestart }) => {
+const AnimalQuizResultView = ({ isMobile, matchedResult, copy, onRestart, uiLanguage = 'en' }) => {
   const characterName = matchedResult?.topMatch || matchedResult?.character?.name || '';
+  const displayCharacterName = getCharacterDisplayName(characterName, uiLanguage);
   const colors = ANIMAL_CARD_COLORS[characterName] || { bg: '#eff6ff', border: '#60a5fa', text: '#1d4ed8' };
 
   const overviewCards = [
@@ -89,19 +91,20 @@ const AnimalQuizResultView = ({ isMobile, matchedResult, copy, onRestart }) => {
       <MysteryResultHeader
         isMobile={isMobile}
         title={copy.resultTitle}
-        subtitle={characterName}
+        subtitle={displayCharacterName}
         subtitleNote={matchedResult.exploratoryOnly ? copy.exploratoryNote : null}
         titleColor={colors.text}
       />
 
       <MysteryResultBody
         isMobile={isMobile}
-        artwork={(
+        artwork={uiLanguage === 'ja' ? null : (
           <MysteryResultCharacterCard
             isMobile={isMobile}
             colors={colors}
-            name={characterName}
+            name={displayCharacterName}
             imageSrc={matchedResult.character?.src}
+            hideImage={uiLanguage === 'ja'}
           />
         )}
       >

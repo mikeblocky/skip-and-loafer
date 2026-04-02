@@ -1,7 +1,16 @@
 import { motion } from 'framer-motion';
 import { triggerHaptic } from '../../../../utils/haptics';
 
-const SetupOptionCard = ({ label, selected, isMobile, onClick, color = '#3b82f6', title }) => {
+const SetupOptionCard = ({
+  label,
+  selected,
+  isMobile,
+  onClick,
+  color = '#3b82f6',
+  title,
+  selectedLabel = 'Selected',
+  tapToChooseLabel = 'Tap to choose',
+}) => {
   const handlePress = () => {
     triggerHaptic('selection');
     onClick?.();
@@ -72,7 +81,7 @@ const SetupOptionCard = ({ label, selected, isMobile, onClick, color = '#3b82f6'
             fontWeight: '600',
           }}
         >
-          {selected ? 'Selected' : 'Tap to choose'}
+          {selected ? selectedLabel : tapToChooseLabel}
         </div>
       </div>
     </motion.button>

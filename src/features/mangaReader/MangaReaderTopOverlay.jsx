@@ -2,8 +2,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import Fab from './Fab';
 import { MODE } from './constants';
+import { getChapterDisplayTitle } from '../../data/chapterTitles';
 
-const MangaReaderTopOverlay = ({ showOverlay, showNav, isMobile, btnSize, iconMain, onClose, chapter, page, total, mode, spreadIdx }) => (
+const MangaReaderTopOverlay = ({ showOverlay, showNav, isMobile, btnSize, iconMain, onClose, chapter, page, total, mode, spreadIdx, uiLanguage = 'en' }) => (
     <>
         <AnimatePresence>
             {showOverlay && (
@@ -39,13 +40,13 @@ const MangaReaderTopOverlay = ({ showOverlay, showNav, isMobile, btnSize, iconMa
                             fontWeight: 'bold', color: 'rgba(255,255,255,0.6)',
                         }}>
                             Chapter {chapter.displayNumber ?? chapter.number}
-                            {chapter.title && (
+                            {getChapterDisplayTitle(chapter, uiLanguage) && (
                                 <span style={{
                                     fontSize: isMobile ? '0.7rem' : '0.62rem',
                                     color: 'rgba(255,255,255,0.3)', fontWeight: 'normal',
                                     maxWidth: isMobile ? '160px' : '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                     marginLeft: '4px'
-                                }}> — {chapter.title}</span>
+                                }}> — {getChapterDisplayTitle(chapter, uiLanguage)}</span>
                             )}
                         </span>
                         <span style={{ fontFamily: 'var(--font-hand)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: isMobile ? '2px' : '0px' }}>

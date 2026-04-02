@@ -97,7 +97,7 @@ const QuestionsPlayingSection = ({
               boxShadow: `0 6px 16px ${timerStyle.shadow}`,
             }}
           >
-            <Timer size={20} strokeWidth={4} /> {timeLeft}s
+            <Timer size={20} strokeWidth={4} /> {timeLeft}{t.secondUnit || 's'}
           </motion.div>
         </div>
 
@@ -183,9 +183,9 @@ const QuestionsPlayingSection = ({
             }}
           >
             <div style={{ position: 'absolute', left: -10, top: '24px', width: 6, height: 32, background: '#64748b', borderRadius: '3px' }} />
-            <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#64748b', fontSize: '0.8rem', letterSpacing: '1px' }}>Reference data</span>
+            <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#64748b', fontSize: '0.8rem', letterSpacing: '1px' }}>{t.referenceData || 'Reference data'}</span>
             {orderingHintLines.map((line) => (
-              <span key={line} style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#334155', fontSize: '0.95rem', lineHeight: 1.3 }}>• {line}</span>
+              <span key={line} style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#334155', fontSize: '0.95rem', lineHeight: 1.3 }}>- {line}</span>
             ))}
           </motion.div>
         )}
@@ -242,7 +242,7 @@ const QuestionsPlayingSection = ({
             }}
           >
             {feedback === t.correct ? <Trophy size={24} /> : <AlertTriangle size={24} />}
-            <span>{feedback === t.correct ? 'Excellent!' : 'Oops!'}</span>
+            <span>{feedback === t.correct ? (t.excellent || 'Excellent!') : (t.oops || 'Oops!')}</span>
             <div style={{ width: '2px', height: '24px', background: 'rgba(255,255,255,0.3)' }} />
             <span>{t.nextUp}</span>
           </motion.div>
@@ -253,4 +253,5 @@ const QuestionsPlayingSection = ({
 };
 
 export default QuestionsPlayingSection;
+
 

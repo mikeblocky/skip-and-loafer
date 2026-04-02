@@ -46,8 +46,18 @@ const ORDERING_EVENT_HINTS = {
   ],
 };
 
-export const getOrderingHintLines = (question) => {
+const ORDERING_EVENT_HINTS_JA = {
+  136: [
+    '1. 文化祭の劇',
+    '2. ミカのバレンタイン告白',
+    '3. 美津未と志摩の試し交際',
+    '4. 真春の東京訪問',
+  ],
+};
+
+export const getOrderingHintLines = (question, uiLanguage = 'en') => {
   if (!question) return [];
+  if (uiLanguage === 'ja' && Array.isArray(ORDERING_EVENT_HINTS_JA[question.id])) return ORDERING_EVENT_HINTS_JA[question.id];
   if (Array.isArray(ORDERING_EVENT_HINTS[question.id])) return ORDERING_EVENT_HINTS[question.id];
 
   if (!/(arrange|chronolog|sequence|order)/i.test(question.prompt || '')) return [];
@@ -117,7 +127,13 @@ export const getDifficultyChipLabel = (key) => {
   return 'Random';
 };
 
-export const getDifficultyTimerLabel = (key) => {
+export const getDifficultyTimerLabel = (key, uiLanguage = 'en') => {
+  if (uiLanguage === 'ja') {
+    if (key === 'random-bell') return `${QUESTION_TIME_RANDOM_SECONDS}秒`;
+    const seconds = QUESTION_TIME_BY_DIFFICULTY[key] || QUESTION_TIME_BY_DIFFICULTY.medium;
+    return `${seconds}秒`;
+  }
+
   if (key === 'random-bell') return `${QUESTION_TIME_RANDOM_SECONDS}s`;
   const seconds = QUESTION_TIME_BY_DIFFICULTY[key] || QUESTION_TIME_BY_DIFFICULTY.medium;
   return `${seconds}s`;

@@ -26,6 +26,7 @@ const containerVariant = {
 const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderboard }) => {
   const totalPlayed = displayedLeaderboard.reduce((sum, entry) => sum + (entry.played || 0), 0);
   const totalEntries = displayedLeaderboard.length;
+  const playedSeparator = t.played === '回' ? '' : ' ';
 
   return (
     <motion.div 
@@ -184,7 +185,7 @@ const LeaderboardTab = ({ isMobile, t, usingGlobalLeaderboard, displayedLeaderbo
                       color: '#94a3b8', 
                       fontSize: isMobile ? '0.7rem' : '0.8rem'
                     }}>
-                      {entry.played} games played
+                      {entry.played}{playedSeparator}{t.played || 'games played'}
                     </span>
                   </div>
                 )}

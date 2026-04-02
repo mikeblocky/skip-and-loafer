@@ -11,7 +11,7 @@ const QuestionsFinishedSection = ({ isMobile, t, score, questions, playerName, r
       numberLine2="✓"
       title={`${t.finalScore}: ${score}/${questions.length}`}
       isMobile={isMobile}
-      subtitle={<span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#4b5563', fontWeight: 'bold' }}>{playerName?.trim() || 'Player'}</span>}
+      subtitle={<span style={{ fontFamily: 'var(--font-hand)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#4b5563', fontWeight: 'bold' }}>{playerName?.trim() || t.playerLabel || 'Player'}</span>}
     />
     
     <motion.div
@@ -22,10 +22,10 @@ const QuestionsFinishedSection = ({ isMobile, t, score, questions, playerName, r
     >
       <div style={{ textAlign: 'center' }}>
         <span style={{ display: 'block', fontFamily: 'var(--font-main)', fontWeight: '900', color: '#1f2937', fontSize: isMobile ? '1.5rem' : '2rem' }}>
-          {score === questions.length ? 'PERFECT!' : score > questions.length / 2 ? 'GREAT JOB!' : 'NICE TRY!'}
+          {score === questions.length ? (t.perfect || 'PERFECT!') : score > questions.length / 2 ? (t.greatJob || 'GREAT JOB!') : (t.niceTry || 'NICE TRY!')}
         </span>
         <span style={{ display: 'block', fontFamily: 'var(--font-hand)', fontWeight: 'bold', color: '#4b5563', fontSize: isMobile ? '0.9rem' : '1.1rem', marginTop: '4px' }}>
-          You scored {score} out of {questions.length}
+          {(t.youScored || 'You scored {score} out of {total}').replace('{score}', score).replace('{total}', questions.length)}
         </span>
       </div>
 

@@ -1,4 +1,4 @@
-export const SUPPORTED_UI_LANGUAGES = ['en', 'es', 'pt', 'fr', 'de', 'it'];
+export const SUPPORTED_UI_LANGUAGES = ['en', 'es', 'pt', 'fr', 'de', 'it', 'ja'];
 
 export const detectUiLanguageFromLocation = () => {
   if (typeof navigator === 'undefined') return 'en';
@@ -15,6 +15,7 @@ export const detectUiLanguageFromLocation = () => {
     if (code.startsWith('fr')) return 'fr';
     if (code.startsWith('de')) return 'de';
     if (code.startsWith('it')) return 'it';
+    if (code.startsWith('ja')) return 'ja';
     if (code.startsWith('en')) return 'en';
   }
 
@@ -24,6 +25,7 @@ export const detectUiLanguageFromLocation = () => {
   if (timeZone.includes('Paris')) return 'fr';
   if (timeZone.includes('Berlin')) return 'de';
   if (timeZone.includes('Rome')) return 'it';
+  if (timeZone.includes('Tokyo')) return 'ja';
   return 'en';
 };
 

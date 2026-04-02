@@ -8,6 +8,7 @@ const UI_TEXT = {
     fr: { chapterOut: 'Chapitre 78 disponible !', quote: '"Blanc pur et tout neuf. Avancez fermement et sentez le craquement."', read: 'Lire ->' },
     de: { chapterOut: 'Kapitel 78 ist jetzt da!', quote: '"Reinweiss und brandneu. Tritt fest auf und spure das Knirschen."', read: 'Lesen ->' },
     it: { chapterOut: 'Capitolo 78 disponibile ora!', quote: '"Bianco puro e nuovissimo. Cammina deciso e senti lo scricchiolio."', read: 'Leggi ->' },
+    ja: { chapterOut: '第78話 配信中', quote: '「真っ白で、新しい。しっかり踏みしめて、雪の音を感じて。」', read: '読む ->' },
 };
 
 const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = false }) => {
