@@ -100,6 +100,11 @@ html[lang='ja'] [style*="CHAT_FONT_FAMILY"] {
   font-weight: 400 !important;
 }
 
+.volume-selector-button {
+  font-family: 'Coming Soon', cursive !important;
+  font-weight: 700 !important;
+}
+
 /* Emotional celebration hearts */
 @keyframes heartFloat {
   0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
