@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, startTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { APP_UI_TEXT } from '../../../config/appUiText';
 import { registerHapticGesture } from '../../../utils/haptics';
 import { useReadProgress } from '../../chapters/hooks/useReadProgress';
@@ -9,11 +9,13 @@ import { loadMangaReader } from '../appLazyComponents';
 import { createInitialCardPositions, createStickerLayoutById } from '../appDecorLayout';
 import {
   ACCESSIBILITY_KEY,
+  DEFAULT_PAGE,
   LANGUAGE_KEY,
   SHORTCUT_STATS_KEY,
-  TAB_PAGES,
   VALID_COLOR_BLIND_MODES,
+  getVisibleTabPages,
 } from '../appConstants';
+import { getSupportedUiLanguages } from '../../../config/uiLanguage';
 import {
   getInitialAccessibilityPrefs,
   getInitialActivePage,
@@ -75,16 +77,19 @@ export const useAppController = () => {
   const windowSize = useWindowSize();
   const isMobile = windowSize.width <= 768;
   const stickerPositionsRef = useRef({});
-  const [activePage, setActivePage] = useState(getInitialActivePage);
+  const [uiLanguage, setUiLanguage] = useState(getInitialUiLanguageValue);
+  const visibleTabPages = useMemo(() => getVisibleTabPages(uiLanguage), [uiLanguage]);
+  const [activePage, setActivePage] = useState(() => getInitialActivePage(visibleTabPages));
   const [readerChapter, setReaderChapter] = useState(getInitialReaderChapter);
   const quickControlsRef = useRef(null);
   const mainScrollRef = useRef(null);
   const [subtabShortcut, setSubtabShortcut] = useState({ key: null, token: 0 });
-  const [uiLanguage, setUiLanguage] = useState(getInitialUiLanguageValue);
   const [shortcutStats, setShortcutStats] = useState(getInitialShortcutStats);
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(getInitialAccessibilityPrefs);
 
   const t = APP_UI_TEXT[uiLanguage] || APP_UI_TEXT.en;
+  const supportedUiLanguages = getSupportedUiLanguages();
+  const displayActivePage = visibleTabPages.includes(activePage) ? activePage : (visibleTabPages[0] || DEFAULT_PAGE);
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
   const deferredShellMount = useDeferredMount(showUI, 180);
@@ -104,16 +109,16 @@ export const useAppController = () => {
   } = useQuickPanels({ quickControlsRef, shortcutStats, setShortcutStats });
 
   const { handleMainTouchStart, handleMainTouchEnd } = useTabSwipeNavigation({
-    activePage,
+    activePage: displayActivePage,
     setActivePage,
-    tabPages: TAB_PAGES,
+    tabPages: visibleTabPages,
     readerChapter,
   });
 
-  usePageHistorySync({ activePage, setActivePage, tabPages: TAB_PAGES });
+  usePageHistorySync({ activePage: displayActivePage, setActivePage, tabPages: visibleTabPages });
 
   usePersistedAppState({
-    activePage,
+    activePage: displayActivePage,
     readerChapter,
     accessibilityPrefs,
     uiLanguage,
@@ -124,8 +129,8 @@ export const useAppController = () => {
   });
 
   useKeyboardShortcuts({
-    activePage,
-    tabPages: TAB_PAGES,
+    activePage: displayActivePage,
+    tabPages: visibleTabPages,
     setActivePage,
     setSubtabShortcut,
     toggleAccessibilityPanel,
@@ -153,12 +158,26 @@ export const useAppController = () => {
     };
   }, []);
 
-  useGalleryPrefetch({ activePage, loadGalleryPage });
-  useIdlePreload([loadMangaReader, preloadChapterData], !readerChapter && (activePage === 'chapters' || activePage === 'sync'), {
+  useGalleryPrefetch({ activePage: displayActivePage, loadGalleryPage, enabled: uiLanguage !== 'ja' });
+  useIdlePreload([loadMangaReader, preloadChapterData], !readerChapter && (displayActivePage === 'chapters' || displayActivePage === 'sync'), {
     delayMs: 420,
     staggerMs: 180,
     maxPreloadCount: isMobile ? 1 : 2,
   });
+
+  useEffect(() => {
+    if (displayActivePage === activePage) return;
+    startTransition(() => {
+      setActivePage(displayActivePage);
+    });
+  }, [activePage, displayActivePage]);
+
+  useEffect(() => {
+    if (supportedUiLanguages.includes(uiLanguage)) return;
+    startTransition(() => {
+      setUiLanguage('en');
+    });
+  }, [supportedUiLanguages, uiLanguage]);
 
   const toggleAccessibilityPref = useCallback((key) => {
     setAccessibilityPrefs((previous) => ({ ...previous, [key]: !previous[key] }));
@@ -195,10 +214,13 @@ export const useAppController = () => {
   }, [readerChapter]);
 
   const handlePageChange = useCallback((nextPage) => {
+    const normalizedPage = visibleTabPages.includes(nextPage)
+      ? nextPage
+      : (visibleTabPages[0] || DEFAULT_PAGE);
     startTransition(() => {
-      setActivePage(nextPage);
+      setActivePage(normalizedPage);
     });
-  }, []);
+  }, [visibleTabPages]);
 
   const handleReaderChapterChange = useCallback((chapter) => {
     if (chapter?.number != null) {
@@ -222,7 +244,7 @@ export const useAppController = () => {
 
   return {
     accessibilityPrefs,
-    activePage,
+    activePage: displayActivePage,
     cancelExternalLink,
     cardPositions,
     closeDisclaimer,
@@ -270,7 +292,8 @@ export const useAppController = () => {
     subtabShortcut,
     syncData,
     t,
-    tabCount: TAB_PAGES.length,
+    tabCount: visibleTabPages.length,
+    visibleTabPages,
     toggleAccessibilityPanel,
     toggleAccessibilityPref,
     toggleLanguagePanel,

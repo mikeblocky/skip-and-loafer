@@ -420,6 +420,7 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                 total={total}
                 mode={mode}
                 spreadIdx={spreadIdx}
+                uiLanguage={uiLanguage}
             />
 
             <MangaReaderSideArrows

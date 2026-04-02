@@ -198,9 +198,9 @@ const FanGalleryBoard = ({
                 {(entry.name || entry.description) && (
                   <div style={{ display: 'grid', gap: '4px' }}>
                     {entry.name && (
-                      <strong style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: palette.label, fontSize: isMobile ? '0.95rem' : '1.02rem' }}>
+                      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: palette.label, fontSize: isMobile ? '0.95rem' : '1.02rem', lineHeight: 1.2, fontWeight: '400' }}>
                         {entry.name}
-                      </strong>
+                      </span>
                     )}
                     {entry.description && (
                       <p style={{ margin: 0, color: '#475569', lineHeight: 1.5, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.9rem' : '0.98rem' }}>

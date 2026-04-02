@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Keiji';
+  src: url('/Kei_Ji.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Keiji_P';
+  src: url('/Kei_Ji-P.ttf') format('truetype');
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -23,6 +35,8 @@
 
   --font-main: 'Coming Soon', cursive;
   --font-hand: 'Coming Soon', cursive;
+  --font-paper: 'Sniglet', 'Coming Soon', cursive;
+  --font-japanese: 'Keiji_P', 'Keiji', cursive;
   --base-font-size: 16px;
 }
 
@@ -50,6 +64,24 @@ html {
   scroll-behavior: smooth;
 }
 
+html[lang='ja'] {
+  --font-main: var(--font-japanese);
+  --font-hand: var(--font-japanese);
+  --font-paper: var(--font-japanese);
+}
+
+html[lang='ja'] body {
+  font-family: var(--font-main);
+}
+
+html[lang='ja'] .mystery-ui,
+html[lang='ja'] .mystery-ui *,
+html[lang='ja'] [style*="Sniglet"],
+html[lang='ja'] [style*="Coming Soon"],
+html[lang='ja'] [style*="CHAT_FONT_FAMILY"] {
+  font-family: var(--font-japanese) !important;
+}
+
 @keyframes plannerShimmer {
   0% {
     background-position: 200% 0;
@@ -62,16 +94,15 @@ html {
 .mystery-ui,
 .mystery-ui *,
 [style*="Sniglet"],
+[style*="Coming Soon"],
 [style*="CHAT_FONT_FAMILY"] {
-  font-family: "Sniglet", "Coming Soon", cursive !important;
+  font-family: var(--font-paper) !important;
   font-weight: 400 !important;
 }
 
-/* Force normal weight for Sniglet everywhere */
-@font-face {
-  font-family: "Sniglet";
-  font-weight: 700;
-  src: local("Sniglet"); /* Attempt to suppress bold if it's a separate file */
+.volume-selector-button {
+  font-family: 'Coming Soon', cursive !important;
+  font-weight: 700 !important;
 }
 
 /* Emotional celebration hearts */
@@ -619,4 +650,699 @@ html[data-a11y-colorblind-mode='black-white'] input:focus-visible,
 html[data-a11y-colorblind-mode='black-white'] [role="button"]:focus-visible {
   outline: 3px solid #000000 !important;
   outline-offset: 2px !important;
+}
+
+.makoto-secret-page {
+  position: relative;
+  min-height: 100dvh;
+  padding: clamp(20px, 3vw, 34px);
+  background:
+    radial-gradient(circle at top, rgba(167, 139, 250, 0.22), transparent 32%),
+    linear-gradient(180deg, #fcf7ff 0%, #fffdfa 52%, #fff7fb 100%);
+  overflow: hidden;
+}
+
+.makoto-secret-page__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 0, transparent 64px, rgba(244, 114, 182, 0.11) 64px, rgba(244, 114, 182, 0.11) 66px, transparent 66px),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(148, 163, 184, 0.18) 31px, rgba(148, 163, 184, 0.18) 32px);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.makoto-secret-page__content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.makoto-secret-page__header {
+  display: grid;
+  gap: 10px;
+  margin: 0 auto 22px;
+  max-width: 780px;
+  text-align: center;
+  color: #3f2a5a;
+}
+
+.makoto-secret-page__eyebrow {
+  margin: 0;
+  font-size: 0.84rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8b5cf6;
+}
+
+.makoto-secret-page__title {
+  margin: 0;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: 0.94;
+}
+
+.makoto-secret-page__intro {
+  margin: 0 auto;
+  max-width: 620px;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.makoto-secret-page__meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 6px auto 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  box-shadow: 0 10px 25px rgba(76, 29, 149, 0.08);
+}
+
+.makoto-secret-page__progress {
+  width: min(220px, 42vw);
+  height: 12px;
+  accent-color: #8b5cf6;
+}
+
+.makoto-notebook {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: min(760px, calc(100dvh - 184px));
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fffefe 0%, #fff9ff 100%);
+  box-shadow: 0 24px 80px rgba(76, 29, 149, 0.14);
+  overflow: hidden;
+  isolation: isolate;
+  animation: makotoNotebookEnter 0.6s ease-out;
+}
+
+.makoto-notebook__shadow {
+  position: absolute;
+  inset: auto 4% -18px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(76, 29, 149, 0.12);
+  filter: blur(18px);
+  z-index: -1;
+}
+
+.makoto-notebook__binding {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px 0;
+  background:
+    linear-gradient(180deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.06)),
+    repeating-linear-gradient(180deg, transparent 0, transparent 32px, rgba(148, 163, 184, 0.16) 32px, rgba(148, 163, 184, 0.16) 33px);
+  border-right: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.makoto-notebook__ring {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #c4b5fd;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.makoto-notebook__paper {
+  position: relative;
+  padding: clamp(22px, 4vw, 38px);
+  background:
+    linear-gradient(90deg, transparent 0, transparent 56px, rgba(251, 113, 133, 0.12) 56px, rgba(251, 113, 133, 0.12) 58px, transparent 58px),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(191, 219, 254, 0.65) 31px, rgba(191, 219, 254, 0.65) 32px),
+    linear-gradient(180deg, #fffefa 0%, #fffdfd 100%);
+}
+
+.makoto-sheet {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  min-height: 100%;
+  animation: makotoSheetOpen 0.48s ease-out;
+}
+
+.makoto-sheet--reveal {
+  gap: 18px;
+}
+
+.makoto-sheet__label {
+  margin: 0;
+  font-size: 0.86rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7c3aed;
+}
+
+.makoto-sheet__title {
+  margin: 0;
+  font-size: clamp(1.7rem, 4.4vw, 3rem);
+  line-height: 1.02;
+  color: #312e81;
+}
+
+.makoto-sheet__copy {
+  margin: 0;
+  max-width: 760px;
+  color: #4c3d63;
+  line-height: 1.7;
+}
+
+.makoto-cipher-card,
+.makoto-puzzle-card,
+.makoto-scene__note {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 12px 28px rgba(76, 29, 149, 0.08);
+}
+
+.makoto-cipher-card {
+  display: grid;
+  gap: 18px;
+  padding: clamp(18px, 4vw, 26px);
+}
+
+.makoto-cipher-card__label,
+.makoto-scene__note-label,
+.makoto-puzzle-card__count {
+  display: block;
+  margin: 0 0 8px;
+  color: #8b5cf6;
+  font-size: 0.84rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.makoto-cipher-card__code,
+.makoto-cipher-card__preview {
+  display: block;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  background: rgba(245, 243, 255, 0.78);
+  color: #312e81;
+  font-size: clamp(1rem, 2.7vw, 1.3rem);
+  letter-spacing: 0.08em;
+  word-break: break-word;
+}
+
+.makoto-cipher-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.makoto-cipher-card__dial {
+  min-width: 128px;
+  padding: 10px 16px;
+  border-radius: 18px;
+  background: #fff7ed;
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  text-align: center;
+  color: #9a3412;
+}
+
+.makoto-cipher-card__dial strong {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.makoto-cipher-card__dial-label {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.makoto-puzzle-list {
+  display: grid;
+  gap: 18px;
+}
+
+.makoto-puzzle-card {
+  padding: 18px;
+}
+
+.makoto-puzzle-card__prompt {
+  margin: 0 0 16px;
+  color: #43324d;
+  line-height: 1.65;
+}
+
+.makoto-guest-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.makoto-guest-card {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 14px 10px;
+  border-radius: 18px;
+  border: 2px solid rgba(148, 163, 184, 0.24);
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.makoto-guest-card--selected {
+  border-color: var(--makoto-accent);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--makoto-accent) 24%, transparent);
+  transform: translateY(-2px);
+}
+
+.makoto-guest-card__image {
+  width: min(100%, 88px);
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.makoto-guest-card__name {
+  font-size: 0.96rem;
+}
+
+.makoto-button,
+.makoto-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 2px solid #7c3aed;
+  background: #7c3aed;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.makoto-button--secondary {
+  background: #ffffff;
+  color: #6d28d9;
+}
+
+.makoto-link-button {
+  background: rgba(255, 255, 255, 0.92);
+  color: #6d28d9;
+}
+
+.makoto-link-button--button {
+  font: inherit;
+}
+
+.makoto-sheet__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.makoto-sheet__feedback {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid rgba(251, 146, 60, 0.24);
+}
+
+.makoto-scene {
+  position: relative;
+  min-height: 520px;
+  border-radius: 32px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(251, 191, 36, 0.18), transparent 28%),
+    linear-gradient(180deg, #fffaf1 0%, #fff6ff 42%, #fff4fb 100%);
+  border: 1px solid rgba(244, 114, 182, 0.18);
+}
+
+.makoto-scene__banner {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  z-index: 4;
+  margin: 0;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #be185d;
+  border: 2px solid #f9a8d4;
+  box-shadow: 0 10px 28px rgba(244, 114, 182, 0.22);
+  transform: translateX(-50%) translateY(-160px);
+  animation: makotoBannerDrop 0.8s ease-out forwards 0.5s;
+}
+
+.makoto-scene__floor {
+  position: absolute;
+  inset: auto 0 0;
+  height: 120px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(251, 207, 232, 0.2)),
+    repeating-linear-gradient(90deg, transparent 0, transparent 18px, rgba(236, 72, 153, 0.08) 18px, rgba(236, 72, 153, 0.08) 19px);
+}
+
+.makoto-scene__friend,
+.makoto-scene__makoto {
+  position: absolute;
+  bottom: 28px;
+  width: clamp(140px, 18vw, 220px);
+  margin: 0;
+  opacity: 0;
+}
+
+.makoto-scene__friend-image {
+  width: 100%;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 24px rgba(76, 29, 149, 0.16));
+}
+
+.makoto-scene__makoto {
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%) translateY(180px) scale(0.86);
+  animation: makotoMakotoRise 0.88s ease-out forwards 0.15s;
+}
+
+.makoto-scene__friend--mitsumi {
+  left: 8%;
+  animation: makotoFriendLeft 0.82s ease-out forwards 0.95s;
+}
+
+.makoto-scene__friend--mika {
+  left: 23%;
+  width: clamp(128px, 16vw, 196px);
+  animation: makotoFriendLeft 0.82s ease-out forwards 1.2s;
+}
+
+.makoto-scene__friend--shima {
+  right: 9%;
+  animation: makotoFriendRight 0.82s ease-out forwards 1.05s;
+}
+
+.makoto-scene__friend--yuzuki {
+  right: 24%;
+  width: clamp(126px, 15vw, 188px);
+  animation: makotoFriendRight 0.82s ease-out forwards 1.35s;
+}
+
+.makoto-scene__note {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  z-index: 5;
+  width: min(420px, calc(100% - 44px));
+  padding: 16px 18px;
+  color: #4b3757;
+  line-height: 1.7;
+  transform: translateX(-50%) translateY(160px);
+  animation: makotoNoteLift 0.76s ease-out forwards 1.9s;
+}
+
+.makoto-scene__note p {
+  margin: 0;
+}
+
+.makoto-scene__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.makoto-scene__confetti-piece {
+  position: absolute;
+  left: var(--left);
+  top: -30px;
+  width: 12px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--color);
+  transform: rotate(var(--rotate));
+  opacity: 0;
+  animation: makotoConfetti var(--duration) linear infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes makotoNotebookEnter {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes makotoSheetOpen {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes makotoBannerDrop {
+  from {
+    transform: translateX(-50%) translateY(-160px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes makotoMakotoRise {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(180px) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes makotoFriendLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-120px) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes makotoFriendRight {
+  from {
+    opacity: 0;
+    transform: translateX(120px) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes makotoNoteLift {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(160px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes makotoConfetti {
+  0% {
+    transform: translateY(0) rotate(var(--rotate));
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(560px) rotate(calc(var(--rotate) + 180deg));
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .makoto-guest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .makoto-scene {
+    min-height: 620px;
+  }
+
+  .makoto-scene__friend--mitsumi {
+    left: 2%;
+  }
+
+  .makoto-scene__friend--mika {
+    left: 14%;
+  }
+
+  .makoto-scene__friend--shima {
+    right: 2%;
+  }
+
+  .makoto-scene__friend--yuzuki {
+    right: 14%;
+  }
+}
+
+@media (max-width: 768px) {
+  .makoto-secret-page {
+    padding: 14px;
+  }
+
+  .makoto-notebook {
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-height: auto;
+    border-radius: 22px;
+  }
+
+  .makoto-notebook__binding {
+    gap: 14px;
+    padding: 18px 0;
+  }
+
+  .makoto-notebook__ring {
+    width: 16px;
+    height: 16px;
+  }
+
+  .makoto-notebook__paper {
+    padding: 18px 16px 22px;
+    background:
+      linear-gradient(90deg, transparent 0, transparent 34px, rgba(251, 113, 133, 0.12) 34px, rgba(251, 113, 133, 0.12) 36px, transparent 36px),
+      repeating-linear-gradient(180deg, transparent 0, transparent 27px, rgba(191, 219, 254, 0.65) 27px, rgba(191, 219, 254, 0.65) 28px),
+      linear-gradient(180deg, #fffefa 0%, #fffdfd 100%);
+  }
+
+  .makoto-secret-page__meta {
+    width: 100%;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  .makoto-secret-page__progress {
+    width: 100%;
+  }
+
+  .makoto-cipher-card__controls,
+  .makoto-sheet__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .makoto-guest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .makoto-scene {
+    min-height: 720px;
+  }
+
+  .makoto-scene__banner {
+    top: 16px;
+    width: calc(100% - 24px);
+    text-align: center;
+    white-space: normal;
+  }
+
+  .makoto-scene__makoto {
+    bottom: 168px;
+    width: 170px;
+  }
+
+  .makoto-scene__friend--mitsumi,
+  .makoto-scene__friend--mika,
+  .makoto-scene__friend--shima,
+  .makoto-scene__friend--yuzuki {
+    bottom: 210px;
+    width: 120px;
+  }
+
+  .makoto-scene__friend--mitsumi {
+    left: 2%;
+  }
+
+  .makoto-scene__friend--mika {
+    left: 19%;
+  }
+
+  .makoto-scene__friend--shima {
+    right: 2%;
+  }
+
+  .makoto-scene__friend--yuzuki {
+    right: 19%;
+  }
+
+  .makoto-scene__note {
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .makoto-guest-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .makoto-scene {
+    min-height: 760px;
+  }
+
+  .makoto-scene__makoto {
+    width: 156px;
+  }
+
+  .makoto-scene__friend--mitsumi,
+  .makoto-scene__friend--mika,
+  .makoto-scene__friend--shima,
+  .makoto-scene__friend--yuzuki {
+    width: 100px;
+    bottom: 236px;
+  }
+
+  .makoto-scene__friend--mitsumi {
+    left: -1%;
+  }
+
+  .makoto-scene__friend--mika {
+    left: 14%;
+  }
+
+  .makoto-scene__friend--shima {
+    right: -1%;
+  }
+
+  .makoto-scene__friend--yuzuki {
+    right: 14%;
+  }
 }

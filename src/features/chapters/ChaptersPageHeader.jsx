@@ -5,14 +5,35 @@ import { triggerHaptic } from '../../utils/haptics';
 import PaperHeadingBadge from '../../components/shared/paper/PaperHeadingBadge';
 import PaperPageHeader from '../../components/shared/paper/PaperPageHeader';
 
-const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) => {
+const CHAPTERS_FONT_FAMILY = 'var(--font-paper)';
+
+const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t, uiLanguage, tabs = ['main', 'side'] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
-  const tabs = [
-    { id: 'main', label: t.mainStory || 'Main story', color: '#0ea5e9' },
-    { id: 'side', label: t.sideWorks || 'Side works', color: '#f43f5e' },
-  ];
-  const currentTab = tabs.find((tab) => tab.id === activeSubtab) || tabs[0];
+  const normalizedTabs = tabs
+    .map((tab) => {
+      if (typeof tab === 'string') {
+        return {
+          id: tab,
+          label: tab === 'main' ? (t.mainStory || 'Main story') : (t.sideWorks || 'Side works'),
+          color: tab === 'main' ? '#0ea5e9' : '#f43f5e',
+        };
+      }
+
+      return {
+        id: tab?.id || 'main',
+        label: tab?.label || (tab?.id === 'side' ? (t.sideWorks || 'Side works') : (t.mainStory || 'Main story')),
+        color: tab?.color || (tab?.id === 'side' ? '#f43f5e' : '#0ea5e9'),
+      };
+    })
+    .filter(Boolean);
+  const currentTab = normalizedTabs.find((tab) => tab.id === activeSubtab) || normalizedTabs[0] || {
+    id: 'main',
+    label: t.mainStory || 'Main story',
+    color: '#0ea5e9',
+  };
+  const currentLabel = currentTab.label || '';
+  const isLongLabel = currentLabel.length > 10;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -34,8 +55,10 @@ const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) 
     setIsOpen(false);
   };
 
+  if (normalizedTabs.length <= 1) return null;
+
   return (
-    <div ref={containerRef} style={{ position: 'relative', zIndex: 100, minWidth: isMobile ? '200px' : '220px' }}>
+    <div ref={containerRef} style={{ position: 'relative', zIndex: 100, minWidth: isMobile ? '180px' : '180px', maxWidth: isMobile ? '100%' : 'min(100vw - 64px, 320px)' }}>
       <motion.button
         onClick={() => setIsOpen((previous) => !previous)}
         whileHover={{ scale: 1.02, y: -2 }}
@@ -52,14 +75,16 @@ const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) 
           border: `3px solid ${currentTab.color}`,
           borderBottom: `8px solid ${currentTab.color}`,
           borderRadius: '16px',
-          fontFamily: '"Sniglet", "Coming Soon", cursive',
-          fontSize: isMobile ? '1.1rem' : '1.15rem',
+          fontFamily: CHAPTERS_FONT_FAMILY,
+          fontSize: isMobile ? '1.02rem' : (isLongLabel ? '0.96rem' : '1rem'),
           fontWeight: '400',
           cursor: 'pointer',
           boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          whiteSpace: 'normal',
+          lineHeight: 1.08,
         }}
       >
-        <span>{currentTab.label}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>{currentLabel}</span>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="m6 9 6 6 6-6" />
@@ -89,7 +114,7 @@ const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) 
               gap: '4px',
             }}
           >
-            {tabs.map((tab) => {
+            {normalizedTabs.map((tab) => {
               const isActive = activeSubtab === tab.id;
 
               return (
@@ -107,11 +132,12 @@ const ChaptersSubtabSelector = ({ isMobile, activeSubtab, setActiveSubtab, t }) 
                     color: isActive ? tab.color : '#64748b',
                     border: 'none',
                     borderRadius: '16px',
-                    fontFamily: '"Sniglet", "Coming Soon", cursive',
-                    fontSize: isMobile ? '0.9rem' : '1rem',
+                    fontFamily: CHAPTERS_FONT_FAMILY,
+                    fontSize: isMobile ? '0.9rem' : ((tab.label || '').length > 10 ? '0.92rem' : '0.98rem'),
                     fontWeight: '400',
                     cursor: 'pointer',
                     textAlign: 'left',
+                    lineHeight: 1.08,
                   }}
                 >
                   {tab.label}
@@ -130,7 +156,9 @@ const ChaptersPageHeader = ({
   title,
   activeSubtab,
   setActiveSubtab,
+  tabs,
   t,
+  uiLanguage,
   unreadCount,
   unreadLabel,
 }) => (
@@ -149,6 +177,7 @@ const ChaptersPageHeader = ({
           }}
           titleColor="#3b82f6"
           iconColor="#3b82f6"
+          fontFamily={CHAPTERS_FONT_FAMILY}
         />
       )}
       rightSlot={(
@@ -157,6 +186,8 @@ const ChaptersPageHeader = ({
           activeSubtab={activeSubtab}
           setActiveSubtab={setActiveSubtab}
           t={t}
+          uiLanguage={uiLanguage}
+          tabs={tabs}
         />
       )}
       gapMobile="16px"
@@ -179,7 +210,7 @@ const ChaptersPageHeader = ({
             border: '3px solid #f59e0b',
             borderBottom: '8px solid #f59e0b',
             borderRadius: '20px',
-            fontFamily: '"Sniglet", "Coming Soon", cursive',
+            fontFamily: CHAPTERS_FONT_FAMILY,
             fontSize: isMobile ? '1.05rem' : '1.15rem',
             fontWeight: '400',
             boxShadow: '0 4px 15px rgba(245, 158, 11, 0.15)',

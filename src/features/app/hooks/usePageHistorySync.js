@@ -14,7 +14,14 @@ export const usePageHistorySync = ({ activePage, setActivePage, tabPages }) => {
         ? statePage
         : (tabPages.includes(hashPage) ? hashPage : null);
 
-      if (!nextPage || nextPage === activePage) return;
+      if (!nextPage) {
+        const state = { skipApp: true, page: activePage };
+        const hash = `#${activePage}`;
+        window.history.replaceState(state, '', hash);
+        return;
+      }
+
+      if (nextPage === activePage) return;
       isPopNavigatingRef.current = true;
       setActivePage(nextPage);
     };

@@ -47,6 +47,7 @@ const QuizQuestionStep = ({
   currentStep,
   totalQuestions,
   question,
+  uiLanguage = 'en',
   t,
   state,
   setters,
@@ -224,25 +225,26 @@ const QuizQuestionStep = ({
     const completedMs = memoryState.completedMs ?? memoryState.elapsedMs;
     const fastThreshold = question.fastThresholdMs || 24000;
     const steadyThreshold = question.steadyThresholdMs || 40000;
+    const isJapanese = uiLanguage === 'ja';
     let modifiers = question.slowModifiers || {};
-    let label = question.slowResultLabel || 'Careful matcher';
+    let label = question.slowResultLabel || (isJapanese ? '慎重な一致' : 'Careful matcher');
     let optionIndex = 2;
     let pairValue = -1;
 
     if (completedMs <= fastThreshold) {
       modifiers = question.fastModifiers || {};
-      label = question.fastResultLabel || 'Sharp memory';
+      label = question.fastResultLabel || (isJapanese ? '鋭い記憶' : 'Sharp memory');
       optionIndex = 0;
       pairValue = 1;
     } else if (completedMs <= steadyThreshold) {
       modifiers = question.steadyModifiers || {};
-      label = question.steadyResultLabel || 'Steady matcher';
+      label = question.steadyResultLabel || (isJapanese ? '安定した一致' : 'Steady matcher');
       optionIndex = 1;
       pairValue = 0;
     }
 
     triggerHaptic('success');
-    onApplyModifiers(modifiers, `${question.text} -> ${label} (${formatElapsedTime(completedMs)})`, 'flip', {
+    onApplyModifiers(modifiers, `${question.text} -> ${label} (${formatElapsedTime(completedMs, uiLanguage)})`, 'flip', {
       optionIndex,
       pairKey: question.pairKey,
       pairSlot: question.pairSlot,
@@ -515,6 +517,7 @@ const QuizQuestionStep = ({
           memoryState={memoryState}
           question={question}
           submitMemoryResult={submitMemoryResult}
+          uiLanguage={uiLanguage}
           t={t}
         />
       )}
@@ -525,6 +528,7 @@ const QuizQuestionStep = ({
           isMobile={isMobile}
           onApplyModifiers={onApplyModifiers}
           question={question}
+          uiLanguage={uiLanguage}
           t={t}
         />
       )}

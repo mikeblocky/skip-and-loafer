@@ -5,18 +5,21 @@ export const UI_TEXT = {
   fr: { chapters: 'Chapitres', mainStory: 'Histoire principale', sideWorks: 'Histoires bonus', sideWorksDescription: 'Oeuvres annexes creees par Takamatsu-sensei dans le passe ou pour des evenements, separees de l histoire principale.', readInApp: 'Lire', latest: 'nouveau', plusRead: '+1 lecture', timeLeft: 'Temps restant', unreadNotice: 'Info : vous avez {count} chapitre{suffix} non lu !', unreadShort: '{count} chapitre{suffix} non lu !', chapterRange: 'Chapitre', chaptersRange: 'Chapitres', ongoing: 'en cours', buyEN: 'Commander EN', buyJP: 'Commander JP', preOrderEN: 'Précommander EN', preOrderJP: 'Précommander JP', buyNative: 'Commander local', buyEnVolume: 'Commander le volume anglais', buyJpVolume: 'Commander le volume japonais', buyNativeVolume: 'Commander le volume local', preOrderEnVolume: 'Précommander le volume anglais', preOrderJpVolume: 'Précommander le volume japonais', preOrderNativeVolume: 'Précommander le volume local', preOrderVolume: 'Précommander le volume' },
   de: { chapters: 'Kapitel', mainStory: 'Hauptstory', sideWorks: 'Nebenwerke', sideWorksDescription: 'Nebenwerke, die Takamatsu-sensei frueher oder fuer Events erstellt hat, getrennt von der Hauptstory.', readInApp: 'Lesen', latest: 'neu', plusRead: '+1 gelesen', timeLeft: 'Verbleibende Zeit', unreadNotice: 'Hinweis: Du hast {count} ungelesene Kapitel{suffix}!', unreadShort: '{count} ungelesene Kapitel{suffix}!', chapterRange: 'Kapitel', chaptersRange: 'Kapitel', ongoing: 'laufend', buyEN: 'EN bestellen', buyJP: 'JP bestellen', preOrderEN: 'EN vorbestellen', preOrderJP: 'JP vorbestellen', buyNative: 'Lokal bestellen', buyEnVolume: 'Englischen Band bestellen', buyJpVolume: 'Japanischen Band bestellen', buyNativeVolume: 'Lokalen Band bestellen', preOrderEnVolume: 'Englischen Band vorbestellen', preOrderJpVolume: 'Japanischen Band vorbestellen', preOrderNativeVolume: 'Lokalen Band vorbestellen', preOrderVolume: 'Band vorbestellen' },
   it: { chapters: 'Capitoli', mainStory: 'Storia principale', sideWorks: 'Storie extra', sideWorksDescription: 'Opere secondarie create da Takamatsu-sensei in passato o per eventi, separate dalla trama principale.', readInApp: 'Leggi', latest: 'nuovo', plusRead: '+1 lettura', timeLeft: 'Tempo rimanente', unreadNotice: 'Avviso: hai {count} capitol{suffix} non letto!', unreadShort: '{count} capitol{suffix} non letto!', chapterRange: 'Capitolo', chaptersRange: 'Capitoli', ongoing: 'in corso', buyEN: 'Ordina EN', buyJP: 'Ordina JP', preOrderEN: 'Preordina EN', preOrderJP: 'Preordina JP', buyNative: 'Ordina locale', buyEnVolume: 'Ordina volume inglese', buyJpVolume: 'Ordina volume giapponese', buyNativeVolume: 'Ordina volume locale', preOrderEnVolume: 'Preordina volume inglese', preOrderJpVolume: 'Preordina volume giapponese', preOrderNativeVolume: 'Preordina volume locale', preOrderVolume: 'Preordina volume' },
+  ja: { chapters: '話数', mainStory: '本編', sideWorks: '番外編', sideWorksDescription: '本編とは別の、過去の企画や特別イベントの作品です。', readInApp: '読む', latest: '最新', plusRead: '+1回読んだ', timeLeft: '残り時間', secondsUnit: '秒', unreadNotice: 'お知らせ: 未読の話が {count} 話あります!', unreadShort: '未読の話が {count} 話あります!', chapterRange: '話', chaptersRange: '話', ongoing: '連載中', buyEN: '英語版を注文', buyJP: '日本語版を注文', preOrderEN: '英語版を予約', preOrderJP: '日本語版を予約', buyNative: '現地版を注文', buyEnVolume: '英語版の巻を注文', buyJpVolume: '日本語版の巻を注文', buyNativeVolume: '現地版の巻を注文', preOrderEnVolume: '英語版の巻を予約', preOrderJpVolume: '日本語版の巻を予約', preOrderNativeVolume: '現地版の巻を予約', preOrderVolume: '巻を予約' },
 };
 
 export const COUNTRY_CACHE_KEY = 'skip_countryCodeCache_v1';
 export const COUNTRY_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
 export const getCountryPluralSuffix = (lang, count) => {
+  if (lang === 'ja') return '';
   if (lang === 'it') return count > 1 ? 'i' : 'o';
   if (lang === 'de') return '';
   return count > 1 ? 's' : '';
 };
 
 const getVolumeWord = (uiLanguage = 'en') => {
+  if (uiLanguage === 'ja') return '巻';
   if (uiLanguage === 'es') return 'Volumen';
   if (uiLanguage === 'pt') return 'Volume';
   if (uiLanguage === 'fr') return 'Tome';
@@ -26,6 +29,7 @@ const getVolumeWord = (uiLanguage = 'en') => {
 };
 
 export const getVolumeShortWord = (uiLanguage = 'en') => {
+  if (uiLanguage === 'ja') return '巻';
   if (uiLanguage === 'es') return 'Vol';
   if (uiLanguage === 'pt') return 'Vol';
   if (uiLanguage === 'fr') return 'T';
@@ -50,6 +54,7 @@ const LANGUAGE_CODE_BY_COUNTRY = {
   DE: 'de',
   IT: 'it',
   FR: 'fr',
+  JP: 'ja',
 };
 
 const NATIVE_LANGUAGE_LABEL_FALLBACK = {
@@ -59,6 +64,7 @@ const NATIVE_LANGUAGE_LABEL_FALLBACK = {
   fr: { ES: 'espagnol', MX: 'espagnol', PT: 'portugais', BR: 'portugais brésilien', DE: 'allemand', IT: 'italien', FR: 'français' },
   de: { ES: 'Spanisch', MX: 'Spanisch', PT: 'Portugiesisch', BR: 'Brasilianisches Portugiesisch', DE: 'Deutsch', IT: 'Italienisch', FR: 'Französisch' },
   it: { ES: 'spagnolo', MX: 'spagnolo', PT: 'portoghese', BR: 'portoghese brasiliano', DE: 'tedesco', IT: 'italiano', FR: 'francese' },
+  ja: { ES: 'スペイン語', MX: 'スペイン語', PT: 'ポルトガル語', BR: 'ブラジルポルトガル語', DE: 'ドイツ語', IT: 'イタリア語', FR: 'フランス語', JP: '日本語' },
 };
 
 export const getNativeLanguageName = (countryCode, uiLanguage = 'en') => {
@@ -84,6 +90,7 @@ export const getNativeVolumeLabel = (uiLanguage, nativeLanguageName, t, isPreOrd
   if (!nativeLanguageName) return isPreOrder ? t.preOrderNativeVolume : t.buyNativeVolume;
 
   if (isPreOrder) {
+    if (uiLanguage === 'ja') return `${nativeLanguageName}版を予約`;
     if (uiLanguage === 'es') return `Reservar volumen en ${nativeLanguageName}`;
     if (uiLanguage === 'pt') return `Pré-venda de volume em ${nativeLanguageName}`;
     if (uiLanguage === 'fr') return `Précommander le volume ${nativeLanguageName}`;
@@ -92,6 +99,7 @@ export const getNativeVolumeLabel = (uiLanguage, nativeLanguageName, t, isPreOrd
     return `Pre-order ${nativeLanguageName} volume`;
   }
 
+  if (uiLanguage === 'ja') return `${nativeLanguageName}版を注文`;
   if (uiLanguage === 'es') return `Pedir volumen en ${nativeLanguageName}`;
   if (uiLanguage === 'pt') return `Encomendar volume em ${nativeLanguageName}`;
   if (uiLanguage === 'fr') return `Commander le volume ${nativeLanguageName}`;

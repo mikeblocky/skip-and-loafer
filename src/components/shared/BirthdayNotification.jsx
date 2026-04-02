@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cake, X, PartyPopper, Gift, Sparkles, Heart } from 'lucide-react';
+import { getCharacterDisplayName } from '../../data/characterNames';
 
 /* ─── Birthday data ─── */
 const CHARACTER_BIRTHDAYS = [
@@ -97,7 +98,7 @@ const ANNOUNCEMENTS = {
 
 const DISMISS_KEY = 'skip_birthday_dismissed';
 
-const BirthdayNotification = ({ isMobile }) => {
+const BirthdayNotification = ({ isMobile, uiLanguage = 'en' }) => {
     const [dismissed, setDismissed] = useState(false);
 
     // Find today's birthday character(s)
@@ -145,7 +146,8 @@ const BirthdayNotification = ({ isMobile }) => {
 
             const sendNotifications = () => {
                 announcements.forEach(char => {
-                    new Notification(`🎂 Happy birthday, ${char.name}!`, {
+                    const displayName = getCharacterDisplayName(char.name, uiLanguage);
+                    new Notification(`🎂 Happy birthday, ${displayName}!`, {
                         body: char.message,
                         icon: '/swt2-512.png',
                         badge: '/swt2-512.png',
@@ -261,6 +263,15 @@ const BirthdayNotification = ({ isMobile }) => {
                             }}>
                                 <span style={{
                                     fontFamily: 'var(--font-hand)',
+                                    fontSize: isMobile ? '0.76rem' : '0.84rem',
+                                    fontWeight: 'bold',
+                                    color: char.color,
+                                    opacity: 0.9,
+                                }}>
+                                    {getCharacterDisplayName(char.name, uiLanguage)}
+                                </span>
+                                <span style={{
+                                    fontFamily: 'var(--font-hand)',
                                     fontSize: isMobile ? '0.82rem' : '0.88rem',
                                     fontWeight: 'bold',
                                     color: char.color,
@@ -292,7 +303,7 @@ const BirthdayNotification = ({ isMobile }) => {
                                 marginTop: '4px',
                                 display: 'block',
                             }}>
-                                {char.fullName} • {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][char.month - 1]} {char.day}
+                                {getCharacterDisplayName(char.name, uiLanguage)} • {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][char.month - 1]} {char.day}
                             </span>
                         </div>
 

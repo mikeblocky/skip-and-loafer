@@ -1,4 +1,4 @@
-export const PAPER_FONT_FAMILY = '"Sniglet", "Coming Soon", cursive';
+export const PAPER_FONT_FAMILY = 'var(--font-paper)';
 
 export const PAPER_PANEL_STYLE = {
   background: '#fffefc',

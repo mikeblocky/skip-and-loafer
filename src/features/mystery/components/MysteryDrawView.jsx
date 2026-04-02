@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Gift } from 'lucide-react';
 import { CHARACTER_COLORS } from '../../../data/characters';
+import { getCharacterDisplayName } from '../../../data/characterNames';
 import { FALLBACK_COLORS } from '../../chat/chatPalette';
 import { getCharacterPrediction } from '../mysteryData';
 import { toMysteryLabelCase } from '../quizGame/ui';
@@ -59,8 +60,9 @@ const Confetti = () => {
   );
 };
 
-const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDrawAgain }) => {
+const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDrawAgain, uiLanguage = 'en' }) => {
   const colors = getMysteryPalette(pulledCharacter);
+  const displayName = pulledCharacter ? getCharacterDisplayName(pulledCharacter.name, uiLanguage) : '';
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
@@ -191,17 +193,6 @@ const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDr
                   }}
                   className="paper-interact"
                 >
-                  <img
-                    src={pulledCharacter.src}
-                    alt={pulledCharacter.name}
-                    style={{
-                      width: '100%',
-                      height: isMobile ? '180px' : '260px',
-                      objectFit: 'contain',
-                      filter: 'drop-shadow(4px 6px 12px rgba(0,0,0,0.2))',
-                    }}
-                    draggable="false"
-                  />
                   <div
                     style={{
                       fontSize: isMobile ? '1.4rem' : '1.75rem',
@@ -214,7 +205,10 @@ const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDr
                       transform: 'rotate(1deg)',
                     }}
                   >
-                    {pulledCharacter.name}
+                    {displayName}
+                  </div>
+                  <div style={{ color: '#64748b', fontSize: isMobile ? '0.9rem' : '1rem', lineHeight: 1.4, textAlign: 'center' }}>
+                    {uiLanguage === 'ja' ? 'イラストは非表示です' : 'Artwork hidden'}
                   </div>
                 </motion.div>
               </div>
@@ -241,7 +235,7 @@ const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDr
                     gap: '14px',
                   }}
                 >
-                  <p style={{ margin: 0 }}>{getCharacterPrediction(pulledCharacter.name, t)}</p>
+                  <p style={{ margin: 0 }}>{getCharacterPrediction(pulledCharacter.name, t, uiLanguage)}</p>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-start', gap: '12px' }}>

@@ -3,7 +3,11 @@ import { CHARACTER_COLORS } from '../../../../data/characters';
 
 export const shuffleArray = (items) => [...items].sort(() => Math.random() - 0.5);
 
-export const formatElapsedTime = (elapsedMs = 0) => `${(elapsedMs / 1000).toFixed(1)}s`;
+export const formatElapsedTime = (elapsedMs = 0, uiLanguage = 'en') => (
+  uiLanguage === 'ja'
+    ? `${(elapsedMs / 1000).toFixed(1)}秒`
+    : `${(elapsedMs / 1000).toFixed(1)}s`
+);
 
 export const PUBLIC_MEMORY_PORTRAITS = [
   { name: 'Chris', src: '/portrait/chris.png' },

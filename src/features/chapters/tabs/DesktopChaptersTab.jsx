@@ -37,6 +37,9 @@ const DesktopChaptersTab = ({
   unreadCount,
 }) => {
   const theme = VOL_THEMES[volume.number] || VOL_THEMES[1];
+  const showVolumeArtwork = uiLanguage !== 'ja';
+  const showVolumeTitle = uiLanguage !== 'ja';
+  const volumeTitle = getVolumeTitleFn(uiLanguage, volume.number);
  
   return (
     <div style={{
@@ -77,8 +80,8 @@ const DesktopChaptersTab = ({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative'
               }}>
-                {volume.cover ? (
-                  <img src={volume.cover} alt={getVolumeTitleFn(uiLanguage, volume.number)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
+                {showVolumeArtwork && volume.cover ? (
+                  <img src={volume.cover} alt={volumeTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
                 ) : (
                   <span style={{
                     fontFamily: 'var(--font-main)', fontSize: '2.5rem',
@@ -95,21 +98,23 @@ const DesktopChaptersTab = ({
                   transition={{ delay: 0.08, duration: 0.16, ease: 'easeOut' }}
                   style={EXTRA_BADGE_STYLE(theme)}
                 >
-                  <Tv size={14} strokeWidth={3} style={{ marginRight: '4px' }} />{volume.anime}
+                  <Tv size={14} strokeWidth={3} style={{ marginRight: '4px' }} />{uiLanguage === 'ja' ? 'アニメ第1期' : volume.anime}
                 </motion.div>
               )}
             </motion.div>
  
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.06, duration: 0.16, ease: 'easeOut' }}
-                style={VOL_TITLE_STYLE(theme)}
-              >
-                {getVolumeTitleFn(uiLanguage, volume.number)}
-              </motion.p>
-              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.95rem', color: '#6b7280', fontWeight: '700', marginBottom: '8px' }}>
+              {showVolumeTitle && (
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.06, duration: 0.16, ease: 'easeOut' }}
+                  style={VOL_TITLE_STYLE(theme)}
+                >
+                  {volumeTitle}
+                </motion.p>
+              )}
+              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.95rem', color: '#6b7280', fontWeight: '400', marginBottom: '8px' }}>
                 {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                 {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '8px' }}>✦ {t.ongoing}</span>}
               </p>

@@ -61,16 +61,16 @@ export const persistDisclaimerSeen = () => {
   safeSetItem(DISCLAIMER_SEEN_KEY, '1');
 };
 
-export const getInitialActivePage = () => {
+export const getInitialActivePage = (allowedPages = TAB_PAGES) => {
   const fallback = safeGetItem(ACTIVE_PAGE_STORAGE_KEY) || DEFAULT_PAGE;
 
   if (typeof window === 'undefined') {
-    return TAB_PAGES.includes(fallback) ? fallback : DEFAULT_PAGE;
+    return allowedPages.includes(fallback) ? fallback : allowedPages[0] || DEFAULT_PAGE;
   }
 
   const hashPage = window.location.hash.replace('#', '');
-  if (TAB_PAGES.includes(hashPage)) return hashPage;
-  return TAB_PAGES.includes(fallback) ? fallback : DEFAULT_PAGE;
+  if (allowedPages.includes(hashPage)) return hashPage;
+  return allowedPages.includes(fallback) ? fallback : allowedPages[0] || DEFAULT_PAGE;
 };
 
 export const getInitialReaderChapter = () => parseStoredJson(safeGetItem(READER_CHAPTER_STORAGE_KEY));

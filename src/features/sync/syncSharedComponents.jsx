@@ -24,6 +24,7 @@ import { NOTE_PALETTES, getReadTier } from './syncConfig';
 import { HOVER_SCALE_TAB, TAP_SCALE_DEFAULT, TAP_SCALE_TAB, PRESS_SPRING, ENTER_SPRING, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../../components/shared/animationPresets';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
+import { getChapterDisplayTitle } from '../../data/chapterTitles';
 
 // Floating celebration hearts on +1 read
 const CelebrationHearts = ({ show }) => {
@@ -337,7 +338,7 @@ export const MiniChapterRow = ({ chapter, index, isMobile, onReadChapter, isFini
 
       <div style={{ flex: '1 1 120px', display: 'flex', alignItems: 'center', gap: '6px' }}>
         <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6b7280', fontWeight: '400',  flexShrink: 0 }}>{chapter.number} - </span>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.74rem' : '0.85rem', color: '#1f2937', fontWeight: '400',  whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>{chapter.title}</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.74rem' : '0.85rem', color: '#1f2937', fontWeight: '400',  whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>{getChapterDisplayTitle(chapter, uiLanguage)}</span>
       </div>
 
       <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>

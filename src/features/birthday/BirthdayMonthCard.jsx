@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Star } from 'lucide-react';
 import { getBirthdayStatus } from './birthdayUtils';
+import { getCharacterDisplayName } from '../../data/characterNames';
 
 const BirthdayMonthCard = ({
   month,
@@ -12,6 +13,7 @@ const BirthdayMonthCard = ({
   monthLabels,
   reduceMotion,
   referenceDate,
+  uiLanguage = 'en',
 }) => {
   const [rotation] = useState(() => (Math.random() * 3) - 1.5);
 
@@ -122,7 +124,7 @@ const BirthdayMonthCard = ({
                     lineHeight: 1,
                   }}
                 >
-                  {birthday.name}
+                  {getCharacterDisplayName(birthday.name, uiLanguage)}
                 </span>
                 <span
                   style={{

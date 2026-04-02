@@ -23,6 +23,12 @@ const UI_TEXT = {
     returnToTop: 'Retour en haut',
     returnToFirstPage: 'Retour à la première page',
   },
+  ja: {
+    backToTop: '上へ',
+    firstPage: '最初のページ',
+    returnToTop: '上へ戻る',
+    returnToFirstPage: '最初のページへ戻る',
+  },
   de: {
     backToTop: 'Nach oben',
     firstPage: 'Erste Seite',
