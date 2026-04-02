@@ -111,7 +111,7 @@ const MobileChaptersTab = ({
                   {volumeTitle}
                 </motion.p>
               )}
-              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.85rem', color: '#6b7280', fontWeight: '800' }}>
+              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.85rem', color: '#6b7280', fontWeight: '400' }}>
                 {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                 {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '6px' }}>✦ {t.ongoing}</span>}
               </p>

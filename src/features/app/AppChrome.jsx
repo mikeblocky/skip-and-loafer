@@ -174,6 +174,7 @@ const AppChrome = ({ app }) => (
                 isMobile={app.isMobile}
                 tabs={app.visibleTabPages}
                 labelsById={app.t.tabs}
+                badgesById={app.tabBadgesById}
                 openTabPrefix={app.t.openTabPrefix}
                 tabSuffix={app.t.tabSuffix}
               />
