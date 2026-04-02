@@ -15,6 +15,8 @@ import {
   VALID_COLOR_BLIND_MODES,
   getVisibleTabPages,
 } from '../appConstants';
+import { getSupportedUiLanguages } from '../../../config/uiLanguage';
+import { IS_PRODUCTION_SERVER } from '../../../config/runtimeFlags';
 import {
   getInitialAccessibilityPrefs,
   getInitialActivePage,
@@ -87,7 +89,12 @@ export const useAppController = () => {
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(getInitialAccessibilityPrefs);
 
   const t = APP_UI_TEXT[uiLanguage] || APP_UI_TEXT.en;
+  const supportedUiLanguages = getSupportedUiLanguages();
   const displayActivePage = visibleTabPages.includes(activePage) ? activePage : (visibleTabPages[0] || DEFAULT_PAGE);
+  const tabBadgesById = useMemo(
+    () => (IS_PRODUCTION_SERVER ? { wiki: 'Beta' } : {}),
+    [],
+  );
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
   const deferredShellMount = useDeferredMount(showUI, 180);
@@ -169,6 +176,13 @@ export const useAppController = () => {
       setActivePage(displayActivePage);
     });
   }, [activePage, displayActivePage]);
+
+  useEffect(() => {
+    if (supportedUiLanguages.includes(uiLanguage)) return;
+    startTransition(() => {
+      setUiLanguage('en');
+    });
+  }, [supportedUiLanguages, uiLanguage]);
 
   const toggleAccessibilityPref = useCallback((key) => {
     setAccessibilityPrefs((previous) => ({ ...previous, [key]: !previous[key] }));
@@ -283,6 +297,7 @@ export const useAppController = () => {
     subtabShortcut,
     syncData,
     t,
+    tabBadgesById,
     tabCount: visibleTabPages.length,
     visibleTabPages,
     toggleAccessibilityPanel,

@@ -1,4 +1,12 @@
+import { IS_PRODUCTION_SERVER } from './runtimeFlags';
+
 export const SUPPORTED_UI_LANGUAGES = ['en', 'es', 'pt', 'fr', 'de', 'it', 'ja'];
+
+export const getSupportedUiLanguages = () => (
+  IS_PRODUCTION_SERVER
+    ? SUPPORTED_UI_LANGUAGES.filter((code) => code !== 'ja')
+    : SUPPORTED_UI_LANGUAGES
+);
 
 export const detectUiLanguageFromLocation = () => {
   if (typeof navigator === 'undefined') return 'en';
@@ -30,11 +38,15 @@ export const detectUiLanguageFromLocation = () => {
 };
 
 export const getInitialUiLanguage = (storageKey) => {
+  const supportedUiLanguages = getSupportedUiLanguages();
+
   try {
     const saved = localStorage.getItem(storageKey);
-    if (saved && SUPPORTED_UI_LANGUAGES.includes(saved)) return saved;
-    return detectUiLanguageFromLocation();
+    if (saved && supportedUiLanguages.includes(saved)) return saved;
+    const detected = detectUiLanguageFromLocation();
+    return supportedUiLanguages.includes(detected) ? detected : 'en';
   } catch {
-    return detectUiLanguageFromLocation();
+    const detected = detectUiLanguageFromLocation();
+    return supportedUiLanguages.includes(detected) ? detected : 'en';
   }
 };

@@ -114,7 +114,7 @@ const DesktopChaptersTab = ({
                   {volumeTitle}
                 </motion.p>
               )}
-              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.95rem', color: '#6b7280', fontWeight: '700', marginBottom: '8px' }}>
+              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.95rem', color: '#6b7280', fontWeight: '400', marginBottom: '8px' }}>
                 {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                 {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '8px' }}>✦ {t.ongoing}</span>}
               </p>

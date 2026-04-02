@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Accessibility, Keyboard, Languages, Settings } from 'lucide-react';
-import { APP_LANGUAGE_OPTIONS, APP_UI_TEXT } from '../../config/appUiText';
+import { getAppLanguageOptions, APP_UI_TEXT } from '../../config/appUiText';
 
 const PANEL_BASE_STYLE = {
   background: '#fffefc',
@@ -128,10 +128,14 @@ const AppQuickControls = ({
     it: { reading: 'Lettura e testo', clarity: 'Chiarezza e contrasto', visuals: 'Movimento e aspetto', color: 'Modalita colore' },
     ja: { reading: '文字と読書', clarity: '見やすさとコントラスト', visuals: '動きと視覚表現', color: '色モード' },
   }[uiLanguage] || { reading: 'Reading & text', clarity: 'Clarity & contrast', visuals: 'Motion & visuals', color: 'Color mode' };
-  const tabRange = tabCount > 9 ? '1..9, 0' : `1..${tabCount}`;
+  const tabRange = tabCount <= 9
+    ? `1..${tabCount}`
+    : (tabCount === 10
+      ? '1..9, 0'
+      : (tabCount === 11 ? '1..9, 0, -' : '1..9, 0, -, ='));
   const shortcutTipBase = t.tip || fallbackText.tip || 'Tip: use 1..8 to jump tabs quickly.';
   const shortcutTip = tabCount > 9
-    ? 'Tip: use 1..9 and 0 to jump tabs quickly.'
+    ? `Tip: use ${tabRange} to jump tabs quickly.`
     : shortcutTipBase
       .replace(/1 to \d+/g, tabRange)
       .replace(/1\.\.\d+/g, tabRange);
@@ -142,6 +146,7 @@ const AppQuickControls = ({
     { key: 'tritanopia', label: t.colorVisionTritanopia || fallbackText.colorVisionTritanopia || 'Tritanopia' },
     { key: 'black-white', label: t.colorVisionBlackWhite || fallbackText.colorVisionBlackWhite || 'Black & White' },
   ];
+  const appLanguageOptions = getAppLanguageOptions();
 
   const shortcutRows = [
     { keyLabel: tabRange, description: t.mainTabShortcut || fallbackText.mainTabShortcut || 'Jump to a main tab' },
@@ -483,7 +488,7 @@ const AppQuickControls = ({
               zIndex: 2000,
             }}
           >
-            {APP_LANGUAGE_OPTIONS.map(({ code, name }) => {
+            {appLanguageOptions.map(({ code, name }) => {
               const lang = code;
               const selected = lang === uiLanguage;
               return (

@@ -13,6 +13,7 @@ import {
   QuizPage,
   SignPage,
   SyncPage,
+  WikiPage,
 } from './appPageLoaders';
 
 const PAGE_SHELL_STYLE = {
@@ -64,6 +65,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
         return isMobile ? 'ファンギャラリーを読み込み中...' : 'ファンギャラリーページを読み込み中...';
       case 'blog':
         return isMobile ? 'ブログを読み込み中...' : 'ブログ記事を読み込み中...';
+      case 'wiki':
+        return isMobile ? 'ウィキを読み込み中...' : 'ウィキ記事を読み込み中...';
       case 'sync':
         return isMobile ? '読書を読み込み中...' : '読書データを読み込み中...';
       case 'quiz':
@@ -86,6 +89,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
       return isMobile ? 'Loading fan gallery...' : 'Loading fan gallery...';
     case 'blog':
       return isMobile ? 'Loading blog...' : 'Loading blog posts...';
+    case 'wiki':
+      return isMobile ? 'Loading wiki...' : 'Loading wiki articles...';
     case 'sync':
       return isMobile ? 'Loading reading...' : 'Loading reading stats...';
     case 'quiz':
@@ -204,6 +209,9 @@ const AppTabContent = ({
       break;
     case 'blog':
       tabContent = <BlogPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'wiki':
+      tabContent = <WikiPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
     case 'sync':
       frameStyle = { ...sharedPageShellStyle, flexDirection: isMobile ? 'column' : 'row' };

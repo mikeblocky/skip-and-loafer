@@ -303,7 +303,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         borderBottom: `6px solid ${theme.border}`,
         boxShadow: `0 4px 0 rgba(0,0,0,0.1)`,
       }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '900', color: theme.accent }}>{chapterBadge}</span>
+        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: theme.accent }}>{chapterBadge}</span>
       </div>
  
       <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>

@@ -1,4 +1,4 @@
-import { SUPPORTED_UI_LANGUAGES } from './uiLanguage';
+import { getSupportedUiLanguages } from './uiLanguage';
 
 export const APP_UI_TEXT = {
   en: {
@@ -42,6 +42,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Sign', mobileLabel: 'Sign' },
       fanGallery: { label: 'Fan gallery', mobileLabel: 'Fan gallery' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Reading', mobileLabel: 'Reading' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Birthdays', mobileLabel: 'Birthdays' },
@@ -88,6 +89,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Firma', mobileLabel: 'Firma' },
       fanGallery: { label: 'Galería fan', mobileLabel: 'Galería fan' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Lectura', mobileLabel: 'Lectura' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Cumpleaños', mobileLabel: 'Cumpleaños' },
@@ -134,6 +136,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Assinar', mobileLabel: 'Assinar' },
       fanGallery: { label: 'Galeria fan', mobileLabel: 'Galeria fan' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Leitura', mobileLabel: 'Leitura' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Aniversários', mobileLabel: 'Aniversários' },
@@ -180,6 +183,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Signer', mobileLabel: 'Signer' },
       fanGallery: { label: 'Galerie fan', mobileLabel: 'Galerie fan' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Lecture', mobileLabel: 'Lecture' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Anniversaires', mobileLabel: 'Anniv.' },
@@ -226,6 +230,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Signieren', mobileLabel: 'Signieren' },
       fanGallery: { label: 'Fan-Galerie', mobileLabel: 'Fan-Galerie' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Lesen', mobileLabel: 'Lesen' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Geburtstage', mobileLabel: 'Geburtstage' },
@@ -272,6 +277,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'Firma', mobileLabel: 'Firma' },
       fanGallery: { label: 'Galleria fan', mobileLabel: 'Galleria fan' },
       blog: { label: 'Blog', mobileLabel: 'Blog' },
+      wiki: { label: 'Wiki', mobileLabel: 'Wiki' },
       sync: { label: 'Lettura', mobileLabel: 'Lettura' },
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Compleanni', mobileLabel: 'Compleanni' },
@@ -319,6 +325,7 @@ export const APP_UI_TEXT = {
       sign: { label: 'サイン', mobileLabel: 'サイン' },
       fanGallery: { label: 'ファンギャラリー', mobileLabel: 'ファンギャラリー' },
       blog: { label: 'ブログ', mobileLabel: 'ブログ' },
+      wiki: { label: 'ウィキ', mobileLabel: 'ウィキ' },
       sync: { label: '読書', mobileLabel: '読書' },
       quiz: { label: 'クイズ', mobileLabel: 'クイズ' },
       birthdays: { label: '誕生日', mobileLabel: '誕生日' },
@@ -327,7 +334,7 @@ export const APP_UI_TEXT = {
   },
 };
 
-export const APP_LANGUAGE_OPTIONS = SUPPORTED_UI_LANGUAGES.map((code) => ({
+export const getAppLanguageOptions = () => getSupportedUiLanguages().map((code) => ({
   code,
   name: APP_UI_TEXT[code]?.languageName || code,
 }));
