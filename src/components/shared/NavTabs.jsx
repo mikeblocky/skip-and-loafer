@@ -21,25 +21,7 @@ const DEFAULT_TABS = [
 const DARK_OUTLINE = '#0f172a';
 const USE_COMPACT_MOBILE_NAV = false;
 
-const getTabBadgeStyle = (isActive, color, isMobile) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: isMobile ? '19px' : '18px',
-  padding: isMobile ? '2px 7px' : '2px 6px',
-  borderRadius: '999px',
-  border: `2px solid ${isActive ? color : 'rgba(255,255,255,0.56)'}`,
-  borderBottom: `4px solid ${isActive ? color : 'rgba(15,23,42,0.3)'}`,
-  background: isActive ? '#ffffff' : 'rgba(255,255,255,0.16)',
-  color: isActive ? color : '#ffffff',
-  fontFamily: 'Sniglet, var(--font-main)',
-  fontSize: isMobile ? '0.6rem' : '0.56rem',
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
-  flexShrink: 0,
-});
-
-const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, badgesById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
+const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
   const railRef = useRef(null);
   const mobileSelectorRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -193,8 +175,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, badgesB
                     const isActive = activePage === tab.id;
                     const Icon = tab.icon;
                     const label = toUiLabelCase(labelsById?.[tab.id]?.mobileLabel || labelsById?.[tab.id]?.label || tab.mobileLabel || tab.label);
-                    const badge = badgesById?.[tab.id];
-
                     return (
                       <motion.button
                         key={tab.id}
@@ -252,9 +232,8 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, badgesB
                         >
                           <Icon size={22} strokeWidth={2.5} />
                         </div>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '1.06rem', fontWeight: '400', color: isActive ? tab.color : '#0f172a', flex: 1 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '1.06rem', fontWeight: '400', color: isActive ? tab.color : '#0f172a', flex: 1 }}>
                           <span>{label}</span>
-                          {badge ? <span style={getTabBadgeStyle(isActive, tab.color, true)}>{badge}</span> : null}
                         </span>
                       </motion.button>
                     );
@@ -302,7 +281,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, badgesB
           const Icon = tab.icon;
           const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);
           const mobileLabel = toUiLabelCase(labelsById?.[tab.id]?.mobileLabel || tab.mobileLabel || label);
-          const badge = badgesById?.[tab.id];
           const iconSize = isMobile ? (tab.iconSizeMobile || 21) : 21;
           const desktopBasis = Math.max(96, Math.min(192, Math.round(label.length * 9.4) + 32));
           const mobileBasis = Math.max(112, Math.min(214, Math.round(mobileLabel.length * 9.1) + 42));
@@ -368,9 +346,8 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, badgesB
                 >
                   <Icon size={iconSize} strokeWidth={2.5} />
                 </span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: 0, flexWrap: 'wrap' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                   <span>{isMobile ? mobileLabel : label}</span>
-                  {badge ? <span style={getTabBadgeStyle(isActive, tab.color, isMobile)}>{badge}</span> : null}
                 </span>
               </button>
             </div>
