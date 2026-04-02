@@ -505,6 +505,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
           return (
             <motion.button
               key={vol.number}
+              className="volume-selector-button"
               data-vol-idx={idx}
               onClick={() => handleSelect(idx)}
               whileHover={{ y: -4, scale: 1.05 }}
@@ -521,9 +522,9 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 border: `3.5px solid ${theme.accent}`,
                 borderBottom: isActive ? `8px solid ${theme.accent}` : `4px solid ${theme.accent}`,
                 borderRadius: '16px',
-                fontFamily: 'var(--font-paper)',
+                fontFamily: '"Coming Soon", var(--font-main)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',
-                fontWeight: '400',
+                fontWeight: '700',
                 cursor: 'pointer',
                 position: 'relative',
                 transition: 'border-bottom-width 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.2s',
