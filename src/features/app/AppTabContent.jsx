@@ -53,7 +53,30 @@ const TabFallback = ({ isMobile, label = 'Loading...' }) => (
   />
 );
 
-const getFallbackLabel = (activePage, isMobile) => {
+const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
+  if (uiLanguage === 'ja') {
+    switch (activePage) {
+      case 'gallery':
+        return isMobile ? 'ギャラリーを読み込み中...' : 'ギャラリーページを読み込み中...';
+      case 'sign':
+        return isMobile ? 'サインページを読み込み中...' : 'サインページを読み込み中...';
+      case 'fanGallery':
+        return isMobile ? 'ファンギャラリーを読み込み中...' : 'ファンギャラリーページを読み込み中...';
+      case 'blog':
+        return isMobile ? 'ブログを読み込み中...' : 'ブログ記事を読み込み中...';
+      case 'sync':
+        return isMobile ? '読書を読み込み中...' : '読書データを読み込み中...';
+      case 'quiz':
+        return isMobile ? 'クイズを読み込み中...' : 'クイズページを読み込み中...';
+      case 'birthdays':
+        return isMobile ? '誕生日を読み込み中...' : '誕生日ページを読み込み中...';
+      case 'mystery':
+        return isMobile ? 'ミステリーを読み込み中...' : 'ミステリーページを読み込み中...';
+      default:
+        return isMobile ? '読み込み中...' : 'ページを読み込み中...';
+    }
+  }
+
   switch (activePage) {
     case 'gallery':
       return isMobile ? 'Loading gallery...' : 'Loading gallery view...';
@@ -108,8 +131,8 @@ const AppTabContent = ({
   handleMainTouchStart,
   handleMainTouchEnd,
 }) => {
-  const tabPreloaders = useMemo(() => getAppTabPreloaders(activePage), [activePage]);
-  const fallbackLabel = useMemo(() => getFallbackLabel(activePage, isMobile), [activePage, isMobile]);
+  const tabPreloaders = useMemo(() => getAppTabPreloaders(activePage, uiLanguage), [activePage, uiLanguage]);
+  const fallbackLabel = useMemo(() => getFallbackLabel(activePage, isMobile, uiLanguage), [activePage, isMobile, uiLanguage]);
   const isLargeText = !!accessibilityPrefs?.largeText;
   const hasReadableSpacing = !!accessibilityPrefs?.readableSpacing;
   const homeDesktopMinHeight = isLargeText ? '590px' : (hasReadableSpacing ? '560px' : '530px');

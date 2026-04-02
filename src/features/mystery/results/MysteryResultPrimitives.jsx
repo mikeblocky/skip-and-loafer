@@ -82,17 +82,17 @@ export const MysteryResultBody = ({ isMobile, artwork, children }) => (
   <div
     style={{
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '260px minmax(0, 1fr)',
+      gridTemplateColumns: artwork && !isMobile ? '260px minmax(0, 1fr)' : '1fr',
       gap: '24px',
       alignItems: 'start',
     }}
   >
-    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>{artwork}</div>
+    {artwork ? <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>{artwork}</div> : null}
     <div style={{ display: 'grid', gap: '20px' }}>{children}</div>
   </div>
 );
 
-export const MysteryResultCharacterCard = ({ isMobile, colors, name, imageSrc }) => (
+export const MysteryResultCharacterCard = ({ isMobile, colors, name, imageSrc, hideImage = false }) => (
   <motion.div
     whileHover={isMobile ? {} : { scale: 1.05, rotate: 1.5, y: -4 }}
     style={{
@@ -113,7 +113,7 @@ export const MysteryResultCharacterCard = ({ isMobile, colors, name, imageSrc })
     }}
     className="paper-interact"
   >
-    {imageSrc ? (
+    {!hideImage && imageSrc ? (
       <img
         src={imageSrc}
         alt={name}

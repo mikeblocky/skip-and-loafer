@@ -22,6 +22,14 @@ export const BirthdayPage = lazy(loadBirthdayPage);
 export const QuizPage = lazy(loadQuizPage);
 export const MysteryPage = lazy(loadMysteryPage);
 
+const JAPANESE_HIDDEN_PRELOADERS = new Set([loadGalleryPage, loadBlogPage]);
+
+const filterPreloadersByLanguage = (loaders, uiLanguage) => (
+  uiLanguage === 'ja'
+    ? loaders.filter((loader) => !JAPANESE_HIDDEN_PRELOADERS.has(loader))
+    : loaders
+);
+
 const APP_TAB_PRELOADERS = {
   home: [loadChaptersPage, loadGalleryPage, loadSignPage, loadFanGalleryPage],
   chapters: [loadGalleryPage, loadSignPage, loadFanGalleryPage],
@@ -39,4 +47,4 @@ function loadHomePageSafe() {
   return loadPlannerPage();
 }
 
-export const getAppTabPreloaders = (activePage) => APP_TAB_PRELOADERS[activePage] || [];
+export const getAppTabPreloaders = (activePage, uiLanguage = 'en') => filterPreloadersByLanguage(APP_TAB_PRELOADERS[activePage] || [], uiLanguage);

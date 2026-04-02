@@ -37,6 +37,9 @@ const MobileChaptersTab = ({
   unreadCount,
 }) => {
   const theme = VOL_THEMES[volume.number] || VOL_THEMES[1];
+  const showVolumeArtwork = uiLanguage !== 'ja';
+  const showVolumeTitle = uiLanguage !== 'ja';
+  const volumeTitle = getVolumeTitleFn(uiLanguage, volume.number);
  
   return (
     <div style={{
@@ -77,8 +80,8 @@ const MobileChaptersTab = ({
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative'
               }}>
-                {volume.cover ? (
-                  <img src={volume.cover} alt={getVolumeTitleFn(uiLanguage, volume.number)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
+                {showVolumeArtwork && volume.cover ? (
+                  <img src={volume.cover} alt={volumeTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
                 ) : (
                   <span style={{
                     fontFamily: 'var(--font-main)', fontSize: '2rem',
@@ -95,17 +98,19 @@ const MobileChaptersTab = ({
                   transition={{ delay: 0.08, duration: 0.16, ease: 'easeOut' }}
                   style={EXTRA_BADGE_STYLE(theme)}
                 >
-                  <Tv size={12} strokeWidth={3} style={{ marginRight: '3px' }} />{volume.anime}
+                  <Tv size={12} strokeWidth={3} style={{ marginRight: '3px' }} />{uiLanguage === 'ja' ? 'アニメ第1期' : volume.anime}
                 </motion.div>
               )}
             </motion.div>
  
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', width: '100%' }}>
-              <motion.p
-                style={VOL_TITLE_STYLE(theme)}
-              >
-                {getVolumeTitleFn(uiLanguage, volume.number)}
-              </motion.p>
+              {showVolumeTitle && (
+                <motion.p
+                  style={VOL_TITLE_STYLE(theme)}
+                >
+                  {volumeTitle}
+                </motion.p>
+              )}
               <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.85rem', color: '#6b7280', fontWeight: '800' }}>
                 {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
                 {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '6px' }}>✦ {t.ongoing}</span>}

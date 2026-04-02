@@ -15,6 +15,7 @@ const UI_TEXT = {
   fr: { agenda: 'AGENDA', breakShort: 'Pause en mars : le chapitre 79 sortira dans l edition d avril !', breakLong: 'Pause en mars ! Le chapitre 79 sortira dans l edition d avril !' },
   de: { agenda: 'AGENDA', breakShort: 'Pause im Marz: Kapitel 79 erscheint in der April-Ausgabe!', breakLong: 'Pause im Marz! Kapitel 79 erscheint in der April-Ausgabe!' },
   it: { agenda: 'AGENDA', breakShort: 'Pausa a marzo: il capitolo 79 uscira nel numero di aprile!', breakLong: 'Pausa a marzo! Il capitolo 79 uscira nel numero di aprile!' },
+  ja: { agenda: '予定', breakShort: '3月は休載。第79話は4月号に掲載予定です。', breakLong: '3月は休載です。第79話は4月号に掲載予定です。' },
 };
 
 const LOCALE_BY_UI_LANGUAGE = {
@@ -24,6 +25,7 @@ const LOCALE_BY_UI_LANGUAGE = {
   fr: 'fr-FR',
   de: 'de-DE',
   it: 'it-IT',
+  ja: 'ja-JP',
 };
 
 const AgendaBadge = ({ isMobile, label, largeText = false }) => (
@@ -219,6 +221,8 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
   const desktopCountdownPaddingTop = largeText || readableSpacing ? '30px' : '24px';
   const desktopDatePaddingTop = largeText || readableSpacing ? '20px' : '16px';
   const desktopReleasePaddingTop = largeText || readableSpacing ? '18px' : '14px';
+  const seriesTitle = tGlobal.seriesTitle || 'Skip & Loafer';
+  const seriesTitleParts = seriesTitle.includes(' & ') ? seriesTitle.split(' & ') : [seriesTitle];
 
   const pageStyle = {
     padding: isMobile ? '18px 14px 22px' : (largeText ? '34px 28px 28px' : '28px 22px 26px'),
@@ -275,9 +279,15 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
             letterSpacing: '-0.03em',
           }}
         >
-          <span style={{ color: '#4ea4ff' }}>Skip </span>
-          <span style={{ color: '#8d9db8' }}>&amp; </span>
-          <span style={{ color: '#ff5ca8' }}>Loafer</span>
+          {seriesTitleParts.length > 1 ? (
+            <>
+              <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
+              <span style={{ color: '#8d9db8' }}>&amp; </span>
+              <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
+            </>
+          ) : (
+            <span style={{ color: '#4ea4ff' }}>{seriesTitle}</span>
+          )}
         </h1>
 
         <div style={{ width: '100%', paddingTop: '2px' }}>
@@ -340,10 +350,16 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
                 maxWidth: '100%',
               }}
             >
-              <span style={{ color: '#4ea4ff' }}>Skip </span>
-              <span style={{ color: '#8d9db8' }}>&amp;</span>
-              <br />
-              <span style={{ color: '#ff5ca8' }}>Loafer</span>
+              {seriesTitleParts.length > 1 ? (
+                <>
+                  <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
+                  <span style={{ color: '#8d9db8' }}>&amp;</span>
+                  <br />
+                  <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
+                </>
+              ) : (
+                <span style={{ color: '#4ea4ff' }}>{seriesTitle}</span>
+              )}
             </h1>
           </div>
 

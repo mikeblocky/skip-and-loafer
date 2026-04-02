@@ -4,7 +4,7 @@ import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, 
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
-const TABS = [
+const DEFAULT_TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', desktopFlex: 1 },
     { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', desktopFlex: 1.18 },
     { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#7c4dff', desktopFlex: 1 },
@@ -20,10 +20,13 @@ const TABS = [
 const DARK_OUTLINE = '#0f172a';
 const USE_COMPACT_MOBILE_NAV = false;
 
-const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
+const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
   const railRef = useRef(null);
   const mobileSelectorRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const tabsToRender = Array.isArray(tabs) && tabs.length > 0
+    ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
+    : DEFAULT_TABS;
 
   const handleTabPress = useCallback((tabId) => {
     triggerHaptic('selection');
@@ -59,7 +62,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen, isMobile]);
 
-  const activeTab = TABS.find((tab) => tab.id === activePage) || TABS[0];
+  const activeTab = tabsToRender.find((tab) => tab.id === activePage) || tabsToRender[0];
   const ActiveIcon = activeTab.icon;
   const activeLabel = toUiLabelCase(labelsById?.[activeTab.id]?.label || activeTab.label);
   const activeMobileLabel = toUiLabelCase(labelsById?.[activeTab.id]?.mobileLabel || activeTab.mobileLabel || activeLabel);
@@ -167,7 +170,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {TABS.map((tab) => {
+                  {tabsToRender.map((tab) => {
                     const isActive = activePage === tab.id;
                     const Icon = tab.icon;
                     const label = toUiLabelCase(labelsById?.[tab.id]?.mobileLabel || labelsById?.[tab.id]?.label || tab.mobileLabel || tab.label);
@@ -273,7 +276,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, labelsById, openTabPrefix
           scrollSnapType: isMobile ? 'x proximity' : 'none',
         }}
       >
-        {TABS.map((tab) => {
+        {tabsToRender.map((tab) => {
           const isActive = activePage === tab.id;
           const Icon = tab.icon;
           const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);

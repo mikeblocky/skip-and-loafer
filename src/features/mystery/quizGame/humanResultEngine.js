@@ -1,4 +1,5 @@
 import { CHAR_PROFILES } from '../../../data/quizData';
+import { getCharacterDisplayName } from '../../../data/characterNames';
 import { AXES, toMysteryName } from './config';
 import { computeHumanLiveQuality } from './humanQuizUtils';
 
@@ -14,6 +15,7 @@ export const calculateHumanResult = ({
   portraitData,
   evidenceTrail,
   recoveryRounds,
+  uiLanguage = 'en',
 }) => {
   const totalSignal = AXES.reduce((sum, axis) => sum + (axisSignal[axis] || 0), 0);
   const axisWeight = AXES.reduce((acc, axis) => {
@@ -202,6 +204,7 @@ export const calculateHumanResult = ({
   );
 
   const bestDisplayName = toMysteryName(bestMatch.key);
+  const localizedBestDisplayName = getCharacterDisplayName(bestDisplayName, uiLanguage);
   const matchObj =
     portraitData.find((portrait) => portrait.name === bestDisplayName || portrait.name.includes(bestDisplayName)) ||
     portraitData[5];
@@ -209,10 +212,11 @@ export const calculateHumanResult = ({
   const dedupedScores = new Map();
   rankedMatches.forEach((entry) => {
     const displayName = toMysteryName(entry.key);
+    const localizedDisplayName = getCharacterDisplayName(displayName, uiLanguage);
     const previous = dedupedScores.get(displayName);
     if (!previous || entry.suitabilityScore > previous.score) {
       dedupedScores.set(displayName, {
-        name: displayName,
+        name: localizedDisplayName,
         score: entry.suitabilityScore,
         distanceScore: Math.round(entry.distanceScore),
         alignmentScore: Math.round(entry.alignmentScore),
@@ -227,7 +231,7 @@ export const calculateHumanResult = ({
     score: entry.score,
   }));
   const runnerUpDisplay =
-    characterScores.find((entry) => entry.name !== bestDisplayName)?.name || toMysteryName(runnerUp.key);
+    characterScores.find((entry) => entry.name !== localizedBestDisplayName)?.name || getCharacterDisplayName(toMysteryName(runnerUp.key), uiLanguage);
 
   return {
     character: matchObj,
@@ -236,7 +240,7 @@ export const calculateHumanResult = ({
     suitabilityScore: bestMatch.suitabilityScore,
     finalAxes,
     axisWeight,
-    topMatch: bestDisplayName,
+    topMatch: localizedBestDisplayName,
     runnerUp: runnerUpDisplay,
     consistency,
     cosineSimilarity: bestMatch.cosineSimilarity,

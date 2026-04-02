@@ -61,7 +61,7 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     startQuiz,
     handleChoiceSelect,
     resetQuiz,
-  } = useQuizGameController({ t });
+  } = useQuizGameController({ t, uiLanguage });
 
   return (
     <div

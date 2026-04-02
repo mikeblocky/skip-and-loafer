@@ -7,6 +7,16 @@ export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
 export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery'];
 export const DEFAULT_PAGE = TAB_PAGES[0];
+export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];
+
+export const getVisibleTabPages = (uiLanguage = 'en') => {
+  if (uiLanguage === 'ja') {
+    return TAB_PAGES.filter((page) => !JAPANESE_HIDDEN_TAB_PAGES.includes(page));
+  }
+
+  return TAB_PAGES;
+};
+
 export const VALID_COLOR_BLIND_MODES = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'black-white'];
 
 export const DEFAULT_SHORTCUT_STATS = {

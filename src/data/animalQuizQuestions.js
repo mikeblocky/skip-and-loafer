@@ -78,6 +78,17 @@ const INSTRUCTIONS = {
   ),
 };
 
+const JA_INSTRUCTIONS = {
+  grid: 'いちばん近いものを1つ選んでください。',
+  sort4: '4枚を、あなたらしい順に並べてください。',
+  pairMatch: 'あなたの感覚で自然に対になる2枚を選んでください。',
+  hold: '量がちょうどよいと感じるところまで押し続けてください。',
+  rhythm: '自分らしいと感じるテンポで4回タップしてください。',
+  constellation: '最初の直感から最後の直感まで、3段階で組み立ててください。',
+  reaction: '反射テストを開始し、合図が出たらできるだけ早くタップしてください。',
+  timing: 'メーターを開始し、目標ゾーンの中で止めてください。',
+};
+
 const LABELS = {
   warmth: { leftLabel: L('Need space first', 'Espacio primero', 'Espaco primeiro', 'Espace d abord', 'Erst Abstand', 'Spazio prima'), rightLabel: L('Soften fast', 'Me ablando rapido', 'Amoleco rapido', 'Je me radoucis vite', 'Schnell weich', 'Mi addolcisco presto') },
   vigilance: { leftLabel: L('Settle fast', 'Me acomodo rapido', 'Relaxo rapido', 'Je me pose vite', 'Schnell ruhig', 'Mi sistemo presto'), rightLabel: L('Stay on watch', 'Sigo en guardia', 'Fico de vigia', 'Je reste en veille', 'Bleibe wachsam', 'Resto in guardia') },
@@ -91,6 +102,136 @@ const LABELS = {
   routineFlex: { leftLabel: L('Routine', 'Rutina', 'Rotina', 'Routine', 'Routine', 'Routine'), rightLabel: L('Flex', 'Flex', 'Flex', 'Souple', 'Flex', 'Flessibile') },
   guardPlay: { leftLabel: L('Guard', 'Guardia', 'Vigilia', 'Garde', 'Wache', 'Guardia'), rightLabel: L('Play', 'Juego', 'Brincar', 'Jeu', 'Spiel', 'Gioco') },
 };
+
+const JA_LABELS = {
+  warmth: { leftLabel: '距離を保つ', rightLabel: 'すぐにやわらぐ' },
+  vigilance: { leftLabel: 'すぐに落ち着く', rightLabel: '見守り続ける' },
+  independence: { leftLabel: 'まだ一緒にいたい', rightLabel: '自分の角が必要' },
+  play: { leftLabel: 'めったにない', rightLabel: 'とても起こりやすい' },
+  guardExplore: { leftLabel: 'まず守る', rightLabel: 'まず探る' },
+  orderMischief: { leftLabel: '秩序', rightLabel: 'いたずら' },
+  closeSpace: { leftLabel: '近さ', rightLabel: '距離' },
+  calmChaos: { leftLabel: '落ち着き', rightLabel: '混沌' },
+  comfortAdventure: { leftLabel: '居心地のよさ', rightLabel: '冒険' },
+  routineFlex: { leftLabel: '習慣', rightLabel: '柔軟さ' },
+  guardPlay: { leftLabel: '見守る', rightLabel: '遊ぶ' },
+};
+
+const JA_GRIDS = {
+  socialNest: {
+    xLeftLabel: 'こぢんまり',
+    xRightLabel: '開放的',
+    yTopLabel: '近い',
+    yBottomLabel: 'ひとり',
+    options: [
+      option('近くて落ち着く', { warmth: 12, comfort: 10 }),
+      option('近くて明るい', { warmth: 12, play: 8 }),
+      option('ひとりで守られている', { independence: 12, comfort: 10 }),
+      option('ひとりで動き回る', { independence: 12, curiosity: 10 }),
+    ],
+  },
+  watchWarm: {
+    xLeftLabel: '見張り気味',
+    xRightLabel: 'やわらかい',
+    yTopLabel: '静か',
+    yBottomLabel: '動きがある',
+    options: [
+      option('静かに見張る', { vigilance: 14, comfort: 4 }),
+      option('静かにやわらかい', { warmth: 12, comfort: 6 }),
+      option('動きながら見張る', { vigilance: 10, play: 6 }),
+      option('動きながらやわらかい', { warmth: 12, play: 10 }),
+    ],
+  },
+};
+
+const JA_QUESTION_OVERRIDES = {
+  2101: {
+    text: '10組のキャラクターペアを記憶で合わせて、集中力を証明してください。',
+    previewLabel: 'カードをめくる前に、少しだけ絵柄を覚えてください。',
+    playLabel: '10組のペアを記憶で合わせてください。',
+    timerLabel: '時間',
+    completedLabel: '完了',
+    retryLabel: 'やり直す',
+    fastResultLabel: '鋭い記憶',
+    steadyResultLabel: '安定した一致',
+    slowResultLabel: '慎重な一致',
+  },
+  2001: { text: '誰か近しい人が安心を求めたとき、あなたはどれくらい自然にやわらかく寄り添いますか？', leftLabel: '少し距離をとる', rightLabel: 'すぐにやわらかくなる' },
+  2002: { text: '初めての場所では、周りの細かな変化にどれくらい注意を向けますか？', leftLabel: 'すぐ落ち着く', rightLabel: '静かに見張る' },
+  2003: { text: '消耗した一日のあと、自分だけの回復時間をどれくらい守りたいですか？', leftLabel: 'まだ誰かといたい', rightLabel: 'ひとりの時間が必要' },
+  2004: { text: '安全だと感じたあと、ふざけたり遊んだりするのはどれくらい簡単ですか？', leftLabel: 'めったにない', rightLabel: 'とても簡単' },
+  2005: { text: '知らない部屋に入ったとき、最初にいちばん自然だと感じるのは？' },
+  2006: { text: '落ち着いた空気が急に乱れたら、最初にどんな反応をしますか？' },
+  2007: { text: '最近のあなたに本当に合っている回復モードを2つまで選んでください。' },
+  2008: { text: '見慣れない環境で、まず重視することを上位2つ選んでください。' },
+  2009: { text: 'ストレスが強いとき、最初に出やすい自分の反応を1つずつ選んでください。' },
+  2010: { text: '知らない空間に入ったとき、最初に向きやすいのはどっち？', leftLabel: 'まず部屋を守る', rightLabel: 'まず部屋を探る' },
+  2011: { text: '理想の一日を作るのに、10ポイントをどう配分しますか？' },
+  2012: { text: '新しいものが目の前に現れたとき、いちばん自然な反応は？' },
+  2013: { text: '空気が少しおかしいと感じたら、理解するまで見続けますか？' },
+  2014: { text: '信頼している人には、自分から最初にあいさつするほうですか？' },
+  2015: { text: '回復するとき、あなたの本音に近いのはどっち？' },
+  2016: { text: 'ベストな自分のとき、いちばんしっくりくる褒め言葉は？' },
+  2017: { text: 'リズムを崩しやすいものを、上位2つまで選んでください。' },
+  2018: { text: 'あなたが一番信頼するものに、10ポイントを配分してください。' },
+  2019: { text: '完全に自分らしいとき、自然に向くのはどっち？', leftLabel: '秩序と習慣', rightLabel: 'いたずらと気まぐれ' },
+  2020: { text: '人が最初に気づきやすい、あなたの本能を上位2つ選んでください。' },
+  2021: { text: '不安なとき、いちばん自然なものと、いちばん不自然なものを選んでください。' },
+  2022: { text: '大切な人の様子が明らかにいつもと違うとき、基本の反応は？' },
+  2023: { text: '同じことの繰り返しが長いと、だんだん落ち着かなくなる。' },
+  2024: { text: '空気の小さな変化に、周りの人より先に気づくほうですか？' },
+  2025: { text: '一日が急に強く揺れたときの、あなたらしい順番を選んでください。' },
+  2026: { text: 'エネルギーが限られているとき、どう配分するのが本音に近いですか？', leftLabel: '近く', rightLabel: '距離' },
+  2027: { text: '自然に安全へ戻る流れとして、いちばん近い順番を作ってください。' },
+  2028: { text: '両方は最大にできないとき、まずどちらを重視しますか？', leftLabel: '安心', rightLabel: '冒険' },
+  2029: { text: '未知の空間では、最初にどちらへ傾きますか？' },
+  2030: { text: '完全に自分らしいとき、どこへいちばん傾きますか？' },
+  2031: { text: 'エネルギーが少ない日は、何をいちばん求めますか？' },
+  2032: { text: 'あなたの部屋の印象は、どちらに近いですか？' },
+  2033: { text: '理想の1日に10ポイントを配分してください。' },
+  2034: { text: '信頼を得るものに10ポイントを配分してください。' },
+  2035: { text: 'あなたを立て直すものに10ポイントを配分してください。' },
+  2036: { text: '核となる感覚に10ポイントを配分してください。' },
+  2037: { text: '新しい物が部屋に入ってきたときの基本反応は？' },
+  2038: { text: '大切な人の様子がいつもと違うときの基本反応は？' },
+  2039: { text: '共有スペースでいちばん自然にできる役割は？' },
+  2040: { text: '部屋に何か必要なとき、最初に生み出すものは？' },
+  2041: { text: 'いつものルーティンが多すぎると落ち着かなくなる。' },
+  2042: { text: '空気に違和感があると、つい観察し続けてしまう。' },
+  2043: { text: '安心感は、自分全体に影響する。' },
+  2044: { text: '正直に戻るには、自分だけの余白が必要だ。' },
+  2045: { text: '強い一日のあと、どう立て直すかの順番は？' },
+  2046: { text: '安全を取り戻す流れで、どの順番が近いですか？' },
+  2047: { text: 'エネルギーが限られているとき、まず多く割くのはどちら？' },
+  2048: { text: '両方は無理なら、まずどちらを優先しますか？' },
+  2049: { text: 'あなたのホームベースの雰囲気にいちばん近いのは？' },
+  2050: { text: 'あなたの社交のかたちにいちばん近いのは？' },
+  2051: { text: 'これらを、回復力が高い順から低い順に並べてください。' },
+  2052: { text: 'これらを、信頼の強さが高い順から低い順に並べてください。' },
+  2053: { text: '部屋の本能が合う2枚を組み合わせてください。' },
+  2054: { text: 'ケアへの反応が合う2枚を組み合わせてください。' },
+  2055: { text: '自分のリセットに合う2枚を組み合わせてください。' },
+  2056: { text: 'ホームモードが求める親密さがちょうどよく感じるまで押し続けてください。', lowLabel: '自分だけの距離', highLabel: 'やわらかな近さ' },
+  2057: { text: '部屋のエネルギーに合うテンポで4回タップしてください。', slowLabel: 'ゆっくり', fastLabel: 'すぐ', steadyLabel: '一定', wildLabel: '波がある' },
+  2058: { text: 'あなたの部屋の本能を3段階で組み立ててください。' },
+  2059: { text: 'あなたのケアの型を3段階で組み立ててください。' },
+  2060: { text: 'リセットに必要なひとりの量が正直だと感じるまで押し続けてください。', lowLabel: 'ぬくもりの近さ', highLabel: '静かな余白' },
+  2061: { text: '普段の回復テンポに合わせて4回タップしてください。', slowLabel: 'ゆっくりほどく', fastLabel: '早く戻る', steadyLabel: '一定の脈', wildLabel: '上下する' },
+  2062: { text: '本能的な反射を試します。合図が本物になったら、どれくらい速く動きますか？', quickLabel: '一瞬', steadyLabel: '見極め', slowLabel: '遅れて動く' },
+  2063: { text: 'メーターを目標ゾーンの中で止めて、タイミングを試してください。', bullseyeLabel: 'ど真ん中', nearLabel: '近い', wideLabel: '外れ気味' },
+  2901: { text: '調子がよくても、広く浅い関係より少数の信頼できる絆を選ぶ。' },
+  2902: { text: '部屋が安全だと感じると、もっと遊びたくなったり、やさしくなったりする。' },
+  2903: { text: '思いがけず自由時間ができたら、最初に何が呼びますか？' },
+  2904: { text: 'いちばん安定した自分に近い文はどれですか？' },
+  2905: { text: '自分にとって根本的に本当だと感じるものへ、10ポイントを配分してください。' },
+  2906: { text: 'いちばん静かな日でも、本当だと感じる四角はどれですか？' },
+};
+
+Object.entries(JA_INSTRUCTIONS).forEach(([key, value]) => {
+  if (INSTRUCTIONS[key]) {
+    INSTRUCTIONS[key].ja = value;
+  }
+});
 
 const OPTION_SETS = {
   roomFirst: [
@@ -140,6 +281,153 @@ const OPTION_SETS = {
     option(L('Constant noise', 'Ruido constante', 'Barulho constante', 'Bruit constant', 'Dauerlarm', 'Rumore costante'), { vigilance: 10, comfort: 8 }),
     option(L('No room to wander', 'Sin espacio para moverme', 'Sem espaco para andar', 'Pas de place pour bouger', 'Kein Raum zum Umherziehen', 'Nessuno spazio per muovermi'), { independence: 10, curiosity: 8 }),
     option(L('Forced cheer too long', 'Alegria forzada mucho tiempo', 'Animacao forcada por muito tempo', 'Bonne humeur forcee trop longtemps', 'Zu lange erzwungene Gute Laune', 'Allegria forzata troppo a lungo'), { comfort: 6, independence: 6 }),
+  ],
+};
+
+const JA_OPTION_SETS = {
+  roomFirst: [
+    option('安心できる顔を探す', { warmth: 10, comfort: 6 }),
+    option('部屋の様子を静かに読む', { vigilance: 12, curiosity: 5 }),
+    option('落ち着ける角に入る', { comfort: 12, independence: 2 }),
+    option('距離を保って様子を見る', { independence: 10, vigilance: 8 }),
+  ],
+  disruption: [
+    option('すぐに変化を確かめる', { curiosity: 10, vigilance: 6 }),
+    option('いつもの流れに戻る', { comfort: 12, vigilance: 4 }),
+    option('大切な人の様子を確認する', { warmth: 12, vigilance: 4 }),
+    option('動きや笑いで空気を変える', { play: 12, warmth: 6 }),
+  ],
+  compliment: [
+    option('すぐ安心できる人だと言われる', { warmth: 12, comfort: 4 }),
+    option('誰より先に気づくと言われる', { vigilance: 12, curiosity: 5 }),
+    option('混沌の中でもちゃんとしていると言われる', { play: 12, warmth: 4 }),
+    option('流されず自分を保っていると言われる', { independence: 12, vigilance: 4 }),
+  ],
+  trustOpen: [
+    option('やさしい一貫性', { comfort: 12, warmth: 6 }),
+    option('自分のペースを尊重してくれること', { independence: 12, comfort: 2 }),
+    option('気楽に遊べる時間', { play: 10, warmth: 8 }),
+    option('分かりやすい合図', { vigilance: 12, comfort: 4 }),
+  ],
+  resetModes: [
+    option('毛布といつもの角', { comfort: 12, vigilance: 2 }),
+    option('ひとりで歩き回る', { curiosity: 8, independence: 10 }),
+    option('信頼できる人や動物と遊ぶ', { warmth: 8, play: 10 }),
+    option('しばらく見てから戻る', { vigilance: 12, independence: 4 }),
+  ],
+  throwoffs: [
+    option('距離感の近すぎる人', { independence: 12, warmth: -4 }),
+    option('大きくて読めない緊張感', { vigilance: 12, comfort: 8 }),
+    option('追うものも解くものもない退屈', { curiosity: 12, play: 6 }),
+    option('安心できる人から切り離されること', { warmth: 12, comfort: 4 }),
+  ],
+  comfortSignals: [
+    option('あたたかい飲み物', { comfort: 10, warmth: 2 }),
+    option('自分だけの静かな角', { independence: 10, comfort: 4 }),
+    option('やさしい人が近くにいること', { warmth: 12, comfort: 2 }),
+    option('小さな観察対象', { curiosity: 10, vigilance: 4 }),
+  ],
+  energyLeaks: [
+    option('気をつかいすぎること', { warmth: 8, vigilance: 4 }),
+    option('絶えない音や雑音', { vigilance: 10, comfort: 8 }),
+    option('歩き回る余地がないこと', { independence: 10, curiosity: 8 }),
+    option('無理に明るくし続けること', { comfort: 6, independence: 6 }),
+  ],
+  priorities: [
+    option('安心できる人を見つける', { warmth: 10, comfort: 6 }),
+    option('出口や流れを読む', { vigilance: 12, curiosity: 6 }),
+    option('遊びで空気を試す', { play: 12, warmth: 4 }),
+    option('離れられる距離を確保する', { independence: 12, vigilance: 4 }),
+  ],
+  firstTraits: [
+    option('やわらかくて親しみやすい', { warmth: 12, comfort: 4 }),
+    option('静かで正確', { vigilance: 12, independence: 4 }),
+    option('落ち着かず好奇心が強い', { curiosity: 12, independence: 6 }),
+    option('急にふざける', { play: 12, warmth: 4 }),
+  ],
+  safeAgain: [
+    option('信頼できる近さ', { warmth: 12, comfort: 4 }),
+    option('何が変わったかを見る時間', { vigilance: 12, curiosity: 4 }),
+    option('なじんだ安心感', { comfort: 14, vigilance: 2 }),
+    option('ひとりでいられる余白', { independence: 14, comfort: 2 }),
+  ],
+  trustMarkers: [
+    option('安心して力を抜ける', { comfort: 12, warmth: 4 }),
+    option('細かな変化に気づく', { vigilance: 10, warmth: 4 }),
+    option('自分のペースを尊重する', { independence: 12, comfort: 4 }),
+    option('気楽に笑い合える', { play: 12, warmth: 6 }),
+  ],
+  stressModes: [
+    option('安心できる人に寄る', { warmth: 12, comfort: 8, independence: -4 }),
+    option('静かに観察する', { vigilance: 12, independence: 8 }),
+    option('動いて空気を変える', { play: 12, warmth: 6 }),
+    option('習慣を守る', { comfort: 12, vigilance: 6 }),
+  ],
+  uncertaintyModes: [
+    option('なじみのあるものに寄る', { comfort: 12, warmth: 4 }),
+    option('離れて観察する', { independence: 10, vigilance: 8 }),
+    option('遊びに変える', { play: 12, warmth: 6 }),
+    option('理解できるまで調べる', { curiosity: 10, vigilance: 10 }),
+  ],
+  homeModes: [
+    option('やわらかい家モード', { comfort: 14, warmth: 4 }),
+    option('静かな見張り役', { vigilance: 10, curiosity: 10 }),
+    option('あたたかい小さな混沌', { play: 12, warmth: 10 }),
+    option('ひとりで動く人', { independence: 14, curiosity: 8 }),
+  ],
+  careModes: [
+    option('そばで空気をやわらげる', { warmth: 12, comfort: 6 }),
+    option('原因を静かに追う', { vigilance: 12, curiosity: 4 }),
+    option('冗談で持ち上げる', { play: 12, warmth: 8 }),
+    option('距離を置いてあとで戻る', { independence: 10, warmth: 6 }),
+  ],
+  allocIdeal: [
+    option('信頼できる近さ', { warmth: 14 }),
+    option('観察したいもの', { curiosity: 14 }),
+    option('安全な巣', { comfort: 14, vigilance: 4 }),
+    option('自由に動ける余白', { independence: 14 }),
+  ],
+  allocTrust: [
+    option('一貫性', { comfort: 12, vigilance: 8 }),
+    option('やさしさ', { warmth: 14 }),
+    option('自分の空間を尊重されること', { independence: 14 }),
+    option('気楽に共有できる楽しい時間', { play: 12, warmth: 6 }),
+  ],
+  allocRestore: [
+    option('安心できる人といること', { warmth: 12, comfort: 6 }),
+    option('ひとりの静けさ', { independence: 12, comfort: 4 }),
+    option('見守りと確認', { vigilance: 12, curiosity: 4 }),
+    option('遊びと気分転換', { play: 12, warmth: 4 }),
+  ],
+  allocCore: [
+    option('つながりとぬくもり', { warmth: 16 }),
+    option('安全と習慣', { comfort: 14, vigilance: 6 }),
+    option('自由と広がり', { independence: 14, curiosity: 8 }),
+    option('動きと遊び', { play: 16 }),
+  ],
+  pairRoomFlow: [
+    option('近くで安心する', { warmth: 10, comfort: 6 }),
+    option('静かに見回す', { vigilance: 12, curiosity: 4 }),
+    option('遊びで空気を変える', { play: 12, warmth: 6 }),
+    option('一人で距離を取る', { independence: 12, vigilance: 4 }),
+    option('やわらかく合わせる', { warmth: 8, comfort: 6 }),
+    option('はっきり線を引く', { independence: 10, vigilance: 6 }),
+  ],
+  pairCareLoop: [
+    option('そっと寄り添う', { warmth: 12, comfort: 4 }),
+    option('何が起きたかを見る', { vigilance: 12, curiosity: 4 }),
+    option('冗談で緩める', { play: 12, warmth: 8 }),
+    option('相手の余白を守る', { independence: 10, warmth: 6 }),
+    option('まず安全を作る', { warmth: 10, comfort: 6 }),
+    option('様子を見てから動く', { vigilance: 8, curiosity: 8 }),
+  ],
+  pairResetArc: [
+    option('ぬくもりを戻す', { warmth: 12, comfort: 6 }),
+    option('ひとりで整える', { curiosity: 10, independence: 8 }),
+    option('安心できる感覚に戻る', { comfort: 12, play: 4 }),
+    option('少し動いて切り替える', { play: 10, curiosity: 8 }),
+    option('静かな集中を守る', { vigilance: 10, comfort: 4 }),
+    option('小さな達成を作る', { warmth: 8, play: 6 }),
   ],
 };
 const OPTION_SETS_2 = {
@@ -342,16 +630,31 @@ const RECOVERY = [
 ];
 
 const localizeQuestion = (question, uiLanguage) => {
-  const localized = { ...question, text: pick(question.text, uiLanguage) };
+  const localized = {
+    ...question,
+    ...(uiLanguage === 'ja' ? (JA_QUESTION_OVERRIDES[question.id] || {}) : {}),
+    text: pick(question.text, uiLanguage),
+  };
+  if (uiLanguage === 'ja' && JA_QUESTION_OVERRIDES[question.id]?.text) {
+    localized.text = JA_QUESTION_OVERRIDES[question.id].text;
+  }
   if (question.evidenceLabel) {
     localized.evidenceLabel = pick(question.evidenceLabel, uiLanguage);
   }
   if (question.labelKey && LABELS[question.labelKey]) {
-    localized.leftLabel = pick(LABELS[question.labelKey].leftLabel, uiLanguage);
-    localized.rightLabel = pick(LABELS[question.labelKey].rightLabel, uiLanguage);
+    if (uiLanguage === 'ja' && JA_LABELS[question.labelKey]) {
+      localized.leftLabel = JA_LABELS[question.labelKey].leftLabel;
+      localized.rightLabel = JA_LABELS[question.labelKey].rightLabel;
+    } else {
+      localized.leftLabel = pick(LABELS[question.labelKey].leftLabel, uiLanguage);
+      localized.rightLabel = pick(LABELS[question.labelKey].rightLabel, uiLanguage);
+    }
   }
   if (question.optionKey && OPTION_SETS[question.optionKey]) {
     localized.options = OPTION_SETS[question.optionKey].map((entry) => ({ ...entry, text: pick(entry.text, uiLanguage) }));
+    if (uiLanguage === 'ja' && JA_OPTION_SETS[question.optionKey]) {
+      localized.options = JA_OPTION_SETS[question.optionKey];
+    }
   }
   if (question.duelKey && DUELS[question.duelKey]) {
     localized.left = { ...DUELS[question.duelKey].left, text: pick(DUELS[question.duelKey].left.text, uiLanguage) };
@@ -362,45 +665,57 @@ const localizeQuestion = (question, uiLanguage) => {
     localized.right = { ...TRADEOFFS[question.tradeoffKey].right, text: pick(TRADEOFFS[question.tradeoffKey].right.text, uiLanguage) };
   }
   if (question.gridKey && GRIDS[question.gridKey]) {
-    localized.xLeftLabel = pick(GRIDS[question.gridKey].xLeftLabel, uiLanguage);
-    localized.xRightLabel = pick(GRIDS[question.gridKey].xRightLabel, uiLanguage);
-    localized.yTopLabel = pick(GRIDS[question.gridKey].yTopLabel, uiLanguage);
-    localized.yBottomLabel = pick(GRIDS[question.gridKey].yBottomLabel, uiLanguage);
-    localized.options = GRIDS[question.gridKey].options.map((entry) => ({ ...entry, text: pick(entry.text, uiLanguage) }));
+    if (uiLanguage === 'ja' && JA_GRIDS[question.gridKey]) {
+      localized.xLeftLabel = JA_GRIDS[question.gridKey].xLeftLabel;
+      localized.xRightLabel = JA_GRIDS[question.gridKey].xRightLabel;
+      localized.yTopLabel = JA_GRIDS[question.gridKey].yTopLabel;
+      localized.yBottomLabel = JA_GRIDS[question.gridKey].yBottomLabel;
+      localized.options = JA_GRIDS[question.gridKey].options;
+    } else {
+      localized.xLeftLabel = pick(GRIDS[question.gridKey].xLeftLabel, uiLanguage);
+      localized.xRightLabel = pick(GRIDS[question.gridKey].xRightLabel, uiLanguage);
+      localized.yTopLabel = pick(GRIDS[question.gridKey].yTopLabel, uiLanguage);
+      localized.yBottomLabel = pick(GRIDS[question.gridKey].yBottomLabel, uiLanguage);
+      localized.options = GRIDS[question.gridKey].options.map((entry) => ({ ...entry, text: pick(entry.text, uiLanguage) }));
+    }
   }
   if (question.type === 'hold') {
-    localized.lowLabel = pick(question.lowLabel, uiLanguage);
-    localized.highLabel = pick(question.highLabel, uiLanguage);
+    if (localized.lowLabel == null) localized.lowLabel = pick(question.lowLabel, uiLanguage);
+    if (localized.highLabel == null) localized.highLabel = pick(question.highLabel, uiLanguage);
   }
   if (question.type === 'rhythm') {
-    localized.slowLabel = pick(question.slowLabel, uiLanguage);
-    localized.fastLabel = pick(question.fastLabel, uiLanguage);
-    localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
-    localized.wildLabel = pick(question.wildLabel, uiLanguage);
+    if (localized.slowLabel == null) localized.slowLabel = pick(question.slowLabel, uiLanguage);
+    if (localized.fastLabel == null) localized.fastLabel = pick(question.fastLabel, uiLanguage);
+    if (localized.steadyLabel == null) localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
+    if (localized.wildLabel == null) localized.wildLabel = pick(question.wildLabel, uiLanguage);
   }
   if (question.type === 'guess') {
-    localized.leftLabel = pick(question.leftLabel, uiLanguage);
-    localized.rightLabel = pick(question.rightLabel, uiLanguage);
+    if (localized.leftLabel == null) localized.leftLabel = pick(question.leftLabel, uiLanguage);
+    if (localized.rightLabel == null) localized.rightLabel = pick(question.rightLabel, uiLanguage);
+  }
+  if (uiLanguage === 'ja') {
+    if (localized.leftLabel == null && question.leftLabel) localized.leftLabel = pick(question.leftLabel, uiLanguage);
+    if (localized.rightLabel == null && question.rightLabel) localized.rightLabel = pick(question.rightLabel, uiLanguage);
   }
   if (question.type === 'flip') {
-    localized.previewLabel = pick(question.previewLabel, uiLanguage);
-    localized.playLabel = pick(question.playLabel, uiLanguage);
-    localized.timerLabel = pick(question.timerLabel, uiLanguage);
-    localized.completedLabel = pick(question.completedLabel, uiLanguage);
-    localized.retryLabel = pick(question.retryLabel, uiLanguage);
-    localized.fastResultLabel = pick(question.fastResultLabel, uiLanguage);
-    localized.steadyResultLabel = pick(question.steadyResultLabel, uiLanguage);
-    localized.slowResultLabel = pick(question.slowResultLabel, uiLanguage);
+    if (localized.previewLabel == null) localized.previewLabel = pick(question.previewLabel, uiLanguage);
+    if (localized.playLabel == null) localized.playLabel = pick(question.playLabel, uiLanguage);
+    if (localized.timerLabel == null) localized.timerLabel = pick(question.timerLabel, uiLanguage);
+    if (localized.completedLabel == null) localized.completedLabel = pick(question.completedLabel, uiLanguage);
+    if (localized.retryLabel == null) localized.retryLabel = pick(question.retryLabel, uiLanguage);
+    if (localized.fastResultLabel == null) localized.fastResultLabel = pick(question.fastResultLabel, uiLanguage);
+    if (localized.steadyResultLabel == null) localized.steadyResultLabel = pick(question.steadyResultLabel, uiLanguage);
+    if (localized.slowResultLabel == null) localized.slowResultLabel = pick(question.slowResultLabel, uiLanguage);
   }
   if (question.type === 'reaction') {
-    localized.quickLabel = pick(question.quickLabel, uiLanguage);
-    localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
-    localized.slowLabel = pick(question.slowLabel, uiLanguage);
+    if (localized.quickLabel == null) localized.quickLabel = pick(question.quickLabel, uiLanguage);
+    if (localized.steadyLabel == null) localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
+    if (localized.slowLabel == null) localized.slowLabel = pick(question.slowLabel, uiLanguage);
   }
   if (question.type === 'timing') {
-    localized.bullseyeLabel = pick(question.bullseyeLabel, uiLanguage);
-    localized.nearLabel = pick(question.nearLabel, uiLanguage);
-    localized.wideLabel = pick(question.wideLabel, uiLanguage);
+    if (localized.bullseyeLabel == null) localized.bullseyeLabel = pick(question.bullseyeLabel, uiLanguage);
+    if (localized.nearLabel == null) localized.nearLabel = pick(question.nearLabel, uiLanguage);
+    if (localized.wideLabel == null) localized.wideLabel = pick(question.wideLabel, uiLanguage);
   }
   return localized;
 };

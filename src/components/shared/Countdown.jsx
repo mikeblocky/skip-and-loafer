@@ -12,6 +12,7 @@ const UI_TEXT = {
     fr: { days: 'jours', hours: 'h', minutes: 'min', seconds: 'sec', loading: 'Chargement...' },
     de: { days: 'Tage', hours: 'Std', minutes: 'Min', seconds: 'Sek', loading: 'Lädt...' },
     it: { days: 'giorni', hours: 'ore', minutes: 'min', seconds: 'sec', loading: 'Caricamento...' },
+    ja: { days: '日', hours: '時間', minutes: '分', seconds: '秒', loading: '読み込み中...' },
 };
 
 const flipVariants = {

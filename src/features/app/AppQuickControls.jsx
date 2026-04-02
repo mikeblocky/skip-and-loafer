@@ -126,6 +126,7 @@ const AppQuickControls = ({
     fr: { reading: 'Lecture et texte', clarity: 'Clarte et contraste', visuals: 'Mouvement et visuel', color: 'Mode couleur' },
     de: { reading: 'Lesen und Text', clarity: 'Klarheit und Kontrast', visuals: 'Bewegung und Visuals', color: 'Farbmodus' },
     it: { reading: 'Lettura e testo', clarity: 'Chiarezza e contrasto', visuals: 'Movimento e aspetto', color: 'Modalita colore' },
+    ja: { reading: '文字と読書', clarity: '見やすさとコントラスト', visuals: '動きと視覚表現', color: '色モード' },
   }[uiLanguage] || { reading: 'Reading & text', clarity: 'Clarity & contrast', visuals: 'Motion & visuals', color: 'Color mode' };
   const tabRange = tabCount > 9 ? '1..9, 0' : `1..${tabCount}`;
   const shortcutTipBase = t.tip || fallbackText.tip || 'Tip: use 1..8 to jump tabs quickly.';

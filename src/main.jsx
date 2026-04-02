@@ -6,6 +6,7 @@ import './index.css'
 
 const App = lazy(() => import('./App.jsx'))
 const MitsumiBirthday = lazy(() => import('./MitsumiBirthday.jsx'))
+const MakotoBirthday = lazy(() => import('./MakotoBirthday.jsx'))
 
 const MITSUMI_FIRST_VISIT_KEY = 'skip_mitsumi_first_visit';
 
@@ -20,8 +21,9 @@ const isMarchThird = () => {
 };
 
 let isMitsumiPage = window.location.pathname === '/mitsumi';
+const isMakotoPage = window.location.hash.toLowerCase() === '#makoto';
 
-if (!isMitsumiPage && isMarchThird()) {
+if (!isMitsumiPage && !isMakotoPage && isMarchThird()) {
   const todayKey = getTodayKey();
   let hasVisitedToday = false;
 
@@ -46,7 +48,7 @@ if (!isMitsumiPage && isMarchThird()) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Suspense fallback={null}>
-      {isMitsumiPage ? <MitsumiBirthday /> : <App />}
+      {isMitsumiPage ? <MitsumiBirthday /> : (isMakotoPage ? <MakotoBirthday /> : <App />)}
     </Suspense>
     <SpeedInsights />
     <Analytics />

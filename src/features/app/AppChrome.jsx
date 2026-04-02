@@ -77,6 +77,8 @@ const AppChrome = ({ app }) => (
             accessibilityPrefs={app.accessibilityPrefs}
             isMobile={app.isMobile}
             activePage={app.activePage}
+            showCharacterStickers={app.uiLanguage !== 'ja'}
+            showCoverCards={app.uiLanguage !== 'ja'}
             handlePositionUpdate={app.handlePositionUpdate}
             stickerPositions={app.stickerPositions}
             stickerLayoutById={app.stickerLayoutById}
@@ -170,6 +172,7 @@ const AppChrome = ({ app }) => (
                 activePage={app.activePage}
                 onPageChange={app.handlePageChange}
                 isMobile={app.isMobile}
+                tabs={app.visibleTabPages}
                 labelsById={app.t.tabs}
                 openTabPrefix={app.t.openTabPrefix}
                 tabSuffix={app.t.tabSuffix}

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Calendar, Gift, Pin } from 'lucide-react';
 import { getDaysUntilBirthday } from './birthdayUtils';
+import { getCharacterFullName } from '../../data/characterNames';
 
 const BirthdayFeaturedHero = ({
   isMobile,
@@ -8,6 +9,7 @@ const BirthdayFeaturedHero = ({
   isBirthdayToday,
   t,
   referenceDate,
+  uiLanguage = 'en',
 }) => {
   if (!featuredBirthday) {
     return null;
@@ -65,32 +67,34 @@ const BirthdayFeaturedHero = ({
           <Pin size={32} color={featuredBirthday.color} style={{ opacity: 0.3, transform: 'rotate(15deg)' }} />
         </div>
 
-        <div
-          style={{
-            width: isMobile ? '120px' : '150px',
-            height: isMobile ? '120px' : '150px',
-            borderRadius: '24px',
-            background: '#ffffff',
-            border: `3px solid ${featuredBirthday.color}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            boxShadow: `0 8px 24px ${featuredBirthday.color}25`,
-            flexShrink: 0,
-            zIndex: 1,
-          }}
-        >
-          {featuredBirthday.img ? (
-            <img
-              src={featuredBirthday.img}
-              alt={featuredBirthday.name}
-              style={{ width: '92%', height: '92%', objectFit: 'contain' }}
-            />
-          ) : (
-            <featuredBirthday.icon size={isMobile ? 78 : 94} color={featuredBirthday.color} />
-          )}
-        </div>
+        {uiLanguage !== 'ja' ? (
+          <div
+            style={{
+              width: isMobile ? '120px' : '150px',
+              height: isMobile ? '120px' : '150px',
+              borderRadius: '24px',
+              background: '#ffffff',
+              border: `3px solid ${featuredBirthday.color}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              boxShadow: `0 8px 24px ${featuredBirthday.color}25`,
+              flexShrink: 0,
+              zIndex: 1,
+            }}
+          >
+            {featuredBirthday.img ? (
+              <img
+                src={featuredBirthday.img}
+                alt={getCharacterFullName(featuredBirthday.name, uiLanguage, featuredBirthday.name)}
+                style={{ width: '92%', height: '92%', objectFit: 'contain' }}
+              />
+            ) : (
+              <featuredBirthday.icon size={isMobile ? 78 : 94} color={featuredBirthday.color} />
+            )}
+          </div>
+        ) : null}
 
         <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left', zIndex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
@@ -123,7 +127,7 @@ const BirthdayFeaturedHero = ({
               textOverflow: 'ellipsis',
             }}
           >
-            {featuredBirthday.fullName}
+            {getCharacterFullName(featuredBirthday.name, uiLanguage, featuredBirthday.fullName)}
           </h2>
           <div
             style={{

@@ -80,7 +80,7 @@ const ProgressTab = ({
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, minmax(0, 170px))', gap: '12px', width: isMobile ? '100%' : 'auto' }}>
             <StatCard label={t.chaptersDone} value={String(finishedCountMain)} accent="#0f766e" bg="#ecfdf5" border="#86efac" isMobile={isMobile} icon={CheckCircle2} />
             <StatCard label={t.totalReads} value={String(totalReads)} accent="#1d4ed8" bg="#eff6ff" border="#93c5fd" isMobile={isMobile} icon={RefreshCw} />
-            <StatCard label="Volumes" value={String(activeVolumes)} accent="#7c3aed" bg="#faf5ff" border="#c4b5fd" isMobile={isMobile} icon={BookOpen} />
+            <StatCard label={t.volumesLabel || 'Volumes'} value={String(activeVolumes)} accent="#7c3aed" bg="#faf5ff" border="#c4b5fd" isMobile={isMobile} icon={BookOpen} />
           </div>
         </div>
       </motion.div>

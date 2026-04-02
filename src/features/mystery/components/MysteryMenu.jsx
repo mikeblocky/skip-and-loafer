@@ -41,7 +41,14 @@ const MysteryMenuCard = ({ isMobile, icon: Icon, option, onSelect }) => (
   </motion.button>
 );
 
-const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView }) => {
+const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, uiLanguage }) => {
+  const animalQuizTitle = uiLanguage === 'ja'
+    ? 'あなたはどの動物？'
+    : animalQuizCopy.menuTitle;
+  const animalQuizDescription = uiLanguage === 'ja'
+    ? 'サトノスケ、オシオ、オミソに近い本能を探す深めのクイズです。'
+    : animalQuizCopy.menuDescription;
+
   const menuOptions = [
     {
       view: 'gacha',
@@ -74,8 +81,8 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView }) => {
     {
       view: 'animalQuiz',
       icon: PawPrint,
-      title: animalQuizCopy.menuTitle,
-      description: animalQuizCopy.menuDescription,
+      title: animalQuizTitle,
+      description: animalQuizDescription,
       hoverRotate: -1,
       theme: {
         background: '#ecfdf5',

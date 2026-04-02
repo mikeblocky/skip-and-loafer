@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 
-export const useGalleryPrefetch = ({ activePage, loadGalleryPage }) => {
+export const useGalleryPrefetch = ({ activePage, loadGalleryPage, enabled = true }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
+    if (!enabled) return undefined;
     if (activePage === 'home') return undefined;
     if (window.innerWidth <= 768) return undefined;
 
@@ -32,5 +33,5 @@ export const useGalleryPrefetch = ({ activePage, loadGalleryPage }) => {
         window.cancelIdleCallback(idleId);
       }
     };
-  }, [activePage, loadGalleryPage]);
+  }, [activePage, enabled, loadGalleryPage]);
 };

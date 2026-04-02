@@ -118,7 +118,7 @@ export const QuizChip = ({
       ...createPaperChipStyle(palette),
       fontFamily,
       fontSize,
-      fontWeight: '700',
+      fontWeight: '400',
       ...style,
     }}
   >
@@ -162,7 +162,7 @@ export const QuizActionButton = ({
       style={{
         fontFamily: 'var(--font-main)',
         fontSize: isMobile ? '1.1rem' : '1.15rem',
-        fontWeight: '700',
+        fontWeight: '400',
         borderRadius: '24px',
         padding: isMobile ? '12px 32px' : '14px 48px',
         cursor: disabled ? 'not-allowed' : 'pointer',

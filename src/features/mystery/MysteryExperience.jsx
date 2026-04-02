@@ -21,6 +21,8 @@ const AnimalQuizGame = lazy(loadAnimalQuizGame);
 const MysteryExperience = ({ isMobile, uiLanguage }) => {
   const { text: t, isReady } = useMysteryText(uiLanguage);
   const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const loadingMysteryLabel = uiLanguage === 'ja' ? 'ミステリーを読み込み中...' : 'Loading mystery...';
+  const loadingAnimalQuizLabel = uiLanguage === 'ja' ? '動物クイズを読み込み中...' : 'Loading animal quiz...';
 
   usePageTitle(tGlobal.tabs?.mystery?.label || 'Mystery');
 
@@ -57,7 +59,7 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
           overflow: 'visible',
         }}
       >
-        <MysterySubviewFallback isMobile={isMobile} label="Loading mystery..." />
+        <MysterySubviewFallback isMobile={isMobile} label={loadingMysteryLabel} />
       </div>
     );
   }
@@ -84,12 +86,13 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
       />
 
       {view === 'menu' && (
-        <MysteryMenu
-          isMobile={isMobile}
-          t={t}
-          animalQuizCopy={animalQuizCopy}
-          onSelectView={setView}
-        />
+      <MysteryMenu
+        isMobile={isMobile}
+        t={t}
+        animalQuizCopy={animalQuizCopy}
+        onSelectView={setView}
+        uiLanguage={uiLanguage}
+      />
       )}
 
       {view === 'gacha' && (
@@ -100,6 +103,7 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
           isOpening={isOpening}
           onDraw={handlePull}
           onDrawAgain={handleDrawAgain}
+          uiLanguage={uiLanguage}
         />
       )}
 
@@ -115,7 +119,7 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
       )}
 
       {view === 'animalQuiz' && (
-        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={animalQuizCopy.calculating || 'Loading animal quiz...'} />}>
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={uiLanguage === 'ja' ? loadingAnimalQuizLabel : (animalQuizCopy.calculating || loadingAnimalQuizLabel)} />}>
           <AnimalQuizGame
             isMobile={isMobile}
             portraitData={PORTRAIT_DATA}

@@ -11,6 +11,8 @@ const AppDecorativeLayer = ({
   accessibilityPrefs,
   isMobile,
   activePage,
+  showCharacterStickers = true,
+  showCoverCards = true,
   handlePositionUpdate,
   stickerPositions,
   stickerLayoutById,
@@ -19,8 +21,8 @@ const AppDecorativeLayer = ({
   const showAmbientDecor = !accessibilityPrefs.simplifyVisuals;
   const showFullDecor = activePage === 'home' || activePage === 'birthdays';
   const showHomeCards = !isMobile && activePage === 'home' && !accessibilityPrefs.simplifyVisuals;
-  const visibleCovers = showHomeCards ? COVER_IMAGES.slice(0, 8) : [];
-  const visibleCharacters = showAmbientDecor
+  const visibleCovers = showCoverCards && showHomeCards ? COVER_IMAGES.slice(0, 8) : [];
+  const visibleCharacters = showCharacterStickers && showAmbientDecor
     ? (isMobile ? CHARACTER_DATA.slice(0, Math.min(4, CHARACTER_DATA.length)) : CHARACTER_DATA)
     : [];
   const ambientShapeCount = showAmbientDecor
