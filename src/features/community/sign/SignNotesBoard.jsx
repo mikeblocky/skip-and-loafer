@@ -56,6 +56,7 @@ const SignNotesBoard = ({
   noteGestures,
   activeDraggedId,
   noteDragConstraints,
+  stackOrderIndex,
   onDragStart,
   onDragEnd,
   onTouchStart,
@@ -124,7 +125,9 @@ const SignNotesBoard = ({
               maxWidth: '100%',
               marginBottom: isMobile ? '12px' : '18px',
               position: 'relative',
-              zIndex: activeDraggedId === entry.id ? 50 : entries.length - index,
+              zIndex: activeDraggedId === entry.id
+                ? 1000
+                : (stackOrderIndex[entry.id] || entries.length - index),
               cursor: 'grab',
               touchAction: 'none',
               background: 'transparent',

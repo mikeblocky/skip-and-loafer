@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PenLine } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
@@ -216,20 +216,35 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const notesBoardRef = useRef(null);
   const [activeDraggedId, setActiveDraggedId] = useState(null);
-    const noteGestureStartRef = useRef(new Map());
-    const [noteGestures, setNoteGestures] = useState({});
-    const [canvasResetVersion, setCanvasResetVersion] = useState(0);
-    const [isResettingCanvas, setIsResettingCanvas] = useState(false);
-    const noteDragConstraints = useMemo(() => {
-      if (!isMobile) return notesBoardRef;
-      return undefined;
-    }, [isMobile]);
+  const [stackOrder, setStackOrder] = useState([]);
+  const noteGestureStartRef = useRef(new Map());
+  const [noteGestures, setNoteGestures] = useState({});
+  const [canvasResetVersion, setCanvasResetVersion] = useState(0);
+  const [isResettingCanvas, setIsResettingCanvas] = useState(false);
+  const noteDragConstraints = useMemo(() => {
+    if (!isMobile) return notesBoardRef;
+    return undefined;
+  }, [isMobile]);
   const noteBoardMinHeight = useMemo(() => {
     if (!isMobile) return '78vh';
     const maxScale = Math.max(1, ...Object.values(noteGestures).map((gesture) => gesture?.scale ?? 1));
     const dragLift = activeDraggedId ? 12 : 0;
     return `${Math.round(Math.max(72, 72 + (maxScale - 1) * 28 + dragLift))}vh`;
   }, [activeDraggedId, isMobile, noteGestures]);
+
+  useEffect(() => {
+    setStackOrder((current) => {
+      const entryIds = entries.map((entry) => entry.id);
+      const preserved = current.filter((id) => entryIds.includes(id));
+      const appended = entryIds.filter((id) => !preserved.includes(id));
+      return [...preserved, ...appended];
+    });
+  }, [entries]);
+
+  const stackOrderIndex = useMemo(
+    () => Object.fromEntries(stackOrder.map((id, index) => [id, index + 1])),
+    [stackOrder],
+  );
 
   const setNoteGesture = useCallback((entryId, nextGesture) => {
     setNoteGestures((current) => ({
@@ -290,13 +305,14 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
     noteGestureStartRef.current.clear();
     setNoteGestures({});
     setActiveDraggedId(null);
+    setStackOrder(entries.map((entry) => entry.id));
     window.setTimeout(() => {
       setCanvasResetVersion((current) => current + 1);
       window.requestAnimationFrame(() => {
         setIsResettingCanvas(false);
       });
     }, 140);
-  }, []);
+  }, [entries]);
 
   const handleNoteWheel = useCallback((entryId, event) => {
     if (!event.ctrlKey && !event.metaKey) return;
@@ -402,7 +418,15 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
           noteGestures={noteGestures}
           activeDraggedId={activeDraggedId}
           noteDragConstraints={noteDragConstraints}
-          onDragStart={setActiveDraggedId}
+          stackOrderIndex={stackOrderIndex}
+          onDragStart={(entryId) => {
+            setActiveDraggedId(entryId);
+            setStackOrder((current) => {
+              const nextOrder = current.filter((id) => id !== entryId);
+              nextOrder.push(entryId);
+              return nextOrder;
+            });
+          }}
           onDragEnd={(entryId) => setActiveDraggedId((current) => (current === entryId ? null : current))}
           onTouchStart={handleNoteTouchStart}
           onTouchMove={handleNoteTouchMove}
