@@ -25,7 +25,7 @@ export const VOLUMES = [
     { number: 10, title: 'Volume 10', cover: '/volumes/10.jpg', chapters: [54, 55, 56, 56.5, 57, 58, 59], purchaseUrl: 'https://www.penguinrandomhouse.com/books/772728/skip-and-loafer-vol-10-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/406534851X/' },
     { number: 11, title: 'Volume 11', cover: '/volumes/11.jpg', chapters: [60, 61, 62, 63, 64, 65], purchaseUrl: 'https://www.penguinrandomhouse.com/books/783973/skip-and-loafer-vol-11-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065377226/' },
     { number: 12, title: 'Volume 12', cover: '/volumes/12.jpg', chapters: [66, 67, 68, 69, 70, 71, 72], purchaseUrl: 'https://www.penguinrandomhouse.com/books/819145/skip-and-loafer-vol-12-by-misaki-takamatsu/', purchaseUrlJp: 'https://www.amazon.co.jp/dp/4065397065/' },
-    { number: 13, title: 'Volume 13', cover: null, chapters: [73, 74, 75, 76, 77, 78] },
+    { number: 13, title: 'Volume 13', cover: /volumes/13.jpg, chapters: [73, 74, 75, 76, 77, 78] },
     { number: 14, title: 'Volume 14', cover: null, chapters: [79], inProgress: true },
 ];
 
