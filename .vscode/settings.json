@@ -1,0 +1,17 @@
+{
+  "files.exclude": {
+    "**/.env": true,
+    "**/test-results": true,
+    "ascii-art.txt": true,
+    "asd.txt": true,
+    "books.txt": true,
+    "characters.txt": true,
+    "content.mdx": true,
+    "eslint_report.json": true,
+    "eslint_report.txt": true,
+    "skiloa.kodansha.co.jp": true,
+    "test-redis.js": true,
+    "volume-chapters.txt": true,
+    "volumes": true
+  }
+}
