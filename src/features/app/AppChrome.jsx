@@ -8,6 +8,7 @@ import {
   AppQuickControls,
   BirthdayNotification,
   ChangelogPopup,
+  RetirementPopup,
   MangaReader,
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
@@ -218,6 +219,12 @@ const AppChrome = ({ app }) => (
       {app.deferredShellMount && (
         <Suspense fallback={null}>
           <BirthdayNotification isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
+        </Suspense>
+      )}
+
+      {app.deferredShellMount && (
+        <Suspense fallback={null}>
+          <RetirementPopup isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
         </Suspense>
       )}
 
