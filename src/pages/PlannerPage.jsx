@@ -3,19 +3,18 @@ import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
-import Countdown from '../components/shared/Countdown';
 import ReleaseNote from '../components/shared/ReleaseNote';
 import { CHARACTER_COLORS } from '../data/characters';
 import { QUOTES } from '../data/quotes';
 
 const UI_TEXT = {
-  en: { agenda: 'AGENDA', breakShort: 'On break in March, Chapter 79 will be released in April issue!', breakLong: 'On break in March! Chapter 79 will be released in April issue!' },
-  es: { agenda: 'AGENDA', breakShort: 'Descanso en marzo: el Capitulo 79 llegara en la edicion de abril!', breakLong: 'Descanso en marzo! El Capitulo 79 llegara en la edicion de abril!' },
-  pt: { agenda: 'AGENDA', breakShort: 'Pausa em marco: o Capitulo 79 sai na edicao de abril!', breakLong: 'Pausa em marco! O Capitulo 79 sai na edicao de abril!' },
-  fr: { agenda: 'AGENDA', breakShort: 'Pause en mars : le chapitre 79 sortira dans l edition d avril !', breakLong: 'Pause en mars ! Le chapitre 79 sortira dans l edition d avril !' },
-  de: { agenda: 'AGENDA', breakShort: 'Pause im Marz: Kapitel 79 erscheint in der April-Ausgabe!', breakLong: 'Pause im Marz! Kapitel 79 erscheint in der April-Ausgabe!' },
-  it: { agenda: 'AGENDA', breakShort: 'Pausa a marzo: il capitolo 79 uscira nel numero di aprile!', breakLong: 'Pausa a marzo! Il capitolo 79 uscira nel numero di aprile!' },
-  ja: { agenda: '予定', breakShort: '3月は休載。第79話は4月号に掲載予定です。', breakLong: '3月は休載です。第79話は4月号に掲載予定です。' },
+  en: { agenda: 'AGENDA', breakShort: 'Thank you for supporting, this website will be retire soon', breakLong: 'Thank you for supporting, this website will be retire soon' },
+  es: { agenda: 'AGENDA', breakShort: 'Gracias por tu apoyo, este sitio se retirará pronto', breakLong: 'Gracias por tu apoyo, este sitio se retirará pronto' },
+  pt: { agenda: 'AGENDA', breakShort: 'Obrigado pelo apoio, este site será encerrado em breve', breakLong: 'Obrigado pelo apoio, este site será encerrado em breve' },
+  fr: { agenda: 'AGENDA', breakShort: 'Merci pour votre soutien, ce site prendra bientôt sa retraite', breakLong: 'Merci pour votre soutien, ce site prendra bientôt sa retraite' },
+  de: { agenda: 'AGENDA', breakShort: 'Danke für die Unterstützung, diese Website wird bald eingestellt', breakLong: 'Danke für die Unterstützung, diese Website wird bald eingestellt' },
+  it: { agenda: 'AGENDA', breakShort: 'Grazie per il supporto, questo sito andrà presto in pensione', breakLong: 'Grazie per il supporto, questo sito andrà presto in pensione' },
+  ja: { agenda: '予定', breakShort: '応援ありがとうございました。このサイトは間もなく閉鎖されます。', breakLong: '応援ありがとうございました。このサイトは間もなく閉鎖されます。' },
 };
 
 const LOCALE_BY_UI_LANGUAGE = {
@@ -164,33 +163,7 @@ const NoteRibbon = ({ text, isMobile, largeText = false }) => (
   </motion.div>
 );
 
-const DateBadge = ({ dateLabel, timezoneLabel, isMobile, largeText = false }) => (
-  <div
-    data-planner-date-badge="1"
-    className="sketchbook-border"
-    style={{
-      display: 'inline-flex',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: isMobile ? '6px' : '8px',
-      background: '#e1f4ff',
-      border: '3px solid #67c3ff',
-      borderBottom: '8px solid #22a9f1',
-      borderRadius: '18px',
-      padding: isMobile ? '13px 16px' : (largeText ? '15px 26px' : '14px 24px'),
-      width: isMobile ? '100%' : (largeText ? 'min(100%, 620px)' : 'min(100%, 560px)'),
-      boxShadow: '0 14px 20px rgba(34, 169, 241, 0.18)',
-      textAlign: 'center',
-    }}
-  >
-    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#465973', fontSize: isMobile ? '1.08rem' : (largeText ? '1.24rem' : '1.12rem'), lineHeight: 1.3, fontWeight: '400' }}>
-      {dateLabel}
-    </span>
-    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#465973', fontSize: isMobile ? '1.08rem' : (largeText ? '1.24rem' : '1.12rem'), lineHeight: 1.3, fontWeight: '400' }}>
-      ({timezoneLabel})
-    </span>
-  </div>
-);
+
 
 const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableSpacing = false }) => {
   const randomQuote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
@@ -200,26 +173,9 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
 
   usePageTitle(tGlobal.tabs?.home?.label || 'Home');
 
-  const targetDate = new Date('2026-04-24T00:00:00+09:00');
-  const localDateString = targetDate.toLocaleString(locale, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  const timezoneOffsetMinutes = -new Date().getTimezoneOffset();
-  const timezoneSign = timezoneOffsetMinutes >= 0 ? '+' : '-';
-  const timezoneAbsMinutes = Math.abs(timezoneOffsetMinutes);
-  const timezoneHours = String(Math.floor(timezoneAbsMinutes / 60)).padStart(2, '0');
-  const timezoneMinutes = String(timezoneAbsMinutes % 60).padStart(2, '0');
-  const timezoneLabel = `UTC${timezoneSign}${timezoneHours}:${timezoneMinutes}`;
   const desktopTitleSize = largeText ? 'clamp(3.9rem, 5vw, 4.56rem)' : 'clamp(3.55rem, 4.65vw, 4.22rem)';
   const desktopTitlePaddingTop = largeText || readableSpacing ? '60px' : '52px';
   const desktopQuotePaddingTop = largeText || readableSpacing ? '24px' : '18px';
-  const desktopCountdownPaddingTop = largeText || readableSpacing ? '30px' : '24px';
-  const desktopDatePaddingTop = largeText || readableSpacing ? '20px' : '16px';
   const desktopReleasePaddingTop = largeText || readableSpacing ? '18px' : '14px';
   const seriesTitle = tGlobal.seriesTitle || 'Skip & Loafer';
   const seriesTitleParts = seriesTitle.includes(' & ') ? seriesTitle.split(' & ') : [seriesTitle];
@@ -292,14 +248,6 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
 
         <div style={{ width: '100%', paddingTop: '2px' }}>
           <NoteRibbon text={t.breakShort} isMobile={isMobile} largeText={largeText} />
-        </div>
-
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Countdown isMobile={isMobile} uiLanguage={uiLanguage} largeText={largeText} inlineMobile />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <DateBadge dateLabel={localDateString} timezoneLabel={timezoneLabel} isMobile={isMobile} largeText={largeText} />
         </div>
 
         <div
@@ -391,14 +339,6 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
           }}
         >
           <NoteRibbon text={t.breakLong} isMobile={isMobile} largeText={largeText} />
-
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: desktopCountdownPaddingTop }}>
-            <Countdown isMobile={isMobile} uiLanguage={uiLanguage} largeText={largeText} />
-          </div>
-
-          <div style={{ paddingTop: desktopDatePaddingTop }}>
-            <DateBadge dateLabel={localDateString} timezoneLabel={timezoneLabel} isMobile={isMobile} largeText={largeText} />
-          </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', paddingTop: desktopReleasePaddingTop }}>
             <ReleaseNote isMobile={isMobile} uiLanguage={uiLanguage} inline largeText={largeText} />

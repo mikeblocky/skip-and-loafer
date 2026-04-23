@@ -2,13 +2,13 @@
 import { motion } from 'framer-motion';
 
 const UI_TEXT = {
-    en: { chapterOut: 'Chapter 78 out now!', quote: '"Pure white and brand new. Step firmly and feel the crunch."', read: 'Read ->' },
-    es: { chapterOut: 'Capitulo 78 disponible!', quote: '"Puro blanco y completamente nuevo. Pisa firme y siente el crujido."', read: 'Leer ->' },
-    pt: { chapterOut: 'Capitulo 78 disponivel!', quote: '"Branco puro e totalmente novo. Pise firme e sinta o estalo."', read: 'Ler ->' },
-    fr: { chapterOut: 'Chapitre 78 disponible !', quote: '"Blanc pur et tout neuf. Avancez fermement et sentez le craquement."', read: 'Lire ->' },
-    de: { chapterOut: 'Kapitel 78 ist jetzt da!', quote: '"Reinweiss und brandneu. Tritt fest auf und spure das Knirschen."', read: 'Lesen ->' },
-    it: { chapterOut: 'Capitolo 78 disponibile ora!', quote: '"Bianco puro e nuovissimo. Cammina deciso e senti lo scricchiolio."', read: 'Leggi ->' },
-    ja: { chapterOut: '第78話 配信中', quote: '「真っ白で、新しい。しっかり踏みしめて、雪の音を感じて。」', read: '読む ->' },
+    en: { chapterOut: 'Chapter 79 out now!', quote: '"Today is the day. The 3rd-year students of Tsubame Nishi High School"', read: 'Read ->' },
+    es: { chapterOut: '¡Capítulo 79 disponible!', quote: '"Hoy es el día. Los estudiantes de tercer año de la preparatoria Tsubame Nishi"', read: 'Leer ->' },
+    pt: { chapterOut: 'Capítulo 79 disponível!', quote: '"Hoje é o dia. Os alunos do 3º ano da Escola Secundária Tsubame Nishi"', read: 'Ler ->' },
+    fr: { chapterOut: 'Chapitre 79 disponible !', quote: '"C\'est aujourd\'hui le grand jour. Les élèves de 3ème année du lycée Tsubame Nishi"', read: 'Lire ->' },
+    de: { chapterOut: 'Kapitel 79 ist jetzt da!', quote: '"Heute ist der Tag. Die Schüler des 3. Jahrgangs der Tsubame Nishi High School"', read: 'Lesen ->' },
+    it: { chapterOut: 'Capitolo 79 disponibile ora!', quote: '"Oggi è il giorno. Gli studenti del 3° anno della Tsubame Nishi High School"', read: 'Leggi ->' },
+    ja: { chapterOut: '第79話 配信中', quote: '「今日がその日だ。つばめ西高校の3年生。」', read: '読む ->' },
 };
 
 const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = false }) => {
@@ -17,7 +17,7 @@ const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = 
 
     return (
         <motion.a
-            href="https://comic-days.com/episode/12207421983406221656"
+            href="https://comic-days.com/episode/12207421983633662678"
             target="_blank"
             rel="noopener noreferrer"
             style={{
