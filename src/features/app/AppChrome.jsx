@@ -13,6 +13,7 @@ import {
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
 import ReaderOverlayFallback from './ReaderOverlayFallback';
+import SideTabs from '../../components/shared/SideTabs';
 
 const skipLinkStyle = {
   position: 'absolute',
@@ -227,6 +228,13 @@ const AppChrome = ({ app }) => (
           <RetirementPopup isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
         </Suspense>
       )}
+
+      <SideTabs
+        activePage={app.activePage}
+        onPageChange={app.handlePageChange}
+        isMobile={app.isMobile}
+        labelsById={app.t.tabs}
+      />
 
       <div style={copyrightStyle}>© Takamatsu Misaki / KODANSHA</div>
 

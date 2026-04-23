@@ -226,7 +226,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
             margin: 0,
             fontFamily: 'Sniglet, var(--font-main)',
             fontSize: largeText ? 'clamp(2.7rem, 8.7vw, 3.24rem)' : 'clamp(2.42rem, 8vw, 2.98rem)',
-            lineHeight: 0.94,
+            lineHeight: 1.05,
             fontWeight: '400',
             textAlign: 'center',
             width: '100%',
@@ -238,7 +238,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
           {seriesTitleParts.length > 1 ? (
             <>
               <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
-              <span style={{ color: '#8d9db8' }}>&amp; </span>
+              <span style={{ color: '#8d9db8' }}> &amp; </span>
               <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
             </>
           ) : (
@@ -292,7 +292,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
                 margin: 0,
                 fontFamily: 'Sniglet, var(--font-main)',
                 fontSize: desktopTitleSize,
-                lineHeight: 0.9,
+                lineHeight: 1.0,
                 fontWeight: '400',
                 textAlign: 'center',
                 maxWidth: '100%',
@@ -301,7 +301,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
               {seriesTitleParts.length > 1 ? (
                 <>
                   <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
-                  <span style={{ color: '#8d9db8' }}>&amp;</span>
+                  <span style={{ color: '#8d9db8' }}> &amp;</span>
                   <br />
                   <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
                 </>
