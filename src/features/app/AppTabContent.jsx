@@ -252,6 +252,7 @@ const AppTabContent = ({
     case 'mystery':
       tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
+
     default:
       tabContent = (
         <PlannerPage

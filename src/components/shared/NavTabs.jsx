@@ -1,8 +1,9 @@
-import { memo, useEffect, useRef, useCallback, useState } from 'react';
+import { memo, useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, Package, PenLine, ImagePlus, ChevronDown } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
+import { SIDE_TABS } from '../../features/app/appConstants';
 
 const DEFAULT_TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', desktopFlex: 1 },
@@ -25,9 +26,15 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
   const railRef = useRef(null);
   const mobileSelectorRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const tabsToRender = Array.isArray(tabs) && tabs.length > 0
-    ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
-    : DEFAULT_TABS;
+  const tabsToRender = useMemo(() => {
+    const base = Array.isArray(tabs) && tabs.length > 0
+      ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
+      : DEFAULT_TABS;
+
+    return isMobile 
+      ? base 
+      : base.filter(tab => !SIDE_TABS.includes(tab.id));
+  }, [tabs, isMobile]);
 
   const handleTabPress = useCallback((tabId) => {
     triggerHaptic('selection');
@@ -184,7 +191,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                         aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
                         aria-current={isActive ? 'page' : undefined}
                         style={{
-                          position: 'relative',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '14px',
