@@ -7,7 +7,7 @@ export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
-export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'wiki', 'sync', 'quiz', 'birthdays', 'mystery'];
+export const TAB_PAGES = ['home', 'gallery', 'fanGallery', 'sign', 'blog', 'quiz', 'birthdays', 'mystery'];
 export const DEFAULT_PAGE = TAB_PAGES[0];
 export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];
 
