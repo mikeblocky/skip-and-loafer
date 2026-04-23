@@ -8,7 +8,7 @@ import { CHARACTER_COLORS } from '../data/characters';
 import { QUOTES } from '../data/quotes';
 
 const UI_TEXT = {
-  en: { agenda: 'AGENDA', breakShort: 'Thank you for supporting, this website will be retire soon', breakLong: 'Thank you for supporting, this website will be retire soon' },
+  en: { agenda: 'AGENDA', breakShort: 'Thank you for supporting, this website will be retired soon', breakLong: 'Thank you for supporting, this website will be retired soon' },
   es: { agenda: 'AGENDA', breakShort: 'Gracias por tu apoyo, este sitio se retirará pronto', breakLong: 'Gracias por tu apoyo, este sitio se retirará pronto' },
   pt: { agenda: 'AGENDA', breakShort: 'Obrigado pelo apoio, este site será encerrado em breve', breakLong: 'Obrigado pelo apoio, este site será encerrado em breve' },
   fr: { agenda: 'AGENDA', breakShort: 'Merci pour votre soutien, ce site prendra bientôt sa retraite', breakLong: 'Merci pour votre soutien, ce site prendra bientôt sa retraite' },
