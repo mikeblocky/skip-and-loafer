@@ -7,18 +7,17 @@ export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
-export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'wiki', 'sync', 'quiz', 'birthdays', 'mystery'];
+export const TAB_PAGES = ['home', 'chapters', 'sync', 'gallery', 'birthdays', 'blog', 'wiki', 'quiz', 'mystery', 'fanGallery', 'sign'];
+export const SIDE_TABS = ['wiki', 'quiz', 'mystery', 'fanGallery', 'sign'];
 export const DEFAULT_PAGE = TAB_PAGES[0];
 export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];
 
 export const getVisibleTabPages = (uiLanguage = 'en') => {
-  const basePages = TAB_PAGES;
-
   if (uiLanguage === 'ja') {
-    return basePages.filter((page) => !JAPANESE_HIDDEN_TAB_PAGES.includes(page));
+    return TAB_PAGES.filter((page) => !JAPANESE_HIDDEN_TAB_PAGES.includes(page));
   }
 
-  return IS_PRODUCTION_SERVER ? basePages : TAB_PAGES;
+  return TAB_PAGES;
 };
 
 export const VALID_COLOR_BLIND_MODES = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'black-white'];

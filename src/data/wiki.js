@@ -12,64 +12,60 @@ export const WIKI_SECTIONS = [
         id: 'mitsumi-iwakura',
         title: 'Mitsumi Iwakura',
         shortTitle: 'Mitsumi',
-        description: 'A bright first-year from rural Ishikawa whose sincerity steadily changes the people around her.',
+        description: 'The ambitious, high-achieving girl from Ishikawa who is determined to make her mark on Tokyo.',
         image: '/portrait/mitsumi.png',
         infobox: {
-          title: 'Mitsumi Iwakura',
-          subtitle: 'Main protagonist',
+          title: 'Mitsumi Iwakura (岩倉 美津未)',
+          subtitle: 'Protagonist',
           caption: 'Temporary portrait image from the existing character set.',
           facts: [
-            { label: 'Role', value: 'Main protagonist' },
-            { label: 'Home', value: 'Suzu, Ishikawa Prefecture' },
-            { label: 'Goal', value: 'Study in Tokyo, become a civil servant, and help her hometown thrive' },
-            { label: 'Known for', value: 'Earnest honesty, meticulous planning, and complete subway chaos' },
-            { label: 'Close ties', value: 'Sousuke Shima, Nao, Fumi, Makoto, Mika, Yuzuki' },
+            { label: 'Birthdate', value: 'March 3' },
+            { label: 'Age', value: '15 (Debut) / 16 (Current)' },
+            { label: 'Birthplace', value: 'Ikajima, Ishikawa Prefecture' },
+            { label: 'Occupation', value: 'Student (School Council member)' },
+            { label: 'Relatives', value: 'Unnamed parents, Maharu & Kippei (Siblings), Nao (Aunt)' },
+            { label: 'Aliases', value: 'Omitsu, The Barfing Girl, Shadow Boss' },
           ],
         },
         lead:
-          'Mitsumi arrives in Tokyo with perfect grades, a strict life plan, and almost no urban survival instincts. What makes her memorable is not polish, but the fact that she keeps moving forward with unusual honesty.',
+          'Mitsumi is the emotional engine of the series—a straight-A student from a tiny village who arrives in Tokyo with a roadmap for her entire life, only to find that people and feelings are much harder to "study" than textbooks.',
         sections: [
           {
-            title: 'Overview',
+            title: 'Appearance',
             paragraphs: [
-              'The series introduces Mitsumi as a top student from a tiny rural community in Ishikawa who enters a prestigious Tokyo high school. Her long-term dream is not vague success; she wants to gain real administrative experience and eventually support the kind of hometown she came from.',
-              'That ambition gives her a grounded perspective. Even when she makes early mistakes, the story frames them as part of someone genuinely trying to grow into the future she pictured for herself.',
-            ],
-            subsections: [
-              {
-                title: 'Long-term goal',
-                paragraphs: [
-                  'Mitsumi is unusually concrete about what success means to her. She is not chasing prestige for its own sake; she wants skills she can eventually bring back home.',
-                ],
-              },
-              {
-                title: 'Tokyo adjustment',
-                paragraphs: [
-                  'Her first year works because the story lets practical daily friction matter. The city is not abstract pressure; it is trains, timing, distance, and unfamiliar social pace.',
-                ],
-              },
+              'Mitsumi is a 15-year-old girl of petite build and average height. She is easily recognized by her signature uneven, shoulder-length dark brown hair and short fringes that sit just above her eyebrows. Her round face and "fluffy" cheeks are often flushed with a natural blush—a look she maintains without any makeup.',
+              'At school, she typically wears the T University Nishi uniform: a faded blue ensemble paired with a distinctive pale pinkish-orange necktie. Having grown up in a remote village in Ishikawa Prefecture, her fashion sense is charmingly unpolished, a trait that stands in stark contrast to her more style-conscious classmates in Tokyo.',
             ],
           },
           {
             title: 'Personality',
             paragraphs: [
-              'Mitsumi is straightforward in a way that can feel slightly out of sync with her surroundings. She misses social cues, overprepares, says the obvious thing out loud, and still manages to come across as deeply trustworthy.',
-              'The appeal of the character is that Takamatsu never treats her as a saint. Mitsumi is warm, but she is also sloppy, intense, and capable of getting overwhelmed. That mix keeps her human.',
+              'Driven by a mix of academic ambition and wide-eyed optimism, Mitsumi moved to Tokyo to pursue her goal of becoming a high-ranking government official and supporting her family’s financial future. While she excels in her studies and serves diligently on the school council, she occasionally struggles with physical coordination and the subtle nuances of social cues.',
+              'What defines Mitsumi most is her refreshing directness; she is an exceptionally clear communicator who isn’t afraid to voice her thoughts, even when they clash with the status quo. While she can appear naive to her city-born peers, her eagerness to learn and her willingness to take risks make her a natural leader.',
             ],
           },
           {
             title: 'Relationships',
-            paragraphs: [
-              'Her bond with Shima starts with a chaotic first morning commute and becomes one of the emotional anchors of the series. At the same time, her friendships with Mika, Makoto, Yuzuki, and others show how her sincerity affects people in quieter ways.',
-              'Nao and Fumi are also essential to understanding Mitsumi. Nao gives her a place to live and a sharper understanding of city life, while Fumi represents the emotional safety of home.',
-            ],
             subsections: [
               {
-                title: 'Friends and support',
+                title: 'Sousuke Shima',
                 paragraphs: [
-                  'The wider cast matters because Mitsumi changes in community, not in isolation. Her school friendships make the series feel like an ecosystem rather than a two-person plot.',
+                  'Their relationship is the heart of the story, beginning with a chance encounter at a train station on their first day of high school. Mitsumi’s sincerity acted as a mirror for Shima, helping him move past his performative social habits.',
+                  'While the two eventually attempted a romantic relationship, Mitsumi ultimately initiated a return to being friends. She realized that their differing levels of affection and her own intense focus on her career goals were creating a dynamic that wasn’t healthy for either of them at the time.',
                 ],
               },
+              {
+                title: 'Family and Roots',
+                paragraphs: [
+                  'Mitsumi remains deeply connected to her family in Ishikawa. She is motivated by a desire to provide for her parents and younger siblings, Maharu and Kippei. In Tokyo, she lives with her aunt, Nao (Nao-chan), who provides essential emotional support. She also frequently reminisces about her beloved dog, Satonosuke.',
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Etymology',
+            paragraphs: [
+              'The surname Iwakura (岩倉) translates to "rocky storehouse," suggesting a grounded and sturdy heritage. Her given name, Mitsumi (美津未), is more poetic, combining the kanji for "beauty" (美), "harbor" (津), and "not yet/future" (未). Together, they evoke the image of a "beautiful future" yet to be realized—like a ship waiting to dock at a peaceful port.',
             ],
           },
         ],
@@ -82,42 +78,67 @@ export const WIKI_SECTIONS = [
         id: 'sousuke-shima',
         title: 'Sousuke Shima',
         shortTitle: 'Shima',
-        description: 'The popular boy who seems effortless on the surface and much more fragile underneath.',
+        description: 'A former child actor who hides a fragile, people-pleasing nature behind a polished social facade.',
         image: '/portrait/shima.png',
         infobox: {
-          title: 'Sousuke Shima',
+          title: 'Sousuke Shima (志摩 聡介)',
           subtitle: 'Main lead',
           caption: 'Temporary portrait image from the existing character set.',
           facts: [
-            { label: 'Role', value: 'Classmate and central lead' },
+            { label: 'Birthdate', value: 'October 9' },
+            { label: 'Age', value: '15 (Debut) / 16 (Current)' },
             { label: 'Public image', value: 'Easygoing, handsome, socially fluent' },
-            { label: 'Past', value: 'Former child actor with unresolved family and identity baggage' },
-            { label: 'Drawn to', value: 'Mitsumi’s directness and sense of purpose' },
+            { label: 'Past', value: 'Former child actor with unresolved family baggage' },
+            { label: 'Status', value: 'Active student' },
+            { label: 'Relatives', value: 'Unnamed mother, Keiri Shima (Younger brother)' },
             { label: 'Close ties', value: 'Mitsumi, Mukai, Ririka, Chris, Kanechika' },
           ],
         },
         lead:
-          'Shima begins as the polished “prince” figure of a school story, but the series gradually reveals someone who has spent years adapting himself to what other people want to see.',
+          'Shima begins as the polished “prince” figure of Tsubame Nishi High, but the series gradually reveals someone who has spent years adapting himself to what other people want to see.',
         sections: [
           {
-            title: 'Surface and reality',
+            title: 'Appearance',
             paragraphs: [
-              'Shima is immediately treated as one of the most attractive and socially capable boys in school. He is good at smoothing over conversations, reading a room, and giving people the version of himself they expect.',
-              'That social fluency is not presented as pure confidence. It comes from habit, performance, and the lingering effect of being shaped by adults and entertainment work at a young age.',
+              'Sousuke is a tall, handsome teenager characterized by his messy, short blonde hair and downturned eyes of an olive-brown shade. He has a neutral, pale complexion and is almost always seen with a gentle, approachable smile that serves as his primary social shield.',
+              'In school, he is often noted for his soft-yellow cardigan and pink-red tie, sometimes layering them under the standard blue school blazer. Outside of campus, his style is markedly casual and unpretentious, typically consisting of plain t-shirts and jeans.',
             ],
           },
           {
-            title: 'Past and self-image',
+            title: 'Personality and Conflict',
             paragraphs: [
-              'Character material in the repo describes a darker background: child acting, a difficult relationship with his mother, and the feeling that he was praised most when he behaved exactly as expected. That history leaves him oddly detached from his own desires.',
-              'Because of that, Shima is both charismatic and emotionally stalled. He can be kind, observant, and funny, but he also struggles to imagine a clear future for himself.',
+              'Though he is popular and charming, Sousuke’s kindness is often a performance—a "fake front" he developed to navigate a difficult childhood. As a former child actor, he learned to prioritize the feelings and approval of others to avoid conflict, leading to a deep-seated people-pleasing habit and low self-esteem.',
+              'He often struggles with emotional awareness, finding it difficult to understand both his own motivations and the true feelings of those around him. He views Mitsumi’s genuine, effortless kindness with a mixture of awe and aspiration, hoping to one day become a person who is "genuinely kind" rather than just performatively nice.',
             ],
           },
           {
-            title: 'Connection to Mitsumi',
+            title: 'Background',
             paragraphs: [
-              'Mitsumi fascinates Shima because she moves in the opposite direction. She says what she means, pursues concrete goals, and keeps going even when she looks awkward doing it.',
-              'Their relationship works because it is not just romance. Mitsumi offers Shima a different way to exist, while Shima offers Mitsumi understanding, gentleness, and space to grow.',
+              'Sousuke’s childhood was shaped by the intense pressure of his mother’s expectations and his parents’ eventual divorce. He pursued acting not out of passion, but to please his mother, who became increasingly overbearing and emotionally abusive when he expressed a desire to quit.',
+              'This traumatic history left him believing his worth was tied solely to his utility to others. Now, he often chooses the path of least resistance in social situations, settling for what he thinks he deserves rather than what he actually wants.',
+            ],
+          },
+          {
+            title: 'Relationships',
+            subsections: [
+              {
+                title: 'Mitsumi Iwakura',
+                paragraphs: [
+                  'Meeting Mitsumi on the first day of school was a turning point for Sousuke. While their early attempt at dating ended by mutual agreement to stay friends, Mitsumi’s unwavering sincerity has forced him into a period of deep introspection. He has come to realize that his feelings for her run much deeper than simple friendship.',
+                ],
+              },
+              {
+                title: 'Ririka Saijyo',
+                paragraphs: [
+                  'A fellow child actor and childhood friend, Ririka is a source of significant guilt for Sousuke. He feels responsible for a past incident that affected her career and emotional well-being, leading to a complicated relationship defined by pity and a sense of unpayable debt.',
+                ],
+              },
+            ],
+          },
+          {
+            title: 'Etymology',
+            paragraphs: [
+              'The surname Shima (志摩) refers to the Shima Peninsula, possibly derived from an Ainu word meaning "place where something stands." His given name, Sousuke (聡介), combines the kanji for "wise/intelligent" (聡) and "to help/mediate" (介), reflecting his role as a socially fluent mediator who is perhaps too wise for his own comfort.',
             ],
           },
         ],

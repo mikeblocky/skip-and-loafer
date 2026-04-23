@@ -1,0 +1,243 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Heart } from 'lucide-react';
+import { ENTER_SPRING_BOUNCY, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from './animationPresets';
+
+const STORAGE_KEY = 'skip_retirement_popup_seen';
+
+const UI_TEXT = {
+  en: {
+    title: 'Thank you & farewell',
+    subtitle: 'This website will be retiring soon.',
+    message: 'After April 24th, 2026, this fan-made Skip and Loafer website will be shutting down permanently.',
+    thankYou: 'Thank you for all of the support to this fan-made website.',
+    closing: 'Please continue to support the official release by Takamatsu Misaki and KODANSHA via official channels: skip-and-loafer.com',
+    button: 'Close',
+  },
+  ja: {
+    title: 'ありがとう＆さよなら',
+    subtitle: 'このウェブサイトは閉鎖されます',
+    message: '2026年4月24日をもって、このファンメイドの「スキップとローファー」ウェブサイトは閉鎖されます。',
+    thankYou: 'このファンメイドのウェブサイトへの皆さまのご支援に心から感謝いたします。',
+    closing: '引き続き高松美咲先生と講談社の公式リリースを応援してください：skip-and-loafer.com',
+    button: '閉じる',
+  },
+  fr: {
+    title: 'Merci & Au Revoir',
+    subtitle: 'Ce site web prendra sa retraite',
+    message: 'Après le 24 avril 2026, ce site fan de Skip and Loafer fermera définitivement.',
+    thankYou: 'Merci infiniment pour tout votre soutien à ce site fan.',
+    closing: 'Veuillez continuer à soutenir la publication officielle de Takamatsu Misaki et KODANSHA via les canaux officiels : skip-and-loafer.com',
+    button: 'Fermer',
+  },
+  de: {
+    title: 'Danke & Auf Wiedersehen',
+    subtitle: 'Diese Website wird eingestellt',
+    message: 'Nach dem 24. April 2026 wird diese Fan-Website zu Skip and Loafer dauerhaft geschlossen.',
+    thankYou: 'Vielen Dank für eure Unterstützung dieser Fan-Website.',
+    closing: 'Bitte unterstützt weiterhin die offizielle Veröffentlichung von Takamatsu Misaki und KODANSHA über die offiziellen Kanäle: skip-and-loafer.com',
+    button: 'Schließen',
+  },
+  es: {
+    title: 'Gracias y Adiós',
+    subtitle: 'Este sitio web se retirará',
+    message: 'Después del 24 de abril de 2026, este sitio web de fans de Skip and Loafer cerrará permanentemente.',
+    thankYou: 'Muchas gracias por todo su apoyo a este sitio web de fans.',
+    closing: 'Por favor, sigan apoyando la publicación oficial de Takamatsu Misaki y KODANSHA a través de los canales oficiales: skip-and-loafer.com',
+    button: 'Cerrar',
+  },
+  pt: {
+    title: 'Obrigado & Adeus',
+    subtitle: 'Este site será encerrado',
+    message: 'Após 24 de abril de 2026, este site de fãs de Skip and Loafer será encerrado permanentemente.',
+    thankYou: 'Muito obrigado por todo o apoio a este site de fãs.',
+    closing: 'Por favor, continuem apoiando o lançamento oficial de Takamatsu Misaki e KODANSHA através dos canais oficiais: skip-and-loafer.com',
+    button: 'Fechar',
+  },
+  it: {
+    title: 'Grazie e Addio',
+    subtitle: 'Questo sito web verrà chiuso',
+    message: 'Dopo il 24 aprile 2026, questo sito fan di Skip and Loafer chiuderà definitivamente.',
+    thankYou: 'Grazie di cuore per tutto il vostro supporto a questo sito fan.',
+    closing: 'Per favore, continuate a supportare la pubblicazione ufficiale di Takamatsu Misaki e KODANSHA tramite i canali ufficiali: skip-and-loafer.com',
+    button: 'Chiudi',
+  },
+};
+
+const RetirementPopup = ({ isMobile, uiLanguage = 'en' }) => {
+  const [show, setShow] = useState(false);
+  const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
+
+  useEffect(() => {
+    try {
+      const seen = sessionStorage.getItem(STORAGE_KEY);
+      if (!seen) {
+        // Small delay so it doesn't clash with other popups
+        const timer = setTimeout(() => {
+          setShow(true);
+          sessionStorage.setItem(STORAGE_KEY, '1');
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleClose = () => setShow(false);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.55)', zIndex: 10001,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.85, y: 30, rotate: -1 }}
+            animate={{ scale: 1, y: 0, rotate: 0 }}
+            exit={{ scale: 0.85, y: 30, opacity: 0 }}
+            transition={ENTER_SPRING_BOUNCY}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--paper-white)',
+              padding: isMobile ? '24px 18px' : '32px 32px',
+              borderRadius: '20px',
+              border: '3px solid #f9a8d4',
+              boxShadow: '8px 8px 0 rgba(190,24,93,0.08), 0 20px 60px rgba(0,0,0,0.15)',
+              maxWidth: '480px', width: '100%',
+              position: 'relative',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+            className="hide-scrollbar"
+          >
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              aria-label="Close announcement"
+              style={{
+                position: 'absolute', top: '14px', right: '14px',
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '4px', borderRadius: '50%',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#6b7280'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
+            >
+              <X size={20} />
+            </button>
+
+            {/* Decorative heart */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+              <motion.div
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Heart size={28} style={{ color: '#f472b6', fill: '#f472b6' }} />
+              </motion.div>
+            </div>
+
+            {/* Title */}
+            <h2 style={{
+              fontFamily: 'Sniglet, var(--font-main)',
+              color: '#be185d',
+              fontSize: isMobile ? '1.3rem' : '1.5rem',
+              margin: '0 0 4px 0',
+              fontWeight: 'normal',
+              textAlign: 'center',
+            }}>
+              {t.title}
+            </h2>
+
+            <p style={{
+              fontFamily: 'var(--font-hand)',
+              color: '#9ca3af',
+              fontSize: isMobile ? '0.8rem' : '0.85rem',
+              textAlign: 'center',
+              margin: '0 0 16px 0',
+            }}>
+              {t.subtitle}
+            </p>
+
+            {/* Message body */}
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: '12px',
+              marginBottom: '20px',
+              padding: isMobile ? '12px' : '16px',
+              background: '#fafafa',
+              borderRadius: '12px',
+              border: '1px solid #f3e8ff',
+            }}>
+              <p style={{
+                fontFamily: 'var(--font-hand)',
+                color: '#374151',
+                fontSize: isMobile ? '0.88rem' : '0.95rem',
+                lineHeight: 1.55,
+                margin: 0,
+              }}>
+                {t.message}
+              </p>
+
+              <p style={{
+                fontFamily: 'var(--font-hand)',
+                color: '#6b7280',
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
+                lineHeight: 1.55,
+                margin: 0,
+                fontStyle: 'italic',
+              }}>
+                {t.thankYou}
+              </p>
+
+              <p style={{
+                fontFamily: 'var(--font-hand)',
+                color: '#6b7280',
+                fontSize: isMobile ? '0.78rem' : '0.82rem',
+                lineHeight: 1.5,
+                margin: 0,
+              }}>
+                {t.closing}
+              </p>
+            </div>
+
+            {/* Close button */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <motion.button
+                whileHover={{ ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
+                whileTap={{ ...JELLY_TAP, transition: SQUASH_TRANSITION }}
+                onClick={handleClose}
+                style={{
+                  background: 'var(--pop-blue)',
+                  border: '2px solid #60a5fa',
+                  color: '#fff',
+                  padding: isMobile ? '10px 24px' : '10px 32px',
+                  borderRadius: '9999px',
+                  fontFamily: 'var(--font-hand)',
+                  fontWeight: 'bold',
+                  fontSize: isMobile ? '0.95rem' : '1rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}
+              >
+                {t.button}
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default RetirementPopup;

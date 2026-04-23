@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { differenceInSeconds, isBefore } from 'date-fns';
 
-const TARGET_DATE = new Date('2026-04-25T00:00:00+09:00');
+const TARGET_DATE = new Date(2026, 3, 25); // Local April 25, 2026 (24th is last day)
 
 const UI_TEXT = {
     en: { days: 'days', hours: 'hrs', minutes: 'min', seconds: 'sec', loading: 'Loading...' },

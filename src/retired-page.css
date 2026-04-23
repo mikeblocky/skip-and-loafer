@@ -1,0 +1,268 @@
+/* ──────────────────────────────────
+   Retired Page — Full-screen farewell
+ ─────────────────────────────────── */
+
+@keyframes retiredFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes retiredHeartbeat {
+  0%, 100% { transform: scale(1); }
+  25%      { transform: scale(1.12); }
+  50%      { transform: scale(1); }
+  75%      { transform: scale(1.06); }
+}
+
+@keyframes retiredPetalFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg) translateX(0);
+  }
+  10% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(360deg) translateX(40px);
+  }
+}
+
+.retired-page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 158, 198, 0.12), transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(143, 211, 255, 0.10), transparent 50%),
+    linear-gradient(180deg, #fdfaf8 0%, #fff5f9 35%, #fdfaf8 100%);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 158, 198, 0.12), transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(143, 211, 255, 0.10), transparent 50%),
+    linear-gradient(180deg, #fdfaf8 0%, #fff5f9 35%, #fdfaf8 100%),
+    repeating-linear-gradient(transparent, transparent 31px, #e8f0f8 32px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 32px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.retired-page--visible {
+  opacity: 1;
+}
+
+/* ── Floating petals ── */
+.retired-petals {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.retired-petal {
+  position: absolute;
+  top: -20px;
+  left: var(--petal-left);
+  width: var(--petal-size);
+  height: var(--petal-size);
+  border-radius: 50% 0 50% 50%;
+  background: linear-gradient(135deg, #fbb6ce, #f9a8d4);
+  opacity: 0;
+  animation: retiredPetalFall var(--petal-duration) ease-in var(--petal-delay) infinite;
+}
+
+/* ── Main card ── */
+.retired-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  width: min(100%, 540px);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffefe 0%, #fff9ff 100%);
+  box-shadow:
+    0 20px 60px rgba(190, 24, 93, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 0 40px rgba(255, 158, 198, 0.12);
+  overflow: hidden;
+  opacity: 0;
+  animation: retiredFadeIn 0.7s ease-out 0.25s forwards;
+}
+
+/* ── Notebook rings (left binding) ── */
+.retired-card__rings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 0;
+  background:
+    linear-gradient(180deg, rgba(249, 168, 212, 0.08), rgba(143, 211, 255, 0.06)),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(148, 163, 184, 0.14) 31px, rgba(148, 163, 184, 0.14) 32px);
+  border-right: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.retired-card__ring {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid #f9a8d4;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Paper content area ── */
+.retired-card__paper {
+  padding: 32px 28px;
+  background:
+    linear-gradient(90deg, transparent 0, transparent 20px, rgba(249, 168, 212, 0.08) 20px, rgba(249, 168, 212, 0.08) 22px, transparent 22px),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(220, 235, 247, 0.55) 31px, rgba(220, 235, 247, 0.55) 32px),
+    linear-gradient(180deg, #fffefa 0%, #fffdfd 100%);
+}
+
+/* ── Heart icon ── */
+.retired-heart {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+  animation: retiredHeartbeat 2s ease-in-out infinite;
+}
+
+/* ── Typography ── */
+.retired-title {
+  font-family: 'Sniglet', var(--font-main);
+  color: #be185d;
+  font-size: clamp(1.3rem, 3.5vw, 1.65rem);
+  font-weight: normal;
+  text-align: center;
+  margin: 0 0 4px 0;
+  line-height: 1.25;
+}
+
+.retired-subtitle {
+  font-family: var(--font-hand);
+  color: #d946ef;
+  font-size: 0.88rem;
+  text-align: center;
+  margin: 0 0 16px 0;
+  opacity: 0.8;
+}
+
+.retired-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f9a8d4, transparent);
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+/* ── Message body ── */
+.retired-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 16px;
+  margin: 12px 0;
+  background: rgba(253, 242, 248, 0.45);
+  border-radius: 14px;
+  border: 1px solid rgba(249, 168, 212, 0.15);
+}
+
+.retired-message {
+  font-family: var(--font-hand);
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: bold;
+}
+
+.retired-explanation {
+  font-family: var(--font-hand);
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+  font-style: italic;
+}
+
+.retired-support {
+  font-family: var(--font-hand);
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Farewell ── */
+.retired-farewell {
+  text-align: center;
+  padding-top: 8px;
+}
+
+.retired-farewell__text {
+  font-family: var(--font-hand);
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0 0 2px 0;
+  font-style: italic;
+}
+
+.retired-farewell__team {
+  font-family: 'Sniglet', var(--font-main);
+  color: #be185d;
+  font-size: 0.9rem;
+  margin: 0;
+  opacity: 0.75;
+}
+
+/* ── Footer ── */
+.retired-footer {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-hand);
+  color: #9ca3af;
+  font-size: 0.72rem;
+  margin: 0;
+  text-align: center;
+  opacity: 0;
+  animation: retiredFadeIn 0.5s ease-out 0.6s forwards;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .retired-page {
+    padding: 16px;
+  }
+
+  .retired-card {
+    grid-template-columns: 28px minmax(0, 1fr);
+    border-radius: 16px;
+  }
+
+  .retired-card__rings {
+    gap: 12px;
+  }
+
+  .retired-card__ring {
+    width: 12px;
+    height: 12px;
+    border-width: 2px;
+  }
+
+  .retired-card__paper {
+    padding: 22px 16px;
+  }
+
+  .retired-body {
+    padding: 14px 12px;
+  }
+}

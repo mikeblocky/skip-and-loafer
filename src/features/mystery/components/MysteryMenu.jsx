@@ -50,20 +50,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, uiLanguage }) 
     : animalQuizCopy.menuDescription;
 
   const menuOptions = [
-    {
-      view: 'gacha',
-      icon: Package,
-      title: t.mystery.characterDraw,
-      description: t.mystery.characterDrawDesc,
-      hoverRotate: -2,
-      theme: {
-        background: '#fdf2f8',
-        border: '#f472b6',
-        borderBottom: '#db2777',
-        titleColor: '#9d174d',
-        shadow: '0 12px 32px rgba(219, 39, 119, 0.15)',
-      },
-    },
+
     {
       view: 'quiz',
       icon: UserCheck,
