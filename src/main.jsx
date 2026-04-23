@@ -7,6 +7,7 @@ import './index.css'
 const App = lazy(() => import('./App.jsx'))
 const MitsumiBirthday = lazy(() => import('./MitsumiBirthday.jsx'))
 const MakotoBirthday = lazy(() => import('./MakotoBirthday.jsx'))
+const RetiredPage = lazy(() => import('./RetiredPage.jsx'))
 
 const MITSUMI_FIRST_VISIT_KEY = 'skip_mitsumi_first_visit';
 
@@ -20,10 +21,21 @@ const isMarchThird = () => {
   return now.getMonth() === 2 && now.getDate() === 3;
 };
 
+/* ── Retirement date check ──
+   After April 30, 2026 the entire site is replaced. */
+const isRetired = () => {
+  const now = new Date();
+  const retireDate = new Date('2026-04-24T00:00:00+09:00');
+  return now >= retireDate;
+};
+
+// If the site is retired, skip all other routing
+const siteIsRetired = isRetired();
+
 let isMitsumiPage = window.location.pathname === '/mitsumi';
 const isMakotoPage = window.location.hash.toLowerCase() === '#makoto';
 
-if (!isMitsumiPage && !isMakotoPage && isMarchThird()) {
+if (!siteIsRetired && !isMitsumiPage && !isMakotoPage && isMarchThird()) {
   const todayKey = getTodayKey();
   let hasVisitedToday = false;
 
@@ -45,10 +57,17 @@ if (!isMitsumiPage && !isMakotoPage && isMarchThird()) {
   }
 }
 
+const getRootComponent = () => {
+  if (siteIsRetired) return <RetiredPage />;
+  if (isMitsumiPage) return <MitsumiBirthday />;
+  if (isMakotoPage) return <MakotoBirthday />;
+  return <App />;
+};
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Suspense fallback={null}>
-      {isMitsumiPage ? <MitsumiBirthday /> : (isMakotoPage ? <MakotoBirthday /> : <App />)}
+      {getRootComponent()}
     </Suspense>
     <SpeedInsights />
     <Analytics />

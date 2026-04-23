@@ -8,3 +8,4 @@ export const AppDisclaimerModal = lazy(() => import('./AppDisclaimerModal'));
 export const AppDecorativeLayer = lazy(() => import('./AppDecorativeLayer'));
 export const ChangelogPopup = lazy(() => import('../../components/shared/ChangelogPopup'));
 export const BirthdayNotification = lazy(() => import('../../components/shared/BirthdayNotification'));
+export const RetirementPopup = lazy(() => import('../../components/shared/RetirementPopup'));
