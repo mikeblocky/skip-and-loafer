@@ -1473,7 +1473,7 @@ const WikiCategoryView = ({
       </motion.div>
 
       <div style={{ display: 'grid', gap: '14px' }}>
-        {remainingEntries?.map((entry, index) => (
+        {remainingEntries.map((entry, index) => (
           <motion.div
             key={entry.id}
             initial={{ opacity: 0, y: 20, rotate: index % 2 === 0 ? -0.5 : 0.5 }}
@@ -1677,7 +1677,7 @@ const WikiDetailView = ({
 
       {entry.tags?.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {entry.tags?.map((tag) => renderBadge(tag, '#dbeafe', '#93c5fd', '#eff6ff', '#1d4ed8'))}
+          {entry.tags.map((tag) => renderBadge(tag, '#dbeafe', '#93c5fd', '#eff6ff', '#1d4ed8'))}
         </div>
       )}
 
@@ -1756,9 +1756,9 @@ const WikiDetailView = ({
             </div>
           </div>
 
-          {displaySections.map((section, index) => section && (
+          {displaySections.map((section, index) => (
             <motion.section
-              key={`section-${section.title}-${index}`}
+              key={section.title}
               id={getAnchorId(section.title)}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1783,7 +1783,7 @@ const WikiDetailView = ({
                 {section.title}
               </h2>
 
-              {section.paragraphs?.map((paragraph) => (
+              {section.paragraphs.map((paragraph) => (
                 <p
                   key={paragraph}
                   style={{
@@ -1801,7 +1801,7 @@ const WikiDetailView = ({
 
               <WikiSectionTables isMobile={isMobile} tables={section.tables} />
 
-              {section.subsections?.map((subsection, subsectionIndex) => subsection && (
+              {section.subsections?.map((subsection, subsectionIndex) => (
                 <div
                   key={`${section.title}-${subsection.title}-${subsectionIndex}`}
                   className="sketchbook-border"
@@ -1831,7 +1831,7 @@ const WikiDetailView = ({
                     {subsection.title}
                   </h3>
 
-                  {subsection.paragraphs?.map((paragraph) => (
+                  {subsection.paragraphs.map((paragraph) => (
                     <p
                       key={`${subsection.title}-${paragraph}`}
                       style={{
@@ -1874,7 +1874,7 @@ const WikiDetailView = ({
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                {entry.related?.map((related) => (
+                {entry.related.map((related) => (
                   <motion.button
                     key={`${related.categoryId}:${related.entryId}`}
                     type="button"
@@ -1970,7 +1970,7 @@ const WikiDetailView = ({
               >
                 {galleryItems.map((imageSrc, index) => (
                   <motion.button
-                    key={`${imageSrc}-${index}`}
+                    key={imageSrc}
                     type="button"
                     onClick={() => onOpenGallery(galleryItems, imageSrc, `${entry.title} gallery image ${index + 1}`)}
                     whileHover={{ y: -4, scale: 1.01 }}
@@ -2112,7 +2112,7 @@ const WikiDetailView = ({
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {versions?.map((version, index) => {
+                {versions.map((version, index) => {
                   const isActive = version.src === (activeVersion?.src || '');
                   return (
                     <button
@@ -2146,7 +2146,7 @@ const WikiDetailView = ({
               background: '#f8fafc',
             }}
           >
-            {infoboxFacts?.map((fact, index) => (
+            {infoboxFacts.map((fact, index) => (
               <div
                 key={`${fact.label}-${fact.value}`}
                 style={{

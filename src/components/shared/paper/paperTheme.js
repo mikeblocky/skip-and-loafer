@@ -1,19 +1,33 @@
 export const PAPER_FONT_FAMILY = 'var(--font-paper)';
 
 export const PAPER_PANEL_STYLE = {
-  background: '#fffefc',
-  border: '3px solid #cbd5e1',
-  borderBottom: '8px solid #94a3b8',
+  background: 'var(--surface-panel)',
+  border: '3px solid var(--surface-border)',
+  borderBottom: '8px solid var(--surface-border-strong)',
   borderRadius: '28px',
-  boxShadow: '0 18px 42px rgba(15, 23, 42, 0.12)',
+  boxShadow: 'var(--shadow-panel)',
+};
+
+export const PAPER_FLOATING_PANEL_STYLE = {
+  ...PAPER_PANEL_STYLE,
+  background: 'var(--surface-elevated)',
+  borderRadius: '24px',
+  boxShadow: 'var(--shadow-floating)',
+};
+
+export const PAPER_MODAL_STYLE = {
+  ...PAPER_PANEL_STYLE,
+  background: 'var(--surface-elevated)',
+  borderRadius: '24px',
+  boxShadow: 'var(--shadow-modal)',
 };
 
 export function createPaperPanelStyle({
-  background = '#fffefc',
-  borderColor = '#cbd5e1',
-  bottomColor = '#94a3b8',
+  background = 'var(--surface-panel)',
+  borderColor = 'var(--surface-border)',
+  bottomColor = 'var(--surface-border-strong)',
   radius = '28px',
-  shadow = '0 18px 42px rgba(15, 23, 42, 0.12)',
+  shadow = 'var(--shadow-panel)',
 } = {}) {
   return {
     ...PAPER_PANEL_STYLE,
@@ -28,7 +42,7 @@ export function createPaperPanelStyle({
 export function createPaperHeadingBadgeStyle({
   borderColor,
   bottomColor,
-  background = '#ffffff',
+  background = 'var(--surface-card)',
   radius = '24px',
   padding = '10px 24px',
   gap = '12px',
@@ -78,6 +92,34 @@ export function createPaperButtonStyle({
     padding,
     minHeight,
     boxShadow: shadow,
+  };
+}
+
+export function createPaperInputStyle({
+  background = 'var(--surface-card)',
+  borderColor = '#dbe7f3',
+  bottomColor = '#c7d7ea',
+  color = '#1e293b',
+  radius = '16px',
+  padding = '12px 14px',
+  minHeight = '48px',
+  fontSize = '1rem',
+  lineHeight = 1.4,
+  fontFamily = PAPER_FONT_FAMILY,
+} = {}) {
+  return {
+    width: '100%',
+    border: `2.5px solid ${borderColor}`,
+    borderBottom: `5px solid ${bottomColor}`,
+    borderRadius: radius,
+    background,
+    color,
+    padding,
+    minHeight,
+    fontFamily,
+    fontSize,
+    lineHeight,
+    outline: 'none',
   };
 }
 

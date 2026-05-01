@@ -3,6 +3,15 @@ import { AXES } from './config';
 
 const zeroAxes = () => ({ social: 0, planning: 0, focus: 0, drive: 0 });
 
+const resolveLocalizedString = (value, fallback = '') => {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object') {
+    const localized = value.en ?? Object.values(value).find((entry) => typeof entry === 'string');
+    return typeof localized === 'string' ? localized : fallback;
+  }
+  return fallback;
+};
+
 export const localizeQuizQuestion = (question, t) => {
   const localized = t?.quiz?.questions?.[question.id];
   if (!localized) return question;
@@ -20,23 +29,23 @@ export const localizeQuizQuestion = (question, t) => {
     'steadyLabel',
     'wildLabel',
   ].forEach((key) => {
-    if (localized[key] != null) next[key] = localized[key];
+    if (localized[key] != null) next[key] = resolveLocalizedString(localized[key], next[key]);
   });
 
   if (localized.left && next.left) {
-    next.left = { ...next.left, text: localized.left };
+    next.left = { ...next.left, text: resolveLocalizedString(localized.left, next.left.text) };
   }
 
   if (localized.right && next.right) {
-    next.right = { ...next.right, text: localized.right };
+    next.right = { ...next.right, text: resolveLocalizedString(localized.right, next.right.text) };
   }
 
   if (Array.isArray(next.options) && Array.isArray(localized.options)) {
     next.options = next.options.map((option, index) => {
       const localizedOption = localized.options[index];
       if (localizedOption == null) return option;
-      if (typeof option === 'string') return localizedOption;
-      return { ...option, text: localizedOption };
+      if (typeof option === 'string') return resolveLocalizedString(localizedOption, option);
+      return { ...option, text: resolveLocalizedString(localizedOption, option.text) };
     });
   }
 

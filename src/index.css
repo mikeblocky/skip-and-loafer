@@ -27,6 +27,28 @@
 
   --paper-white: #ffffff;
   --line-blue: #dcebf7;
+  --surface-card: #ffffff;
+  --surface-panel: #fffefc;
+  --surface-elevated: rgba(255, 255, 255, 0.96);
+  --surface-shell: #fdfaf8;
+  --surface-border: #cbd5e1;
+  --surface-border-strong: #94a3b8;
+  --shadow-panel: 0 18px 42px rgba(15, 23, 42, 0.12);
+  --shadow-floating: 0 14px 34px rgba(15, 23, 42, 0.12);
+  --shadow-modal: 8px 8px 0 rgba(15, 23, 42, 0.08), 0 20px 60px rgba(15, 23, 42, 0.15);
+  --transition-tactile: transform 180ms ease-out, box-shadow 180ms ease-out, background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+  --paper-lines: repeating-linear-gradient(transparent, transparent 31px, #e8f0f8 32px);
+  --shell-background-image:
+    radial-gradient(circle at top left, rgba(255, 158, 198, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(143, 211, 255, 0.14), transparent 26%),
+    linear-gradient(180deg, #fdfaf8 0%, #fffdf9 100%),
+    var(--paper-lines);
+  --planner-shell-background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.94)),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(191, 219, 254, 0.82) 31px, rgba(191, 219, 254, 0.82) 32px);
+  --planner-page-background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.98)),
+    var(--paper-lines);
 
   /* Emotional warmth */
   --warm-glow: rgba(255, 158, 198, 0.15);
@@ -49,12 +71,9 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   font-family: var(--font-main);
-  /* Notebook Lines Background — warm tinted paper */
-  background-color: #fdfaf8;
-  background-image: repeating-linear-gradient(transparent,
-      transparent 31px,
-      #e8f0f8 32px);
-  background-size: 100% 32px;
+  background-color: var(--surface-shell);
+  background-image: var(--shell-background-image);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 32px;
   color: #4a5568;
   overscroll-behavior-y: none;
   -webkit-text-size-adjust: 100%;
@@ -98,6 +117,11 @@ html[lang='ja'] [style*="CHAT_FONT_FAMILY"] {
 [style*="CHAT_FONT_FAMILY"] {
   font-family: var(--font-paper) !important;
   font-weight: 400 !important;
+}
+
+html[lang='ja'] .mystery-ui[data-mystery-language='en'],
+html[lang='ja'] .mystery-ui[data-mystery-language='en'] * {
+  font-family: var(--font-paper) !important;
 }
 
 .volume-selector-button {
@@ -209,12 +233,33 @@ html {
 }
 
 .paper-interact {
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, filter 0.18s ease-out;
+  transition: var(--transition-tactile), filter 0.18s ease-out;
 }
 .paper-interact:hover {
   transform: translateY(-2px) scale(1.01);
   box-shadow: 4px 8px 16px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.02);
   z-index: 10;
+}
+
+.app-tactile {
+  transition: var(--transition-tactile);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.app-tactile:hover {
+  transform: translateY(-2px);
+}
+
+.app-surface-shell {
+  background-image: var(--shell-background-image);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 32px;
+}
+
+.app-surface-paper {
+  background-image: var(--planner-page-background-image);
+  background-size: 100% 100%, 100% 32px;
+  background-repeat: no-repeat, repeat;
 }
 
 #root {
@@ -325,6 +370,9 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   display: flex;
   flex-direction: row;
   background-color: var(--paper-white);
+  background-image: var(--planner-shell-background-image);
+  background-size: 100% 100%, 100% 32px;
+  background-repeat: no-repeat, repeat;
   position: relative;
   z-index: 10;
   box-shadow:
@@ -347,10 +395,17 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
 .planner-page {
   flex: 1;
   background-color: var(--paper-white);
-  background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-blue) 32px);
-  background-size: 100% 32px;
-  background-repeat: repeat;
+  background-image: var(--planner-page-background-image);
+  background-size: 100% 100%, 100% 32px;
+  background-repeat: no-repeat, repeat;
   background-attachment: local;
+  position: relative;
+  min-height: 100%;
+}
+
+.planner-home-panel {
+  flex: 1;
+  background: transparent;
   position: relative;
   min-height: 100%;
 }
@@ -359,10 +414,8 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
 .spiral-binding-center {
   width: 50px;
   flex-shrink: 0;
-  background:
-    radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
-    linear-gradient(to bottom, transparent 45%, #cbd5e0 45%, #a0aec0 55%, transparent 55%);
-  background-size: 100% 40px, 8px 40px;
+  background: radial-gradient(circle at center, #cbd5e0 40%, transparent 42%);
+  background-size: 100% 40px;
   background-repeat: repeat-y;
   background-position: center top;
 }
@@ -414,10 +467,8 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   .spiral-binding-center {
     width: 100%;
     height: 30px;
-    background:
-      radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
-      linear-gradient(to right, transparent 45%, #cbd5e0 45%, #a0aec0 55%, transparent 55%);
-    background-size: 40px 100%, 40px 8px;
+    background: radial-gradient(circle at center, #cbd5e0 40%, transparent 42%);
+    background-size: 40px 100%;
     background-repeat: repeat-x;
   }
 

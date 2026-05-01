@@ -1,7 +1,6 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
 import { triggerHaptic } from '../../utils/haptics';
 import usePageTitle from '../../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../../config/appUiText';
 import useIdlePreload from '../app/hooks/useIdlePreload';
 import { FALLBACK_COLORS } from '../chat/chatPalette';
 import getAnimalQuizCopy from './animalQuiz/copy';
@@ -17,16 +16,16 @@ const loadQuizGame = () => import('./QuizGame');
 const loadAnimalQuizGame = () => import('./AnimalQuizGame');
 const QuizGame = lazy(loadQuizGame);
 const AnimalQuizGame = lazy(loadAnimalQuizGame);
+const MYSTERY_LANGUAGE = 'en';
 
-const MysteryExperience = ({ isMobile, uiLanguage }) => {
-  const { text: t, isReady } = useMysteryText(uiLanguage);
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
-  const loadingMysteryLabel = uiLanguage === 'ja' ? 'ミステリーを読み込み中...' : 'Loading mystery...';
-  const loadingAnimalQuizLabel = uiLanguage === 'ja' ? '動物クイズを読み込み中...' : 'Loading animal quiz...';
+const MysteryExperience = ({ isMobile }) => {
+  const { text: t, isReady } = useMysteryText();
+  const loadingMysteryLabel = 'Loading mystery...';
+  const loadingAnimalQuizLabel = 'Loading animal quiz...';
 
-  usePageTitle(tGlobal.tabs?.mystery?.label || 'Mystery');
+  usePageTitle('Mystery');
 
-  const animalQuizCopy = getAnimalQuizCopy(uiLanguage, t);
+  const animalQuizCopy = getAnimalQuizCopy(MYSTERY_LANGUAGE, t);
   const [view, setView] = useState('menu');
   const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame], []);
   const { pulledCharacter, isOpening, handlePull, handleReset, handleDrawAgain } = useMysteryDraw({
@@ -67,6 +66,7 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
   return (
     <div
       className="planner-container planner-page mystery-ui"
+      data-mystery-language={MYSTERY_LANGUAGE}
       style={{
         width: '100%',
         display: 'flex',
@@ -91,7 +91,6 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
         t={t}
         animalQuizCopy={animalQuizCopy}
         onSelectView={setView}
-        uiLanguage={uiLanguage}
       />
       )}
 
@@ -103,7 +102,7 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
           isOpening={isOpening}
           onDraw={handlePull}
           onDrawAgain={handleDrawAgain}
-          uiLanguage={uiLanguage}
+          uiLanguage={MYSTERY_LANGUAGE}
         />
       )}
 
@@ -114,17 +113,18 @@ const MysteryExperience = ({ isMobile, uiLanguage }) => {
             portraitData={PORTRAIT_DATA}
             fallbackColors={FALLBACK_COLORS}
             t={t}
+            uiLanguage={MYSTERY_LANGUAGE}
           />
         </Suspense>
       )}
 
       {view === 'animalQuiz' && (
-        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={uiLanguage === 'ja' ? loadingAnimalQuizLabel : (animalQuizCopy.calculating || loadingAnimalQuizLabel)} />}>
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={animalQuizCopy.calculating || loadingAnimalQuizLabel} />}>
           <AnimalQuizGame
             isMobile={isMobile}
             portraitData={PORTRAIT_DATA}
             t={t}
-            uiLanguage={uiLanguage}
+            uiLanguage={MYSTERY_LANGUAGE}
           />
         </Suspense>
       )}

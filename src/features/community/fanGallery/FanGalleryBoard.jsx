@@ -7,6 +7,7 @@ import {
   createCommunityTimestampStyle,
   formatCommunityTimestamp,
 } from '../communityTheme';
+import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
 
 const CARD_PALETTES = [
   { frame: '#fff8ef', border: '#f7b267', bottom: '#ea7c31', label: '#9a3412', shadow: 'rgba(234, 124, 49, 0.16)' },
@@ -136,12 +137,14 @@ const FanGalleryBoard = ({
           >
             <div
               style={{
-                background: palette.frame,
+                ...createPaperPanelStyle({
+                  background: palette.frame,
+                  borderColor: palette.border,
+                  bottomColor: palette.bottom,
+                  radius: '26px',
+                  shadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
+                }),
                 padding: isMobile ? '12px' : '16px',
-                boxShadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
-                borderRadius: '26px',
-                border: `3px solid ${palette.border}`,
-                borderBottom: `9px solid ${palette.bottom}`,
                 display: 'grid',
                 gap: isMobile ? '10px' : '12px',
                 transformOrigin: 'center center',
@@ -156,6 +159,7 @@ const FanGalleryBoard = ({
               onWheel={(event) => onWheel(entry.id, event)}
             >
               <button
+                className="app-tactile"
                 type="button"
                 onClick={() => onSelectEntry(entry.id, entry.imageDataUrl)}
                 style={{

@@ -6,10 +6,10 @@ import {
 } from '../communityGestures';
 import {
   COMMUNITY_FONT_FAMILY,
-  COMMUNITY_PANEL_STYLE,
   createCommunityTimestampStyle,
   formatCommunityTimestamp,
 } from '../communityTheme';
+import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
 
 const NOTE_PALETTES = [
   { background: '#fff8be', border: '#facc15', bottom: '#eab308', accent: '#a16207' },
@@ -138,15 +138,16 @@ const SignNotesBoard = ({
           >
             <div
               style={{
-                ...COMMUNITY_PANEL_STYLE,
+                ...createPaperPanelStyle({
+                  background: '#fffdf7',
+                  borderColor: palette.border,
+                  bottomColor: palette.bottom,
+                  radius: '26px',
+                  shadow: `0 14px 26px ${palette.shadow || 'rgba(15, 23, 42, 0.1)'}`,
+                }),
                 padding: isMobile ? '14px 14px 12px' : '18px 20px 16px',
-                background: '#fffdf7',
-                borderColor: palette.border,
-                borderBottomColor: palette.bottom,
-                borderRadius: '26px',
                 display: 'grid',
                 gap: isMobile ? '8px' : '10px',
-                boxShadow: `0 14px 26px ${palette.shadow || 'rgba(15, 23, 42, 0.1)'}`,
                 transform: `translateZ(0) scale(${gesture.scale}) rotate(${gesture.rotate}deg)`,
                 transformOrigin: 'center center',
                 willChange: 'transform',
