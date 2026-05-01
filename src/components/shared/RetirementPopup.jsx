@@ -2,65 +2,66 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart } from 'lucide-react';
 import { ENTER_SPRING_BOUNCY, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from './animationPresets';
+import { PAPER_MODAL_STYLE, PAPER_FONT_FAMILY } from './paper/paperTheme';
 
 const STORAGE_KEY = 'skip_retirement_popup_seen';
 
 const UI_TEXT = {
   en: {
-    title: 'Thank you & farewell',
-    subtitle: 'This website will be retiring soon.',
-    message: 'After April 24th, 2026, this fan-made Skip and Loafer website will be shutting down permanently.',
-    thankYou: 'Thank you for all of the support to this fan-made website.',
-    closing: 'Please continue to support the official release by Takamatsu Misaki and KODANSHA via official channels: skip-and-loafer.com',
-    button: 'Close',
+    title: 'Website Update',
+    subtitle: 'I am moving to a new home!',
+    message: 'This Skip and Loafer fan website is currently in the process of moving to a new hosting provider and domain.',
+    thankYou: 'The exact timeline for the move is still being finalized. I truly appreciate your patience and all the love you\'ve shown for this project!',
+    closing: 'Stay tuned for updates, and thank you for being part of this journey.',
+    button: 'Got it!',
   },
   ja: {
-    title: 'ありがとう＆さよなら',
-    subtitle: 'このウェブサイトは閉鎖されます',
-    message: '2026年4月24日をもって、このファンメイドの「スキップとローファー」ウェブサイトは閉鎖されます。',
-    thankYou: 'このファンメイドのウェブサイトへの皆さまのご支援に心から感謝いたします。',
-    closing: '引き続き高松美咲先生と講談社の公式リリースを応援してください：skip-and-loafer.com',
+    title: 'ウェブサイト移転のお知らせ',
+    subtitle: '新しいホームへ移動します！',
+    message: 'この「スキップとローファー」ファンサイトは、現在新しいホスティングプロバイダーとドメインへの移転作業を行っています。',
+    thankYou: '移転の完了時期は未定ですが、皆さまの忍耐とこれまでの応援に心から感謝いたします。',
+    closing: '今後のアップデートをお楽しみに。引き続きよろしくお願いいたします！',
     button: '閉じる',
   },
   fr: {
-    title: 'Merci & Au Revoir',
-    subtitle: 'Ce site web prendra sa retraite',
-    message: 'Après le 24 avril 2026, ce site fan de Skip and Loafer fermera définitivement.',
-    thankYou: 'Merci infiniment pour tout votre soutien à ce site fan.',
-    closing: 'Veuillez continuer à soutenir la publication officielle de Takamatsu Misaki et KODANSHA via les canaux officiels : skip-and-loafer.com',
-    button: 'Fermer',
+    title: 'Mise à jour du site',
+    subtitle: 'Je déménage vers une nouvelle maison !',
+    message: 'Ce site de fan de Skip and Loafer est en cours de déménagement vers un nouvel hébergeur et un nouveau domaine.',
+    thankYou: 'Le calendrier exact du déménagement est encore en cours de finalisation. J\'apprécie vraiment votre patience et tout l\'amour que vous avez montré pour ce projet !',
+    closing: 'Restez à l\'écoute pour les mises à jour, et merci de faire partie de ce voyage.',
+    button: 'Compris !',
   },
   de: {
-    title: 'Danke & Auf Wiedersehen',
-    subtitle: 'Diese Website wird eingestellt',
-    message: 'Nach dem 24. April 2026 wird diese Fan-Website zu Skip and Loafer dauerhaft geschlossen.',
-    thankYou: 'Vielen Dank für eure Unterstützung dieser Fan-Website.',
-    closing: 'Bitte unterstützt weiterhin die offizielle Veröffentlichung von Takamatsu Misaki und KODANSHA über die offiziellen Kanäle: skip-and-loafer.com',
-    button: 'Schließen',
+    title: 'Website-Update',
+    subtitle: 'Ich ziehe in ein neues Zuhause um!',
+    message: 'Diese Skip and Loafer Fan-Website zieht derzeit zu einem neuen Hosting-Anbieter und einer neuen Domain um.',
+    thankYou: 'Der genaue Zeitplan für den Umzug wird noch festgelegt. Ich schätze Ihre Geduld und die Liebe, die Sie diesem Projekt entgegengebracht haben, sehr!',
+    closing: 'Bleiben Sie dran für Updates und danke, dass Sie Teil dieser Reise sind.',
+    button: 'Verstanden!',
   },
   es: {
-    title: 'Gracias y Adiós',
-    subtitle: 'Este sitio web se retirará',
-    message: 'Después del 24 de abril de 2026, este sitio web de fans de Skip and Loafer cerrará permanentemente.',
-    thankYou: 'Muchas gracias por todo su apoyo a este sitio web de fans.',
-    closing: 'Por favor, sigan apoyando la publicación oficial de Takamatsu Misaki y KODANSHA a través de los canales oficiales: skip-and-loafer.com',
-    button: 'Cerrar',
+    title: 'Actualización del sitio web',
+    subtitle: '¡Me mudo a un nuevo hogar!',
+    message: 'Este sitio web de fans de Skip and Loafer está en proceso de mudarse a un nuevo proveedor de hosting y dominio.',
+    thankYou: 'El cronograma exacto para la mudanza aún se está finalizando. ¡Agradezco sinceramente su paciencia y todo el amor que han mostrado por este proyecto!',
+    closing: 'Estén atentos a las actualizaciones y gracias por ser parte de este viaje.',
+    button: '¡Entendido!',
   },
   pt: {
-    title: 'Obrigado & Adeus',
-    subtitle: 'Este site será encerrado',
-    message: 'Após 24 de abril de 2026, este site de fãs de Skip and Loafer será encerrado permanentemente.',
-    thankYou: 'Muito obrigado por todo o apoio a este site de fãs.',
-    closing: 'Por favor, continuem apoiando o lançamento oficial de Takamatsu Misaki e KODANSHA através dos canais oficiais: skip-and-loafer.com',
-    button: 'Fechar',
+    title: 'Atualização do site',
+    subtitle: 'Estou me mudando para uma nova casa!',
+    message: 'Este site de fãs de Skip and Loafer está em processo de mudança para um novo provedor de hospedagem e domínio.',
+    thankYou: 'O cronograma exato para a mudança ainda está sendo finalizado. Agradeço de coração a sua paciência e todo o amor que você demonstrou por este projeto!',
+    closing: 'Fique atento às atualizações e obrigado por fazer parte desta jornada.',
+    button: 'Entendi!',
   },
   it: {
-    title: 'Grazie e Addio',
-    subtitle: 'Questo sito web verrà chiuso',
-    message: 'Dopo il 24 aprile 2026, questo sito fan di Skip and Loafer chiuderà definitivamente.',
-    thankYou: 'Grazie di cuore per tutto il vostro supporto a questo sito fan.',
-    closing: 'Per favore, continuate a supportare la pubblicazione ufficiale di Takamatsu Misaki e KODANSHA tramite i canali ufficiali: skip-and-loafer.com',
-    button: 'Chiudi',
+    title: 'Aggiornamento del sito web',
+    subtitle: 'Mi sto trasferendo in una nuova casa!',
+    message: 'Questo sito fan di Skip and Loafer è in fase di trasferimento verso un nuovo fornitore di hosting e dominio.',
+    thankYou: 'La tempistica esatta per il trasferimento è ancora in fase di definizione. Apprezzo davvero la vostra pazienza e tutto l\'amore che avete dimostrato per questo progetto!',
+    closing: 'Rimanete sintonizzati per aggiornamenti e grazie per aver fatto parte di questo viaggio.',
+    button: 'Capito!',
   },
 };
 
@@ -106,11 +107,11 @@ const RetirementPopup = ({ isMobile, uiLanguage = 'en' }) => {
             transition={ENTER_SPRING_BOUNCY}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'var(--paper-white)',
+              ...PAPER_MODAL_STYLE,
               padding: isMobile ? '24px 18px' : '32px 32px',
               borderRadius: '20px',
-              border: '3px solid #f9a8d4',
-              boxShadow: '8px 8px 0 rgba(190,24,93,0.08), 0 20px 60px rgba(0,0,0,0.15)',
+              borderColor: '#f9a8d4',
+              borderBottomColor: '#f472b6',
               maxWidth: '480px', width: '100%',
               position: 'relative',
               maxHeight: '85vh',
@@ -150,7 +151,7 @@ const RetirementPopup = ({ isMobile, uiLanguage = 'en' }) => {
 
             {/* Title */}
             <h2 style={{
-              fontFamily: 'Sniglet, var(--font-main)',
+              fontFamily: PAPER_FONT_FAMILY,
               color: '#be185d',
               fontSize: isMobile ? '1.3rem' : '1.5rem',
               margin: '0 0 4px 0',
@@ -214,6 +215,7 @@ const RetirementPopup = ({ isMobile, uiLanguage = 'en' }) => {
             {/* Close button */}
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <motion.button
+                className="app-tactile"
                 whileHover={{ ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
                 whileTap={{ ...JELLY_TAP, transition: SQUASH_TRANSITION }}
                 onClick={handleClose}

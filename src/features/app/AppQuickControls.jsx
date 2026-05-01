@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Accessibility, Keyboard, Languages, Settings } from 'lucide-react';
 import { getAppLanguageOptions, APP_UI_TEXT } from '../../config/appUiText';
+import {
+  PAPER_FLOATING_PANEL_STYLE,
+  PAPER_FONT_FAMILY,
+  createPaperChipStyle,
+  createPaperPanelStyle,
+} from '../../components/shared/paper/paperTheme';
 
 const PANEL_BASE_STYLE = {
-  background: '#fffefc',
-  border: '3px solid #cbd5e1',
-  borderBottom: '8px solid #94a3b8',
+  ...PAPER_FLOATING_PANEL_STYLE,
   borderRadius: '22px',
   padding: '14px',
-  boxShadow: '0 14px 34px rgba(15,23,42,0.12)',
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
@@ -20,7 +23,7 @@ const PANEL_TITLE_STYLE = {
   display: 'flex',
   alignItems: 'center',
   gap: '10px',
-  fontFamily: '"Sniglet", "Coming Soon", cursive',
+  fontFamily: PAPER_FONT_FAMILY,
   fontWeight: '400',
   color: '#1e293b',
   fontSize: '1.08rem',
@@ -28,30 +31,36 @@ const PANEL_TITLE_STYLE = {
 };
 
 const getPanelIconBoxStyle = (border, bottom, background, color) => ({
+  ...createPaperChipStyle({
+    borderColor: border,
+    bottomColor: bottom,
+    background,
+    color,
+    radius: '14px',
+    padding: '0',
+    minHeight: '38px',
+    gap: '0',
+  }),
   width: '38px',
-  height: '38px',
-  borderRadius: '14px',
-  border: `2.5px solid ${border}`,
-  borderBottom: `6px solid ${bottom}`,
-  background,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color,
   flexShrink: 0,
 });
 
 const getOptionCardStyle = (active = false) => ({
+  ...createPaperPanelStyle({
+    background: active ? '#f3f8ff' : 'var(--surface-card)',
+    borderColor: active ? '#60a5fa' : '#dbe7f3',
+    bottomColor: active ? '#3b82f6' : '#bfd2e6',
+    radius: '16px',
+    shadow: active ? '0 8px 16px rgba(59,130,246,0.12)' : '0 6px 12px rgba(148,163,184,0.08)',
+  }),
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '10px',
   padding: '11px 12px',
-  borderRadius: '16px',
-  border: `2.5px solid ${active ? '#60a5fa' : '#dbe7f3'}`,
-  borderBottom: `6px solid ${active ? '#3b82f6' : '#bfd2e6'}`,
-  background: active ? '#f3f8ff' : '#ffffff',
-  boxShadow: active ? '0 8px 16px rgba(59,130,246,0.12)' : '0 6px 12px rgba(148,163,184,0.08)',
 });
 
 const getCompactOptionCardStyle = (active = false) => ({
@@ -62,17 +71,19 @@ const getCompactOptionCardStyle = (active = false) => ({
 });
 
 const KEYCAP_STYLE = {
+  ...createPaperChipStyle({
+    borderColor: '#93c5fd',
+    bottomColor: '#60a5fa',
+    background: '#eff6ff',
+    color: '#1d4ed8',
+    radius: '12px',
+    padding: '7px 9px',
+    fontSize: '0.88rem',
+    fontFamily: PAPER_FONT_FAMILY,
+  }),
   minWidth: '52px',
-  padding: '7px 9px',
-  borderRadius: '12px',
-  border: '2.5px solid #93c5fd',
-  borderBottom: '6px solid #60a5fa',
-  background: '#eff6ff',
-  color: '#1d4ed8',
   textAlign: 'center',
-  fontFamily: '"Sniglet", "Coming Soon", cursive',
   fontWeight: '400',
-  fontSize: '0.88rem',
   lineHeight: 1.1,
   flexShrink: 0,
 };
@@ -85,7 +96,7 @@ const SETTINGS_ENTRY_STYLE = {
   borderRadius: '16px',
   cursor: 'pointer',
   color: '#334155',
-  fontFamily: '"Sniglet", "Coming Soon", cursive',
+  fontFamily: PAPER_FONT_FAMILY,
   fontWeight: '400',
   fontSize: '0.92rem',
   display: 'flex',
@@ -191,13 +202,14 @@ const AppQuickControls = ({
       }}
     >
       <motion.button
+        className="app-tactile"
         onClick={toggleSettingsMain}
         aria-label={t.settings || 'Settings'}
         aria-expanded={showSettingsMain}
         whileHover={isMobile ? undefined : { y: -2, scale: 1.01 }}
         whileTap={{ scale: 0.98, y: 1 }}
         style={{
-          background: 'white',
+          background: 'var(--surface-card)',
           border: '3px solid #60a5fa',
           borderBottom: '7px solid #3b82f6',
           borderRadius: '18px',
@@ -209,7 +221,7 @@ const AppQuickControls = ({
           justifyContent: 'center',
           gap: isMobile ? '0' : '8px',
           color: '#1e40af',
-          fontFamily: '"Sniglet", "Coming Soon", cursive',
+          fontFamily: PAPER_FONT_FAMILY,
           fontWeight: '400',
           lineHeight: 1,
           fontSize: '0.96rem',
@@ -229,20 +241,16 @@ const AppQuickControls = ({
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
             style={{
-              background: 'white',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #94a3b8',
+              ...PANEL_BASE_STYLE,
+              background: 'var(--surface-card)',
               borderRadius: '24px',
               padding: '10px',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-              display: 'flex',
-              flexDirection: 'column',
               gap: '6px',
               minWidth: '166px',
-              zIndex: 2000,
             }}
           >
             <button
+              className="app-tactile"
               onClick={toggleLanguagePanel}
               style={SETTINGS_ENTRY_STYLE}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
@@ -251,6 +259,7 @@ const AppQuickControls = ({
               <Languages size={18} strokeWidth={2.5} color="#64748b" /> {t.language}
             </button>
             <button
+              className="app-tactile"
               onClick={toggleAccessibilityPanel}
               style={SETTINGS_ENTRY_STYLE}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
@@ -260,6 +269,7 @@ const AppQuickControls = ({
             </button>
             {!isMobile && (
               <button
+                className="app-tactile"
                 onClick={toggleShortcutPanel}
                 style={SETTINGS_ENTRY_STYLE}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
@@ -306,6 +316,7 @@ const AppQuickControls = ({
                 return (
                   <div key={section.key} style={{ display: 'grid', gap: '6px' }}>
                     <button
+                      className="app-tactile"
                       type="button"
                       onClick={() => setActiveAccessibilityGroup(section.key)}
                       style={{
@@ -319,7 +330,7 @@ const AppQuickControls = ({
                         color: '#1e293b',
                       }}
                     >
-                      <span style={{ fontFamily: '"Sniglet", "Coming Soon", cursive', fontSize: '0.88rem', color: isSelected ? section.accent : '#334155', lineHeight: 1.1 }}>
+                      <span style={{ fontFamily: PAPER_FONT_FAMILY, fontSize: '0.88rem', color: isSelected ? section.accent : '#334155', lineHeight: 1.1 }}>
                         {section.title}
                       </span>
                       <span
@@ -334,7 +345,7 @@ const AppQuickControls = ({
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontFamily: '"Sniglet", "Coming Soon", cursive',
+                          fontFamily: PAPER_FONT_FAMILY,
                           fontSize: '0.74rem',
                           lineHeight: 1,
                         }}
@@ -355,7 +366,7 @@ const AppQuickControls = ({
                       >
                         <div
                           style={{
-                            fontFamily: '"Sniglet", "Coming Soon", cursive',
+                            fontFamily: PAPER_FONT_FAMILY,
                             color: section.accent,
                             fontSize: '0.88rem',
                             lineHeight: 1.1,
@@ -376,7 +387,7 @@ const AppQuickControls = ({
                               key={option.key}
                               style={{
                                 ...getCompactOptionCardStyle(!!accessibilityPrefs[option.key]),
-                                fontFamily: '"Sniglet", "Coming Soon", cursive',
+                                fontFamily: PAPER_FONT_FAMILY,
                                 color: '#334155',
                                 fontWeight: '400',
                                 fontSize: '0.77rem',
@@ -413,7 +424,7 @@ const AppQuickControls = ({
                           gap: '6px',
                         }}
                       >
-                        <span style={{ fontFamily: '"Sniglet", "Coming Soon", cursive', color: '#334155', fontWeight: '400', fontSize: '0.82rem' }}>
+                        <span style={{ fontFamily: PAPER_FONT_FAMILY, color: '#334155', fontWeight: '400', fontSize: '0.82rem' }}>
                           {colorBlindLabel}
                         </span>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
@@ -421,6 +432,7 @@ const AppQuickControls = ({
                             const selected = (accessibilityPrefs.colorBlindMode || 'none') === option.key;
                             return (
                               <button
+                                className="app-tactile"
                                 key={option.key}
                                 type="button"
                                 onClick={() => setAccessibilityColorBlindMode(option.key)}
@@ -431,7 +443,7 @@ const AppQuickControls = ({
                                   color: selected ? '#6d28d9' : '#374151',
                                   borderRadius: '12px',
                                   padding: '6px 8px',
-                                  fontFamily: '"Sniglet", "Coming Soon", cursive',
+                                  fontFamily: PAPER_FONT_FAMILY,
                                   fontWeight: '400',
                                   fontSize: '0.74rem',
                                   lineHeight: 1.1,
@@ -455,7 +467,7 @@ const AppQuickControls = ({
               style={{
                 ...getCompactOptionCardStyle(false),
                 color: '#64748b',
-                fontFamily: '"Sniglet", "Coming Soon", cursive',
+                fontFamily: PAPER_FONT_FAMILY,
                 fontSize: '0.72rem',
                 lineHeight: 1.28,
               }}
@@ -476,16 +488,13 @@ const AppQuickControls = ({
             role="listbox"
             aria-label={t.language}
             style={{
-              background: '#fff',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #94a3b8',
+              ...PANEL_BASE_STYLE,
+              background: 'var(--surface-card)',
               borderRadius: '24px',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
               padding: '10px',
               minWidth: isMobile ? '244px' : '264px',
               display: 'grid',
               gap: '8px',
-              zIndex: 2000,
             }}
           >
             {appLanguageOptions.map(({ code, name }) => {
@@ -493,6 +502,7 @@ const AppQuickControls = ({
               const selected = lang === uiLanguage;
               return (
                 <button
+                  className="app-tactile"
                   key={lang}
                   type="button"
                   role="option"
@@ -510,7 +520,7 @@ const AppQuickControls = ({
                     borderBottomColor: selected ? '#3b82f6' : '#cbd5e1',
                     color: selected ? '#1e40af' : '#334155',
                     padding: '10px 12px',
-                    fontFamily: '"Sniglet", "Coming Soon", cursive',
+                    fontFamily: PAPER_FONT_FAMILY,
                     fontWeight: '400',
                     fontSize: '0.92rem',
                     cursor: 'pointer',
@@ -559,7 +569,7 @@ const AppQuickControls = ({
               </div>
             </div>
 
-            <div style={{ fontFamily: '"Sniglet", "Coming Soon", cursive', color: '#4b5563', fontSize: '0.92rem', lineHeight: 1.4, fontWeight: '400' }}>
+            <div style={{ fontFamily: PAPER_FONT_FAMILY, color: '#4b5563', fontSize: '0.92rem', lineHeight: 1.4, fontWeight: '400' }}>
               {t.shortcutsIntro}
             </div>
 
@@ -567,7 +577,7 @@ const AppQuickControls = ({
               {shortcutRows.map((row) => (
                 <div key={row.keyLabel} style={{ ...getOptionCardStyle(false), alignItems: 'center' }}>
                   <div style={KEYCAP_STYLE}>{row.keyLabel}</div>
-                  <div style={{ fontFamily: '"Sniglet", "Coming Soon", cursive', color: '#334155', fontSize: '0.92rem', lineHeight: 1.35 }}>
+                  <div style={{ fontFamily: PAPER_FONT_FAMILY, color: '#334155', fontSize: '0.92rem', lineHeight: 1.35 }}>
                     {row.description}
                   </div>
                 </div>
@@ -579,7 +589,7 @@ const AppQuickControls = ({
                 ...getOptionCardStyle(false),
                 justifyContent: 'center',
                 color: '#64748b',
-                fontFamily: '"Sniglet", "Coming Soon", cursive',
+                fontFamily: PAPER_FONT_FAMILY,
                 fontSize: '0.8rem',
                 textAlign: 'center',
               }}

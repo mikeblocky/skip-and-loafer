@@ -207,9 +207,23 @@ const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDr
                   >
                     {displayName}
                   </div>
-                  <div style={{ color: '#64748b', fontSize: isMobile ? '0.9rem' : '1rem', lineHeight: 1.4, textAlign: 'center' }}>
-                    {uiLanguage === 'ja' ? 'イラストは非表示です' : 'Artwork hidden'}
-                  </div>
+                  {pulledCharacter?.src ? (
+                    <img
+                      src={pulledCharacter.src}
+                      alt={displayName}
+                      style={{
+                        width: '100%',
+                        height: isMobile ? '180px' : '220px',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(4px 6px 12px rgba(0,0,0,0.2))',
+                      }}
+                      draggable="false"
+                    />
+                  ) : (
+                    <div style={{ color: '#64748b', fontSize: isMobile ? '0.9rem' : '1rem', lineHeight: 1.4, textAlign: 'center' }}>
+                      Artwork unavailable
+                    </div>
+                  )}
                 </motion.div>
               </div>
 

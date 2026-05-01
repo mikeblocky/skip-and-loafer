@@ -13,7 +13,6 @@ import {
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
 import ReaderOverlayFallback from './ReaderOverlayFallback';
-import SideTabs from '../../components/shared/SideTabs';
 
 const skipLinkStyle = {
   position: 'absolute',
@@ -53,7 +52,7 @@ const copyrightStyle = {
 
 const AppChrome = ({ app }) => (
   <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
-    <div style={shellViewportStyle}>
+    <div className="app-surface-shell" style={shellViewportStyle}>
       <a
         href="#main-content"
         style={skipLinkStyle}
@@ -120,6 +119,7 @@ const AppChrome = ({ app }) => (
             {app.showMitsumiReplayBanner && (
               <motion.a
                 href="/mitsumi"
+                className="app-tactile"
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
@@ -229,19 +229,13 @@ const AppChrome = ({ app }) => (
         </Suspense>
       )}
 
-      <SideTabs
-        activePage={app.activePage}
-        onPageChange={app.handlePageChange}
-        isMobile={app.isMobile}
-        labelsById={app.t.tabs}
-      />
-
       <div style={copyrightStyle}>© Takamatsu Misaki / KODANSHA</div>
 
       <AnimatePresence>
         {app.showScrollTop && !app.readerChapter && app.activePage !== 'blog' && app.activePage !== 'quiz' && (
           <motion.button
             key="scroll-top"
+            className="app-tactile"
             onClick={app.scrollToTop}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

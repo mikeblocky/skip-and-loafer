@@ -1,7 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './index.css';
 
+const UI_TEXT = {
+  en: {
+    note: 'This website is currently moving to a new home.',
+    sub: 'Thank you for your patience and all the love for Skip and Loafer. ♡',
+  },
+  ja: {
+    note: 'このウェブサイトは現在、新しい場所へ移転準備中です。',
+    sub: 'しばらくお待ちください。「スキップとローファー」への愛をありがとうございました。♡',
+  },
+  fr: {
+    note: 'Ce site web est actuellement en train de déménager vers un nouvel hébergeur.',
+    sub: 'J\'espère vous revoir bientôt dans ma nouvelle maison. ♡',
+  },
+  de: {
+    note: 'Diese Website zieht derzeit zu einem neuen Hosting-Anbieter um.',
+    sub: 'Ich hoffe, Sie bald in meinem neuen Zuhause wiederzusehen. ♡',
+  },
+  es: {
+    note: 'Este sitio web se está mudando actualmente a un nuevo proveedor de hosting.',
+    sub: 'Espero volver a verte pronto en mi nuevo hogar. ♡',
+  },
+  pt: {
+    note: 'Este site está atualmente mudando para um novo provedor de hospedagem.',
+    sub: 'Espero ver você novamente em breve na minha nova casa. ♡',
+  },
+  it: {
+    note: 'Questo sito web si sta attualmente trasferendo presso un nuovo fornitore di hosting.',
+    sub: 'Spero di rivederti presto nella mia nuova casa. ♡',
+  },
+};
+
+const getLanguage = () => {
+  try {
+    const stored = localStorage.getItem('skip_ui_language');
+    if (stored && UI_TEXT[stored]) return stored;
+  } catch { /* ignore */ }
+  const browserLang = navigator.language?.slice(0, 2);
+  return UI_TEXT[browserLang] ? browserLang : 'en';
+};
+
 const RetiredPage = () => {
+  const [lang] = useState(getLanguage);
+  const t = UI_TEXT[lang];
+
   useEffect(() => {
     document.title = 'skip-and-loafer';
   }, []);
@@ -23,27 +66,9 @@ const RetiredPage = () => {
         lineHeight: 1.7,
         margin: 0,
       }}>
-        This website has been retired and is no longer active.
+        {t.note}
         <br />
-        <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-          Thank you for all of the support to this fan-made website. ♡
-        </span>
-        <br />
-        <a 
-          href="https://skip-and-loafer.com" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          style={{ 
-            fontSize: '0.85rem', 
-            color: '#8b5cf6', 
-            textDecoration: 'none', 
-            marginTop: '12px', 
-            display: 'inline-block',
-            fontWeight: 'bold'
-          }}
-        >
-          skip-and-loafer.com
-        </a>
+        <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>{t.sub}</span>
       </p>
     </div>
   );
