@@ -3,32 +3,32 @@ import './index.css';
 
 const UI_TEXT = {
   en: {
-    note: 'This website has been retired and is no longer active.',
-    sub: 'Thank you for all the love for Skip and Loafer. ♡',
+    note: 'This website is currently moving to a new home.',
+    sub: 'Thank you for your patience and all the love for Skip and Loafer. ♡',
   },
   ja: {
-    note: 'このウェブサイトは閉鎖され、現在アクティブではありません。',
-    sub: '「スキップとローファー」への愛をありがとうございました。♡',
+    note: 'このウェブサイトは現在、新しい場所へ移転準備中です。',
+    sub: 'しばらくお待ちください。「スキップとローファー」への愛をありがとうございました。♡',
   },
   fr: {
-    note: 'Ce site web a été retiré et n\'est plus actif.',
-    sub: 'Merci pour tout l\'amour pour Skip and Loafer. ♡',
+    note: 'Ce site web est actuellement en train de déménager vers un nouvel hébergeur.',
+    sub: 'J\'espère vous revoir bientôt dans ma nouvelle maison. ♡',
   },
   de: {
-    note: 'Diese Website wurde eingestellt und ist nicht mehr aktiv.',
-    sub: 'Danke für all die Liebe zu Skip and Loafer. ♡',
+    note: 'Diese Website zieht derzeit zu einem neuen Hosting-Anbieter um.',
+    sub: 'Ich hoffe, Sie bald in meinem neuen Zuhause wiederzusehen. ♡',
   },
   es: {
-    note: 'Este sitio web ha sido retirado y ya no está activo.',
-    sub: 'Gracias por todo el amor por Skip and Loafer. ♡',
+    note: 'Este sitio web se está mudando actualmente a un nuevo proveedor de hosting.',
+    sub: 'Espero volver a verte pronto en mi nuevo hogar. ♡',
   },
   pt: {
-    note: 'Este site foi encerrado e não está mais ativo.',
-    sub: 'Obrigado por todo o amor por Skip and Loafer. ♡',
+    note: 'Este site está atualmente mudando para um novo provedor de hospedagem.',
+    sub: 'Espero ver você novamente em breve na minha nova casa. ♡',
   },
   it: {
-    note: 'Questo sito web è stato ritirato e non è più attivo.',
-    sub: 'Grazie per tutto l\'amore per Skip and Loafer. ♡',
+    note: 'Questo sito web si sta attualmente trasferendo presso un nuovo fornitore di hosting.',
+    sub: 'Spero di rivederti presto nella mia nuova casa. ♡',
   },
 };
 

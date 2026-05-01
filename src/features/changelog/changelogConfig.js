@@ -26,10 +26,10 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'Website Status',
+    title: 'Website status',
     icon: BookMarked,
     lines: [
-      { type: 'added', text: 'The website is back online for a limited time! It is unknown how long it will remain accessible.' },
+      { type: 'added', text: 'The website is back online for a limited time!' },
     ],
   },
   {
