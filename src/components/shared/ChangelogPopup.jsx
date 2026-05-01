@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { PRESS_SPRING, ENTER_SPRING_BOUNCY, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from './animationPresets';
+import { PAPER_MODAL_STYLE, PAPER_FONT_FAMILY } from './paper/paperTheme';
 import {
     STORAGE_KEY,
     CHANGELOG_VERSION,
@@ -58,11 +59,11 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                         transition={ENTER_SPRING_BOUNCY}
                         onClick={(e) => e.stopPropagation()}
                         style={{
-                            background: 'var(--paper-white)',
+                            ...PAPER_MODAL_STYLE,
                             padding: isMobile ? '20px 16px' : '28px 28px',
                             borderRadius: '16px',
-                            border: '3px solid var(--pop-blue)',
-                            boxShadow: '8px 8px 0 rgba(0,0,0,0.1)',
+                            borderColor: 'var(--pop-blue)',
+                            borderBottomColor: '#60a5fa',
                             maxWidth: '460px', width: '100%',
                             position: 'relative',
                             maxHeight: '80vh',
@@ -88,7 +89,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                         {/* Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', justifyContent: 'center', flexDirection: 'column' }}>
                             <h2 style={{
-                                fontFamily: 'Sniglet, var(--font-main)', color: '#374151',
+                                fontFamily: PAPER_FONT_FAMILY, color: '#374151',
                                 fontSize: isMobile ? '1.2rem' : '1.4rem', margin: 0,
                                 fontWeight: 'normal',
                             }}>
@@ -178,6 +179,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                         {/* Close CTA */}
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <motion.button
+                                className="app-tactile"
                                 whileHover={{ ...JELLY_HOVER, transition: { type: 'spring', stiffness: 400, damping: 12 } }}
                                 whileTap={{ ...JELLY_TAP, transition: SQUASH_TRANSITION }}
                                 onClick={() => { triggerHaptic('tap'); handleClose(); }}

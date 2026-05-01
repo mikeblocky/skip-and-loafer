@@ -1,6 +1,6 @@
 import { BookMarked } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-03-31-v15.0';
+export const CHANGELOG_VERSION = '2026-05-01-v16.0';
 export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,7 +26,14 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'New release highlights',
+    title: 'Website Status',
+    icon: BookMarked,
+    lines: [
+      { type: 'added', text: 'The website is back online for a limited time! It is unknown how long it will remain accessible.' },
+    ],
+  },
+  {
+    title: 'Previous highlights',
     icon: BookMarked,
     lines: [
       { type: 'added', text: 'Fan gallery is now the home for series art, fan creations, fanarts, images, and other community uploads.' },

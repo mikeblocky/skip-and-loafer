@@ -98,13 +98,12 @@ const AnimalQuizResultView = ({ isMobile, matchedResult, copy, onRestart, uiLang
 
       <MysteryResultBody
         isMobile={isMobile}
-        artwork={uiLanguage === 'ja' ? null : (
+        artwork={(
           <MysteryResultCharacterCard
             isMobile={isMobile}
             colors={colors}
             name={displayCharacterName}
             imageSrc={matchedResult.character?.src}
-            hideImage={uiLanguage === 'ja'}
           />
         )}
       >

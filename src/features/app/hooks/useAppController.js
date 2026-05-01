@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { APP_UI_TEXT } from '../../../config/appUiText';
-import { registerHapticGesture } from '../../../utils/haptics';
+import { registerHapticGesture, triggerHaptic } from '../../../utils/haptics';
 import { useReadProgress } from '../../chapters/hooks/useReadProgress';
 import { useSyncData } from '../../sync/hooks/useSyncData';
 import { preloadChapterData, loadChapterData } from '../chapterDataLoader';
@@ -150,6 +150,7 @@ export const useAppController = () => {
       if (!target) return;
       if (target.disabled || target.getAttribute('aria-disabled') === 'true' || target.getAttribute('data-no-haptic') === '1') return;
       registerHapticGesture();
+      triggerHaptic('tap', { source: 'auto' });
     };
 
     document.addEventListener('pointerdown', handlePointerDown, true);

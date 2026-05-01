@@ -180,7 +180,7 @@ const QuizResultView = ({
 
       <MysteryResultBody
         isMobile={isMobile}
-        artwork={uiLanguage === 'ja' ? null : (
+        artwork={(
           <MysteryResultCharacterCard
             isMobile={isMobile}
             colors={colors}

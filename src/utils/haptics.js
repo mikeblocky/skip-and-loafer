@@ -23,6 +23,11 @@ const isReducedMotionEnabled = () => {
 
 let hasUserGesture = false;
 let gestureListenersBound = false;
+let lastHapticAt = 0;
+let lastHapticSource = 'manual';
+let lastHapticType = null;
+
+const SOFT_HAPTIC_TYPES = new Set(['tap', 'selection', 'light', 'medium', 'press', 'tabSwitch', 'bounce']);
 
 const markUserGesture = () => {
   hasUserGesture = true;
@@ -42,16 +47,35 @@ export const registerHapticGesture = () => {
   markUserGesture();
 };
 
-export const triggerHaptic = (type = 'light') => {
+export const triggerHaptic = (type = 'light', options = {}) => {
   if (isReducedMotionEnabled()) return false;
   if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return false;
   bindGestureListeners();
   if (!hasUserGesture) return false;
   if ((navigator.maxTouchPoints || 0) < 1) return false;
 
+  const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+  const source = options.source || 'manual';
+
+  if (source === 'manual' && lastHapticSource === 'auto' && now - lastHapticAt < 160 && SOFT_HAPTIC_TYPES.has(type)) {
+    return false;
+  }
+
+  if (lastHapticType === type && now - lastHapticAt < 48) {
+    return false;
+  }
+
   const pattern = HAPTIC_PATTERNS[type] ?? HAPTIC_PATTERNS.light;
   try {
-    return navigator.vibrate(pattern);
+    const didVibrate = navigator.vibrate(pattern);
+    if (didVibrate) {
+      lastHapticAt = now;
+      lastHapticSource = source;
+      lastHapticType = type;
+    }
+    return didVibrate;
   } catch {
     return false;
   }

@@ -18,9 +18,6 @@ import {
 
 const PAGE_SHELL_STYLE = {
   width: '100%',
-  backgroundColor: 'var(--paper-white)',
-  backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, var(--line-blue) 32px)',
-  backgroundSize: '100% 32px',
   borderRadius: '4px',
   flex: 1,
   contain: 'layout paint style',
@@ -155,12 +152,12 @@ const AppTabContent = ({
 
   let tabContent = null;
   let frameStyle = activePage === 'home'
-    ? (isMobile
+        ? (isMobile
       ? { display: 'contents' }
       : {
           ...sharedPageShellStyle,
           flexDirection: 'row',
-          width: 'min(100%, 1160px)',
+          width: 'min(100%, 1328px)',
           minHeight: homeDesktopMinHeight,
           margin: '0 auto',
           minWidth: 0,
@@ -252,7 +249,6 @@ const AppTabContent = ({
     case 'mystery':
       tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
-
     default:
       tabContent = (
         <PlannerPage

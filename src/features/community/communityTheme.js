@@ -4,6 +4,7 @@ import {
   createPaperButtonStyle,
   createPaperChipStyle,
   createPaperCounterStyle,
+  createPaperInputStyle,
 } from '../../components/shared/paper/paperTheme';
 
 export const COMMUNITY_FONT_FAMILY = PAPER_FONT_FAMILY;
@@ -18,19 +19,9 @@ export const COMMUNITY_PAGE_STYLE = {
 
 export const COMMUNITY_PANEL_STYLE = PAPER_PANEL_STYLE;
 
-export const COMMUNITY_INPUT_STYLE = {
-  width: '100%',
-  border: '2.5px solid #dbe7f3',
-  borderBottom: '5px solid #c7d7ea',
-  borderRadius: '16px',
-  background: '#ffffff',
-  color: '#1e293b',
-  padding: '12px 14px',
+export const COMMUNITY_INPUT_STYLE = createPaperInputStyle({
   fontFamily: COMMUNITY_FONT_FAMILY,
-  fontSize: '1rem',
-  lineHeight: 1.4,
-  outline: 'none',
-};
+});
 
 export const COMMUNITY_TEXTAREA_STYLE = {
   ...COMMUNITY_INPUT_STYLE,

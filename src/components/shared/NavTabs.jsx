@@ -1,9 +1,8 @@
-import { memo, useEffect, useRef, useCallback, useState, useMemo } from 'react';
+import { memo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, Package, PenLine, ImagePlus, ChevronDown } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, ChevronDown, Package } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
-import { SIDE_TABS } from '../../features/app/appConstants';
 
 const DEFAULT_TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', desktopFlex: 1 },
@@ -12,11 +11,10 @@ const DEFAULT_TABS = [
     { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan gallery', icon: ImagePlus, color: '#2563eb', desktopFlex: 1.42 },
     { id: 'sign', label: 'Sign', mobileLabel: 'Sign', icon: PenLine, color: '#f97316', desktopFlex: 0.96 },
     { id: 'blog', label: 'Blog', mobileLabel: 'Blog', icon: FileText, color: '#ff7a1a', desktopFlex: 1 },
-    { id: 'wiki', label: 'Wiki', mobileLabel: 'Wiki', icon: BookOpen, color: '#0ea5e9', desktopFlex: 1 },
     { id: 'sync', label: 'Reading', mobileLabel: 'Reading', icon: BarChart3, color: '#38c972', desktopFlex: 1.16 },
     { id: 'quiz', label: 'Quiz', mobileLabel: 'Quiz', icon: Trophy, color: '#ff5757', desktopFlex: 1 },
     { id: 'birthdays', label: 'Birthdays', mobileLabel: 'Birthdays', icon: Cake, color: '#ffb11f', desktopFlex: 1.22 },
-    { id: 'mystery', label: 'Mystery', mobileLabel: 'Mystery', icon: Package, color: '#ff4f96', desktopFlex: 1.18 },
+    { id: 'mystery', label: 'Mystery', mobileLabel: 'Mystery', icon: Package, color: '#f472b6', desktopFlex: 1.12 },
 ];
 
 const DARK_OUTLINE = '#0f172a';
@@ -26,15 +24,9 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
   const railRef = useRef(null);
   const mobileSelectorRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const tabsToRender = useMemo(() => {
-    const base = Array.isArray(tabs) && tabs.length > 0
-      ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
-      : DEFAULT_TABS;
-
-    return isMobile 
-      ? base 
-      : base.filter(tab => !SIDE_TABS.includes(tab.id));
-  }, [tabs, isMobile]);
+  const tabsToRender = Array.isArray(tabs) && tabs.length > 0
+    ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
+    : DEFAULT_TABS;
 
   const handleTabPress = useCallback((tabId) => {
     triggerHaptic('selection');
@@ -191,6 +183,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                         aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
                         aria-current={isActive ? 'page' : undefined}
                         style={{
+                          position: 'relative',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '14px',

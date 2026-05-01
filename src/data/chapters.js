@@ -597,6 +597,7 @@ export const CHAPTERS = [
     {
         number: 78, title: 'Huffy-Puffy Shrine Visit', thumbnail: null,
         pages: mangaPages('78', 28),
+        latest: true,
         links: {
             en: 'https://weebdex.org/chapter/uktwrfvi0a',
             jp: ['https://comic-days.com/episode/12207421983406221656', 'https://comic-days.com/episode/12207421983406221664']

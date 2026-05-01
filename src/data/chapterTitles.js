@@ -97,7 +97,7 @@ export const getChapterDisplayTitle = (chapter, uiLanguage = 'en') => {
   if (chapterNumber === 11.5 || chapterNumber === 23.5 || chapterNumber === 35.5 || chapterNumber === 41.5 || chapterNumber === 47.5 || chapterNumber === 53.1 || chapterNumber === 53.2 || chapterNumber === 53.5) {
     return '特典編';
   }
-  if (chapterNumber === 79) return 'つばめ西高校の3年生';
+  if (chapterNumber === 79) return '2026年4月発売予定';
 
   if (typeof chapter.title === 'string' && chapter.title.trim()) {
     return chapter.title;

@@ -22,10 +22,10 @@ const isMarchThird = () => {
 };
 
 /* ── Retirement date check ──
-   After April 24, 2026 the entire site is replaced. */
+   After May 25, 2026 the entire site is replaced. */
 const isRetired = () => {
   const now = new Date();
-  const retireDate = new Date(2026, 3, 25); // Local April 25, 2026 (24th is last day)
+  const retireDate = new Date('2026-05-25T00:00:00+09:00');
   return now >= retireDate;
 };
 
