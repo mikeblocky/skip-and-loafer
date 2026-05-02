@@ -69,7 +69,11 @@ createRoot(document.getElementById('root')).render(
     <Suspense fallback={null}>
       {getRootComponent()}
     </Suspense>
-    <SpeedInsights />
-    <Analytics />
+    {import.meta.env.PROD && (
+      <>
+        <SpeedInsights />
+        <Analytics />
+      </>
+    )}
   </StrictMode>,
 )
