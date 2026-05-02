@@ -78,8 +78,8 @@ const AppChrome = ({ app }) => (
             accessibilityPrefs={app.accessibilityPrefs}
             isMobile={app.isMobile}
             activePage={app.activePage}
-            showCharacterStickers={app.uiLanguage !== 'ja'}
-            showCoverCards={app.uiLanguage !== 'ja'}
+            showCharacterStickers={false}
+            showCoverCards={false}
             handlePositionUpdate={app.handlePositionUpdate}
             stickerPositions={app.stickerPositions}
             stickerLayoutById={app.stickerLayoutById}
@@ -160,7 +160,7 @@ const AppChrome = ({ app }) => (
                 maxWidth: app.isMobile
                   ? '100%'
                   : (app.activePage === 'home'
-                    ? (app.accessibilityPrefs.largeText ? '1200px' : '1140px')
+                    ? (app.accessibilityPrefs.largeText ? '1420px' : '1360px')
                     : '1210px'),
                 minHeight: app.isMobile ? 'calc(100dvh - 160px)' : 'calc(100dvh - 170px)',
                 display: 'flex',

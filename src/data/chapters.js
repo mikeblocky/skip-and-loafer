@@ -597,7 +597,6 @@ export const CHAPTERS = [
     {
         number: 78, title: 'Huffy-Puffy Shrine Visit', thumbnail: null,
         pages: mangaPages('78', 28),
-        latest: true,
         links: {
             en: 'https://weebdex.org/chapter/uktwrfvi0a',
             jp: ['https://comic-days.com/episode/12207421983406221656', 'https://comic-days.com/episode/12207421983406221664']
@@ -606,7 +605,7 @@ export const CHAPTERS = [
 
     // ── Volume 14 (in-progress) ──
     {
-        number: 79, title: 'Chapter 79', thumbnail: null,
+        number: 79, title: 'A Bright Day in Early Spring', thumbnail: null,
         latest: true,
         links: { en: null, jp: ['https://comic-days.com/episode/12207421983633662678', 'https://comic-days.com/episode/12207421983633662683'] }
     },

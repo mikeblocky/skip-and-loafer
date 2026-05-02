@@ -128,13 +128,36 @@ export const en = {
     characterDrawDesc: "Draw a kindred spirit for your daily vibe!",
     whoAreYou: "Who are you?",
     whoAreYouDesc: "A gentle quiz to find your soul-match.",
-    returnToMenu: "Step Back Outside",
+    characterRating: "Tier maker",
+    characterRatingDesc: "Build and customize your own ranking board with stickers!",
+    returnToMenu: "Step back outside",
     mysteryPick: "Mystery pick",
     drawADay: "Draw a friend for the day!",
     drawBtn: "Draw",
     dailyCheck: "Daily message",
     drawAgain: "Try another?",
-    disclaimer: "* Whimsical guesses for fun!"
+    disclaimer: "* Whimsical guesses for fun!",
+    rating: {
+      title: "Custom tier maker",
+      instructions: "Tap a character, then tap a tier to rank them. Tap a tier label to rename it.",
+      unranked: "Potential friends",
+      reset: "Reset board",
+      save: "Save image"
+    },
+    map: {
+      title: "Custom story map",
+      instructions: "Freely place, resize, and connect characters to map out your own story!",
+      addNode: "Add character",
+      connect: "Draw bond",
+      labelPlaceholder: "Relationship type...",
+      reset: "Clear board",
+      save: "Save map",
+      lineStyles: {
+        solid: "Solid",
+        dashed: "Dashed",
+        dotted: "Dotted"
+      }
+    }
   },
   quiz: {
     startBtn: "Let's begin!",
@@ -150,7 +173,6 @@ export const en = {
     notesTitle: "A reading of your pattern...",
     growthTitle: "Your path ahead",
     backBtn: "Return to the cabin",
-    retakeBtn: "Retake quiz",
     confidence: "Certainty",
     question: "Question",
     of: "of",

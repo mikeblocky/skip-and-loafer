@@ -258,7 +258,6 @@ const AppTabContent = ({
           readableSpacing={hasReadableSpacing}
         />
       );
-      frameStyle = { display: 'contents' };
       break;
   }
 
@@ -276,7 +275,7 @@ const AppTabContent = ({
         position: 'relative',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        padding: activePage === 'home' ? (isMobile ? '8px 0 0' : homeDesktopPadding) : 0,
+        padding: (activePage === 'home' || activePage === 'mystery') ? (isMobile ? '8px 16px 0' : homeDesktopPadding) : 0,
         zIndex: 10,
         pointerEvents: 'auto',
         minHeight: isMobile ? 0 : undefined,

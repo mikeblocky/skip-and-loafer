@@ -14,20 +14,26 @@ import { PORTRAIT_DATA } from './mysteryData';
 
 const loadQuizGame = () => import('./QuizGame');
 const loadAnimalQuizGame = () => import('./AnimalQuizGame');
+const loadRatingGame = () => import('./RatingGame');
+const loadRelationshipMap = () => import('./RelationshipMap');
 const QuizGame = lazy(loadQuizGame);
 const AnimalQuizGame = lazy(loadAnimalQuizGame);
+const RatingGame = lazy(loadRatingGame);
+const RelationshipMap = lazy(loadRelationshipMap);
 const MYSTERY_LANGUAGE = 'en';
 
 const MysteryExperience = ({ isMobile }) => {
   const { text: t, isReady } = useMysteryText();
   const loadingMysteryLabel = 'Loading mystery...';
   const loadingAnimalQuizLabel = 'Loading animal quiz...';
+  const loadingRatingLabel = 'Loading rating board...';
+  const loadingMapLabel = 'Loading relationship map...';
 
   usePageTitle('Mystery');
 
   const animalQuizCopy = getAnimalQuizCopy(MYSTERY_LANGUAGE, t);
   const [view, setView] = useState('menu');
-  const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame], []);
+  const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame, loadRatingGame, loadRelationshipMap], []);
   const { pulledCharacter, isOpening, handlePull, handleReset, handleDrawAgain } = useMysteryDraw({
     portraitData: PORTRAIT_DATA,
   });
@@ -77,13 +83,15 @@ const MysteryExperience = ({ isMobile }) => {
         overflow: 'visible',
       }}
     >
-      <MysteryHeader
-        isMobile={isMobile}
-        showBackButton={view !== 'menu'}
-        title={t.mystery?.title || 'Mystery cabin'}
-        onBack={leaveSubView}
-        backLabel={t.mystery?.returnToMenu || 'Step Back Outside'}
-      />
+      {!(isMobile && view === 'map') && (
+        <MysteryHeader
+          isMobile={isMobile}
+          showBackButton={view !== 'menu'}
+          title={t.mystery?.title || 'Mystery cabin'}
+          onBack={leaveSubView}
+          backLabel={t.mystery?.returnToMenu || 'Step Back Outside'}
+        />
+      )}
 
       {view === 'menu' && (
       <MysteryMenu
@@ -125,6 +133,27 @@ const MysteryExperience = ({ isMobile }) => {
             portraitData={PORTRAIT_DATA}
             t={t}
             uiLanguage={MYSTERY_LANGUAGE}
+          />
+        </Suspense>
+      )}
+
+      {view === 'rating' && (
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={loadingRatingLabel} />}>
+          <RatingGame
+            isMobile={isMobile}
+            portraitData={PORTRAIT_DATA}
+            t={t}
+          />
+        </Suspense>
+      )}
+
+      {view === 'map' && (
+        <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={loadingMapLabel} />}>
+          <RelationshipMap
+            isMobile={isMobile}
+            portraitData={PORTRAIT_DATA}
+            t={t}
+            onBack={leaveSubView}
           />
         </Suspense>
       )}

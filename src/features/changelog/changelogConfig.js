@@ -1,6 +1,6 @@
-import { BookMarked } from 'lucide-react';
+import { BookMarked, Map, Layout, Zap } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-05-01-v16.0';
+export const CHANGELOG_VERSION = '2026-05-02-v17.0';
 export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,21 +26,32 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'Website status',
-    icon: BookMarked,
+    title: 'Custom story map',
+    icon: Map,
     lines: [
-      { type: 'added', text: 'The website is back online for a limited time!' },
+      { type: 'added', text: 'Implemented manual node resizing with pulsing interactive handles for all characters.' },
+      { type: 'added', text: 'Added custom curvature control and smart label offsets for complex relationship bonds.' },
+      { type: 'added', text: 'New "Name position" toggle allows shifting character labels between Top and Bottom.' },
+      { type: 'changed', text: 'Optimized export engine for crystal-clear 3x resolution PNG downloads.' },
+      { type: 'changed', text: 'Standardized all UI labels and buttons to sentence case for a cleaner look.' },
     ],
   },
   {
-    title: 'Previous highlights',
-    icon: BookMarked,
+    title: 'Lite mobile experience',
+    icon: Layout,
     lines: [
-      { type: 'added', text: 'Fan gallery is now the home for series art, fan creations, fanarts, images, and other community uploads.' },
-      { type: 'added', text: 'Sign (Message) is a place to write messages about the series and share other notes.' },
-      { type: 'changed', text: 'The UI got a broader visual refresh across tabs, cards, and navigation for a cleaner, more cohesive look.' },
-      { type: 'added', text: 'Mystery now includes a daily character draw, a who-are-you character quiz, and a which animal are you quiz.' },
-      { type: 'changed', text: 'More localized translations were added and expanded across the app, including blog and changelog copy.' },
+      { type: 'added', text: 'Enforced full-screen design mode on mobile by default for maximum workspace.' },
+      { type: 'changed', text: 'Redesigned mobile toolbar and pop-ups to be more compact and thumb-friendly.' },
+      { type: 'added', text: 'Implemented a sliding "Bottom sheet" property drawer for easier editing on small screens.' },
+    ],
+  },
+  {
+    title: 'Custom tier maker',
+    icon: Zap,
+    lines: [
+      { type: 'changed', text: 'Rebranded Rating Board to "Tier maker" to support fully customized ranking categories.' },
+      { type: 'fixed', text: 'Fixed a rendering bug where shadows appeared as grey blocks in exported images.' },
+      { type: 'changed', text: 'Increased character grid density in selection menus to reduce scrolling.' },
     ],
   },
 ];
