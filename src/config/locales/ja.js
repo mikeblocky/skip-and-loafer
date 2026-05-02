@@ -62,6 +62,19 @@ const ja = {
     drawBtn: '引く',
     dailyCheck: '今日の気分',
     drawAgain: 'もう一度？',
+    characterRating: 'ティアメーカー',
+    characterRatingDesc: '自分だけのステッカーボードで自由にランキングを作ろう！',
+    rating: {
+      title: 'カスタムティアメーカー',
+      instructions: 'キャラクターをタップして、ランクを選んでください。名前や色も自由に変えられます。',
+      unranked: '候補のステッカー',
+      reset: 'ボードをリセット',
+      save: '画像を保存'
+    },
+    map: {
+      title: 'カスタムストーリーマップ',
+      instructions: 'キャラクターを自由に配置、リサイズ、連結して自分だけの物語を描こう！',
+    },
     disclaimer: '* 気軽に楽しむためのゆるい予想です！',
   },
   quiz: {

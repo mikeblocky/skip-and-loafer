@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Package, PawPrint, UserCheck } from 'lucide-react';
+import { Package, PawPrint, Star, UserCheck, GitBranch } from 'lucide-react';
 import { triggerHaptic } from '../../../utils/haptics';
 import { toMysteryLabelCase } from '../quizGame/ui';
 
@@ -83,6 +83,34 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView }) => {
         borderBottom: '#059669',
         titleColor: '#047857',
         shadow: '0 12px 32px rgba(5, 150, 105, 0.15)',
+      },
+    },
+    {
+      view: 'map',
+      icon: GitBranch,
+      title: t.mystery.map.title,
+      description: t.mystery.map.instructions,
+      hoverRotate: 1,
+      theme: {
+        background: '#eff6ff',
+        border: '#60a5fa',
+        borderBottom: '#2563eb',
+        titleColor: '#1e40af',
+        shadow: '0 12px 32px rgba(37, 99, 235, 0.15)',
+      },
+    },
+    {
+      view: 'rating',
+      icon: Star,
+      title: t.mystery.characterRating,
+      description: t.mystery.characterRatingDesc,
+      hoverRotate: 2,
+      theme: {
+        background: '#fffbeb',
+        border: '#fbbf24',
+        borderBottom: '#d97706',
+        titleColor: '#92400e',
+        shadow: '0 12px 32px rgba(217, 119, 6, 0.15)',
       },
     },
   ];
