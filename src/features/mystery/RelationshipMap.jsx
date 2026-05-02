@@ -5,11 +5,12 @@ import {
   X, Activity, Spline, Minus, Navigation, Circle, Square,
   Image as ImageIcon, Zap, Layers, Edit3, Grid, Map as MapIcon, 
   StickyNote, Waves, CircleDashed, Share2, UserPlus, Palette,
-  Video, Maximize, Minimize
+  Video, Maximize, Minimize, ChevronLeft, ArrowLeft, MoveHorizontal
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { triggerHaptic } from '../../utils/haptics';
 import GIF from 'gif.js';
+import { createPortal } from 'react-dom';
 
 // --- Constants & Config ---
 
@@ -97,12 +98,16 @@ const BACKGROUNDS = [
 
 // --- Geometry Helpers ---
 
-const getNodeRadius = (node) => {
+const getNodeRadius = (node, isMobile = false) => {
   if (!node) return 0;
-  if (node.customRadius) return node.customRadius;
-  if (node.type === 'hub') return node.size === 'large' ? 16 : 8;
+  if (node.customRadius) return isMobile ? node.customRadius * 0.8 : node.customRadius;
+  if (node.type === 'hub') {
+    const base = node.size === 'large' ? 16 : 8;
+    return isMobile ? base * 0.8 : base;
+  }
   const sizeObj = NODE_SIZES.find(s => s.id === node.size) || NODE_SIZES[1];
-  return sizeObj.px / 2;
+  const basePx = sizeObj.px;
+  return (isMobile ? basePx * 0.75 : basePx) / 2;
 };
 
 const getAdjustedEndpoints = (x1, y1, x2, y2, r1, r2) => {
@@ -198,7 +203,7 @@ const generatePath = (x1, y1, x2, y2, shape, offset) => {
 
 // --- Main Component ---
 
-const RelationshipMap = ({ isMobile, portraitData, t }) => {
+const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   const containerRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -244,6 +249,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
   
   const [bgStyle, setBgStyle] = useState('dots');
   const [customBgColor, setCustomBgColor] = useState('#ffffff');
+  const [isPanMode, setIsPanMode] = useState(false);
 
   // Interactive State
   const [draggingItems, setDraggingItems] = useState([]);
@@ -253,7 +259,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
   const [resizingCurve, setResizingCurve] = useState(null);
   const [isPanning, setIsPanning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(340);
+  const sidebarWidth = 280;
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
   const characterMap = useMemo(() => {
@@ -391,11 +397,17 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
       triggerHaptic('impactLight');
       const newLink = {
         id: `link-${Date.now()}`, from: selectedId, to: id,
-        color: '#f472b6', style: 'solid', shape: 'straight', arrow: 'forward', thickness: 'regular', animated: false, label: ''
+        color: '#f472b6', style: 'solid', shape: 'straight', arrow: 'forward', thickness: 'regular', animated: false, label: '', logic: 'standard'
       };
       setLinks([...links, newLink]);
       setIsConnecting(false);
       clearSelection();
+      return;
+    }
+
+    if (isPanMode && isMobile) {
+      setIsPanning(true);
+      setDragStartPos({ x: e.clientX, y: e.clientY });
       return;
     }
 
@@ -474,7 +486,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
       const toNode = nodes.find(n => n.id === link.to);
       if (!fromNode || !toNode) return;
       
-      const r1 = getNodeRadius(fromNode); const r2 = getNodeRadius(toNode);
+      const r1 = getNodeRadius(fromNode, true); const r2 = getNodeRadius(toNode, true);
       const x1 = fromNode.x + r1; const y1 = fromNode.y + r1;
       const x2 = toNode.x + r2; const y2 = toNode.y + r2;
       
@@ -499,7 +511,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
     if (isResizingSidebar) {
       const rect = containerRef.current.getBoundingClientRect();
       const newWidth = rect.right - e.clientX;
-      setSidebarWidth(Math.max(280, Math.min(800, newWidth)));
+      // Not actually used with fixed width, but kept for logic
       return;
     }
 
@@ -674,12 +686,12 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
 
   const renderNodeShape = (node, isSelected) => {
     if (node.type === 'hub') {
-      const radius = getNodeRadius(node);
+      const radius = getNodeRadius(node, isMobile);
       return <div style={{ width: radius*2, height: radius*2, borderRadius: '50%', background: node.color, border: isSelected ? '4px solid #334155' : '3px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }} />;
     }
 
     const src = characterMap[node.charName].src;
-    const radius = getNodeRadius(node);
+    const radius = getNodeRadius(node, isMobile);
     const size = radius * 2;
     const isFloating = node.animation === 'float' && !isSaving; // Let animations run during GIF rendering
     const isPulsing = node.animation === 'pulse' && !isSaving;
@@ -729,89 +741,157 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
     return (
       <AnimatePresence>
       <motion.div 
-        initial={{ x: isMobile ? 0 : 300, y: isMobile ? 300 : 0, opacity: 0 }}
-        animate={{ x: 0, y: 0, opacity: 1 }}
-        exit={{ x: isMobile ? 0 : 300, y: isMobile ? 300 : 0, opacity: 0 }}
+        initial={{ y: 300, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 300, opacity: 0 }}
         style={{ 
           width: isMobile ? '100%' : `${sidebarWidth}px`, 
-          height: isMobile ? '45vh' : 'calc(100% - 40px)',
+          height: isMobile ? 'max-content' : 'calc(100% - 40px)',
+          maxHeight: isMobile ? '40dvh' : 'none',
           background: 'rgba(255, 255, 255, 0.98)', 
-          backdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(35px)',
           border: isMobile ? 'none' : '1px solid rgba(203, 213, 225, 0.5)',
-          borderTop: isMobile ? '2px solid var(--pop-blue)' : '1px solid rgba(203, 213, 225, 0.5)',
-          display: 'flex', flexDirection: 'column', zIndex: 1000, 
+          borderTop: isMobile ? '3px solid var(--pop-blue)' : 'none',
+          display: 'flex', flexDirection: 'column', zIndex: 10020, 
           position: isMobile ? 'fixed' : 'absolute', 
           bottom: 0,
           right: isMobile ? 0 : 20, 
           top: isMobile ? 'auto' : 0,
-          borderRadius: isMobile ? '32px 32px 0 0' : '24px',
-          boxShadow: '0 -10px 40px rgba(0,0,0,0.15)',
+          borderRadius: isMobile ? '24px 24px 0 0' : '24px',
+          boxShadow: '0 -15px 60px rgba(0,0,0,0.2)',
           flexShrink: 0,
           overflow: 'hidden'
         }}
       >
-        {isMobile && (
-          <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '12px auto 0', flexShrink: 0 }} />
-        )}
-        {!isMobile && (
-          <div 
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              setDraggingItems([{ id: 'sidebar', type: 'sidebar' }]);
-              e.target.setPointerCapture(e.pointerId);
-            }}
-            style={{ position: 'absolute', left: -4, top: 0, bottom: 0, width: 8, cursor: 'col-resize', zIndex: 110 }}
-          />
-        )}
-        <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontFamily: 'var(--font-paper)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Settings2 size={18}/> {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} properties
-          </h3>
-          <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20}/></button>
+        {isMobile && <div className="bottom-sheet-handle" />}
+        
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             {selectedType === 'node' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {(() => {
+                    const node = nodes.find(n => n.id === selectedId);
+                    if (node?.type === 'hub') return <div style={{ width: 24, height: 24, borderRadius: '50%', background: node.color }} />;
+                    const charData = portraitData.find(p => p.name === node?.charName);
+                    return charData ? <img src={charData.src} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} /> : null;
+                  })()}
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>{nodes.find(n => n.id === selectedId)?.charName || 'Nexus'}</h3>
+                </div>
+             )}
+             {selectedType !== 'node' && (
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>{selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} settings</h3>
+             )}
+          </div>
+          <button onClick={clearSelection} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={20}/></button>
         </div>
         
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px 32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="hide-scroll" style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '12px 16px 30px' : '16px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           {selectedType === 'link' && (() => {
             const link = links.find(l => l.id === selectedId);
             if (!link) return null;
+            const fromNode = nodes.find(n => n.id === link.from);
+            const toNode = nodes.find(n => n.id === link.to);
+            const fromChar = portraitData.find(p => p.name === fromNode?.charName);
+            const toChar = portraitData.find(p => p.name === toNode?.charName);
+
             return (
               <>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Label</div>
-                  <input value={link.label} onChange={(e) => updateItemProperty(links, setLinks, selectedId, 'label', e.target.value)} placeholder="Relationship text..." style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontSize: '14px', fontFamily: 'var(--font-paper)' }} />
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1.5px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    {fromChar && <img src={fromChar.src} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />}
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#64748b' }}>{fromNode?.charName || 'Nexus'}</span>
+                  </div>
+                   <div style={{ flex: 1, height: '2px', background: '#e2e8f0', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {(() => {
+                      const mode = link.arrow || 'forward';
+                      if (mode === 'both') return <MoveHorizontal size={14} color="#94a3b8" />;
+                      if (mode === 'backward') return <ArrowLeft size={14} color="#94a3b8" />;
+                      if (mode === 'none') return <div style={{ width: '8px', height: '2px', background: '#e2e8f0' }} />;
+                      return <ArrowRight size={14} color="#94a3b8" />;
+                    })()}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    {toChar && <img src={toChar.src} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />}
+                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#64748b' }}>{toNode?.charName || 'Nexus'}</span>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color</div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Relationship label</div>
+                  <input value={link.label} onChange={(e) => updateItemProperty(links, setLinks, selectedId, 'label', e.target.value)} placeholder="e.g. Best Friend, Rival..." style={{ width: '100%', padding: '10px 12px', borderRadius: '12px', border: '1.5px solid #f1f5f9', background: '#f8fafc', outline: 'none', fontSize: '14px', fontWeight: '600' }} />
+                </div>
+                
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Connection color</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-                    {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(links, setLinks, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: link.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
+                    {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(links, setLinks, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'transform 0.1s', transform: link.color === c.color ? 'scale(1.1)' : 'scale(1)', boxShadow: link.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Path shape</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                    {LINE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'shape', s.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', fontSize: '12px', fontWeight: 'bold', background: link.shape === s.id ? 'var(--pop-blue)' : 'white', color: link.shape === s.id ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Path shape</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                    {LINE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: link.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: link.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Line style</div>
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                    {LINE_STYLES.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'style', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: link.style === s.id ? '#cbd5e1' : 'white', color: link.style === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                   <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Line</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {LINE_STYLES.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'style', s.id)} style={{ padding: '6px', fontSize: '11px', fontWeight: '800', background: link.style === s.id ? '#cbd5e1' : '#f8fafc', color: link.style === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                      </div>
+                   </div>
+                   <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                      <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Flow</div>
+                      <button onClick={() => updateItemProperty(links, setLinks, selectedId, 'animated', !link.animated)} style={{ width: '100%', height: '100%', padding: '10px', fontSize: '11px', fontWeight: '800', background: link.animated ? 'var(--pop-pink)' : '#f8fafc', color: link.animated ? 'white' : '#475569', border: 'none', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}><Zap size={16}/> {link.animated ? "Active" : "Static"}</button>
+                   </div>
+                </div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8' }}>Direction</div>
+                    <button onClick={() => {
+                      const newFrom = link.to;
+                      const newTo = link.from;
+                      updateItemProperty(links, setLinks, selectedId, 'from', newFrom);
+                      updateItemProperty(links, setLinks, selectedId, 'to', newTo);
+                    }} style={{ background: 'transparent', border: 'none', color: 'var(--pop-blue)', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>Swap</button>
                   </div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {LINE_THICKNESS.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'thickness', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: link.thickness === s.id ? '#cbd5e1' : 'white', color: link.thickness === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {[
+                      { id: 'forward', icon: ArrowRight },
+                      { id: 'backward', icon: ArrowLeft },
+                      { id: 'both', icon: MoveHorizontal },
+                      { id: 'none', icon: Minus }
+                    ].map(d => {
+                      const Icon = d.icon;
+                      return (
+                        <button key={d.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'arrow', d.id)} style={{ flex: 1, padding: '8px', background: (link.arrow || 'forward') === d.id ? 'var(--pop-blue)' : '#f8fafc', color: (link.arrow || 'forward') === d.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>
+                          <Icon size={16} />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Arrows</div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {ARROW_MODES.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'arrow', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: link.arrow === s.id ? '#cbd5e1' : 'white', color: link.arrow === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Relationship type</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'standard', label: 'Standard' },
+                      { id: 'union', label: 'Union' },
+                      { id: 'exclusion', label: 'Exclusion' }
+                    ].map(t => (
+                      <button key={t.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'logic', t.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (link.logic || 'standard') === t.id ? '#cbd5e1' : '#f8fafc', color: (link.logic || 'standard') === t.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '10px' }}>{t.label}</button>
+                    ))}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Effects</div>
-                  <button onClick={() => updateItemProperty(links, setLinks, selectedId, 'animated', !link.animated)} style={{ width: '100%', padding: '12px', fontSize: '14px', fontWeight: 'bold', background: link.animated ? 'var(--pop-pink)' : 'white', color: link.animated ? 'white' : '#475569', border: link.animated ? 'none' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px' }}><Zap size={18}/> Energy flow</button>
-                </div>
+
+                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Trash2 size={16} /> Delete link
+                </button>
               </>
             );
           })()}
@@ -822,70 +902,80 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             if (node.type === 'hub') {
               return (
                 <>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Nexus size</div>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Nexus size</div>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      {HUB_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', background: node.size === s.id ? 'var(--pop-blue)' : 'white', color: node.size === s.id ? 'white' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                      {HUB_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: '800', background: node.size === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.size === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>{s.label}</button> )}
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color theme</div>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Nexus color</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-                      {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: node.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
+                      {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'transform 0.1s', transform: node.color === c.color ? 'scale(1.1)' : 'scale(1)', boxShadow: node.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
                     </div>
                   </div>
+                  <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Trash2 size={16} /> Delete nexus
+                  </button>
                 </>
               );
             }
             return (
               <>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Frame shape</div>
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Frame style</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '10px 4px', fontSize: '12px', fontWeight: 'bold', background: node.shape === s.id ? 'var(--pop-blue)' : 'white', color: node.shape === s.id ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}> <Icon size={18} /> {s.label} </button>; })}
+                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: node.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Border color</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-                    <button onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'borderColor', '#e2e8f0')} style={{ aspectRatio: '1', background: '#e2e8f0', border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: (!node.borderColor || node.borderColor === '#e2e8f0') ? `0 0 0 3px white, 0 0 0 5px #e2e8f0` : 'none' }} title="Default" />
-                    {PALETTE.slice(0,9).map(c => <button key={c.name} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'borderColor', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: node.borderColor === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Avatar size</div>
+                
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Avatar size</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: node.size === s.id ? '#cbd5e1' : 'white', color: node.size === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Animation</div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Presence effect</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: node.animation === s.id ? 'var(--pop-pink)' : 'white', color: node.animation === s.id ? 'white' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.animation === s.id ? 'var(--pop-pink)' : '#f8fafc', color: node.animation === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Name position</div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {[
-                      { id: 'top', label: 'Top' },
-                      { id: 'bottom', label: 'Bottom' }
-                    ].map(p => (
-                      <button 
-                        key={p.id} 
-                        onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} 
-                        style={{ 
-                          flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', 
-                          background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : 'white', 
-                          color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', 
-                          border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' 
-                        }}
-                      >
-                        {p.label}
-                      </button> 
-                    ))}
-                  </div>
-                </div>
+
+                {(() => {
+                  const nodeLinks = links.filter(l => l.from === selectedId || l.to === selectedId);
+                  if (nodeLinks.length === 0) return null;
+                  return (
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1.5px solid #f1f5f9' }}>
+                      <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Active connections ({nodeLinks.length})</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {nodeLinks.map(l => {
+                          const isFrom = l.from === selectedId;
+                          const otherId = isFrom ? l.to : l.from;
+                          const otherNode = nodes.find(n => n.id === otherId);
+                          const otherChar = portraitData.find(p => p.name === otherNode?.charName);
+                          return (
+                            <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {isFrom ? <ArrowRight size={12} color="var(--pop-blue)" /> : <ArrowLeft size={12} color="#94a3b8" />}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  {otherChar && <img src={otherChar.src} style={{ width: '16px', height: '16px', borderRadius: '50%' }} />}
+                                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#1e293b' }}>{otherNode?.charName || 'Nexus'}</span>
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '10px', color: '#64748b', fontWeight: '600' }}>{l.label || (isFrom ? 'Outgoing' : 'Incoming')}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Trash2 size={16} /> Delete character
+                </button>
               </>
             );
           })()}
@@ -893,52 +983,204 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
           {selectedType === 'group' && (() => {
             const group = groups.find(g => g.id === selectedId);
             if (!group) return null;
+
+            const gX = Number(group.x);
+            const gY = Number(group.y);
+            const gW = Number(group.width || 300);
+            const gH = Number(group.height || 300);
+            const gCenterX = gX + gW / 2;
+            const gCenterY = gY + gH / 2;
+            const isCircle = group.shape === 'circle';
+
+            // Recursive helper to find all members and sub-circles
+            const getCircleContent = (targetCircle, visited = new Set()) => {
+              if (visited.has(targetCircle.id)) return { members: [], circles: [] };
+              visited.add(targetCircle.id);
+
+              const tcX = Number(targetCircle.x);
+              const tcY = Number(targetCircle.y);
+              const tcW = Number(targetCircle.width || 300);
+              const tcH = Number(targetCircle.height || 300);
+              const tcCenterX = tcX + tcW / 2;
+              const tcCenterY = tcY + tcH / 2;
+              const isCircle = targetCircle.shape === 'circle';
+
+              const innerMembers = nodes.filter(n => {
+                const r = getNodeRadius(n, isMobile);
+                const nX = Number(n.x) + r;
+                const nY = Number(n.y) + r;
+
+                if (isCircle) {
+                  const dx = nX - tcCenterX;
+                  const dy = nY - tcCenterY;
+                  const radius = Math.min(tcW, tcH) / 2;
+                  return Math.sqrt(dx * dx + dy * dy) < (radius + r * 0.5);
+                } else {
+                  return (
+                    nX > tcX - r * 0.5 && 
+                    nX < tcX + tcW + r * 0.5 && 
+                    nY > tcY - r * 0.5 && 
+                    nY < tcY + tcH + r * 0.5
+                  );
+                }
+              });
+
+              const innerCircles = groups.filter(g => {
+                if (g.id === targetCircle.id) return false;
+                const subX = Number(g.x) + Number(g.width || 300) / 2;
+                const subY = Number(g.y) + Number(g.height || 300) / 2;
+                
+                if (isCircle) {
+                  const dx = subX - tcCenterX;
+                  const dy = subY - tcCenterY;
+                  return Math.sqrt(dx * dx + dy * dy) < (Math.min(tcW, tcH) / 2);
+                } else {
+                  return subX > tcX && subX < tcX + tcW && subY > tcY && subY < tcY + tcH;
+                }
+              });
+
+              // Initial spatial members
+              let allMembers = [...innerMembers];
+              let allCircles = [...innerCircles];
+
+              // Add characters connected via 'Union' logic to any current member
+              const addUnionMembers = (currentMembers) => {
+                let added = false;
+                const newMembers = [...currentMembers];
+                
+                links.forEach(l => {
+                  if (l.logic === 'union') {
+                    const fromIn = newMembers.some(m => m.id === l.from);
+                    const toIn = newMembers.some(m => m.id === l.to);
+                    
+                    if (fromIn && !toIn) {
+                      const targetNode = nodes.find(n => n.id === l.to);
+                      if (targetNode) { newMembers.push(targetNode); added = true; }
+                    } else if (toIn && !fromIn) {
+                      const sourceNode = nodes.find(n => n.id === l.from);
+                      if (sourceNode) { newMembers.push(sourceNode); added = true; }
+                    }
+                  }
+                });
+                
+                if (added) {
+                  const unique = Array.from(new Map(newMembers.map(m => [m.id, m])).values());
+                  return addUnionMembers(unique);
+                }
+                return currentMembers;
+              };
+
+              allMembers = addUnionMembers(allMembers);
+
+              innerCircles.forEach(child => {
+                const childContent = getCircleContent(child, visited);
+                allMembers = [...allMembers, ...childContent.members];
+                allCircles = [...allCircles, ...childContent.circles];
+              });
+
+              // Deduplicate members
+              allMembers = Array.from(new Map(allMembers.map(m => [m.id, m])).values());
+              return { members: allMembers, circles: allCircles };
+            };
+
+            const content = getCircleContent(group);
+            const finalMembers = content.members;
+            const internalLinks = links.filter(l => 
+              finalMembers.some(m => m.id === l.from) && 
+              finalMembers.some(m => m.id === l.to)
+            );
+
             return (
               <>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Circle name</div>
-                  <input value={group.title} onChange={(e) => updateItemProperty(groups, setGroups, selectedId, 'title', e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontSize: '15px', fontFamily: 'var(--font-paper)' }} />
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Circle name</div>
+                  <input value={group.title} onChange={(e) => updateItemProperty(groups, setGroups, selectedId, 'title', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1.5px solid #f1f5f9', background: '#f8fafc', outline: 'none', fontSize: '14px', fontWeight: '700' }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Name Position</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                    {[
-                      { id: 'top', label: 'Top' },
-                      { id: 'left', label: 'Left' },
-                      { id: 'right', label: 'Right' },
-                      { id: 'bottom', label: 'Bottom' }
-                    ].map(p => (
-                      <button 
-                        key={p.id} 
-                        onClick={() => updateItemProperty(groups, setGroups, selectedId, 'titlePosition', p.id)} 
-                        style={{ 
-                          padding: '10px 2px', fontSize: '11px', fontWeight: 'bold', 
-                          background: (group.titlePosition || 'top') === p.id ? 'var(--pop-blue)' : 'white', 
-                          color: (group.titlePosition || 'top') === p.id ? 'white' : '#64748b', 
-                          border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' 
-                        }}
-                      >
-                        {p.label}
-                      </button> 
-                    ))}
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1.5px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Total members ({finalMembers.length})</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {finalMembers.length === 0 ? (
+                        <div style={{ fontSize: '10px', color: '#94a3b8', fontStyle: 'italic', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span>No characters inside</span>
+                          <span style={{ fontSize: '8px', opacity: 0.7 }}>Pos: {Math.round(gX)},{Math.round(gY)} Size: {Math.round(gW)}x{Math.round(gH)}</span>
+                        </div>
+                      ) : finalMembers.map(m => {
+                        const char = portraitData.find(p => p.name === m.charName);
+                        return (
+                          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', padding: '4px 8px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            {char && <img src={char.src} style={{ width: '14px', height: '14px', borderRadius: '50%' }} />}
+                            <span style={{ fontSize: '9px', fontWeight: '800', color: '#475569' }}>{m.charName || 'Nexus'}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {content.circles.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Sub-circles ({content.circles.length})</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {content.circles.map(c => (
+                          <div key={c.id} style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '8px' }}>{c.title || 'Untitled Circle'}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {internalLinks.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Internal relationships ({internalLinks.length})</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {internalLinks.map(l => {
+                          const fNode = nodes.find(n => n.id === l.from);
+                          const tNode = nodes.find(n => n.id === l.to);
+                          
+                          // Find the smallest sub-circle that contains both
+                          const containingCircle = content.circles.find(c => {
+                            const cX = Number(c.x); const cY = Number(c.y);
+                            const cW = Number(c.width || 300); const cH = Number(c.height || 300);
+                            const cR = Math.min(cW, cH) / 2;
+                            const isC = c.shape === 'circle';
+                            const fR = getNodeRadius(fNode, isMobile);
+                            const tR = getNodeRadius(tNode, isMobile);
+                            
+                            const inF = isC ? (Math.sqrt(Math.pow((fNode.x+fR)-(cX+cW/2),2)+Math.pow((fNode.y+fR)-(cY+cH/2),2)) < cR+fR*0.5) : (fNode.x+fR > cX && fNode.x+fR < cX+cW && fNode.y+fR > cY && fNode.y+fR < cY+cH);
+                            const inT = isC ? (Math.sqrt(Math.pow((tNode.x+tR)-(cX+cW/2),2)+Math.pow((tNode.y+tR)-(cY+cH/2),2)) < cR+tR*0.5) : (tNode.x+tR > cX && tNode.x+tR < cX+cW && tNode.y+tR > cY && tNode.y+tR < cY+cH);
+                            return inF && inT;
+                          });
+
+                          return (
+                            <div key={l.id} style={{ fontSize: '10px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px', background: '#f8fafc', padding: '6px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontWeight: '800' }}>{fNode?.charName}</span>
+                                <ArrowRight size={10} color="#94a3b8" />
+                                <span style={{ fontWeight: '800' }}>{tNode?.charName}</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: '#64748b' }}>{l.label || 'Connected'}</span>
+                                <span style={{ fontSize: '8px', fontWeight: '800', color: 'var(--pop-blue)', background: 'rgba(59, 130, 246, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                                  in {containingCircle ? (containingCircle.title || 'Sub-circle') : (group.title || 'Circle')}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Area Shape</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-                    <button onClick={() => updateItemProperty(groups, setGroups, selectedId, 'shape', 'circle')} style={{ padding: '10px', fontSize: '12px', fontWeight: 'bold', background: group.shape === 'circle' ? 'var(--pop-blue)' : 'white', color: group.shape === 'circle' ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}><Circle size={16} style={{display:'inline', verticalAlign:'middle'}}/> Circle</button>
-                    <button onClick={() => updateItemProperty(groups, setGroups, selectedId, 'shape', 'rect')} style={{ padding: '10px', fontSize: '12px', fontWeight: 'bold', background: group.shape === 'rect' ? 'var(--pop-blue)' : 'white', color: group.shape === 'rect' ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}><Square size={16} style={{display:'inline', verticalAlign:'middle'}}/> Rectangle</button>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color theme</div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Circle color</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-                    {GROUP_COLORS.map((c, i) => <button key={c.name} onClick={() => updateItemProperty(groups, setGroups, selectedId, 'colorIndex', i)} style={{ aspectRatio: '1', background: c.border, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: group.colorIndex === i ? `0 0 0 3px white, 0 0 0 5px ${c.border}` : 'none' }} /> )}
+                    {GROUP_COLORS.map((c, i) => <button key={c.name} onClick={() => updateItemProperty(groups, setGroups, selectedId, 'colorIndex', i)} style={{ aspectRatio: '1', background: c.border, border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'transform 0.1s', transform: group.colorIndex === i ? 'scale(1.1)' : 'scale(1)', boxShadow: group.colorIndex === i ? `0 0 0 3px white, 0 0 0 5px ${c.border}` : 'none' }} /> )}
                   </div>
                 </div>
-                <div style={{ padding: '12px', background: '#e2e8f0', borderRadius: '8px', fontSize: '12px', color: '#475569', display: 'flex', gap: '8px' }}>
-                   <MapIcon size={16} /> Tip: Dragging a Circle will also move all people and memos placed inside it! Drag the bottom right corner of the circle to resize it.
-                </div>
+                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Trash2 size={16} /> Delete circle
+                </button>
               </>
             );
           })()}
@@ -947,12 +1189,17 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             const memo = memos.find(m => m.id === selectedId);
             if (!memo) return null;
             return (
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Memo color</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-                  {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(memos, setMemos, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: memo.color === c.color ? `0 0 0 3px white, 0 0 0 5px #cbd5e1` : 'none' }} /> )}
+              <>
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Memo color</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                    {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(memos, setMemos, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '10px', cursor: 'pointer', transition: 'transform 0.1s', transform: memo.color === c.color ? 'scale(1.1)' : 'scale(1)', boxShadow: memo.color === c.color ? `0 0 0 3px white, 0 0 0 5px #cbd5e1` : 'none' }} /> )}
+                  </div>
                 </div>
-              </div>
+                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Trash2 size={16} /> Delete memo
+                </button>
+              </>
             );
           })()}
         </div>
@@ -961,12 +1208,12 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
     );
   };
 
-  return (
-    <div ref={containerRef} className={`relationship-map mystery-ui ${isFullscreen ? 'is-fullscreen' : ''}`} style={{ 
+  const mapContent = (
+    <div ref={containerRef} data-no-tab-swipe="1" className={`relationship-map mystery-ui ${isFullscreen ? 'is-fullscreen' : ''}`} style={{ 
       display: 'flex', flexDirection: 'column', 
       ...(isFullscreen || isMobile ? {
         background: '#f8fafc', height: isMobile ? '100dvh' : '100vh', width: '100vw',
-        position: isMobile ? 'fixed' : 'relative', top: 0, left: 0, zIndex: 1000
+        position: isMobile ? 'fixed' : 'relative', top: 0, left: 0, zIndex: 2147483647
       } : {
         height: 'calc(100vh - 120px)', minHeight: '600px'
       }),
@@ -986,94 +1233,255 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
           @keyframes mapNodeFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
           @keyframes mapNodePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
           .hide-scroll::-webkit-scrollbar { display: none; }
+          
+          /* Mobile Specific Styles */
+          .mobile-dock {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 1000;
+            width: max-content;
+            max-width: 95vw;
+          }
+
+          .dock-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            color: #475569;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+          }
+
+          .mobile-bottom-dock {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            border-radius: 16px;
+            padding: 3px 6px;
+            display: flex;
+            gap: 2px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+            width: max-content;
+            max-width: 98vw;
+          }
+
+          .dock-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            color: #475569;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+          }
+
+          .dock-btn.active {
+            background: var(--pop-blue);
+            color: white;
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+          }
+
+          .dock-btn:active {
+            transform: scale(0.9);
+          }
+
+          .dock-btn-primary {
+            background: var(--pop-pink);
+            color: white;
+            box-shadow: 0 4px 10px rgba(244, 114, 182, 0.3);
+          }
+
+          .bottom-sheet-handle {
+            width: 32px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin: 8px auto;
+          }
+
+          .character-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 4px;
+            text-align: center;
+            border: 1.5px solid transparent;
+            transition: all 0.2s ease;
+          }
+
+          .character-card:active {
+            transform: scale(0.95);
+            border-color: var(--pop-pink);
+          }
         `}
       </style>
 
-      {/* Toolbar */}
-      {!isSaving && (
-        <motion.div initial={{ y: isMobile ? 50 : -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="hide-scroll" style={{ 
-          display: 'flex', overflowX: 'auto', gap: isMobile ? '4px' : '8px', padding: isMobile ? '8px 10px' : '12px', 
-          background: 'rgba(255,255,255,0.98)', borderBottom: isMobile ? 'none' : '2px solid #e2e8f0',
-          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
-          alignItems: 'center', WebkitOverflowScrolling: 'touch', flexShrink: 0,
-          position: isMobile ? 'fixed' : 'relative',
-          bottom: isMobile ? 0 : 'auto',
-          top: isMobile ? 'auto' : 0,
-          left: 0, right: 0, zIndex: 500,
-          boxShadow: isMobile ? '0 -4px 15px rgba(0,0,0,0.1)' : 'none'
-        }}>
-          <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 14px', background: 'var(--pop-pink)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}>
-            <UserPlus size={isMobile ? 14 : 16} /> Person
-          </button>
-          <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 14px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}>
-            <CircleDashed size={isMobile ? 14 : 16} /> Circle
-          </button>
-          <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 14px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}>
-            <Share2 size={isMobile ? 14 : 16} /> Nexus
-          </button>
-          <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 14px', background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: '8px', color: '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}>
-            <StickyNote size={isMobile ? 14 : 16} /> Memo
-          </button>
-          
-          <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 2px' }} />
-
-          <button onClick={() => { if (selectedType === 'node') { setIsConnecting(!isConnecting); } else alert("Select a character or nexus first!"); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 14px', background: isConnecting ? 'var(--pop-blue)' : 'white', border: isConnecting ? '1.5px solid var(--pop-blue)' : '1.5px solid #cbd5e1', borderRadius: '8px', color: isConnecting ? 'white' : '#4b5563', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}
-          >
-            <ArrowRight size={isMobile ? 14 : 16} /> {isConnecting ? (isMobile ? "Tap..." : "Tap target...") : "Link"}
-          </button>
-
-          {selectedId && (
-            <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: '#fee2e2', border: '1.5px solid #fecaca', borderRadius: '10px', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              <Trash2 size={16} />
+      {/* Mobile Bottom Dock / Desktop Horizontal Toolbar */}
+      {!isSaving && (!isMobile || (!selectedId && !showMapSettings && !showAddMenu)) && (
+        isMobile ? (
+          <div style={{ position: 'fixed', bottom: '8px', left: 0, width: '100%', display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 2147483647 }}>
+            <motion.div 
+              initial={{ y: 100 }} 
+              animate={{ y: 0 }} 
+              className="mobile-bottom-dock"
+              style={{ pointerEvents: 'auto' }}
+            >
+              <button className="dock-btn" onClick={onBack} style={{ color: '#64748b' }}>
+                <ChevronLeft size={18} />
+              </button>
+              <div style={{ width: '1px', height: '16px', background: '#e2e8f0', margin: 'auto 2px' }} />
+              <button className={`dock-btn ${isPanMode ? 'active' : ''}`} onClick={() => { setIsPanMode(!isPanMode); triggerHaptic('selection'); }}>
+                <Navigation size={18} style={{ transform: isPanMode ? 'rotate(45deg)' : 'none' }} />
+              </button>
+              <div style={{ width: '1px', height: '16px', background: '#e2e8f0', margin: 'auto 2px' }} />
+              <button className="dock-btn dock-btn-primary" onClick={() => setShowAddMenu(!showAddMenu)}>
+                <Plus size={18} />
+              </button>
+              <button 
+                className={`dock-btn ${isConnecting ? 'active' : ''}`} 
+                onClick={() => { if (selectedType === 'node') { setIsConnecting(!isConnecting); } else alert("Select a character or nexus first!"); }}
+              >
+                <ArrowRight size={18} />
+              </button>
+              <button className="dock-btn" onClick={() => setShowMapSettings(!showMapSettings)}>
+                <Settings2 size={18} />
+              </button>
+              <button className="dock-btn" onClick={handleSaveImage}>
+                <Download size={18} />
+              </button>
+            </motion.div>
+          </div>
+        ) : (
+          <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="hide-scroll" style={{ 
+            display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px', 
+            background: 'rgba(255,255,255,0.98)', borderBottom: '2px solid #e2e8f0',
+            alignItems: 'center', WebkitOverflowScrolling: 'touch', flexShrink: 0,
+            position: 'relative', zIndex: 500
+          }}>
+            <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'var(--pop-pink)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+              <UserPlus size={14} /> Person
             </button>
-          )}
+            <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+              <CircleDashed size={14} /> Circle
+            </button>
+            <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+              <Share2 size={14} /> Nexus
+            </button>
+            <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: '8px', color: '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+              <StickyNote size={14} /> Memo
+            </button>
+            
+            <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 2px' }} />
 
-          <div style={{ flex: 1, minWidth: '20px' }} />
+            <button onClick={() => { if (selectedType === 'node') { setIsConnecting(!isConnecting); } else alert("Select a character or nexus first!"); }}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: isConnecting ? 'var(--pop-blue)' : 'white', border: isConnecting ? '1.5px solid var(--pop-blue)' : '1.5px solid #cbd5e1', borderRadius: '8px', color: isConnecting ? 'white' : '#4b5563', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+            >
+              <ArrowRight size={14} /> {isConnecting ? "Tap target..." : "Link"}
+            </button>
 
-          <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '8px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '10px', color: '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-          </button>
+            {selectedId && (
+              <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#fee2e2', border: '1.5px solid #fecaca', borderRadius: '8px', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <Trash2 size={14} />
+              </button>
+            )}
 
-          <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '8px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '10px', color: '#475569', cursor: 'pointer', position: 'relative' }}>
-            <MapIcon size={18} />
-          </button>
-          <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '8px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '10px', color: '#64748b', cursor: 'pointer' }}>
-            <RotateCcw size={18} />
-          </button>
-          <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: isMobile ? '6px 10px' : '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: isMobile ? '12px' : '14px' }}>
-            <Download size={isMobile ? 14 : 18} /> PNG
-          </button>
-          {/* <button onClick={handleSaveGif} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'white', border: '2px solid var(--pop-blue)', borderRadius: '10px', color: 'var(--pop-blue)', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <Video size={18} /> GIF
-          </button> */}
-        </motion.div>
+            <div style={{ flex: 1, minWidth: '20px' }} />
+
+            <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
+              {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+            </button>
+
+            <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', cursor: 'pointer', position: 'relative' }}>
+              <MapIcon size={16} />
+            </button>
+            <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }}>
+              <RotateCcw size={16} />
+            </button>
+            <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+              <Download size={14} /> PNG
+            </button>
+          </motion.div>
+        )
       )}
 
       {/* Main Area: Canvas + Editor */}
       <div style={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', position: 'relative', marginBottom: isMobile ? '60px' : 0 }}>
         
-        {/* Settings Overlay */}
+        {/* Settings Drawer (Mobile-First) */}
         <AnimatePresence>
           {showMapSettings && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} style={{ position: 'absolute', right: 20, top: 20, background: 'white', padding: 24, borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', zIndex: 1000, width: 300, border: '2px solid #cbd5e1' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.4rem', color: '#1e293b' }}>Map settings</h4>
+            <motion.div 
+              initial={{ opacity: 0, y: 100 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: 100 }} 
+              style={{ 
+                position: 'fixed', 
+                bottom: 0, left: 0, right: 0,
+                background: 'white', 
+                padding: isMobile ? '16px 16px 32px' : '20px', 
+                borderRadius: isMobile ? '24px 24px 0 0' : '24px', 
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.15)', 
+                zIndex: 10002, 
+                width: '100%', 
+                borderTop: '1px solid #f1f5f9' 
+              }}
+            >
+              {isMobile && <div className="bottom-sheet-handle" />}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#1e293b' }}>Map settings</h4>
                 <button onClick={() => setShowMapSettings(false)} style={{ background: '#f1f5f9', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px' }}>Canvas background</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {BACKGROUNDS.map(bg => (
-                    <button key={bg.id} onClick={() => setBgStyle(bg.id)} style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: bgStyle === bg.id ? 'var(--pop-blue)' : '#f8fafc', color: bgStyle === bg.id ? 'white' : '#475569', border: bgStyle === bg.id ? 'none' : '1.5px solid #e2e8f0', fontWeight: 'bold', fontSize: '1rem', fontFamily: 'var(--font-paper)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s ease' }}>
-                      <Grid size={18} /> {bg.label}
-                    </button>
-                  ))}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Canvas background</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    {BACKGROUNDS.map(bg => (
+                      <button key={bg.id} onClick={() => setBgStyle(bg.id)} style={{ padding: '8px 4px', borderRadius: '10px', cursor: 'pointer', background: bgStyle === bg.id ? 'var(--pop-blue)' : '#f8fafc', color: bgStyle === bg.id ? 'white' : '#475569', border: 'none', fontWeight: '800', fontSize: '9px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                        <Grid size={14} /> {bg.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '4px' }}>Custom color</div>
+                    <input type="color" value={customBgColor} onChange={(e) => { setBgStyle('custom'); setCustomBgColor(e.target.value); }} style={{ width: '100%', height: '32px', border: 'none', borderRadius: '8px', cursor: 'pointer', padding: 0 }} />
+                  </div>
+                  <button onClick={handleReset} style={{ flex: 1, height: '32px', borderRadius: '8px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '14px' }}>
+                    <RotateCcw size={12} /> Reset
+                  </button>
                 </div>
               </div>
-              <div style={{ marginTop: '20px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px' }}>Custom solid color</div>
-                <input type="color" value={customBgColor} onChange={(e) => { setBgStyle('custom'); setCustomBgColor(e.target.value); }} style={{ width: '100%', height: '48px', border: 'none', borderRadius: '12px', cursor: 'pointer', padding: 0 }} />
+
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Title settings</div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                  <input value={boardTitle} onChange={(e) => setBoardTitle(e.target.value)} placeholder="Map title..." style={{ flex: 1, padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #f1f5f9', background: '#f8fafc', fontSize: '13px', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setMapTitleStyle('minimal')} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: mapTitleStyle === 'minimal' ? 'var(--pop-blue)' : '#f8fafc', color: mapTitleStyle === 'minimal' ? 'white' : '#64748b', border: 'none', borderRadius: '8px' }}>Minimal</button>
+                  <button onClick={() => setMapTitleStyle('paper')} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: mapTitleStyle === 'paper' ? 'var(--pop-blue)' : '#f8fafc', color: mapTitleStyle === 'paper' ? 'white' : '#64748b', border: 'none', borderRadius: '8px' }}>Paper</button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -1102,15 +1510,15 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
           >
             <div className="map-board-title" onPointerDown={(e) => handleItemPointerDown(e, 'title', 'title')} style={{ position: 'absolute', top: titlePos.y, left: titlePos.x, transform: 'translateX(-50%)', zIndex: 10, width: 'max-content', maxWidth: 'min(1400px, 90vw)', cursor: draggingItems.some(i=>i.id==='title') ? 'grabbing' : 'grab' }}>
               {!isSaving && isEditingTitle ? (
-                <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: '12px 24px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', borderBottom: '4px dashed var(--pop-blue)', display: 'flex', justifyContent: 'center' }}>
-                  <input autoFocus value={boardTitle} onChange={(e) => setBoardTitle(e.target.value)} onBlur={() => setIsEditingTitle(false)} onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)} style={{ fontFamily: 'var(--font-paper)', fontSize: '2.4rem', textAlign: 'center', background: 'transparent', border: 'none', color: '#1e293b', outline: 'none', width: 'auto', minWidth: '300px' }} />
+                <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: isMobile ? '8px 16px' : '12px 24px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', borderBottom: '4px dashed var(--pop-blue)', display: 'flex', justifyContent: 'center' }}>
+                  <input autoFocus value={boardTitle} onChange={(e) => setBoardTitle(e.target.value)} onBlur={() => setIsEditingTitle(false)} onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)} style={{ fontFamily: 'var(--font-paper)', fontSize: isMobile ? '1.5rem' : '2.4rem', textAlign: 'center', background: 'transparent', border: 'none', color: '#1e293b', outline: 'none', width: 'auto', minWidth: isMobile ? '150px' : '300px' }} />
                 </div>
               ) : (
-                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: '12px 40px', borderRadius: '20px', background: isSaving ? 'transparent' : 'rgba(255,255,255,0.7)', backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : '1px solid rgba(0,0,0,0.05)' }}>
-                  <h2 style={{ fontFamily: 'var(--font-paper)', color: '#1e293b', margin: 0, fontSize: isSaving ? '2rem' : '2.4rem', cursor: isSaving ? 'default' : 'pointer', display: 'inline-block', textAlign: 'center' }}>
+                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : 'rgba(255,255,255,0.7)', backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : '1px solid rgba(0,0,0,0.05)', display: 'block' }}>
+                  <h2 style={{ fontFamily: 'var(--font-paper)', color: '#1e293b', margin: 0, fontSize: isSaving ? (isMobile ? '1.4rem' : '2rem') : (isMobile ? '1.6rem' : '2.4rem'), cursor: isSaving ? 'default' : 'pointer', textAlign: 'center', lineHeight: '1', display: 'inline-block' }}>
                     {boardTitle}
                   </h2>
-                  {!isSaving && <Edit3 size={24} color="var(--pop-blue)" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '12px' }} />}
+                  {!isSaving && <Edit3 size={isMobile ? 18 : 24} color="var(--pop-blue)" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '12px' }} />}
                 </div>
               )}
             </div>
@@ -1146,8 +1554,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                        group.titlePosition === 'right' ? { left: 'calc(100% + 4px)', top: '50%', transform: 'translateY(-50%)' } : 
                        { bottom: 'calc(100% + 4px)', left: '50%', transform: 'translateX(-50%)' }),
                     background: 'white', 
-                    padding: '0 16px', 
-                    height: '32px',
+                    padding: '8px 16px 12px', // Balanced padding for handwritten font
                     borderRadius: '20px', 
                     border: `2px solid ${c.border}`, 
                     color: '#334155', 
@@ -1157,7 +1564,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                     boxShadow: '0 4px 10px rgba(0,0,0,0.05)', 
                     display: 'block', 
                     textAlign: 'center',
-                    lineHeight: '32px',
+                    lineHeight: '1',
                     pointerEvents: 'none',
                     zIndex: 5
                   }}>
@@ -1165,6 +1572,15 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                   </div>
                   {isSelected && !isSaving && (
                     <div onPointerDown={(e) => handleResizePointerDown(e, group.id)} style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, background: 'var(--pop-blue)', border: '3px solid white', borderRadius: '50%', cursor: 'nwse-resize', zIndex: 10, boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }} />
+                  )}
+                  {isSelected && !isSaving && isMobile && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      style={{ position: 'absolute', bottom: 'calc(100% + 40px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', padding: '6px', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.3)', zIndex: 100 }}
+                    >
+                      <button onClick={(e) => { e.stopPropagation(); deleteSelected(); triggerHaptic('selection'); }} style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={18} /></button>
+                    </motion.div>
                   )}
                 </div>
               );
@@ -1194,8 +1610,8 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                 const thicknessInfo = LINE_THICKNESS.find(t => t.id === link.thickness) || LINE_THICKNESS[1];
                 const isSelected = selectedId === link.id;
 
-                const r1 = getNodeRadius(fromNode);
-                const r2 = getNodeRadius(toNode);
+                const r1 = getNodeRadius(fromNode, isMobile);
+                const r2 = getNodeRadius(toNode, isMobile);
                 const cx1 = fromNode.x + r1; const cy1 = fromNode.y + r1;
                 const cx2 = toNode.x + r2; const cy2 = toNode.y + r2;
 
@@ -1203,10 +1619,30 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                 const dPath = generatePath(ax, ay, bx, by, link.shape || 'straight', link.curveOffset);
                 const mid = getMidpoint(ax, ay, bx, by, link.shape || 'straight', link.curveOffset);
 
+                const logic = link.logic || 'standard';
+                const arrowMode = link.arrow || 'forward';
+
                 return (
                   <g key={link.id} style={{ pointerEvents: 'auto', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); triggerHaptic('selection'); selectItem(link.id, 'link'); }}>
                     {isSelected && <path d={dPath} stroke={link.color} strokeWidth={thicknessInfo.width + 6} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.3" />}
-                    <path className={link.animated ? "anim-line" : ""} d={dPath} stroke={link.color} strokeWidth={thicknessInfo.width} strokeDasharray={link.animated && !isSaving ? '12 12' : style?.dash} markerEnd={link.arrow !== 'none' ? `url(#arrow-${link.color.replace('#', '')})` : ''} markerStart={link.arrow === 'both' ? `url(#arrow-start-${link.color.replace('#', '')})` : ''} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ animation: link.animated && !isSaving ? 'mapLineFlow 0.8s linear infinite' : 'none' }} />
+                    
+                    {logic === 'union' ? (
+                      <>
+                        <path className={link.animated ? "anim-line" : ""} d={generatePath(ax, ay, bx, by, link.shape || 'straight', (link.curveOffset || 0) - 3)} stroke={link.color} strokeWidth={thicknessInfo.width} strokeDasharray={link.animated && !isSaving ? '12 12' : style?.dash} markerEnd={(arrowMode === 'forward' || arrowMode === 'both') ? `url(#arrow-${link.color.replace('#', '')})` : ''} markerStart={(arrowMode === 'backward' || arrowMode === 'both') ? `url(#arrow-start-${link.color.replace('#', '')})` : ''} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ animation: link.animated && !isSaving ? 'mapLineFlow 0.8s linear infinite' : 'none' }} />
+                        <path className={link.animated ? "anim-line" : ""} d={generatePath(ax, ay, bx, by, link.shape || 'straight', (link.curveOffset || 0) + 3)} stroke={link.color} strokeWidth={thicknessInfo.width} strokeDasharray={link.animated && !isSaving ? '12 12' : style?.dash} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ animation: link.animated && !isSaving ? 'mapLineFlow 0.8s linear infinite' : 'none' }} />
+                      </>
+                    ) : (
+                      <path className={link.animated ? "anim-line" : ""} d={dPath} stroke={link.color} strokeWidth={thicknessInfo.width} strokeDasharray={logic === 'exclusion' ? '8,4' : link.animated && !isSaving ? '12 12' : style?.dash} markerEnd={(arrowMode === 'forward' || arrowMode === 'both') ? `url(#arrow-${link.color.replace('#', '')})` : ''} markerStart={(arrowMode === 'backward' || arrowMode === 'both') ? `url(#arrow-start-${link.color.replace('#', '')})` : ''} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ animation: link.animated && !isSaving ? 'mapLineFlow 0.8s linear infinite' : 'none' }} />
+                    )}
+
+                    {/* Exclusion Cross */}
+                    {logic === 'exclusion' && (
+                      <g transform={`translate(${mid.x},${mid.y}) rotate(45)`}>
+                        <line x1="-8" y1="0" x2="8" y2="0" stroke={link.color} strokeWidth="3" />
+                        <line x1="0" y1="-8" x2="0" y2="8" stroke={link.color} strokeWidth="3" />
+                      </g>
+                    )}
+
                     <path d={dPath} stroke="transparent" strokeWidth="30" fill="none" />
                     {link.label && (() => {
                       const dx = bx - ax; const dy = by - ay;
@@ -1219,10 +1655,17 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                       return (
                         <g transform={`translate(${lx}, ${ly})`}>
                           <rect x={-(link.label.length * 4.5 + 12)} y="-14" width={link.label.length * 9 + 24} height="28" fill="white" rx="14" stroke={link.color} strokeWidth="2" />
-                          <text x="0" y="5" fill={link.color} style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'var(--font-paper)', textAnchor: 'middle' }}>{link.label}</text>
+                          <text x="0" y="-1" dominantBaseline="central" fill={link.color} style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'var(--font-paper)', textAnchor: 'middle' }}>{link.label}</text>
                         </g>
                       );
                     })()}
+                    {isSelected && !isSaving && isMobile && (
+                      <foreignObject x={mid.x - 40} y={mid.y - 60} width="80" height="50">
+                        <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', justifyContent: 'center' }}>
+                          <button onClick={(e) => { e.stopPropagation(); deleteSelected(); triggerHaptic('selection'); }} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', color: '#ef4444', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}><Trash2 size={18} /></button>
+                        </motion.div>
+                      </foreignObject>
+                    )}
                     {isSelected && link.shape === 'curve' && !isSaving && (
                       <circle cx={mid.x} cy={mid.y} r="10" fill="white" stroke={link.color} strokeWidth="3" style={{ cursor: 'crosshair' }} onPointerDown={(e) => { e.stopPropagation(); handleCurvePointerDown(e, link.id); }} />
                     )}
@@ -1236,17 +1679,58 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
               <div key={memo.id} style={{ position: 'absolute', left: memo.x, top: memo.y, zIndex: selectedId === memo.id ? 12 : 3, width: '180px', background: memo.color, borderRadius: '12px', boxShadow: selectedId === memo.id ? '0 12px 30px rgba(0,0,0,0.15)' : '0 4px 15px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', overflow: 'hidden', border: selectedId === memo.id ? '2px solid var(--pop-blue)' : '2px solid rgba(0,0,0,0.05)' }}>
                 <div onPointerDown={(e) => handleItemPointerDown(e, memo.id, 'memo')} style={{ height: '24px', background: 'rgba(0,0,0,0.06)', cursor: draggingItems.some(i=>i.id===memo.id) ? 'grabbing' : 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none' }}><div style={{ width: '30px', height: '4px', background: 'rgba(0,0,0,0.15)', borderRadius: '2px' }} /></div>
                 <textarea onPointerDown={e => e.stopPropagation()} onFocus={() => selectItem(memo.id, 'memo')} style={{ flex: 1, border: 'none', background: 'transparent', resize: 'vertical', padding: '12px', outline: 'none', fontFamily: 'var(--font-paper)', fontSize: '15px', color: '#334155', minHeight: '80px' }} placeholder="Write a note..." value={memo.text} onChange={e => updateItemProperty(memos, setMemos, memo.id, 'text', e.target.value)} />
+                {selectedId === memo.id && !isSaving && isMobile && (
+                  <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} style={{ position: 'absolute', bottom: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+                    <button onClick={(e) => { e.stopPropagation(); deleteSelected(); triggerHaptic('selection'); }} style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', color: '#ef4444', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}><Trash2 size={18} /></button>
+                  </motion.div>
+                )}
               </div>
             ))}
 
             {/* Nodes & Hubs Layer */}
             {nodes.map(node => {
-              const size = getNodeRadius(node) * 2;
+              const size = getNodeRadius(node, isMobile) * 2;
               const isSelected = selectedId === node.id;
               return (
                 <div className={node.animation !== 'none' ? "anim-node" : ""} data-anim={node.animation} key={node.id} onPointerDown={(e) => handleItemPointerDown(e, node.id, 'node')} style={{ position: 'absolute', left: node.x, top: node.y, width: size, height: size, zIndex: isSelected ? 10 : 2, cursor: isConnecting ? 'crosshair' : (draggingItems.some(i=>i.id===node.id) ? 'grabbing' : 'grab'), touchAction: 'none' }}>
                   {renderNodeShape(node, isSelected)}
-                  {isSelected && !isSaving && (
+                  
+                  {isSelected && !isSaving && isMobile && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      style={{ 
+                        position: 'absolute', 
+                        bottom: 'calc(100% + 40px)', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)', 
+                        display: 'flex', 
+                        gap: '8px',
+                        background: 'rgba(255,255,255,0.9)',
+                        backdropFilter: 'blur(10px)',
+                        padding: '6px',
+                        borderRadius: '16px',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        zIndex: 100
+                      }}
+                    >
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setIsConnecting(!isConnecting); triggerHaptic('selection'); }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', background: isConnecting ? 'var(--pop-blue)' : '#f1f5f9', color: isConnecting ? 'white' : '#475569', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <ArrowRight size={18} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); deleteSelected(); }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {isSelected && !isSaving && !isMobile && (
                     <div onPointerDown={(e) => { e.stopPropagation(); setResizingNode(node.id); e.target.setPointerCapture(e.pointerId); }} style={{ position: 'absolute', right: -10, bottom: -10, width: 28, height: 28, background: 'var(--pop-blue)', borderRadius: '50%', cursor: 'nwse-resize', zIndex: 11, border: '3px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
                        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />
                     </div>
@@ -1256,11 +1740,14 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                       position: 'absolute', 
                       ...(node.charNamePos === 'top' ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
                       left: '50%', transform: 'translateX(-50%)', 
-                      background: 'white', padding: '0 14px', height: '28px', borderRadius: '10px', 
+                      background: 'white', borderRadius: '10px', 
                       fontSize: '13px', fontWeight: 'bold', color: '#1e293b', whiteSpace: 'nowrap', 
                       boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)', 
                       fontFamily: 'var(--font-paper)', pointerEvents: 'none', 
-                      display: 'block', textAlign: 'center', lineHeight: '28px'
+                      display: 'block', 
+                      textAlign: 'center',
+                      lineHeight: '1',
+                      padding: '8px 14px 10px'
                     }}>
                       {node.charName}
                     </div>
@@ -1276,27 +1763,71 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
 
       </div>
 
-      {/* Add Character Overlay (Absolute Center) */}
+      {/* Add Character Drawer (Mobile-First) */}
       <AnimatePresence>
         {showAddMenu && (
-          <motion.div initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} style={{ position: 'fixed', top: isMobile ? '12px' : '20%', left: '50%', transform: 'translateX(-50%)', background: 'white', padding: isMobile ? '16px' : '24px', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', zIndex: 1001, width: isMobile ? '94vw' : '360px', maxHeight: isMobile ? '70vh' : '60vh', overflowY: 'auto', border: '2px solid var(--pop-pink)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-              <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: isMobile ? '1.2rem' : '1.4rem', color: '#1e293b' }}>Add character</h4>
-              <button onClick={() => setShowAddMenu(false)} style={{ background: '#f1f5f9', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
+          <motion.div 
+            initial={{ opacity: 0, y: 100 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: 100 }} 
+            style={{ 
+              position: 'fixed', 
+              bottom: 0, left: 0, right: 0,
+              background: 'white', 
+              padding: isMobile ? '20px 20px 40px' : '24px', 
+              borderRadius: isMobile ? '32px 32px 0 0' : '24px', 
+              boxShadow: '0 -20px 60px rgba(0,0,0,0.2)', 
+              zIndex: 10005, 
+              width: '100%', 
+              maxHeight: isMobile ? '80vh' : '60vh', 
+              overflowY: 'auto',
+              borderTop: '1px solid #e2e8f0'
+            }}
+          >
+            {isMobile && <div className="bottom-sheet-handle" />}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.25rem', color: '#1e293b' }}>Add to map</h4>
+              <button onClick={() => setShowAddMenu(false)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '8px' : '12px' }}>
-              {portraitData.map(p => (
-                <div key={p.name} onClick={() => handleAddCharacter(p.name)} style={{ cursor: 'pointer', textAlign: 'center', transition: 'transform 0.1s' }} onMouseEnter={e=>e.currentTarget.style.transform='scale(1.05)'} onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}>
-                  <div style={{ width: '100%', aspectRatio: '1', borderRadius: '16px', overflow: 'hidden', border: '2.5px solid #e2e8f0', boxShadow: '0 4px 10px rgba(0,0,0,0.06)' }}><img src={p.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
-                  <div style={{ fontSize: '12px', marginTop: '8px', fontWeight: 'bold', color: '#475569', fontFamily: 'var(--font-paper)' }}>{p.name}</div>
-                </div>
-              ))}
+
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '12px' }}>Elements</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                <button className="character-card" onClick={handleAddGroup} style={{ border: '1px solid #e2e8f0' }}>
+                  <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}><CircleDashed size={24} color="var(--pop-blue)" /></div>
+                  <div style={{ fontSize: '11px', marginTop: '6px', fontWeight: 'bold' }}>Circle</div>
+                </button>
+                <button className="character-card" onClick={handleAddHub} style={{ border: '1px solid #e2e8f0' }}>
+                  <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}><Share2 size={24} color="var(--pop-blue)" /></div>
+                  <div style={{ fontSize: '11px', marginTop: '6px', fontWeight: 'bold' }}>Nexus</div>
+                </button>
+                <button className="character-card" onClick={handleAddMemo} style={{ border: '1px solid #e2e8f0' }}>
+                  <div style={{ padding: '12px', background: '#fef3c7', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}><StickyNote size={24} color="#d97706" /></div>
+                  <div style={{ fontSize: '11px', marginTop: '6px', fontWeight: 'bold' }}>Memo</div>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '12px' }}>Characters</div>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(70px, 1fr))' : 'repeat(3, 1fr)', gap: isMobile ? '10px' : '16px' }}>
+                {portraitData.map(p => (
+                  <div key={p.name} className="character-card" onClick={() => handleAddCharacter(p.name)}>
+                    <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                      <img src={p.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                    <div style={{ fontSize: '11px', marginTop: '6px', fontWeight: 'bold', color: '#475569', fontFamily: 'var(--font-paper)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+
+  return isMobile ? createPortal(mapContent, document.body) : mapContent;
 };
 
 export default RelationshipMap;

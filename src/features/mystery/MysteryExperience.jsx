@@ -83,13 +83,15 @@ const MysteryExperience = ({ isMobile }) => {
         overflow: 'visible',
       }}
     >
-      <MysteryHeader
-        isMobile={isMobile}
-        showBackButton={view !== 'menu'}
-        title={t.mystery?.title || 'Mystery cabin'}
-        onBack={leaveSubView}
-        backLabel={t.mystery?.returnToMenu || 'Step Back Outside'}
-      />
+      {!(isMobile && view === 'map') && (
+        <MysteryHeader
+          isMobile={isMobile}
+          showBackButton={view !== 'menu'}
+          title={t.mystery?.title || 'Mystery cabin'}
+          onBack={leaveSubView}
+          backLabel={t.mystery?.returnToMenu || 'Step Back Outside'}
+        />
+      )}
 
       {view === 'menu' && (
       <MysteryMenu
@@ -151,6 +153,7 @@ const MysteryExperience = ({ isMobile }) => {
             isMobile={isMobile}
             portraitData={PORTRAIT_DATA}
             t={t}
+            onBack={leaveSubView}
           />
         </Suspense>
       )}
