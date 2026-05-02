@@ -140,39 +140,57 @@ const getMidpoint = (x1, y1, x2, y2, shape, offset) => {
   return { x: mx, y: my };
 };
 
-const generatePath = (x1, y1, x2, y2, shape, offset) => {
+const generatePath = (x1, y1, x2, y2, shape, offset = 0) => {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist === 0) return `M ${x1} ${y1} L ${x2} ${y2}`;
+
+  const nx = dy / dist;
+  const ny = -dx / dist;
+
+  // Helper to apply bend to a point at progress t [0...1]
+  const getBentPoint = (t) => {
+    const px = x1 + dx * t;
+    const py = y1 + dy * t;
+    // Quadratic bend formula: 4 * t * (1-t) * offset
+    const bendAmount = 4 * t * (1 - t) * offset;
+    return {
+      x: px + nx * bendAmount,
+      y: py + ny * bendAmount
+    };
+  };
 
   if (shape === 'curve') {
-    if (dist === 0) return `M ${x1} ${y1} L ${x2} ${y2}`;
-    const nx = dy / dist;
-    const ny = -dx / dist;
-    const curveOffset = offset !== undefined ? offset : Math.min(dist * 0.3, 120);
-    const cx = (x1 + x2) / 2 + nx * curveOffset;
-    const cy = (y1 + y2) / 2 + ny * curveOffset;
+    const cx = (x1 + x2) / 2 + nx * (offset || Math.min(dist * 0.3, 120));
+    const cy = (y1 + y2) / 2 + ny * (offset || Math.min(dist * 0.3, 120));
+    return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+  }
+
+  if (shape === 'straight') {
+    if (!offset || offset === 0) return `M ${x1} ${y1} L ${x2} ${y2}`;
+    const mid = getBentPoint(0.5);
+    const cx = (x1 + x2) / 2 + nx * offset * 2; // Q control point needs to be double for mid to match offset
+    const cy = (y1 + y2) / 2 + ny * offset * 2;
     return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
   }
   
   if (shape === 'step') {
     const mx = (x1 + x2) / 2;
-    return `M ${x1} ${y1} L ${mx} ${y1} L ${mx} ${y2} L ${x2} ${y2}`;
+    // Step doesn't bend well with offset, but we can shift it
+    return `M ${x1} ${y1} L ${mx + nx * offset} ${y1 + ny * offset} L ${mx + nx * offset} ${y2 + ny * offset} L ${x2} ${y2}`;
   }
 
   if (shape === 'zigzag') {
     if (dist < 20) return `M ${x1} ${y1} L ${x2} ${y2}`;
     const zigs = Math.floor(dist / 18);
-    const nx = dy / dist;
-    const ny = -dx / dist;
     const amplitude = 12;
     let path = `M ${x1} ${y1}`;
     for (let i = 1; i < zigs; i++) {
       const t = i / zigs;
-      const px = x1 + dx * t;
-      const py = y1 + dy * t;
+      const bp = getBentPoint(t);
       const sign = i % 2 === 0 ? 1 : -1;
-      path += ` L ${px + nx * amplitude * sign} ${py + ny * amplitude * sign}`;
+      path += ` L ${bp.x + nx * amplitude * sign} ${bp.y + ny * amplitude * sign}`;
     }
     path += ` L ${x2} ${y2}`;
     return path;
@@ -182,18 +200,20 @@ const generatePath = (x1, y1, x2, y2, shape, offset) => {
     if (dist < 30) return `M ${x1} ${y1} L ${x2} ${y2}`;
     const waves = Math.floor(dist / 40);
     const step = 1 / waves;
-    const nx = dy / dist * 15;
-    const ny = -dx / dist * 15;
+    const waveAmp = 15;
     let path = `M ${x1} ${y1}`;
     for (let i = 0; i < waves; i++) {
         const t0 = i * step;
         const t1 = (i + 1) * step;
         const tm = (t0 + t1) / 2;
-        const px2 = x1 + dx * t1;
-        const py2 = y1 + dy * t1;
-        const pmx = x1 + dx * tm + (i % 2 === 0 ? nx : -nx);
-        const pmy = y1 + dy * tm + (i % 2 === 0 ? ny : -ny);
-        path += ` Q ${pmx} ${pmy} ${px2} ${py2}`;
+        
+        const p1 = getBentPoint(t1);
+        const pm = getBentPoint(tm);
+        
+        const sign = i % 2 === 0 ? 1 : -1;
+        const pmx = pm.x + nx * waveAmp * sign;
+        const pmy = pm.y + ny * waveAmp * sign;
+        path += ` Q ${pmx} ${pmy} ${p1.x} ${p1.y}`;
     }
     return path;
   }
@@ -274,7 +294,11 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (data.nodes) setNodes(data.nodes);
+        if (data.nodes) {
+          // Migration: Yamato -> Yamada
+          const migratedNodes = data.nodes.map(n => n.charName === 'Yamato' ? { ...n, charName: 'Yamada' } : n);
+          setNodes(migratedNodes);
+        }
         if (data.groups) {
           // migrate old size-based groups to width/height
           setGroups(data.groups.map(g => g.width ? g : { ...g, width: 400, height: 400 }));
@@ -347,7 +371,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   const handleAddHub = () => {
     triggerHaptic('selection');
     const { x, y } = getStartCoords(8, 8);
-    setNodes([...nodes, { id: `hub-${Date.now()}`, type: 'hub', x, y, color: '#94a3b8', size: 'regular' }]);
+    setNodes([...nodes, { id: `hub-${Date.now()}`, type: 'hub', x, y, color: '#94a3b8', size: 'regular', charName: 'Nexus', charNamePos: 'bottom' }]);
   };
 
   const handleAddGroup = () => {
@@ -696,7 +720,8 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
       return <div style={{ width: radius*2, height: radius*2, borderRadius: '50%', background: node.color, border: isSelected ? '4px solid #334155' : '3px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }} />;
     }
 
-    const src = characterMap[node.charName].src;
+    const charData = characterMap[node.charName];
+    const src = charData?.src || '';
     const radius = getNodeRadius(node, isMobile);
     const size = radius * 2;
     const isFloating = node.animation === 'float' && !isSaving; // Let animations run during GIF rendering
@@ -878,6 +903,20 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                 </div>
                 
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'top', label: 'Top' },
+                      { id: 'bottom', label: 'Bottom' },
+                      { id: 'left', label: 'Left' },
+                      { id: 'right', label: 'Right' }
+                    ].map(p => (
+                      <button key={p.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'labelPos', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (link.labelPos || 'top') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (link.labelPos || 'top') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Connection color</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                     {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(links, setLinks, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'transform 0.1s', transform: link.color === c.color ? 'scale(1.1)' : 'scale(1)', boxShadow: link.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
@@ -958,9 +997,26 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
               return (
                 <>
                   <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Nexus name</div>
+                    <input value={node.charName || ''} onChange={(e) => updateItemProperty(nodes, setNodes, selectedId, 'charName', e.target.value)} placeholder="Nexus name..." style={{ width: '100%', padding: '10px 12px', borderRadius: '12px', border: '1.5px solid #f1f5f9', background: '#f8fafc', outline: 'none', fontSize: '14px', fontWeight: '600' }} />
+                  </div>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Nexus size</div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       {HUB_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '10px', fontSize: '12px', fontWeight: '800', background: node.size === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.size === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>{s.label}</button> )}
+                    </div>
+                  </div>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                      {[
+                        { id: 'top', label: 'Top' },
+                        { id: 'bottom', label: 'Bottom' },
+                        { id: 'left', label: 'Left' },
+                        { id: 'right', label: 'Right' }
+                      ].map(p => (
+                        <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                      ))}
                     </div>
                   </div>
                   <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -988,6 +1044,20 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Avatar size</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                  </div>
+                </div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'top', label: 'Top' },
+                      { id: 'bottom', label: 'Bottom' },
+                      { id: 'left', label: 'Left' },
+                      { id: 'right', label: 'Right' }
+                    ].map(p => (
+                      <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                    ))}
                   </div>
                 </div>
 
@@ -1150,6 +1220,20 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Circle name</div>
                   <input value={group.title} onChange={(e) => updateItemProperty(groups, setGroups, selectedId, 'title', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1.5px solid #f1f5f9', background: '#f8fafc', outline: 'none', fontSize: '14px', fontWeight: '700' }} />
+                </div>
+
+                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'top', label: 'Top' },
+                      { id: 'bottom', label: 'Bottom' },
+                      { id: 'left', label: 'Left' },
+                      { id: 'right', label: 'Right' }
+                    ].map(p => (
+                      <button key={p.id} onClick={() => updateItemProperty(groups, setGroups, selectedId, 'titlePosition', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (group.titlePosition || 'top') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (group.titlePosition || 'top') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                    ))}
+                  </div>
                 </div>
 
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1.5px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1621,12 +1705,12 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                   <div style={{ 
                     position: 'absolute',
                     width: 'max-content',
-                    ...(group.titlePosition === 'bottom' ? { top: 'calc(100% + 4px)', left: '50%', transform: 'translateX(-50%)' } : 
-                       group.titlePosition === 'left' ? { right: 'calc(100% + 4px)', top: '50%', transform: 'translateY(-50%)' } : 
-                       group.titlePosition === 'right' ? { left: 'calc(100% + 4px)', top: '50%', transform: 'translateY(-50%)' } : 
-                       { bottom: 'calc(100% + 4px)', left: '50%', transform: 'translateX(-50%)' }),
+                    ...(group.titlePosition === 'bottom' ? { top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)' } : 
+                       group.titlePosition === 'left' ? { right: 'calc(100% + 12px)', top: '50%', transform: 'translateY(-50%)' } : 
+                       group.titlePosition === 'right' ? { left: 'calc(100% + 12px)', top: '50%', transform: 'translateY(-50%)' } : 
+                       { bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)' }),
                     background: 'white', 
-                    padding: '8px 16px 12px', // Balanced padding for handwritten font
+                    padding: '8px 16px 12px', 
                     borderRadius: '20px', 
                     border: `2px solid ${c.border}`, 
                     color: '#334155', 
@@ -1721,9 +1805,19 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                       const dist = Math.sqrt(dx * dx + dy * dy);
                       const nx = dist > 0 ? dy / dist : 0;
                       const ny = dist > 0 ? -dx / dist : -1;
-                      const labelOffset = 25;
-                      const lx = mid.x + nx * labelOffset;
-                      const ly = mid.y + ny * labelOffset;
+                      const tx = dist > 0 ? dx / dist : 1;
+                      const ty = dist > 0 ? dy / dist : 0;
+
+                      const labelPos = link.labelPos || 'top';
+                      let lx = mid.x;
+                      let ly = mid.y;
+                      const baseOffset = 25;
+
+                      if (labelPos === 'top') { lx += nx * baseOffset; ly += ny * baseOffset; }
+                      else if (labelPos === 'bottom') { lx -= nx * baseOffset; ly -= ny * baseOffset; }
+                      else if (labelPos === 'left') { lx -= tx * baseOffset * 2; ly -= ty * baseOffset * 2; }
+                      else if (labelPos === 'right') { lx += tx * baseOffset * 2; ly += ty * baseOffset * 2; }
+
                       return (
                         <g transform={`translate(${lx}, ${ly})`}>
                           <rect x={-(link.label.length * 4.5 + 12)} y="-14" width={link.label.length * 9 + 24} height="28" fill="white" rx="14" stroke={link.color} strokeWidth="2" />
@@ -1738,8 +1832,17 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                         </motion.div>
                       </foreignObject>
                     )}
-                    {isSelected && link.shape === 'curve' && !isSaving && (
-                      <circle cx={mid.x} cy={mid.y} r="10" fill="white" stroke={link.color} strokeWidth="3" style={{ cursor: 'crosshair' }} onPointerDown={(e) => { e.stopPropagation(); handleCurvePointerDown(e, link.id); }} />
+                    {isSelected && !isSaving && (
+                      <circle 
+                        cx={mid.x} 
+                        cy={mid.y} 
+                        r={isMobile ? "12" : "10"} 
+                        fill="white" 
+                        stroke={link.color} 
+                        strokeWidth="3" 
+                        style={{ cursor: 'crosshair', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }} 
+                        onPointerDown={(e) => { e.stopPropagation(); handleCurvePointerDown(e, link.id); }} 
+                      />
                     )}
                   </g>
                 );
@@ -1807,11 +1910,13 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ width: 8, height: 8, borderRadius: '50%', background: 'white' }} />
                     </div>
                   )}
-                  {node.type === 'character' && (
+                  {(node.charName || node.type === 'hub') && (
                     <div style={{ 
                       position: 'absolute', 
-                      ...(node.charNamePos === 'top' ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
-                      left: '50%', transform: 'translateX(-50%)', 
+                      ...(node.charNamePos === 'top' ? { bottom: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)' } : 
+                         node.charNamePos === 'left' ? { right: 'calc(100% + 10px)', top: '50%', transform: 'translateY(-50%)' } : 
+                         node.charNamePos === 'right' ? { left: 'calc(100% + 10px)', top: '50%', transform: 'translateY(-50%)' } : 
+                         { top: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)' }),
                       background: 'white', borderRadius: '10px', 
                       fontSize: '13px', fontWeight: 'bold', color: '#1e293b', whiteSpace: 'nowrap', 
                       boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)', 
@@ -1819,9 +1924,10 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                       display: 'block', 
                       textAlign: 'center',
                       lineHeight: '1',
-                      padding: '8px 14px 10px'
+                      padding: '8px 14px 10px',
+                      zIndex: 1
                     }}>
-                      {node.charName}
+                      {node.charName || (node.type === 'hub' ? 'Nexus' : '')}
                     </div>
                   )}
                 </div>
