@@ -89,9 +89,9 @@ const NODE_ANIMATIONS = [
 ];
 
 const BACKGROUNDS = [
-  { id: 'dots', label: 'Dot Grid', bg: '#ffffff', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiNjYmQ1ZTEiLz48L3N2Zz4=")', size: '30px 30px' },
+  { id: 'dots', label: 'Dot grid', bg: '#ffffff', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiNjYmQ1ZTEiLz48L3N2Zz4=")', size: '30px 30px' },
   { id: 'grid', label: 'Blueprint', bg: '#f8fafc', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTSA0MCAwIEwgMCAwIDAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgxNDgsIDE2MywgMTg0LCAwLjE1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+")', size: '40px 40px' },
-  { id: 'paper', label: 'Lined Paper', bg: '#fffefc', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjMyIj48bGluZSB4MT0iMCIgeTE9IjMxIiB4Mj0iMTAwJSIgeTI9IjMxIiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")', size: '100% 32px' },
+  { id: 'paper', label: 'Lined paper', bg: '#fffefc', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjMyIj48bGluZSB4MT0iMCIgeTE9IjMxIiB4Mj0iMTAwJSIgeTI9IjMxIiBzdHJva2U9IiNlMmU4ZjAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")', size: '100% 32px' },
   { id: 'cork', label: 'Corkboard', bg: '#fef3c7', css: 'none', size: 'auto' },
 ];
 
@@ -765,7 +765,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
         )}
         <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontFamily: 'var(--font-paper)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Settings2 size={18}/> {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Properties
+            <Settings2 size={18}/> {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} properties
           </h3>
           <button onClick={clearSelection} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20}/></button>
         </div>
@@ -778,23 +778,23 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             return (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Label</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Label</div>
                   <input value={link.label} onChange={(e) => updateItemProperty(links, setLinks, selectedId, 'label', e.target.value)} placeholder="Relationship text..." style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontSize: '14px', fontFamily: 'var(--font-paper)' }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Color</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                     {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(links, setLinks, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: link.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Path Shape</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Path shape</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                     {LINE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'shape', s.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', fontSize: '12px', fontWeight: 'bold', background: link.shape === s.id ? 'var(--pop-blue)' : 'white', color: link.shape === s.id ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Line Style</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Line style</div>
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
                     {LINE_STYLES.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'style', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: link.style === s.id ? '#cbd5e1' : 'white', color: link.style === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
@@ -803,14 +803,14 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Arrows</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Arrows</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {ARROW_MODES.map(s => <button key={s.id} onClick={() => updateItemProperty(links, setLinks, selectedId, 'arrow', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: link.arrow === s.id ? '#cbd5e1' : 'white', color: link.arrow === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Effects</div>
-                  <button onClick={() => updateItemProperty(links, setLinks, selectedId, 'animated', !link.animated)} style={{ width: '100%', padding: '12px', fontSize: '14px', fontWeight: 'bold', background: link.animated ? 'var(--pop-pink)' : 'white', color: link.animated ? 'white' : '#475569', border: link.animated ? 'none' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px' }}><Zap size={18}/> Energy Flow</button>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Effects</div>
+                  <button onClick={() => updateItemProperty(links, setLinks, selectedId, 'animated', !link.animated)} style={{ width: '100%', padding: '12px', fontSize: '14px', fontWeight: 'bold', background: link.animated ? 'var(--pop-pink)' : 'white', color: link.animated ? 'white' : '#475569', border: link.animated ? 'none' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '8px' }}><Zap size={18}/> Energy flow</button>
                 </div>
               </>
             );
@@ -823,13 +823,13 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
               return (
                 <>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Nexus Size</div>
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Nexus size</div>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       {HUB_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '10px', fontSize: '13px', fontWeight: 'bold', background: node.size === s.id ? 'var(--pop-blue)' : 'white', color: node.size === s.id ? 'white' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Color Theme</div>
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color theme</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                       {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: node.color === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
                     </div>
@@ -840,32 +840,32 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             return (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Frame Shape</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Frame shape</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
                     {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '10px 4px', fontSize: '12px', fontWeight: 'bold', background: node.shape === s.id ? 'var(--pop-blue)' : 'white', color: node.shape === s.id ? 'white' : '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}> <Icon size={18} /> {s.label} </button>; })}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Border Color</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Border color</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                     <button onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'borderColor', '#e2e8f0')} style={{ aspectRatio: '1', background: '#e2e8f0', border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: (!node.borderColor || node.borderColor === '#e2e8f0') ? `0 0 0 3px white, 0 0 0 5px #e2e8f0` : 'none' }} title="Default" />
                     {PALETTE.slice(0,9).map(c => <button key={c.name} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'borderColor', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: node.borderColor === c.color ? `0 0 0 3px white, 0 0 0 5px ${c.color}` : 'none' }} /> )}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Avatar Size</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Avatar size</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: node.size === s.id ? '#cbd5e1' : 'white', color: node.size === s.id ? '#0f172a' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Animation</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Animation</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} style={{ flex: 1, padding: '8px 4px', fontSize: '12px', fontWeight: 'bold', background: node.animation === s.id ? 'var(--pop-pink)' : 'white', color: node.animation === s.id ? 'white' : '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Name Position</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Name position</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     {[
                       { id: 'top', label: 'Top' },
@@ -896,7 +896,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             return (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase' }}>Circle Name</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '8px' }}>Circle name</div>
                   <input value={group.title} onChange={(e) => updateItemProperty(groups, setGroups, selectedId, 'title', e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontSize: '15px', fontFamily: 'var(--font-paper)' }} />
                 </div>
                 <div>
@@ -931,7 +931,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Color Theme</div>
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Color theme</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
                     {GROUP_COLORS.map((c, i) => <button key={c.name} onClick={() => updateItemProperty(groups, setGroups, selectedId, 'colorIndex', i)} style={{ aspectRatio: '1', background: c.border, border: 'none', borderRadius: '50%', cursor: 'pointer', boxShadow: group.colorIndex === i ? `0 0 0 3px white, 0 0 0 5px ${c.border}` : 'none' }} /> )}
                   </div>
@@ -948,7 +948,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
             if (!memo) return null;
             return (
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', textTransform: 'uppercase' }}>Memo Color</div>
+                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '10px' }}>Memo color</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   {PALETTE.map(c => <button key={c.name} onClick={() => updateItemProperty(memos, setMemos, selectedId, 'color', c.color)} style={{ aspectRatio: '1', background: c.color, border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: memo.color === c.color ? `0 0 0 3px white, 0 0 0 5px #cbd5e1` : 'none' }} /> )}
                 </div>
@@ -1058,11 +1058,11 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
           {showMapSettings && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} style={{ position: 'absolute', right: 20, top: 20, background: 'white', padding: 24, borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', zIndex: 1000, width: 300, border: '2px solid #cbd5e1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.4rem', color: '#1e293b' }}>Map Settings</h4>
+                <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.4rem', color: '#1e293b' }}>Map settings</h4>
                 <button onClick={() => setShowMapSettings(false)} style={{ background: '#f1f5f9', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px', textTransform: 'uppercase' }}>Canvas Background</div>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px' }}>Canvas background</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {BACKGROUNDS.map(bg => (
                     <button key={bg.id} onClick={() => setBgStyle(bg.id)} style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: bgStyle === bg.id ? 'var(--pop-blue)' : '#f8fafc', color: bgStyle === bg.id ? 'white' : '#475569', border: bgStyle === bg.id ? 'none' : '1.5px solid #e2e8f0', fontWeight: 'bold', fontSize: '1rem', fontFamily: 'var(--font-paper)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s ease' }}>
@@ -1072,7 +1072,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
                 </div>
               </div>
               <div style={{ marginTop: '20px' }}>
-                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px', textTransform: 'uppercase' }}>Custom Solid Color</div>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#64748b', marginBottom: '12px' }}>Custom solid color</div>
                 <input type="color" value={customBgColor} onChange={(e) => { setBgStyle('custom'); setCustomBgColor(e.target.value); }} style={{ width: '100%', height: '48px', border: 'none', borderRadius: '12px', cursor: 'pointer', padding: 0 }} />
               </div>
             </motion.div>
@@ -1281,7 +1281,7 @@ const RelationshipMap = ({ isMobile, portraitData, t }) => {
         {showAddMenu && (
           <motion.div initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.95 }} style={{ position: 'fixed', top: isMobile ? '12px' : '20%', left: '50%', transform: 'translateX(-50%)', background: 'white', padding: isMobile ? '16px' : '24px', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', zIndex: 1001, width: isMobile ? '94vw' : '360px', maxHeight: isMobile ? '70vh' : '60vh', overflowY: 'auto', border: '2px solid var(--pop-pink)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-              <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: isMobile ? '1.2rem' : '1.4rem', color: '#1e293b' }}>Add Character</h4>
+              <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: isMobile ? '1.2rem' : '1.4rem', color: '#1e293b' }}>Add character</h4>
               <button onClick={() => setShowAddMenu(false)} style={{ background: '#f1f5f9', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)', gap: isMobile ? '8px' : '12px' }}>

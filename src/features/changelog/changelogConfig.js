@@ -33,6 +33,7 @@ export const CHANGELOG_SERIES = [
       { type: 'added', text: 'Added custom curvature control and smart label offsets for complex relationship bonds.' },
       { type: 'added', text: 'New "Name position" toggle allows shifting character labels between Top and Bottom.' },
       { type: 'changed', text: 'Optimized export engine for crystal-clear 3x resolution PNG downloads.' },
+      { type: 'changed', text: 'Standardized all UI labels and buttons to sentence case for a cleaner look.' },
     ],
   },
   {
