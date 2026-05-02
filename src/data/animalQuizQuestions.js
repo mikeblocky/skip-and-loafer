@@ -680,42 +680,42 @@ const localizeQuestion = (question, uiLanguage) => {
     }
   }
   if (question.type === 'hold') {
-    if (localized.lowLabel == null) localized.lowLabel = pick(question.lowLabel, uiLanguage);
-    if (localized.highLabel == null) localized.highLabel = pick(question.highLabel, uiLanguage);
+    localized.lowLabel = pick(question.lowLabel, uiLanguage);
+    localized.highLabel = pick(question.highLabel, uiLanguage);
   }
   if (question.type === 'rhythm') {
-    if (localized.slowLabel == null) localized.slowLabel = pick(question.slowLabel, uiLanguage);
-    if (localized.fastLabel == null) localized.fastLabel = pick(question.fastLabel, uiLanguage);
-    if (localized.steadyLabel == null) localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
-    if (localized.wildLabel == null) localized.wildLabel = pick(question.wildLabel, uiLanguage);
+    localized.slowLabel = pick(question.slowLabel, uiLanguage);
+    localized.fastLabel = pick(question.fastLabel, uiLanguage);
+    localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
+    localized.wildLabel = pick(question.wildLabel, uiLanguage);
   }
   if (question.type === 'guess') {
-    if (localized.leftLabel == null) localized.leftLabel = pick(question.leftLabel, uiLanguage);
-    if (localized.rightLabel == null) localized.rightLabel = pick(question.rightLabel, uiLanguage);
+    localized.leftLabel = pick(question.leftLabel, uiLanguage);
+    localized.rightLabel = pick(question.rightLabel, uiLanguage);
   }
   if (uiLanguage === 'ja') {
     if (localized.leftLabel == null && question.leftLabel) localized.leftLabel = pick(question.leftLabel, uiLanguage);
     if (localized.rightLabel == null && question.rightLabel) localized.rightLabel = pick(question.rightLabel, uiLanguage);
   }
   if (question.type === 'flip') {
-    if (localized.previewLabel == null) localized.previewLabel = pick(question.previewLabel, uiLanguage);
-    if (localized.playLabel == null) localized.playLabel = pick(question.playLabel, uiLanguage);
-    if (localized.timerLabel == null) localized.timerLabel = pick(question.timerLabel, uiLanguage);
-    if (localized.completedLabel == null) localized.completedLabel = pick(question.completedLabel, uiLanguage);
-    if (localized.retryLabel == null) localized.retryLabel = pick(question.retryLabel, uiLanguage);
-    if (localized.fastResultLabel == null) localized.fastResultLabel = pick(question.fastResultLabel, uiLanguage);
-    if (localized.steadyResultLabel == null) localized.steadyResultLabel = pick(question.steadyResultLabel, uiLanguage);
-    if (localized.slowResultLabel == null) localized.slowResultLabel = pick(question.slowResultLabel, uiLanguage);
+    localized.previewLabel = pick(question.previewLabel, uiLanguage);
+    localized.playLabel = pick(question.playLabel, uiLanguage);
+    localized.timerLabel = pick(question.timerLabel, uiLanguage);
+    localized.completedLabel = pick(question.completedLabel, uiLanguage);
+    localized.retryLabel = pick(question.retryLabel, uiLanguage);
+    localized.fastResultLabel = pick(question.fastResultLabel, uiLanguage);
+    localized.steadyResultLabel = pick(question.steadyResultLabel, uiLanguage);
+    localized.slowResultLabel = pick(question.slowResultLabel, uiLanguage);
   }
   if (question.type === 'reaction') {
-    if (localized.quickLabel == null) localized.quickLabel = pick(question.quickLabel, uiLanguage);
-    if (localized.steadyLabel == null) localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
-    if (localized.slowLabel == null) localized.slowLabel = pick(question.slowLabel, uiLanguage);
+    localized.quickLabel = pick(question.quickLabel, uiLanguage);
+    localized.steadyLabel = pick(question.steadyLabel, uiLanguage);
+    localized.slowLabel = pick(question.slowLabel, uiLanguage);
   }
   if (question.type === 'timing') {
-    if (localized.bullseyeLabel == null) localized.bullseyeLabel = pick(question.bullseyeLabel, uiLanguage);
-    if (localized.nearLabel == null) localized.nearLabel = pick(question.nearLabel, uiLanguage);
-    if (localized.wideLabel == null) localized.wideLabel = pick(question.wideLabel, uiLanguage);
+    localized.bullseyeLabel = pick(question.bullseyeLabel, uiLanguage);
+    localized.nearLabel = pick(question.nearLabel, uiLanguage);
+    localized.wideLabel = pick(question.wideLabel, uiLanguage);
   }
   return localized;
 };
