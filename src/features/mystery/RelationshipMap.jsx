@@ -307,6 +307,12 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   }, [nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, isLoaded]);
 
   const selectItem = (id, type) => {
+    if (id) setShowAddMenu(false);
+    if (type === 'title') {
+      setSelectedId(null);
+      setSelectedType(null);
+      return;
+    }
     setSelectedId(id);
     setSelectedType(type);
   };
@@ -736,36 +742,85 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   // --- Editor Panels ---
   
   const renderEditorSidebar = () => {
-    if (!selectedId) return null;
-    
+    if (showAddMenu && !isMobile) {
+      return (
+        <motion.div 
+          initial={{ x: 300, opacity: 0 }} 
+          animate={{ x: 0, opacity: 1 }} 
+          exit={{ x: 300, opacity: 0 }}
+          className="property-sidebar hide-scroll"
+          style={{ width: '320px', background: '#f8fafc', borderLeft: '2px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', overflowY: 'auto' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.4rem', color: '#1e293b' }}>Add to map</h4>
+            <button onClick={() => setShowAddMenu(false)} style={{ background: '#e2e8f0', border: 'none', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}><X size={18} /></button>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase' }}>Elements</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <button onClick={handleAddGroup} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 4px', background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}>
+                <CircleDashed size={18} color="var(--pop-blue)" />
+                <span style={{ fontSize: '10px', fontWeight: '800' }}>Circle</span>
+              </button>
+              <button onClick={handleAddHub} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 4px', background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer' }}>
+                <Share2 size={18} color="var(--pop-blue)" />
+                <span style={{ fontSize: '10px', fontWeight: '800' }}>Nexus</span>
+              </button>
+              <button onClick={handleAddMemo} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 4px', background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: '12px', cursor: 'pointer' }}>
+                <StickyNote size={18} color="#d97706" />
+                <span style={{ fontSize: '10px', fontWeight: '800' }}>Memo</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px', textTransform: 'uppercase' }}>Characters</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {portraitData.map(p => (
+                <motion.div 
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  key={p.name} 
+                  onClick={() => handleAddCharacter(p.name)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '8px 4px', background: 'white', border: '1.5px solid #e2e8f0', borderRadius: '12px' }}
+                >
+                  <img src={p.src} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+                  <span style={{ fontSize: '9px', fontWeight: '800', color: '#475569', textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
     return (
-      <AnimatePresence>
       <motion.div 
-        initial={{ y: 300, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 300, opacity: 0 }}
+        initial={isMobile ? { y: '100%' } : { x: 300, opacity: 0 }}
+        animate={isMobile ? { y: 0 } : { x: 0, opacity: 1 }}
+        exit={isMobile ? { y: '100%' } : { x: 300, opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="property-sidebar hide-scroll"
         style={{ 
-          width: isMobile ? '100%' : `${sidebarWidth}px`, 
-          height: isMobile ? 'max-content' : 'calc(100% - 40px)',
-          maxHeight: isMobile ? '40dvh' : 'none',
-          background: 'rgba(255, 255, 255, 0.98)', 
-          backdropFilter: 'blur(35px)',
-          border: isMobile ? 'none' : '1px solid rgba(203, 213, 225, 0.5)',
-          borderTop: isMobile ? '3px solid var(--pop-blue)' : 'none',
+          width: isMobile ? '100%' : '320px', 
+          height: isMobile ? 'auto' : '100%',
+          maxHeight: isMobile ? '75dvh' : '100%',
+          background: isMobile ? 'white' : '#f8fafc', 
+          borderLeft: isMobile ? 'none' : '2px solid #e2e8f0',
+          borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
           display: 'flex', flexDirection: 'column', zIndex: 10020, 
-          position: isMobile ? 'fixed' : 'absolute', 
+          position: isMobile ? 'fixed' : 'relative', 
           bottom: 0,
-          right: isMobile ? 0 : 20, 
+          right: 0, 
           top: isMobile ? 'auto' : 0,
-          borderRadius: isMobile ? '24px 24px 0 0' : '24px',
-          boxShadow: '0 -15px 60px rgba(0,0,0,0.2)',
+          borderRadius: isMobile ? '32px 32px 0 0' : '0',
+          boxShadow: isMobile ? '0 -10px 40px rgba(0,0,0,0.1)' : 'none',
           flexShrink: 0,
           overflow: 'hidden'
         }}
       >
         {isMobile && <div className="bottom-sheet-handle" />}
         
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
              {selectedType === 'node' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -775,17 +830,17 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                     const charData = portraitData.find(p => p.name === node?.charName);
                     return charData ? <img src={charData.src} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} /> : null;
                   })()}
-                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>{nodes.find(n => n.id === selectedId)?.charName || 'Nexus'}</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'var(--font-paper)', color: '#1e293b' }}>{nodes.find(n => n.id === selectedId)?.charName || 'Nexus'}</h3>
                 </div>
              )}
              {selectedType !== 'node' && (
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#1e293b' }}>{selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} settings</h3>
+                <h3 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'var(--font-paper)', color: '#1e293b' }}>{selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} settings</h3>
              )}
           </div>
-          <button onClick={clearSelection} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={20}/></button>
+          <button onClick={clearSelection} style={{ background: '#e2e8f0', border: 'none', borderRadius: '50%', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={18}/></button>
         </div>
         
-        <div className="hide-scroll" style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '12px 16px 30px' : '16px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="hide-scroll" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
           {selectedType === 'link' && (() => {
             const link = links.find(l => l.id === selectedId);
@@ -1204,7 +1259,6 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
           })()}
         </div>
       </motion.div>
-      </AnimatePresence>
     );
   };
 
@@ -1508,10 +1562,28 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
               overflow: 'hidden', touchAction: 'none'
             }}
           >
-            <div className="map-board-title" onPointerDown={(e) => handleItemPointerDown(e, 'title', 'title')} style={{ position: 'absolute', top: titlePos.y, left: titlePos.x, transform: 'translateX(-50%)', zIndex: 10, width: 'max-content', maxWidth: 'min(1400px, 90vw)', cursor: draggingItems.some(i=>i.id==='title') ? 'grabbing' : 'grab' }}>
+            <div className="map-board-title" style={{ position: 'absolute', top: titlePos.y, left: titlePos.x, transform: 'translateX(-50%)', zIndex: 10, width: 'max-content', maxWidth: 'min(1400px, 90vw)', cursor: draggingItems.some(i=>i.id==='title') ? 'grabbing' : 'grab' }} onPointerDown={(e) => handleItemPointerDown(e, 'title', 'title')}>
               {!isSaving && isEditingTitle ? (
-                <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: isMobile ? '8px 16px' : '12px 24px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', borderBottom: '4px dashed var(--pop-blue)', display: 'flex', justifyContent: 'center' }}>
-                  <input autoFocus value={boardTitle} onChange={(e) => setBoardTitle(e.target.value)} onBlur={() => setIsEditingTitle(false)} onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)} style={{ fontFamily: 'var(--font-paper)', fontSize: isMobile ? '1.5rem' : '2.4rem', textAlign: 'center', background: 'transparent', border: 'none', color: '#1e293b', outline: 'none', width: 'auto', minWidth: isMobile ? '150px' : '300px' }} />
+                <div style={{ background: 'rgba(255,255,255,0.98)', borderRadius: '24px', padding: isMobile ? '12px 24px' : '20px 40px', boxShadow: '0 10px 40px rgba(0,0,0,0.2)', borderBottom: '4px dashed var(--pop-blue)', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: isMobile ? '280px' : '500px' }}>
+                  <input 
+                    autoFocus 
+                    value={boardTitle} 
+                    onChange={(e) => setBoardTitle(e.target.value)} 
+                    onBlur={() => setIsEditingTitle(false)} 
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)} 
+                    style={{ 
+                      fontFamily: 'var(--font-paper)', 
+                      fontSize: isMobile ? '1.8rem' : '2.8rem', 
+                      textAlign: 'center', 
+                      background: 'transparent', 
+                      border: 'none', 
+                      color: '#1e293b', 
+                      outline: 'none', 
+                      width: '100%',
+                      padding: '0'
+                    }} 
+                  />
+                  <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', fontWeight: '800' }}>Press Enter to save</div>
                 </div>
               ) : (
                 <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : 'rgba(255,255,255,0.7)', backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : '1px solid rgba(0,0,0,0.05)', display: 'block' }}>
@@ -1759,32 +1831,34 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
         </div>
 
         {/* Editor Panel (Sidebar / Bottom Sheet) */}
-        {renderEditorSidebar()}
+        <AnimatePresence>
+          {(selectedId || (showAddMenu && !isMobile)) && renderEditorSidebar()}
+        </AnimatePresence>
 
       </div>
 
-      {/* Add Character Drawer (Mobile-First) */}
+      {/* Add Character Drawer (Mobile-Only Floating) */}
       <AnimatePresence>
-        {showAddMenu && (
+        {showAddMenu && isMobile && (
           <motion.div 
-            initial={{ opacity: 0, y: 100 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: 100 }} 
+            initial={{ y: 100, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            exit={{ y: 100, opacity: 0 }} 
             style={{ 
               position: 'fixed', 
               bottom: 0, left: 0, right: 0,
               background: 'white', 
-              padding: isMobile ? '20px 20px 40px' : '24px', 
-              borderRadius: isMobile ? '32px 32px 0 0' : '24px', 
+              padding: '20px 20px 40px', 
+              borderRadius: '32px 32px 0 0', 
               boxShadow: '0 -20px 60px rgba(0,0,0,0.2)', 
               zIndex: 10005, 
               width: '100%', 
-              maxHeight: isMobile ? '80vh' : '60vh', 
+              maxHeight: '80vh', 
               overflowY: 'auto',
               borderTop: '1px solid #e2e8f0'
             }}
           >
-            {isMobile && <div className="bottom-sheet-handle" />}
+            <div className="bottom-sheet-handle" />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
               <h4 style={{ margin: 0, fontFamily: 'var(--font-paper)', fontSize: '1.25rem', color: '#1e293b' }}>Add to map</h4>
               <button onClick={() => setShowAddMenu(false)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}><X size={20} /></button>
@@ -1810,14 +1884,31 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
 
             <div>
               <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '12px' }}>Characters</div>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(70px, 1fr))' : 'repeat(3, 1fr)', gap: isMobile ? '10px' : '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: '10px' }}>
                 {portraitData.map(p => (
-                  <div key={p.name} className="character-card" onClick={() => handleAddCharacter(p.name)}>
-                    <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: '2px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                  <motion.div 
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    key={p.name} 
+                    onClick={() => handleAddCharacter(p.name)}
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      gap: '6px', 
+                      cursor: 'pointer',
+                      padding: '8px',
+                      borderRadius: '12px',
+                      transition: 'background 0.2s',
+                      background: '#f8fafc',
+                      border: '1.5px solid #f1f5f9'
+                    }}
+                  >
+                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                       <img src={p.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div style={{ fontSize: '11px', marginTop: '6px', fontWeight: 'bold', color: '#475569', fontFamily: 'var(--font-paper)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                  </div>
+                    <div style={{ fontSize: '10px', fontWeight: '800', color: '#475569', fontFamily: 'var(--font-paper)', textAlign: 'center', lineHeight: '1.2' }}>{p.name}</div>
+                  </motion.div>
                 ))}
               </div>
             </div>
