@@ -19,7 +19,7 @@ export const PORTRAIT_DATA = [
   { name: 'Chris', src: '/icon/chris.png' },
   { name: 'Ririka', src: '/icon/rirka.webp' },
   { name: 'Ujiie', src: '/icon/ujie.png' },
-  { name: 'Yamato', src: '/icon/yamato.jpg' },
+  { name: 'Yamada', src: '/icon/yamada.jpg' },
 ];
 
 const NAME_TO_UI_KEY = {
