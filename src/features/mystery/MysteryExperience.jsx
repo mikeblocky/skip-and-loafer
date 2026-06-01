@@ -1,6 +1,6 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, Camera, Clipboard, PawPrint, Map as MapIcon, Star, Heart } from 'lucide-react';
+import { Sparkles, Camera, Clipboard, PawPrint, Map as MapIcon, Star } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import usePageTitle from '../../hooks/shared/usePageTitle';
 import useIdlePreload from '../app/hooks/useIdlePreload';
@@ -18,12 +18,10 @@ const loadQuizGame = () => import('./QuizGame');
 const loadAnimalQuizGame = () => import('./AnimalQuizGame');
 const loadRatingGame = () => import('./RatingGame');
 const loadRelationshipMap = () => import('./RelationshipMap');
-const loadPrideMessages = () => import('./components/PrideGame');
 const QuizGame = lazy(loadQuizGame);
 const AnimalQuizGame = lazy(loadAnimalQuizGame);
 const RatingGame = lazy(loadRatingGame);
 const RelationshipMap = lazy(loadRelationshipMap);
-const PrideMessages = lazy(loadPrideMessages);
 const MYSTERY_LANGUAGE = 'en';
 
 const tabsConfig = [
@@ -44,28 +42,9 @@ const MysteryExperience = ({ isMobile }) => {
 
   usePageTitle('Mystery');
 
-  // Pride Month (June) dynamic tab activation
-  const isJune = useMemo(() => new Date().getMonth() === 5, []);
-  
-  const dynamicTabsConfig = useMemo(() => {
-    const config = [...tabsConfig];
-    if (isJune) {
-      config.push({ 
-        view: 'pride', 
-        label: 'Pride notes!', 
-        shortLabel: 'Notes', 
-        icon: Heart, 
-        bg: '#fff1f2', 
-        color: '#db2777', 
-        border: '#fecdd3' 
-      });
-    }
-    return config;
-  }, [isJune]);
-
   const animalQuizCopy = getAnimalQuizCopy(MYSTERY_LANGUAGE, t);
   const [view, setView] = useState('menu');
-  const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame, loadRatingGame, loadRelationshipMap, loadPrideMessages], []);
+  const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame, loadRatingGame, loadRelationshipMap], []);
   
   const { pulledCharacter, isOpening, handlePull, handleReset, handleDrawAgain } = useMysteryDraw({
     portraitData: PORTRAIT_DATA,
@@ -108,7 +87,7 @@ const MysteryExperience = ({ isMobile }) => {
   }
 
   // Active theme calculations for border highlights
-  const activeTabConfig = dynamicTabsConfig.find(tab => tab.view === view) || dynamicTabsConfig[0];
+  const activeTabConfig = tabsConfig.find(tab => tab.view === view) || tabsConfig[0];
   const activeBorderColor = activeTabConfig.color;
 
   return (
@@ -164,7 +143,7 @@ const MysteryExperience = ({ isMobile }) => {
                 zIndex: 5,
               }}
             >
-              {dynamicTabsConfig.map((tab) => {
+              {tabsConfig.map((tab) => {
                 const isActive = view === tab.view;
                 const Icon = tab.icon;
 
@@ -221,7 +200,7 @@ const MysteryExperience = ({ isMobile }) => {
               }}
               className="hide-scrollbar"
             >
-              {dynamicTabsConfig.map((tab) => {
+              {tabsConfig.map((tab) => {
                 const isActive = view === tab.view;
                 const Icon = tab.icon;
 
@@ -282,7 +261,7 @@ const MysteryExperience = ({ isMobile }) => {
                 <MysteryHeader
                   isMobile={isMobile}
                   showBackButton={true}
-                title={view === 'pride' ? 'Pride notes!' : (t.mystery?.[view === 'animalQuiz' ? 'animalQuiz' : view]?.title || t.mystery?.[view]?.title || t.mystery?.title || 'Case File')}
+                title={t.mystery?.[view === 'animalQuiz' ? 'animalQuiz' : view]?.title || t.mystery?.[view]?.title || t.mystery?.title || 'Case File'}
                   onBack={leaveSubView}
                   backLabel={t.mystery?.returnToMenu || 'Desk Corkboard'}
                 />
@@ -355,11 +334,7 @@ const MysteryExperience = ({ isMobile }) => {
                     </Suspense>
                   )}
 
-                  {view === 'pride' && (
-                    <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label="Loading Pride notes..." />}>
-                      <PrideMessages isMobile={isMobile} />
-                    </Suspense>
-                  )}
+
                 </motion.div>
               </AnimatePresence>
             </div>

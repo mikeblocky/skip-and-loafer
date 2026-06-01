@@ -2,11 +2,11 @@ import { createClient } from 'redis';
 
 const SIGNATURES_KEY = 'community:signatures';
 const FAN_GALLERY_KEY = 'community:fan-gallery';
-const PRIDE_MESSAGES_KEY = 'pride:messages';
+
 
 export const SIGNATURE_LIMIT = 80;
 export const FAN_GALLERY_LIMIT = 20;
-export const PRIDE_MESSAGE_LIMIT = 80;
+
 
 class MemoryClient {
   constructor() {
@@ -115,13 +115,4 @@ export async function addFanGalleryEntry(client, entry) {
   return next;
 }
 
-export async function listPrideMessages(client) {
-  return readList(client, PRIDE_MESSAGES_KEY);
-}
 
-export async function addPrideMessage(client, entry) {
-  const current = await listPrideMessages(client);
-  const next = [entry, ...current].slice(0, PRIDE_MESSAGE_LIMIT);
-  await writeList(client, PRIDE_MESSAGES_KEY, next);
-  return next;
-}

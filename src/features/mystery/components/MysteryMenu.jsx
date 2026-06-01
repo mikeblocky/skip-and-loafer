@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Clipboard, PawPrint, Map, Star, Camera, Pin, Paperclip, Heart } from 'lucide-react';
+import { Sparkles, Clipboard, PawPrint, Map, Star, Camera, Pin, Paperclip } from 'lucide-react';
 import { triggerHaptic } from '../../../utils/haptics';
 import { toMysteryLabelCase } from '../quizGame/ui';
 import { getCharacterDisplayName } from '../../../data/characterNames';
@@ -123,7 +123,6 @@ const MemoStickyNote = ({ isMobile }) => (
 );
 
 const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacter, uiLanguage = 'en' }) => {
-  const isJune = new Date().getMonth() === 5;
   const menuOptions = [
     {
       view: 'gacha',
@@ -200,23 +199,6 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       },
     },
   ];
-
-  if (isJune) {
-    menuOptions.push({
-      view: 'pride',
-      icon: Heart,
-      title: 'Pride notes!',
-      description: 'send a warm Pride Month message and read supportive notes from the community!',
-      styleType: 'polaroid',
-      pinColor: '#db2777',
-      theme: {
-        background: 'linear-gradient(135deg, #fee2e2 0%, #fffbeb 50%, #eff6ff 100%)',
-        border: '#fda4af',
-        shadow: '0 12px 28px rgba(219,39,119,0.06)',
-        textColor: '#db2777',
-      }
-    });
-  }
 
   return (
     <div
@@ -351,7 +333,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                   <div style={{
                     width: '100%',
                     height: isMobile ? '120px' : '140px',
-                    background: option.view === 'pride' ? 'linear-gradient(135deg, #fecdd3 0%, #fef08a 50%, #bfdbfe 100%)' : (pulledCharacter ? 'white' : '#f3f4f6'),
+                    background: pulledCharacter ? 'white' : '#f3f4f6',
                     border: '1px solid rgba(0,0,0,0.06)',
                     borderRadius: '2px',
                     display: 'flex',
@@ -361,16 +343,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                     position: 'relative',
                     boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.04)',
                   }}>
-                    {option.view === 'pride' ? (
-                      <motion.div
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#db2777' }}
-                      >
-                        <Heart size={38} strokeWidth={2.2} fill="#db2777" />
-                        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold' }}>Pride notes!</span>
-                      </motion.div>
-                    ) : pulledCharacter ? (
+                    {pulledCharacter ? (
                       <motion.img
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -403,11 +376,9 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                     marginTop: '4px',
                     letterSpacing: '-0.02em',
                   }}>
-                    {option.view === 'pride'
-                      ? toMysteryLabelCase(option.title)
-                      : (pulledCharacter 
-                        ? `✨ ${getCharacterDisplayName(pulledCharacter.name, uiLanguage)}`
-                        : toMysteryLabelCase(option.title))
+                    {pulledCharacter 
+                      ? `✨ ${getCharacterDisplayName(pulledCharacter.name, uiLanguage)}`
+                      : toMysteryLabelCase(option.title)
                     }
                   </span>
                 </div>
