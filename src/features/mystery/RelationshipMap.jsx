@@ -270,6 +270,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   const [bgStyle, setBgStyle] = useState('dots');
   const [customBgColor, setCustomBgColor] = useState('#ffffff');
   const [isPanMode, setIsPanMode] = useState(false);
+  const [mapTitleStyle, setMapTitleStyle] = useState('minimal');
 
   // Interactive State
   const [draggingItems, setDraggingItems] = useState([]);
@@ -309,6 +310,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
         if (data.customBgColor) setCustomBgColor(data.customBgColor);
         if (data.boardTitle) setBoardTitle(data.boardTitle);
         if (data.titlePos) setTitlePos(data.titlePos);
+        if (data.mapTitleStyle) setMapTitleStyle(data.mapTitleStyle);
       } catch (e) { console.error(e); }
     }
     setIsLoaded(true);
@@ -326,9 +328,9 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('skip_loafer_map_v4', JSON.stringify({ nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos }));
+      localStorage.setItem('skip_loafer_map_v4', JSON.stringify({ nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, mapTitleStyle }));
     }
-  }, [nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, isLoaded]);
+  }, [nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, mapTitleStyle, isLoaded]);
 
   const selectItem = (id, type) => {
     if (id) setShowAddMenu(false);
@@ -1670,7 +1672,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                   <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', fontWeight: '800' }}>Press Enter to save</div>
                 </div>
               ) : (
-                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : 'rgba(255,255,255,0.7)', backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : '1px solid rgba(0,0,0,0.05)', display: 'block' }}>
+                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : (mapTitleStyle === 'paper' ? '#fffefc' : 'rgba(255,255,255,0.7)'), backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : (mapTitleStyle === 'paper' ? '2.5px solid #94a3b8' : '1px solid rgba(0,0,0,0.05)'), display: 'block', boxShadow: isSaving ? 'none' : (mapTitleStyle === 'paper' ? '5px 5px 0px rgba(148,163,184,0.15)' : 'none') }}>
                   <h2 style={{ fontFamily: 'var(--font-paper)', color: '#1e293b', margin: 0, fontSize: isSaving ? (isMobile ? '1.4rem' : '2rem') : (isMobile ? '1.6rem' : '2.4rem'), cursor: isSaving ? 'default' : 'pointer', textAlign: 'center', lineHeight: '1', display: 'inline-block' }}>
                     {boardTitle}
                   </h2>

@@ -359,11 +359,11 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en' }) => {
                   lineHeight: 1
                 }}
               >
-                <span style={{ fontSize: '0.6rem', color: '#ef4444' }}>JUN</span>
-                <span>25</span>
+                <span style={{ fontSize: '0.6rem', color: '#ef4444' }}>OCT</span>
+                <span>9</span>
               </div>
               <div style={{ textAlign: 'left' }}>
-                <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.9rem', color: '#1f2937' }}>Makoto</div>
+                <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.9rem', color: '#1f2937' }}>Shima</div>
                 <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.76rem', color: '#ea580c' }}>birthday countdown: 24 days</div>
               </div>
             </div>

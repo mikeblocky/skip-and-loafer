@@ -248,6 +248,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                         totalChapters={totalChapters}
                         totalReads={totalReads}
                         activeVolumes={activeVolumes}
+                        pushNow={pushNow}
                     />
                 </div>
 
@@ -485,9 +486,10 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             <div style={{
                                 display: 'grid',
                                 gridTemplateColumns: isMobile ? '1fr' : '45% 55%',
-                                height: '100%',
+                                height: isMobile ? 'calc(100% - 44px)' : '100%',
                                 width: '100%',
-                                boxSizing: 'border-box'
+                                boxSizing: 'border-box',
+                                overflowY: isMobile ? 'auto' : 'visible'
                             }}>
                                 
                                 {/* 📖 LEFT PAGE: Book Details & Stats */}
@@ -499,7 +501,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     flexDirection: 'column',
                                     gap: '12px',
                                     boxSizing: 'border-box',
-                                    overflowY: isMobile ? 'auto' : 'visible',
+                                    overflowY: 'visible',
                                     justifyContent: 'flex-start',
                                     alignItems: 'center'
                                 }}>
@@ -677,7 +679,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     padding: isMobile ? '8px 12px 14px' : '24px 24px 24px 30px',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    height: '100%',
+                                    height: isMobile ? 'auto' : '100%',
                                     minHeight: 0,
                                     boxSizing: 'border-box'
                                 }}>
@@ -712,7 +714,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                         className="hide-scrollbar"
                                         style={{
                                             flex: 1,
-                                            overflowY: 'auto',
+                                            overflowY: isMobile ? 'visible' : 'auto',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '6px',
