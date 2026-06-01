@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PenLine } from 'lucide-react';
+import { PenLine, Heart } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
 import {
@@ -221,6 +221,15 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
   const [noteGestures, setNoteGestures] = useState({});
   const [canvasResetVersion, setCanvasResetVersion] = useState(0);
   const [isResettingCanvas, setIsResettingCanvas] = useState(false);
+  const [activeTab, setActiveTab] = useState('sign');
+
+  const isJune = useMemo(() => new Date().getMonth() === 5, []);
+
+  const filteredEntries = useMemo(() => {
+    if (activeTab === 'pride') return entries.filter(e => e.type === 'pride');
+    return entries.filter(e => e.type !== 'pride');
+  }, [entries, activeTab]);
+
   const noteDragConstraints = useMemo(() => {
     if (!isMobile) return notesBoardRef;
     return undefined;
@@ -234,12 +243,12 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
 
   useEffect(() => {
     setStackOrder((current) => {
-      const entryIds = entries.map((entry) => entry.id);
+      const entryIds = filteredEntries.map((entry) => entry.id);
       const preserved = current.filter((id) => entryIds.includes(id));
       const appended = entryIds.filter((id) => !preserved.includes(id));
       return [...preserved, ...appended];
     });
-  }, [entries]);
+  }, [filteredEntries]);
 
   const stackOrderIndex = useMemo(
     () => Object.fromEntries(stackOrder.map((id, index) => [id, index + 1])),
@@ -305,14 +314,14 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
     noteGestureStartRef.current.clear();
     setNoteGestures({});
     setActiveDraggedId(null);
-    setStackOrder(entries.map((entry) => entry.id));
+    setStackOrder(filteredEntries.map((entry) => entry.id));
     window.setTimeout(() => {
       setCanvasResetVersion((current) => current + 1);
       window.requestAnimationFrame(() => {
         setIsResettingCanvas(false);
       });
     }, 140);
-  }, [entries]);
+  }, [filteredEntries]);
 
   const handleNoteWheel = useCallback((entryId, event) => {
     if (!event.ctrlKey && !event.metaKey) return;
@@ -350,11 +359,12 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       const response = await createSignature({
         name,
         message,
+        type: activeTab === 'pride' ? 'pride' : 'sign',
       });
 
       setEntries(response.signatures);
       setMessage('');
-      setSuccessMessage(copy.success);
+      setSuccessMessage(activeTab === 'pride' ? 'Your Pride note is on the wall! ❤️‍🔥' : copy.success);
       setIsComposerOpen(false);
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);
@@ -362,6 +372,56 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       setIsSubmitting(false);
     }
   }
+
+  const isPride = activeTab === 'pride';
+
+  const heroConfig = isPride ? {
+    title: 'Pride notes!',
+    icon: Heart,
+    titleColors: {
+      borderColor: '#db2777',
+      bottomColor: '#be185d',
+      shadow: '0 8px 18px rgba(219, 39, 119, 0.12)',
+    },
+    counterColors: {
+      borderColor: '#f9a8d4',
+      bottomColor: '#ec4899',
+      color: '#be185d',
+    },
+    actionLabel: 'Send a Pride note',
+    actionIcon: Heart,
+    actionColors: {
+      borderColor: '#f9a8d4',
+      bottomColor: '#ec4899',
+      color: '#be185d',
+    },
+    modalTitle: 'Send a Pride note ❤️‍🔥',
+    modalAccent: '#ec4899',
+    modalAccentBottom: '#db2777',
+  } : {
+    title: copy.title,
+    icon: PenLine,
+    titleColors: {
+      borderColor: '#f97316',
+      bottomColor: '#ea580c',
+      shadow: '0 8px 18px rgba(249, 115, 22, 0.12)',
+    },
+    counterColors: {
+      borderColor: '#fdba74',
+      bottomColor: '#f97316',
+      color: '#c2410c',
+    },
+    actionLabel: copy.button,
+    actionIcon: PenLine,
+    actionColors: {
+      borderColor: '#fdba74',
+      bottomColor: '#f97316',
+      color: '#c2410c',
+    },
+    modalTitle: copy.modalTitle,
+    modalAccent: '#f97316',
+    modalAccentBottom: '#ea580c',
+  };
 
   return (
     <div
@@ -374,29 +434,79 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       }}
     >
       <div style={{ display: 'grid', gap: isMobile ? '16px' : '18px' }}>
+
+        {/* Tab Switcher */}
+        {isJune && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '8px',
+            marginBottom: isMobile ? '-6px' : '-4px',
+          }}>
+            <button
+              onClick={() => setActiveTab('sign')}
+              className="sketchbook-border"
+              style={{
+                padding: '7px 18px',
+                borderRadius: '999px',
+                border: activeTab === 'sign' ? '2.5px solid #f97316' : '2px solid #e2e8f0',
+                borderBottomWidth: activeTab === 'sign' ? '5px' : '4px',
+                borderBottomColor: activeTab === 'sign' ? '#ea580c' : '#cbd5e1',
+                background: activeTab === 'sign' ? '#fff7ed' : '#ffffff',
+                color: activeTab === 'sign' ? '#c2410c' : '#64748b',
+                fontFamily: 'Sniglet, var(--font-main)',
+                fontSize: '0.88rem',
+                fontWeight: '400',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <PenLine size={14} strokeWidth={2.5} />
+              Fan messages
+            </button>
+            <button
+              onClick={() => setActiveTab('pride')}
+              className="sketchbook-border"
+              style={{
+                padding: '7px 18px',
+                borderRadius: '999px',
+                border: activeTab === 'pride' ? '2.5px solid #ec4899' : '2px solid #e2e8f0',
+                borderBottomWidth: activeTab === 'pride' ? '5px' : '4px',
+                borderBottomColor: activeTab === 'pride' ? '#db2777' : '#cbd5e1',
+                background: activeTab === 'pride'
+                  ? 'linear-gradient(135deg, #fce7f3 0%, #fef3c7 50%, #dbeafe 100%)'
+                  : '#ffffff',
+                color: activeTab === 'pride' ? '#be185d' : '#64748b',
+                fontFamily: 'Sniglet, var(--font-main)',
+                fontSize: '0.88rem',
+                fontWeight: '400',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Heart size={14} strokeWidth={2.5} fill={activeTab === 'pride' ? '#ec4899' : 'none'} />
+              Pride notes!
+            </button>
+          </div>
+        )}
+
         <CommunityPageHero
           isMobile={isMobile}
-          title={copy.title}
-          icon={PenLine}
-          titleColors={{
-            borderColor: '#f97316',
-            bottomColor: '#ea580c',
-            shadow: '0 8px 18px rgba(249, 115, 22, 0.12)',
-          }}
-          countValue={entries.length}
-          countLabel={copy.notesCountLabel}
-          counterColors={{
-            borderColor: '#fdba74',
-            bottomColor: '#f97316',
-            color: '#c2410c',
-          }}
-          actionLabel={copy.button}
-          actionIcon={PenLine}
-          actionColors={{
-            borderColor: '#fdba74',
-            bottomColor: '#f97316',
-            color: '#c2410c',
-          }}
+          title={heroConfig.title}
+          icon={heroConfig.icon}
+          titleColors={heroConfig.titleColors}
+          countValue={filteredEntries.length}
+          countLabel={isPride ? 'notes' : copy.notesCountLabel}
+          counterColors={heroConfig.counterColors}
+          actionLabel={heroConfig.actionLabel}
+          actionIcon={heroConfig.actionIcon}
+          actionColors={heroConfig.actionColors}
           onAction={() => setIsComposerOpen(true)}
           resetLabel={copy.resetCanvas}
           onReset={resetCanvas}
@@ -407,9 +517,9 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
 
         <SignNotesBoard
           isMobile={isMobile}
-          entries={entries}
+          entries={filteredEntries}
           isLoading={isLoading}
-          emptyMessage={copy.empty}
+          emptyMessage={isPride ? 'No Pride notes yet — be the first to send one! ❤️‍🔥' : copy.empty}
           uiLanguage={uiLanguage}
           notesBoardRef={notesBoardRef}
           noteBoardMinHeight={noteBoardMinHeight}
@@ -439,14 +549,22 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       <CommunityModal
         open={isComposerOpen}
         onClose={() => setIsComposerOpen(false)}
-        icon={PenLine}
-        title={copy.modalTitle}
-        accentColor="#f97316"
-        accentBottom="#ea580c"
+        icon={heroConfig.icon}
+        title={heroConfig.modalTitle}
+        accentColor={heroConfig.modalAccent}
+        accentBottom={heroConfig.modalAccentBottom}
         maxWidth="580px"
       >
         <SignComposerForm
-          copy={copy}
+          copy={{
+            ...copy,
+            subtitle: isPride
+              ? 'Send a warm Pride Month note for readers, fans, and the community!'
+              : copy.subtitle,
+            messagePlaceholder: isPride
+              ? 'Send a supportive message, share your pride, or just say hello...'
+              : copy.messagePlaceholder,
+          }}
           name={name}
           message={message}
           isSubmitting={isSubmitting}

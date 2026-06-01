@@ -392,7 +392,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             style={{
                                 width: '100%',
                                 maxWidth: isMobile ? '420px' : '820px',
-                                height: isMobile ? '92%' : '660px',
+                                maxHeight: isMobile ? '85vh' : '660px',
                                 background: '#ffffff',
                                 border: `3px solid ${selectedAccentColor}`,
                                 borderBottom: `9px solid ${selectedAccentColor}`,
@@ -485,7 +485,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     gap: '12px',
                                     boxSizing: 'border-box',
                                     overflowY: isMobile ? 'auto' : 'visible',
-                                    justifyContent: 'center',
+                                    justifyContent: 'flex-start',
                                     alignItems: 'center'
                                 }}>
                                     
