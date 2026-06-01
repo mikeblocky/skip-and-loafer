@@ -119,6 +119,8 @@ const GalleryThumb = ({
         overflowAnchor: 'none',
         marginBottom: '0',
         cursor: canSelect ? 'pointer' : 'default',
+        minWidth: 0,
+        width: '100%',
       }}
       onClick={() => {
         if (canSelect) {
@@ -140,6 +142,9 @@ const GalleryThumb = ({
             : `${isMobile ? '5px' : '8px'} solid ${palette.bottom}`,
           position: 'relative',
           overflow: 'hidden',
+          minWidth: 0,
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <div

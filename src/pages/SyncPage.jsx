@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Globe,
@@ -131,21 +132,30 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
     }, [syncKey]);
 
     // Navigation inside detailed journal modal
+    const expandedVolNumber = expandedVol?.number ?? expandedVol;
+
+    const setExpandedVolNumber = useCallback((number) => {
+        setExpandedVol((current) => ({
+            number,
+            anchorY: current?.anchorY ?? null,
+        }));
+    }, []);
+
     const handlePrevVolume = (currentVol) => {
         if (currentVol > 1) {
             triggerHaptic('tabSwitch');
-            setExpandedVol(currentVol - 1);
+            setExpandedVolNumber(currentVol - 1);
         }
     };
 
     const handleNextVolume = (currentVol) => {
         if (currentVol < VOLUMES.length) {
             triggerHaptic('tabSwitch');
-            setExpandedVol(currentVol + 1);
+            setExpandedVolNumber(currentVol + 1);
         }
     };
 
-    const selectedVolume = VOLUMES.find(v => v.number === expandedVol);
+    const selectedVolume = VOLUMES.find(v => v.number === expandedVolNumber);
     const selectedVolChapters = selectedVolume
         ? selectedVolume.chapters.map((num) => CHAPTERS.find((ch) => ch.number === num)).filter(Boolean)
         : [];
@@ -167,7 +177,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
         <div
             style={{
                 width: '100%',
-                padding: isMobile ? '20px 12px 16px' : '28px 36px 20px',
+                padding: isMobile ? '8px 12px 16px' : '28px 36px 20px',
                 minHeight: isMobile ? 'auto' : '620px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -296,6 +306,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
             </div>
 
             {/* ── MITSUMI'S OPEN JOURNAL DETAILED DIARY MODAL (Confined inside the Planner page content block!) ── */}
+            {typeof document !== 'undefined' && createPortal((
             <AnimatePresence>
                 {expandedVol !== null && selectedVolume && (
                     <motion.div
@@ -303,20 +314,20 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         style={{
-                            position: 'fixed', // Fixed relative to viewport/containment ancestor to prevent scrolling away!
+                            position: 'fixed',
                             top: 0,
                             left: 0,
                             right: 0,
                             bottom: 0,
                             background: 'rgba(15, 23, 42, 0.4)',
                             backdropFilter: 'blur(4px)',
-                            zIndex: 1000,
+                            zIndex: 2000,
                             display: 'flex',
-                            alignItems: 'center',
+                            alignItems: isMobile ? 'flex-start' : 'center',
                             justifyContent: 'center',
-                            padding: isMobile ? '12px' : '24px',
+                            padding: isMobile ? '16px 10px' : '24px',
+                            paddingTop: isMobile ? '16px' : '24px',
                             boxSizing: 'border-box',
-                            borderRadius: isMobile ? '12px' : '24px'
                         }}
                         onClick={() => {
                             triggerHaptic('impactLight');
@@ -324,17 +335,19 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                         }}
                     >
                         {/* Nav Arrows Outside Modal (Desktop Only) */}
-                        {!isMobile && expandedVol > 1 && (
+                        {!isMobile && expandedVolNumber > 1 && (
                             <motion.button
                                 whileHover={{ scale: 1.12, x: -4 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handlePrevVolume(expandedVol);
+                                    handlePrevVolume(expandedVolNumber);
                                 }}
                                 style={{
                                     position: 'absolute',
                                     left: '24px',
+                                    top: '50%',
+                                    marginTop: '-22px',
                                     background: '#ffffff',
                                     border: '3px solid #cbd5e1',
                                     borderBottomWidth: '6px',
@@ -353,17 +366,19 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             </motion.button>
                         )}
 
-                        {!isMobile && expandedVol < VOLUMES.length && (
+                        {!isMobile && expandedVolNumber < VOLUMES.length && (
                             <motion.button
                                 whileHover={{ scale: 1.12, x: 4 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleNextVolume(expandedVol);
+                                    handleNextVolume(expandedVolNumber);
                                 }}
                                 style={{
                                     position: 'absolute',
                                     right: '24px',
+                                    top: '50%',
+                                    marginTop: '-22px',
                                     background: '#ffffff',
                                     border: '3px solid #cbd5e1',
                                     borderBottomWidth: '6px',
@@ -573,7 +588,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                            <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: '0.74rem', color: '#64748b' }}>Completion Progress</span>
+                                            <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: '0.74rem', color: '#64748b' }}>Completion progress</span>
                                             <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: '0.8rem', fontWeight: '700', color: selectedAccentColor }}>{selectedProgress}%</span>
                                         </div>
                                         <div style={{ width: '100%', height: '6px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
@@ -681,7 +696,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                             fontWeight: '400', 
                                             color: '#475569',
                                         }}>
-                                            Chapters Log
+                                            Chapters log
                                         </span>
                                         <span style={{
                                             fontFamily: 'var(--font-hand)',
@@ -753,35 +768,35 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     zIndex: 20
                                 }}>
                                     <motion.button
-                                        disabled={expandedVol <= 1}
-                                        onClick={() => handlePrevVolume(expandedVol)}
+                                        disabled={expandedVolNumber <= 1}
+                                        onClick={() => handlePrevVolume(expandedVolNumber)}
                                         style={{
                                             background: 'none',
                                             border: 'none',
-                                            color: expandedVol <= 1 ? '#cbd5e1' : selectedAccentColor,
+                                            color: expandedVolNumber <= 1 ? '#cbd5e1' : selectedAccentColor,
                                             fontFamily: '"Coming Soon", cursive',
                                             fontSize: '0.8rem',
                                             display: 'flex',
                                             alignItems: 'center',
                                             cursor: 'pointer',
-                                            opacity: expandedVol <= 1 ? 0.5 : 1
+                                            opacity: expandedVolNumber <= 1 ? 0.5 : 1
                                         }}
                                     >
                                         <ChevronLeft size={14} /> Prev Vol
                                     </motion.button>
                                     <motion.button
-                                        disabled={expandedVol >= VOLUMES.length}
-                                        onClick={() => handleNextVolume(expandedVol)}
+                                        disabled={expandedVolNumber >= VOLUMES.length}
+                                        onClick={() => handleNextVolume(expandedVolNumber)}
                                         style={{
                                             background: 'none',
                                             border: 'none',
-                                            color: expandedVol >= VOLUMES.length ? '#cbd5e1' : selectedAccentColor,
+                                            color: expandedVolNumber >= VOLUMES.length ? '#cbd5e1' : selectedAccentColor,
                                             fontFamily: '"Coming Soon", cursive',
                                             fontSize: '0.8rem',
                                             display: 'flex',
                                             alignItems: 'center',
                                             cursor: 'pointer',
-                                            opacity: expandedVol >= VOLUMES.length ? 0.5 : 1
+                                            opacity: expandedVolNumber >= VOLUMES.length ? 0.5 : 1
                                         }}
                                     >
                                         Next Vol <ChevronRight size={14} />
@@ -793,6 +808,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                     </motion.div>
                 )}
             </AnimatePresence>
+            ), document.body)}
 
         </div>
     );

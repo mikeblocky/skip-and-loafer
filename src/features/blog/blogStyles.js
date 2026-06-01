@@ -1,6 +1,6 @@
 export const getPageRootStyle = (isMobile) => ({
   width: '100%',
-  padding: isMobile ? '24px 10px 100px 10px' : '28px 40px',
+  padding: isMobile ? '12px 10px 100px 10px' : '28px 40px',
   height: isMobile ? 'auto' : '100%',
   minHeight: isMobile ? 'auto' : '600px',
   display: 'flex',

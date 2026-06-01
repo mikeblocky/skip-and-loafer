@@ -203,11 +203,12 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     <div
       style={{
         width: '100%',
-        padding: isMobile ? '24px 8px 10px 8px' : '28px 40px',
+        padding: isMobile ? '16px 8px 10px 8px' : '28px 40px',
         minHeight: isMobile ? 'auto' : '600px',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'visible',
+        overflowX: 'hidden',
+        overflowY: 'visible',
         flex: 1,
       }}
     >
@@ -226,7 +227,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
           gap: isMobile ? '6px' : '12px',
           marginBottom: isMobile ? '16px' : '24px',
           width: '100%',
-          padding: isMobile ? '0 4px' : '0',
+          padding: isMobile ? '0' : '0',
           boxSizing: 'border-box',
         }}
       >
@@ -239,7 +240,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
           <ChevronLeft size={isMobile ? 20 : 24} strokeWidth={3} />
         </GalleryNavBtn>
 
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: isMobile ? 'flex-start' : 'center' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: isMobile ? 'flex-start' : 'center', overflow: 'hidden' }}>
           <GalleryTabSelector
             activeTab={activeTab}
             setActiveTab={handleSetActiveTab}
@@ -273,7 +274,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
         ) : null}
       </AnimatePresence>
 
-      <div style={{ position: 'relative', flex: 1, overflow: 'visible' }}>
+      <div style={{ position: 'relative', flex: 1, overflow: isMobile ? 'hidden' : 'visible', minWidth: 0 }}>
         {TABS.map((tab, tabIndex) => {
           if (!visitedTabs.has(tab.id) && tabIndex !== activeTab) {
             return null;

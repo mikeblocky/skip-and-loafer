@@ -40,14 +40,7 @@ const shellViewportStyle = {
 };
 
 const copyrightStyle = {
-  position: 'fixed',
-  bottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-  right: 'calc(env(safe-area-inset-right, 0px) + 14px)',
-  zIndex: 1000,
-  fontFamily: 'var(--font-hand)',
-  color: '#9ca3af',
-  fontSize: '0.7rem',
-  opacity: 0.6,
+  display: 'none',
 };
 
 const AppChrome = ({ app }) => {
@@ -113,8 +106,8 @@ const AppChrome = ({ app }) => {
               WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'contain',
               padding: app.isMobile
-                ? 'calc(env(safe-area-inset-top, 0px) + 58px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0'
-                : '22px 18px 16px',
+                ? 'env(safe-area-inset-top, 0px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0'
+                : '0 18px 16px',
               pointerEvents: 'auto',
             }}
             initial={{ opacity: 0, y: 10 }}
@@ -152,21 +145,19 @@ const AppChrome = ({ app }) => {
               </motion.a>
             )}
 
-            <div style={{ flexGrow: app.isMobile ? 0 : 1, minHeight: app.isMobile ? '0' : '6px' }} />
-
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.16, ease: 'easeOut', delay: 0.01 }}
               style={{
                 position: 'relative',
-                scrollMarginTop: '60px',
+                scrollMarginTop: '0px',
                 width: '100%',
                 maxWidth: app.isMobile
                   ? '100%'
                   : (app.accessibilityPrefs.largeText ? '1380px' : '1320px'),
-                minHeight: app.isMobile ? 'calc(100dvh - 160px)' : 'calc(100dvh - 170px)',
-                height: app.isMobile ? 'auto' : 'calc(100dvh - 76px)',
+                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 16px)',
+                height: app.isMobile ? 'auto' : 'calc(100dvh - 16px)',
                 display: 'flex',
                 flexDirection: app.isMobile ? 'column' : 'row',
                 alignItems: 'stretch',
@@ -220,7 +211,6 @@ const AppChrome = ({ app }) => {
               />
             </motion.div>
 
-            <div style={{ flexGrow: app.isMobile ? 0 : 1, minHeight: app.isMobile ? '0' : '8px' }} />
           </motion.div>
         )}
       </AnimatePresence>
