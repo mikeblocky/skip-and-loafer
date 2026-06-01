@@ -11,8 +11,8 @@ const QUESTION_SET_PREVIEW_COUNTS = ['10', '20', '35', '50', '75', '100'];
 
 const panelStyle = (background, border, bottom) => ({
   background,
-  border: `3.5px solid ${border}`,
-  borderBottom: `10px solid ${bottom}`,
+  border: `2.5px solid ${border}`,
+  borderBottom: `6px solid ${bottom}`,
   borderRadius: '28px',
   boxShadow: '0 14px 28px rgba(15, 23, 42, 0.08)',
 });
@@ -45,14 +45,14 @@ const StepCard = ({
     className="sketchbook-border"
     style={{
       ...panelStyle(background, border, bottom),
-      padding: isMobile ? '18px' : '22px',
+      padding: isMobile ? '10px 12px' : '14px 16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '14px',
+      gap: '8px',
       position: 'relative',
       overflow: 'hidden',
       height: '100%',
-      minHeight: isMobile ? 'auto' : '360px',
+      minHeight: isMobile ? 'auto' : '230px',
       opacity: locked ? 0.52 : 1,
       filter: locked ? 'grayscale(0.35)' : 'none',
     }}
@@ -183,7 +183,7 @@ const QuestionsSetupSection = ({
   };
 
   return (
-    <div style={{ display: 'grid', gap: '20px', paddingBottom: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, minHeight: 0, paddingBottom: '32px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: stepGridColumns, gap: '16px', alignItems: 'stretch' }}>
         <StepCard
           isMobile={isMobile}
@@ -208,11 +208,11 @@ const QuestionsSetupSection = ({
               maxLength={24}
               style={{
                 width: '100%',
-                border: `3.5px solid ${showNameWarning ? '#fca5a5' : '#bfdbfe'}`,
-                borderBottom: `8px solid ${showNameWarning ? '#ef4444' : '#60a5fa'}`,
+                border: `2.5px solid ${showNameWarning ? '#fca5a5' : '#bfdbfe'}`,
+                borderBottom: `4px solid ${showNameWarning ? '#ef4444' : '#60a5fa'}`,
                 borderRadius: '22px',
                 background: '#ffffff',
-                padding: isMobile ? '16px 18px' : '18px 20px',
+                padding: isMobile ? '10px 12px' : '12px 14px',
                 fontFamily: 'Sniglet, var(--font-main)',
                 fontSize: isMobile ? '1.12rem' : '1.2rem',
                 lineHeight: 1.2,
@@ -256,8 +256,8 @@ const QuestionsSetupSection = ({
               return (
                 <motion.button
                   key={option.key}
-                  whileHover={canPickDifficulty ? { y: -3, scale: 1.02 } : undefined}
-                  whileTap={canPickDifficulty ? { scale: 0.96, y: 4 } : undefined}
+                  whileHover={canPickDifficulty ? { y: -1.5, scale: 1.01 } : undefined}
+                  whileTap={canPickDifficulty ? { scale: 0.98 } : undefined}
                   onClick={() => {
                     triggerHaptic('selection');
                     setDifficultyMode(option.key);
@@ -265,12 +265,12 @@ const QuestionsSetupSection = ({
                   className="sketchbook-border paper-interact"
                   style={{
                     background: '#ffffff',
-                    border: `3.5px solid ${option.color}55`,
-                    borderBottom: `8px solid ${option.color}`,
-                    borderRadius: '22px',
-                    padding: '14px',
+                    border: `2.5px solid ${option.color}55`,
+                    borderBottom: `5px solid ${option.color}`,
+                    borderRadius: '16px',
+                    padding: '8px 12px',
                     display: 'grid',
-                    gap: '8px',
+                    gap: '4px',
                     textAlign: 'left',
                     cursor: canPickDifficulty ? 'pointer' : 'not-allowed',
                     boxShadow: isSelected ? `0 12px 20px ${option.color}22` : `0 8px 18px rgba(148, 163, 184, 0.08)`,
@@ -324,8 +324,8 @@ const QuestionsSetupSection = ({
                 return (
                 <motion.button
                   key={option.key}
-                  whileHover={{ y: -3, scale: 1.02 }}
-                  whileTap={{ scale: 0.96, y: 4 }}
+                  whileHover={{ y: -1.5, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       triggerHaptic('selection');
                       setQuestionSet(option.key);
@@ -333,12 +333,12 @@ const QuestionsSetupSection = ({
                   className="sketchbook-border paper-interact"
                   style={{
                     background: '#ffffff',
-                    border: `3.5px solid ${accent}55`,
-                    borderBottom: `8px solid ${accent}`,
-                    borderRadius: '22px',
-                    padding: '14px',
+                    border: `2.5px solid ${accent}55`,
+                    borderBottom: `5px solid ${accent}`,
+                    borderRadius: '16px',
+                    padding: '8px 12px',
                     display: 'grid',
-                    gap: '8px',
+                    gap: '4px',
                     textAlign: 'left',
                     cursor: 'pointer',
                     boxShadow: isSelected ? `0 12px 20px ${accent}22` : `0 8px 18px rgba(148, 163, 184, 0.08)`,
@@ -357,14 +357,14 @@ const QuestionsSetupSection = ({
           ) : (
             <div
               style={{
-                minHeight: isMobile ? '220px' : '240px',
-                borderRadius: '24px',
+                minHeight: 'auto',
+                borderRadius: '20px',
                 border: '2.5px solid rgba(148, 163, 184, 0.2)',
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(240,253,244,0.72))',
                 display: 'grid',
-                gap: '14px',
+                gap: '8px',
                 alignContent: 'start',
-                padding: '18px',
+                padding: '10px',
                 color: '#64748b',
                 fontFamily: 'var(--font-main)',
                 fontSize: '0.96rem',
@@ -394,8 +394,8 @@ const QuestionsSetupSection = ({
                       key={count}
                       style={{
                         background: '#ffffff',
-                        border: `3px solid ${accent}33`,
-                        borderBottom: `7px solid ${accent}`,
+                        border: `2.5px solid ${accent}33`,
+                        borderBottom: `5px solid ${accent}`,
                         borderRadius: '20px',
                         padding: '12px 14px',
                         minHeight: '68px',
@@ -426,10 +426,11 @@ const QuestionsSetupSection = ({
         className="sketchbook-border"
         style={{
           ...panelStyle('#fff1f2', '#fda4af', '#ef4444'),
-          padding: isMobile ? '18px' : '20px',
+          padding: isMobile ? '10px 12px' : '10px 16px',
+          borderRadius: '20px',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) auto',
-          gap: '16px',
+          gap: '10px',
           alignItems: 'center',
         }}
       >
@@ -442,8 +443,8 @@ const QuestionsSetupSection = ({
               className="sketchbook-border"
               style={{
                 background: '#ffffff',
-                border: `2.5px solid ${hasPlayerName ? '#fda4af' : '#fecdd3'}`,
-                borderBottom: `6px solid ${hasPlayerName ? '#ef4444' : '#fda4af'}`,
+                border: `2px solid ${hasPlayerName ? '#fda4af' : '#fecdd3'}`,
+                borderBottom: `4px solid ${hasPlayerName ? '#ef4444' : '#fda4af'}`,
                 borderRadius: '999px',
                 padding: '8px 12px',
                 fontFamily: 'Sniglet, var(--font-main)',
@@ -459,8 +460,8 @@ const QuestionsSetupSection = ({
               className="sketchbook-border"
               style={{
                 background: '#ffffff',
-                border: `2.5px solid ${selectedDifficultyColor}55`,
-                borderBottom: `6px solid ${selectedDifficultyColor}`,
+                border: `2px solid ${selectedDifficultyColor}55`,
+                borderBottom: `4px solid ${selectedDifficultyColor}`,
                 borderRadius: '999px',
                 padding: '8px 12px',
                 fontFamily: 'Sniglet, var(--font-main)',
@@ -485,8 +486,8 @@ const QuestionsSetupSection = ({
               className="sketchbook-border"
               style={{
                 background: '#ffffff',
-                border: `2.5px solid ${selectedSetColor}55`,
-                borderBottom: `6px solid ${selectedSetColor}`,
+                border: `2px solid ${selectedSetColor}55`,
+                borderBottom: `4px solid ${selectedSetColor}`,
                 borderRadius: '999px',
                 padding: '8px 12px',
                 fontFamily: 'Sniglet, var(--font-main)',
@@ -504,8 +505,8 @@ const QuestionsSetupSection = ({
         </div>
 
         <motion.button
-          whileHover={isStartDisabled ? undefined : { scale: 1.03, y: -4 }}
-          whileTap={isStartDisabled ? undefined : { scale: 0.94, y: 6 }}
+          whileHover={isStartDisabled ? undefined : { scale: 1.015, y: -1.5 }}
+          whileTap={isStartDisabled ? undefined : { scale: 0.98 }}
           onClick={handleStart}
           disabled={isStartDisabled}
           className="sketchbook-border paper-interact"
@@ -515,15 +516,15 @@ const QuestionsSetupSection = ({
             justifyContent: 'center',
             gap: '12px',
             minWidth: isMobile ? '100%' : '240px',
-            border: '4px solid #7f1d1d',
-            borderBottom: '10px solid #450a0a',
-            borderRadius: '24px',
-            padding: isMobile ? '16px 18px' : '18px 22px',
+            border: '2.5px solid #7f1d1d',
+            borderBottom: '6px solid #450a0a',
+            borderRadius: '16px',
+            padding: isMobile ? '10px 14px' : '12px 18px',
             background: isStartDisabled ? '#fca5a5' : '#ef4444',
             color: '#ffffff',
             fontFamily: 'Sniglet, var(--font-main)',
             fontWeight: '400',
-            fontSize: isMobile ? '1.24rem' : '1.34rem',
+            fontSize: isMobile ? '1.14rem' : '1.2rem',
             lineHeight: 1,
             cursor: isStartDisabled ? 'not-allowed' : 'pointer',
             opacity: isStartDisabled ? 0.68 : 1,

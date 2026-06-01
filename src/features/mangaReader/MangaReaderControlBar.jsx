@@ -47,7 +47,7 @@ const Divider = ({ isMobile }) => (
     style={{
       width: isMobile ? '1px' : '18px',
       height: isMobile ? '18px' : '1px',
-      background: 'rgba(255,255,255,0.1)',
+      background: '#cbd5e1',
       margin: isMobile ? '0 2px' : '2px 0',
     }}
   />
@@ -96,11 +96,12 @@ const MangaReaderControlBar = ({
               onMouseEnter={() => !isMobile && setIsNavHovered(true)}
               onMouseLeave={() => !isMobile && setIsNavHovered(false)}
               style={{
-                display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: 'center', gap: isMobile ? '2px' : '8px',
-                background: 'rgba(10,10,10,0.6)', backdropFilter: 'blur(12px)',
+                display: 'flex', flexDirection: isMobile ? 'row' : 'column', alignItems: 'center', gap: isMobile ? '4px' : '8px',
+                background: '#ffffff',
                 borderRadius: isMobile ? '16px' : '20px',
-                padding: isMobile ? '4px 6px' : '10px 8px',
-                border: '1px solid rgba(255,255,255,0.08)',
+                padding: isMobile ? '6px 10px' : '12px 10px',
+                border: '2.5px solid #0f172a',
+                boxShadow: '4px 4px 0px rgba(0,0,0,0.25)',
                 overflowX: isMobile ? 'auto' : 'visible',
                 overflowY: isMobile ? 'visible' : 'auto',
                 maxWidth: '100%', maxHeight: '100%',

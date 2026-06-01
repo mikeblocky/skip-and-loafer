@@ -12,19 +12,19 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
       initial={{ opacity: 0, y: 15, rotate: tilt, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 450, damping: 18, delay: index * 0.08 }}
-      whileHover={!isMobile && !isLocked ? { scale: 1.025, y: -10, rotate: 0, boxShadow: `0 12px 0 ${note.border}` } : {}}
-      whileTap={!isLocked ? { scale: 0.9, y: 8, rotate: 0 } : {}}
+      whileHover={!isMobile && !isLocked ? { scale: 1.015, y: -1.5, rotate: 0, boxShadow: `0 4px 0 ${note.border}` } : {}}
+      whileTap={!isLocked ? { scale: 0.98 } : {}}
       onClick={isLocked ? undefined : onClick}
       style={{
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        gap: isMobile ? '10px' : '14px',
-        padding: isMobile ? '12px 14px' : '14px 18px',
+        gap: isMobile ? '8px' : '10px',
+        padding: isMobile ? '8px 12px' : '10px 14px',
         background: isCorrect ? '#d1fae5' : isWrong ? '#fee2e2' : isLocked ? '#f1f5f9' : '#fff',
-        border: `3.5px solid ${isCorrect ? '#10b981' : isWrong ? '#ef4444' : isLocked ? '#cbd5e1' : note.border}`,
-        borderBottom: `${isMobile ? '6px' : '8.5px'} solid ${isCorrect ? '#059669' : isWrong ? '#dc2626' : isLocked ? '#94a3b8' : note.border}`,
-        borderRadius: '20px',
+        border: `2.5px solid ${isCorrect ? '#10b981' : isWrong ? '#ef4444' : isLocked ? '#cbd5e1' : note.border}`,
+        borderBottom: `${isMobile ? '3.5px' : '4px'} solid ${isCorrect ? '#059669' : isWrong ? '#dc2626' : isLocked ? '#94a3b8' : note.border}`,
+        borderRadius: '16px',
         cursor: isLocked ? 'default' : 'pointer',
         opacity: isDimmed ? 0.45 : 1,
         transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -33,8 +33,8 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
     >
       <div
         style={{
-          width: isMobile ? '30px' : '36px',
-          height: isMobile ? '30px' : '36px',
+          width: isMobile ? '26px' : '30px',
+          height: isMobile ? '26px' : '30px',
           borderRadius: '50%',
           background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : note.border + '30',
           border: `2px solid ${isCorrect ? '#059669' : isWrong ? '#dc2626' : note.border}`,
@@ -55,7 +55,7 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
           fontFamily: 'Sniglet, var(--font-main)', 
           color: isCorrect ? '#064e3b' : isWrong ? '#7f1d1d' : isLocked ? '#64748b' : '#1e293b', 
           fontWeight: '400', 
-          fontSize: isMobile ? '1.14rem' : '1.24rem', 
+          fontSize: isMobile ? '1rem' : '1.08rem', 
           lineHeight: 1.2 
         }}>
           {text}

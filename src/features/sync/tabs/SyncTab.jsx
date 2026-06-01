@@ -1,9 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wifi, WifiOff, Cloud, Clock, Check, Copy, Loader2, KeyRound, ArrowDownToLine, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, Cloud, Clock, Check, Copy, Loader2, KeyRound, ArrowDownToLine, AlertCircle, RefreshCw, BookOpen, CheckCircle2, Milestone } from 'lucide-react';
 import { toUiLabelCase } from '../../../utils/textCase';
+import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
+
+const COMMUNITY_FONT_FAMILY = 'var(--font-paper)';
 
 const smashVariant = {
-  hidden: { y: -60, scale: 0.85, opacity: 0, rotate: -2 },
+  hidden: { y: -80, scale: 0.8, opacity: 0, rotate: -3 },
   visible: { 
     y: 0, 
     scale: 1, 
@@ -12,6 +15,51 @@ const smashVariant = {
     transition: { type: 'spring', stiffness: 500, damping: 12, mass: 1 } 
   }
 };
+
+const SidebarStatPill = ({ label, value, color, icon: Icon }) => (
+  <div 
+    className="sketchbook-border"
+    style={{
+      ...createPaperPanelStyle({
+        background: '#ffffff',
+        borderColor: '#cbd5e1',
+        bottomColor: color,
+        radius: '14px',
+        shadow: '0 4px 8px rgba(15,23,42,0.01)'
+      }),
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '8px 12px',
+      flex: '1 1 calc(50% - 6px)',
+      minWidth: '96px',
+      boxSizing: 'border-box',
+    }}
+  >
+    <div 
+      className="sketchbook-border"
+      style={{
+        width: '28px',
+        height: '28px',
+        borderRadius: '8px',
+        background: '#ffffff',
+        border: `2px solid ${color}33`,
+        borderBottom: `4px solid ${color}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: color,
+        flexShrink: 0,
+      }}
+    >
+      <Icon size={13} strokeWidth={2.8} />
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', minWidth: 0 }}>
+      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.94rem', color: '#1f2937', fontWeight: '400', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
+      <span style={{ fontFamily: 'var(--font-hand)', fontSize: '0.72rem', color: '#64748b', fontWeight: '400', lineHeight: 1.1 }}>{label}</span>
+    </div>
+  </div>
+);
 
 const SyncTab = ({
   isMobile,
@@ -29,196 +77,502 @@ const SyncTab = ({
   handleDisconnect,
   handleGenerate,
   handleJoin,
-  ListRow,
-}) => (
-  <div style={{ display: 'grid', gap: '20px', paddingBottom: '32px' }}>
-    {/* Always visible header status row */}
-    {/* Always visible header status row */}
-    <motion.div 
-      initial={{ scale: 0, rotate: 10, y: -50 }} 
-      animate={{ scale: 1, rotate: 0, y: 0 }} 
-      transition={{ type: 'spring', stiffness: 400, damping: 12 }}
-    >
-      <ListRow
-        isMobile={isMobile}
-        index={0}
-        finished={syncActive}
-        noteColor={1}
-        tierBg="#3b82f6"
-        tierBorder="#2563eb"
-        tierText="#fff"
-        tierAccent="#1e40af"
-        numberLine1={<Cloud size={14} />}
-        title={syncActive ? t.syncActive : t.syncInactive}
-        subtitle={
-          <span style={{ fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: isMobile ? '0.9rem' : '1rem', color: syncActive ? '#1e40af' : '#6b7280' }}>
-            {syncActive ? t.syncing : t.connectHint}
-          </span>
-        }
-        rightContent={
-          <motion.div 
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }}
-            style={{ background: syncActive ? '#dbeafe' : '#f3f4f6', color: syncActive ? '#1e40af' : '#6b7280', padding: '8px 16px', borderRadius: '16px', border: syncActive ? '3.5px solid #93c5fd' : '3.5px solid #e5e7eb', borderBottomWidth: '7px', boxShadow: syncActive ? '0 4px 10px rgba(59,130,246,0.1)' : '0 4px 10px rgba(0,0,0,0.05)', fontFamily: 'var(--font-main)', fontSize: isMobile ? '0.8rem' : '0.9rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            {syncActive ? <Wifi size={18} strokeWidth={3} /> : <WifiOff size={18} strokeWidth={3} />} {syncActive ? t.connected : t.offline}
-          </motion.div>
-        }
-      />
-    </motion.div>
+  progressPct = 0,
+  finishedCountMain = 0,
+  totalChapters = 0,
+  totalReads = 0,
+  activeVolumes = 0,
+}) => {
+  // Circular Progress Metrics
+  const strokeWidth = 6.5;
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progressPct / 100) * circumference;
 
-    <motion.div 
-      initial="hidden" 
-      animate="visible" 
-      variants={{ visible: { transition: { staggerChildren: 0.15, delayChildren: 0.1 } } }} 
-      style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', width: '100%', maxWidth: isMobile ? '100%' : '440px', margin: '0 auto' }}
-    >
-      {syncActive ? (
-        <>
-          {/* Active: Cloud Details Card */}
-          <motion.div 
-            variants={smashVariant} 
-            whileHover={{ scale: 1.025, rotate: 1, y: -4 }} 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '16px', width: '100%', boxSizing: 'border-box' }}>
+      
+      {/* ── SECTION 1: CORE STATISTICS DASHBOARD ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 8, rotate: -0.2 }}
+        animate={{ opacity: 1, y: 0, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        className="sketchbook-border"
+        style={{
+          ...createPaperPanelStyle({
+            background: '#f0fdf4',
+            borderColor: '#bbf7d0',
+            bottomColor: '#10b981',
+            radius: '24px',
+            shadow: '0 8px 16px rgba(16, 185, 129, 0.04)'
+          }),
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+          width: '100%',
+          boxSizing: 'border-box',
+          position: 'relative',
+        }}
+      >
+        {/* Washi tape badge corner accent */}
+        <div 
+          className="washi-tape washi-tape--yellow"
+          style={{
+            position: 'absolute',
+            top: '-10px',
+            right: '20px',
+            width: '60px',
+            height: '16px',
+            transform: 'rotate(2deg)',
+            zIndex: 5
+          }}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div 
+              className="sketchbook-border"
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '6px', 
+                background: '#ffffff', 
+                border: '2px solid #a7f3d0', 
+                borderBottom: '4.5px solid #10b981', 
+                borderRadius: '999px', 
+                padding: '4px 12px', 
+                width: 'fit-content' 
+              }}
+            >
+              <BookOpen size={13} strokeWidth={2.8} style={{ color: '#10b981' }} />
+              <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.78rem', color: '#065f46' }}>{t.overallCompletion || 'Overall completion'}</span>
+            </div>
+            <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.86rem', color: '#475569', marginTop: '2px', paddingLeft: '4px' }}>
+              Mitsumi's progress log
+            </div>
+          </div>
+
+          {/* Radial Completion SVG Ring */}
+          <div style={{ position: 'relative', width: '70px', height: '70px', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="70" height="70" style={{ transform: 'rotate(-90deg)' }}>
+              <circle cx="35" cy="35" r={radius} stroke="#e2e8f0" strokeWidth={strokeWidth} fill="transparent" />
+              <motion.circle 
+                cx="35" 
+                cy="35" 
+                r={radius} 
+                stroke="#10b981" 
+                strokeWidth={strokeWidth} 
+                fill="transparent" 
+                strokeDasharray={circumference}
+                initial={{ strokeDashoffset: circumference }}
+                animate={{ strokeDashoffset }}
+                transition={{ duration: 1.1, ease: 'easeOut' }}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div style={{ position: 'absolute', fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '1.05rem', color: '#047857', fontWeight: '400', textAlign: 'center', width: '100%', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center' }}>
+              {progressPct}%
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
+          <SidebarStatPill label={t.chaptersDone || 'Chapters done'} value={`${finishedCountMain}/${totalChapters}`} color="#0f766e" icon={CheckCircle2} />
+          <SidebarStatPill label={t.rereads || 'Rereads'} value={String(totalReads)} color="#1d4ed8" icon={RefreshCw} />
+          <SidebarStatPill label={t.volumesLabel || 'Volumes'} value={`${activeVolumes}`} color="#7c3aed" icon={Milestone} />
+        </div>
+      </motion.div>
+
+      {/* ── SECTION 2: CLOUD SYNC CONTROL CENTER ── */}
+      <motion.div 
+        initial="hidden" 
+        animate="visible" 
+        variants={{ visible: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } } }} 
+        style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}
+      >
+        {/* Cloud connection status card */}
+        <motion.div 
+          variants={smashVariant}
+          className="sketchbook-border"
+          style={{
+            ...createPaperPanelStyle({
+              background: syncActive ? '#eff6ff' : '#ffffff',
+              borderColor: syncActive ? '#bfdbfe' : '#cbd5e1',
+              bottomColor: syncActive ? '#3b82f6' : '#94a3b8',
+              radius: '20px',
+              shadow: '0 6px 12px rgba(15,23,42,0.03)'
+            }),
+            position: 'relative',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            boxSizing: 'border-box',
+            width: '100%',
+          }}
+        >
+          {/* Left Side: Badge + Description */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: 1 }}>
+            <div
+              className="sketchbook-border"
+              style={{
+                width: '38px',
+                height: '38px',
+                background: '#ffffff',
+                border: `2.5px solid ${syncActive ? '#bfdbfe' : '#cbd5e1'}`,
+                borderBottom: `5px solid ${syncActive ? '#3b82f6' : '#94a3b8'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: syncActive ? '#3b82f6' : '#64748b',
+                flexShrink: 0,
+              }}
+            >
+              <Cloud size={18} strokeWidth={2.8} />
+            </div>
+
+            <div style={{ display: 'grid', gap: '2px', minWidth: 0, flex: 1 }}>
+              <span
+                style={{
+                  fontFamily: COMMUNITY_FONT_FAMILY,
+                  fontSize: '1.05rem',
+                  color: syncActive ? '#1d4ed8' : '#1e293b',
+                  fontWeight: '400',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.1,
+                }}
+              >
+                {syncActive ? t.syncActive || 'Sync active' : t.syncInactive || 'Sync inactive'}
+              </span>
+              <span style={{ fontFamily: 'var(--font-hand)', color: syncActive ? '#1e40af' : '#6b7280', fontSize: '0.82rem' }}>
+                {syncActive ? t.syncing || 'Syncing logs...' : t.connectHint || 'Connect to sync reads'}
+              </span>
+            </div>
+          </div>
+
+          {/* Right Side: Connectivity Badge */}
+          <div 
+            className="sketchbook-border"
             style={{ 
-              width: '100%', 
+              background: '#ffffff', 
+              color: syncActive ? '#1e40af' : '#6b7280', 
+              padding: '6px 12px', 
+              borderRadius: '12px', 
+              border: `2px solid ${syncActive ? '#93c5fd' : '#e5e7eb'}`, 
+              borderBottom: `4px solid ${syncActive ? '#3b82f6' : '#cbd5e1'}`,
+              fontFamily: COMMUNITY_FONT_FAMILY, 
+              fontSize: '0.8rem', 
+              fontWeight: '400', 
               display: 'flex', 
-              flexDirection: 'column', 
-              gap: '20px', 
-              background: '#eff6ff', 
-              border: '3.5px solid #93c5fd', 
-              borderBottom: '9.5px solid #60a5fa', 
-              borderRadius: '28px', 
-              padding: isMobile ? '18px' : '24px',
-              boxShadow: '0 12px 32px rgba(59, 130, 246, 0.15)'
+              alignItems: 'center', 
+              gap: '6px',
+              flexShrink: 0
             }}
           >
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <motion.div animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 16, height: 16, borderRadius: '6px', background: '#3b82f6', flexShrink: 0, border: '2.5px solid #1e40af' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: '900', color: '#1e3a8a' }}>{t.cloudConnection}</div>
-                {lastSynced && <div style={{ fontFamily: 'var(--font-main)', fontSize: '0.9rem', fontWeight: '900', color: '#3b82f6', marginTop: '4px' }}>{t.lastSync}: {lastSynced.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })}</div>}
-              </div>
-            </div>
+            {syncActive ? <Wifi size={14} strokeWidth={3} /> : <WifiOff size={14} strokeWidth={3} />} 
+            {syncActive ? t.connected || 'Connected' : t.offline || 'Offline'}
+          </div>
+        </motion.div>
 
-            <div style={{ 
-              width: '100%', 
-              display: 'flex', 
-              flexDirection: isMobile ? 'column' : 'row', 
-              alignItems: isMobile ? 'stretch' : 'center', 
-              gap: '14px', 
-              background: '#fff', 
-              border: '3.5px solid #bfdbfe', 
-              borderBottom: '6px solid #bfdbfe',
-              borderRadius: '20px', 
-              padding: '16px 20px', 
-              boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.03)' 
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: '0.85rem', color: '#64748b', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Clock size={14} strokeWidth={2.5} /> {t.shareKey}
+        {syncActive ? (
+          <>
+            {/* Active: Cloud Details Card (Envelope Style) */}
+            <motion.div 
+              variants={smashVariant} 
+              whileHover={{ scale: 1.01, rotate: 0.1, y: -1.5 }} 
+              className="sketchbook-border"
+              style={{ 
+                ...createPaperPanelStyle({
+                  background: '#eff6ff', 
+                  borderColor: '#3b82f6', 
+                  bottomColor: '#60a5fa', 
+                  radius: '24px', 
+                  shadow: '0 8px 24px rgba(59, 130, 246, 0.08)'
+                }),
+                width: '100%', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '14px', 
+                padding: '16px',
+                boxSizing: 'border-box',
+                position: 'relative'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} style={{ width: 14, height: 14, borderRadius: '5px', background: '#3b82f6', flexShrink: 0, border: '2px solid #1e40af' }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.96rem', fontWeight: '400', color: '#1e3a8a', lineHeight: 1.2 }}>{t.cloudConnection || 'Cloud connection'}</div>
+                  {lastSynced && <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.84rem', fontWeight: '400', color: '#3b82f6', marginTop: '2px' }}>{t.lastSync || 'Last sync'}: {lastSynced.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })}</div>}
                 </div>
-                <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1.35rem' : '1.8rem', fontWeight: '900', color: '#1e40af', letterSpacing: isMobile ? '0.08em' : '0.15em', lineHeight: 1 }}>{syncKey}</span>
               </div>
-              
-              <motion.button 
-                onClick={handleCopy} 
-                whileHover={{ scale: 1.15, rotate: 5, y: -2 }} 
-                whileTap={{ scale: 0.9, rotate: -5, y: 8 }} 
-                style={{ background: copied ? '#dcfce7' : '#eff6ff', border: copied ? '3px solid #22c55e' : '3px solid #3b82f6', borderBottom: copied ? '7px solid #16a34a' : '7px solid #2563eb', borderRadius: '16px', cursor: 'pointer', color: copied ? '#15803d' : '#1d4ed8', padding: isMobile ? '12px' : '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}
-              >
-                {copied ? <Check size={24} strokeWidth={4} /> : <Copy size={24} strokeWidth={4} />}
-              </motion.button>
-            </div>
-            
-          </motion.div>
 
-          {/* Active: Disconnect Smash Button */}
-          <motion.button 
-            variants={smashVariant} 
-            onClick={handleDisconnect} 
-            whileHover={{ scale: 1.04, rotate: -1.5, y: -4 }} 
-            whileTap={{ scale: 0.9, rotate: 2, y: 10 }} 
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '18px', background: '#fef2f2', border: '3.5px solid #f87171', borderBottom: '9.5px solid #ef4444', borderRadius: '20px', cursor: 'pointer', fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: '900', color: '#b91c1c', marginTop: '12px', boxShadow: '0 8px 24px rgba(239, 68, 68, 0.1)' }}
-          >
-            <WifiOff size={22} strokeWidth={3} /> {toUiLabelCase(t.disconnect)}
-          </motion.button>
-        </>
-      ) : (
-        <>
-          {/* Inactive: Create Sync Key Smash Button */}
-          <motion.button 
-            variants={smashVariant} 
-            onClick={handleGenerate} 
-            disabled={loading === 'gen'} 
-            whileHover={{ scale: 1.03, y: -4, rotate: -1.5 }} 
-            whileTap={{ scale: 0.9, y: 10, rotate: 2 }} 
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: isMobile ? '16px 18px' : '20px 28px', width: '100%', background: '#3b82f6', color: '#fff', border: '3.5px solid #1e40af', borderBottom: '9.5px solid #1e3a8a', borderRadius: '24px', cursor: loading === 'gen' ? 'wait' : 'pointer', fontFamily: 'var(--font-main)', fontSize: isMobile ? '1.08rem' : '1.3rem', fontWeight: '900', boxShadow: '0 12px 32px rgba(59, 130, 246, 0.25)', transition: 'background 0.2s ease' }}
-          >
-            {loading === 'gen' ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}><Loader2 size={24} strokeWidth={4} /></motion.div> : <KeyRound size={24} strokeWidth={4} />}
-            {toUiLabelCase(loading === 'gen' ? t.creating : t.createSyncKey)}
-          </motion.button>
-
-          <motion.div variants={smashVariant} style={{ display: 'flex', alignItems: 'center', gap: '18px', width: '100%', margin: '12px 0' }}>
-            <div style={{ flex: 1, height: '3.5px', background: '#e2e8f0', borderRadius: '999px' }} />
-            <span style={{ fontFamily: 'var(--font-main)', fontSize: '1.1rem', color: '#94a3b8', fontWeight: '900', opacity: 0.8 }}>{toUiLabelCase(t.orJoin)}</span>
-            <div style={{ flex: 1, height: '3.5px', background: '#e2e8f0', borderRadius: '999px' }} />
-          </motion.div>
-
-          {/* Inactive: Join Card */}
-          <motion.div 
-            variants={smashVariant} 
-            whileHover={{ scale: 1.02, rotate: 0.8, y: -2 }}
-            style={{ width: '100%', background: '#f5f3ff', border: '3.5px solid #c4b5fd', borderBottom: '9.5px solid #8b5cf6', borderRadius: '28px', padding: isMobile ? '18px' : '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: '0 8px 24px rgba(139, 92, 246, 0.1)' }}
-          >
-            <span style={{ fontFamily: 'var(--font-main)', fontSize: '1.1rem', color: '#6d28d9', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ArrowDownToLine size={20} strokeWidth={3} /> {toUiLabelCase(t.join)}
-            </span>
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
-              <input
-                type="text"
-                value={inputKey}
-                onChange={e => {
-                  let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                  if (val.length > 4) val = val.substring(0, 4) + '-' + val.substring(4);
-                  setInputKey(val.substring(0, 9));
+              <div 
+                className="sketchbook-border"
+                style={{ 
+                  width: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  background: '#ffffff', 
+                  border: '2.5px solid #bfdbfe', 
+                  borderBottom: '4.5px solid #bfdbfe',
+                  borderRadius: '16px', 
+                  padding: '10px 14px', 
+                  boxSizing: 'border-box'
                 }}
-                onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                placeholder="XXXX-XXXX"
-                maxLength={9}
-                style={{ flex: 1, padding: '14px', fontFamily: 'var(--font-main)', fontSize: isMobile ? '1.12rem' : '1.4rem', fontWeight: '900', letterSpacing: isMobile ? '0.08em' : '0.15em', textAlign: 'center', border: '3.5px solid #ddd6fe', borderBottom: '7px solid #c4b5fd', borderRadius: '18px', background: '#fff', color: '#4c1d95', outline: 'none', transition: 'all 0.2s', minWidth: 0, boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.03)' }}
-                onFocus={e => { e.target.style.borderColor = '#a78bfa'; e.target.style.borderBottomColor = '#8b5cf6'; }}
-                onBlur={e => { e.target.style.borderColor = '#ddd6fe'; e.target.style.borderBottomColor = '#c4b5fd'; }}
-              />
-              <motion.button 
-                onClick={handleJoin} 
-                disabled={loading === 'join' || inputKey.length < 9} 
-                whileHover={{ scale: 1.08, y: -4, rotate: 3 }} 
-                whileTap={{ scale: 0.9, y: 10, rotate: -2 }} 
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '12px 18px' : '0 24px', background: '#a855f7', color: '#fff', border: '3.5px solid #9333ea', borderBottom: '7.5px solid #7e22ce', borderRadius: '18px', cursor: (loading === 'join' || inputKey.length < 9) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: '900', flexShrink: 0, width: isMobile ? '100%' : 'auto', opacity: inputKey.length < 9 ? 0.5 : 1, boxShadow: '0 4px 12px rgba(168, 85, 247, 0.2)' }}
               >
-                {loading === 'join' ? <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}><Loader2 size={24} strokeWidth={4} /></motion.div> : toUiLabelCase(t.join)}
-              </motion.button>
-            </div>
-          </motion.div>
-        </>
-      )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.78rem', color: '#64748b', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Clock size={12} strokeWidth={2.5} /> {t.shareKey || 'Your sharing code'}
+                  </div>
+                  <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '1.3rem', fontWeight: '400', color: '#1e40af', letterSpacing: '0.08em', lineHeight: 1, wordBreak: 'break-all' }}>{syncKey}</span>
+                </div>
+                
+                <motion.button 
+                  onClick={handleCopy} 
+                  whileHover={{ scale: 1.05, rotate: 1, y: -1.5 }} 
+                  whileTap={{ scale: 0.95, rotate: -1, y: 0.5 }} 
+                  className="sketchbook-border"
+                  style={{ 
+                    background: copied ? '#dcfce7' : '#ffffff', 
+                    border: copied ? '2px solid #22c55e' : '2px solid #3b82f6', 
+                    borderBottom: copied ? '4px solid #16a34a' : '4.5px solid #2563eb', 
+                    borderRadius: '12px', 
+                    cursor: 'pointer', 
+                    color: copied ? '#15803d' : '#1d4ed8', 
+                    padding: '10px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    flexShrink: 0 
+                  }}
+                >
+                  {copied ? <Check size={18} strokeWidth={4} /> : <Copy size={18} strokeWidth={4} />}
+                </motion.button>
+              </div>
+            </motion.div>
 
-      <AnimatePresence>
-        {status && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.8, y: 20, rotate: -1 }} 
-            animate={{ opacity: 1, scale: 1, y: 0, rotate: 1 }} 
-            exit={{ opacity: 0, scale: 0.8, y: -20 }} 
-            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', padding: '16px 20px', marginTop: '16px', borderRadius: '24px', border: '3.5px solid', borderBottomWidth: '10.5px', fontFamily: 'var(--font-main)', fontSize: '1.1rem', fontWeight: '900', background: status.type === 'success' ? '#f0fdf4' : status.type === 'error' ? '#fef2f2' : '#eff6ff', borderColor: status.type === 'success' ? '#4ade80' : status.type === 'error' ? '#f87171' : '#60a5fa', borderBottomColor: status.type === 'success' ? '#22c55e' : status.type === 'error' ? '#ef4444' : '#3b82f6', color: status.type === 'success' ? '#14532d' : status.type === 'error' ? '#7f1d1d' : '#1e3a8a', width: '100%', textAlign: 'center', boxShadow: '0 12px 32px rgba(0,0,0,0.1)' }}
-          >
-            {status.type === 'success' ? <Check size={22} strokeWidth={4} /> : status.type === 'error' ? <AlertCircle size={22} strokeWidth={4} /> : <RefreshCw size={22} strokeWidth={4} />} {status.msg}
-          </motion.div>
+            {/* Active: Disconnect Smash Button */}
+            <motion.button 
+              variants={smashVariant} 
+              onClick={handleDisconnect} 
+              whileHover={{ scale: 1.015, rotate: -0.2, y: -1.5 }} 
+              whileTap={{ scale: 0.98, rotate: 0.2, y: 1 }} 
+              className="sketchbook-border"
+              style={{ 
+                width: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px', 
+                padding: '12px', 
+                ...createPaperPanelStyle({
+                  background: '#fef2f2',
+                  borderColor: '#f87171',
+                  bottomColor: '#ef4444',
+                  radius: '20px',
+                  shadow: '0 4px 12px rgba(239, 68, 68, 0.04)'
+                }),
+                cursor: 'pointer', 
+                fontFamily: COMMUNITY_FONT_FAMILY, 
+                fontSize: '0.96rem', 
+                fontWeight: '400', 
+                color: '#b91c1c', 
+                marginTop: '2px', 
+                boxSizing: 'border-box' 
+              }}
+            >
+              <WifiOff size={18} strokeWidth={3} /> {toUiLabelCase(t.disconnect || 'Disconnect')}
+            </motion.button>
+          </>
+        ) : (
+          <>
+            {/* Inactive: Create Sync Key Smash Button */}
+            <motion.button 
+              variants={smashVariant} 
+              onClick={handleGenerate} 
+              disabled={loading === 'gen'} 
+              whileHover={{ scale: 1.015, y: -2, rotate: -0.5 }} 
+              whileTap={{ scale: 0.98, y: 1, rotate: 0.5 }} 
+              className="sketchbook-border"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '10px', 
+                padding: '14px 16px', 
+                width: '100%', 
+                ...createPaperPanelStyle({
+                  background: '#eff6ff',
+                  borderColor: '#bfdbfe',
+                  bottomColor: '#2563eb',
+                  radius: '20px',
+                  shadow: '0 6px 18px rgba(59, 130, 246, 0.1)'
+                }),
+                cursor: loading === 'gen' ? 'wait' : 'pointer', 
+                fontFamily: COMMUNITY_FONT_FAMILY, 
+                fontSize: '0.98rem', 
+                fontWeight: '400', 
+                color: '#1d4ed8', 
+                boxSizing: 'border-box' 
+              }}
+            >
+              {loading === 'gen' ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}>
+                  <Loader2 size={18} strokeWidth={3} />
+                </motion.div>
+              ) : (
+                <KeyRound size={18} strokeWidth={2.8} />
+              )}
+              {toUiLabelCase(loading === 'gen' ? t.creating || 'Creating...' : t.createSyncKey || 'Create new sync key')}
+            </motion.button>
+
+            {/* Hand-drawn look dashed notebook line divider */}
+            <motion.div variants={smashVariant} style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', margin: '4px 0', boxSizing: 'border-box' }}>
+              <div style={{ flex: 1, borderTop: '2.5px dashed #cbd5e1' }} />
+              <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.92rem', color: '#94a3b8', fontWeight: '400', opacity: 0.8 }}>{toUiLabelCase(t.orJoin || 'Or join')}</span>
+              <div style={{ flex: 1, borderTop: '2.5px dashed #cbd5e1' }} />
+            </motion.div>
+
+            {/* Inactive: Join Card */}
+            <motion.div 
+              variants={smashVariant} 
+              whileHover={{ scale: 1.008, rotate: 0.1, y: -1.5 }}
+              className="sketchbook-border"
+              style={{ 
+                ...createPaperPanelStyle({
+                  background: '#f5f3ff', 
+                  borderColor: '#ddd6fe', 
+                  bottomColor: '#8b5cf6', 
+                  radius: '24px', 
+                  shadow: '0 8px 24px rgba(139, 92, 246, 0.04)'
+                }),
+                width: '100%', 
+                padding: '18px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px', 
+                boxSizing: 'border-box' 
+              }}
+            >
+              <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.98rem', color: '#6d28d9', fontWeight: '400', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ArrowDownToLine size={16} strokeWidth={3} /> {toUiLabelCase(t.join || 'Join')}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
+                <input
+                  type="text"
+                  value={inputKey}
+                  onChange={e => {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    if (val.length > 4) val = val.substring(0, 4) + '-' + val.substring(4);
+                    setInputKey(val.substring(0, 9));
+                  }}
+                  onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                  placeholder="XXXX-XXXX"
+                  maxLength={9}
+                  className="sketchbook-border"
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    fontFamily: COMMUNITY_FONT_FAMILY, 
+                    fontSize: '1.2rem', 
+                    fontWeight: '400', 
+                    letterSpacing: '0.08em', 
+                    textAlign: 'center', 
+                    border: '2.5px solid #ddd6fe', 
+                    borderBottom: '4.5px solid #c4b5fd', 
+                    borderRadius: '14px', 
+                    background: '#ffffff', 
+                    color: '#4c1d95', 
+                    outline: 'none', 
+                    boxSizing: 'border-box', 
+                  }}
+                />
+                
+                <motion.button 
+                  onClick={handleJoin} 
+                  disabled={loading === 'join' || inputKey.length < 9} 
+                  whileHover={{ scale: 1.02, y: -2, rotate: 0.5 }} 
+                  whileTap={{ scale: 0.98, y: 1, rotate: -0.5 }} 
+                  className="sketchbook-border"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    padding: '12px', 
+                    ...createPaperPanelStyle({
+                      background: '#f5f3ff',
+                      borderColor: '#ddd6fe',
+                      bottomColor: '#7e22ce',
+                      radius: '14px',
+                      shadow: '0 4px 10px rgba(168, 85, 247, 0.08)'
+                    }),
+                    cursor: (loading === 'join' || inputKey.length < 9) ? 'not-allowed' : 'pointer', 
+                    fontFamily: COMMUNITY_FONT_FAMILY, 
+                    fontSize: '0.96rem', 
+                    fontWeight: '400', 
+                    width: '100%', 
+                    color: '#6d28d9',
+                    opacity: inputKey.length < 9 ? 0.55 : 1, 
+                    boxSizing: 'border-box' 
+                  }}
+                >
+                  {loading === 'join' ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}>
+                      <Loader2 size={18} strokeWidth={3} />
+                    </motion.div>
+                  ) : (
+                    toUiLabelCase(t.join || 'Join')
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
         )}
-      </AnimatePresence>
-    </motion.div>
-  </div>
-);
+
+        <AnimatePresence>
+          {status && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98, y: 6, rotate: -0.1 }} 
+              animate={{ opacity: 1, scale: 1, y: 0, rotate: 0.1 }} 
+              exit={{ opacity: 0, scale: 0.98, y: -6 }} 
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+              className="sketchbook-border"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                justifyContent: 'center', 
+                padding: '10px 14px', 
+                marginTop: '4px', 
+                ...createPaperPanelStyle({
+                  background: status.type === 'success' ? '#f0fdf4' : status.type === 'error' ? '#fef2f2' : '#eff6ff', 
+                  borderColor: status.type === 'success' ? '#4ade80' : status.type === 'error' ? '#f87171' : '#60a5fa', 
+                  bottomColor: status.type === 'success' ? '#22c55e' : status.type === 'error' ? '#ef4444' : '#3b82f6', 
+                  radius: '16px',
+                  shadow: '0 6px 16px rgba(0,0,0,0.04)'
+                }),
+                fontFamily: COMMUNITY_FONT_FAMILY, 
+                fontSize: '0.94rem', 
+                fontWeight: '400', 
+                color: status.type === 'success' ? '#14532d' : status.type === 'error' ? '#7f1d1d' : '#1e3a8a', 
+                width: '100%', 
+                textAlign: 'center', 
+                boxSizing: 'border-box' 
+              }}
+            >
+              {status.type === 'success' ? <Check size={18} strokeWidth={4} /> : status.type === 'error' ? <AlertCircle size={18} strokeWidth={4} /> : <RefreshCw size={18} strokeWidth={4} />} 
+              {status.msg}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+};
 
 export default SyncTab;
-

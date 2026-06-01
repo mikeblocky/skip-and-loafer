@@ -42,10 +42,12 @@ export function listDevSignatures() {
 }
 
 export function addDevSignature(body) {
+  const type = body?.type === 'pride' ? 'pride' : 'sign';
   const entry = {
-    id: createId('sign'),
+    id: createId(type),
     name: String(body?.name || '').trim().slice(0, 48),
     message: String(body?.message || '').trim().slice(0, 280),
+    type,
     createdAt: nowIso(),
   };
 

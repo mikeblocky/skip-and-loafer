@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { differenceInSeconds, isBefore } from 'date-fns';
 
-const TARGET_DATE = new Date('2026-05-25T00:00:00+09:00');
+const TARGET_DATE = new Date('2026-06-25T00:00:00+09:00');
 
 const UI_TEXT = {
     en: { days: 'days', hours: 'hrs', minutes: 'min', seconds: 'sec', loading: 'Loading...' },
@@ -16,87 +16,85 @@ const UI_TEXT = {
 };
 
 const flipVariants = {
-    initial: { rotateX: -90, opacity: 0, scale: 0.85, scaleY: 0.8 },
-    animate: { rotateX: 0, opacity: 1, scale: 1, scaleY: 1 },
-    exit: { rotateX: 90, opacity: 0, scale: 0.85, scaleY: 1.15 }
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.95 }
 };
 
 const COUNTDOWN_PALETTES = [
     {
-        header: '#ff5ca8',
-        ink: '#e93f86',
+        header: '#f9a8d4', // Pink
+        ink: '#db2777',
         shell: '#ffffff',
-        ring: '#ffb8d2',
-        label: '#8c5a78',
-        shadow: 'rgba(233, 63, 134, 0.18)',
+        border: '#db2777',
+        label: '#9d174d',
     },
     {
-        header: '#63e08b',
-        ink: '#21b95a',
+        header: '#86efac', // Green
+        ink: '#166534',
         shell: '#ffffff',
-        ring: '#b6ebc9',
-        label: '#4d7d5d',
-        shadow: 'rgba(33, 185, 90, 0.18)',
+        border: '#166534',
+        label: '#14532d',
     },
     {
-        header: '#63b8ff',
-        ink: '#1d8fe6',
+        header: '#93c5fd', // Blue
+        ink: '#1d4ed8',
         shell: '#ffffff',
-        ring: '#b9dcff',
-        label: '#4e6b88',
-        shadow: 'rgba(29, 143, 230, 0.18)',
+        border: '#1d4ed8',
+        label: '#1e40af',
     },
     {
-        header: '#ffd84a',
-        ink: '#e6a800',
+        header: '#fde047', // Yellow
+        ink: '#a16207',
         shell: '#ffffff',
-        ring: '#f7e08a',
-        label: '#8a661a',
-        shadow: 'rgba(230, 168, 0, 0.18)',
+        border: '#a16207',
+        label: '#713f12',
     },
 ];
 
-const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false, inlineMobile = false }) => (
+const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false }) => (
     <motion.div
-        className="calendar-pad"
+        className="sketchbook-border"
         style={{
-            width: isMobile ? (inlineMobile ? 'calc((100% - 12px) / 4)' : '100%') : (largeText ? '9.35rem' : '8.95rem'),
-            height: isMobile ? (inlineMobile ? (largeText ? '126px' : '118px') : '86px') : (largeText ? '11.85rem' : '11.25rem'),
+            width: isMobile ? 'calc((100% - 18px) / 4)' : (largeText ? '9.35rem' : '8.95rem'),
+            height: isMobile ? (largeText ? '110px' : '98px') : (largeText ? '11.85rem' : '11.25rem'),
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             position: 'relative',
-            perspective: '500px',
             flexShrink: 0,
-            flex: isMobile && inlineMobile ? '0 0 calc((100% - 12px) / 4)' : undefined,
-            filter: `drop-shadow(0 12px 18px ${palette.shadow})`,
+            flex: isMobile ? '1 1 0%' : undefined,
+            cursor: 'pointer',
+            border: `3.5px solid ${palette.border}`,
+            borderBottom: `8px solid ${palette.border}`,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            backgroundColor: palette.shell,
         }}
-        initial={{ y: -25, opacity: 0, scale: 0.85, rotate: -2 }}
-        animate={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ delay, type: 'spring', stiffness: 300, damping: 16 }}
+        initial={{ y: 15, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        whileHover={{ 
+            y: -4,
+            borderColor: palette.ink,
+            borderBottomColor: palette.ink,
+        }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ delay, type: 'spring', stiffness: 300, damping: 18 }}
     >
         {/* Header */}
         <div
             style={{
                 width: '100%',
-                height: isMobile ? (inlineMobile ? '25px' : '26px') : (largeText ? '42px' : '40px'),
+                height: isMobile ? '22px' : (largeText ? '42px' : '40px'),
                 backgroundColor: palette.header,
-                position: 'relative',
-                borderTopLeftRadius: '4px',
-                borderTopRightRadius: '4px',
-                border: `2px solid ${palette.ring}`,
-                borderBottom: 'none',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.36)',
+                borderBottom: `3.5px solid ${palette.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
-        >
-            <div style={{ position: 'absolute', top: '-4px', left: 0, width: '100%', height: '12px', display: 'flex', justifyContent: 'space-between', padding: isMobile ? '0 6px' : '0 6px' }}>
-                {[...Array(isMobile ? 4 : 6)].map((_, i) => (
-                    <div key={i} style={{ width: isMobile ? (inlineMobile ? '7px' : '8px') : (largeText ? '11px' : '10px'), height: isMobile ? (inlineMobile ? '12px' : '14px') : (largeText ? '19px' : '18px'), borderRadius: '9999px', border: '2px solid #9ca3af', backgroundColor: '#e5e7eb', zIndex: 20 }}></div>
-                ))}
-            </div>
-        </div>
+        />
 
-        {/* Content - fixed vertical alignment */}
+        {/* Content */}
         <div style={{
             flex: 1,
             width: '100%',
@@ -104,16 +102,9 @@ const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: isMobile ? (inlineMobile ? '4px' : '5px') : (largeText ? '8px' : '7px'),
-            paddingTop: isMobile ? (inlineMobile ? '6px' : '10px') : (largeText ? '10px' : '9px'),
-            paddingBottom: isMobile ? (inlineMobile ? '6px' : '4px') : (largeText ? '10px' : '9px'),
+            gap: isMobile ? '2px' : (largeText ? '8px' : '7px'),
             background: palette.shell,
-            borderLeft: `2px solid ${palette.ring}`,
-            borderRight: `2px solid ${palette.ring}`,
-            borderBottom: `5px solid ${palette.ink}`,
-            borderBottomLeftRadius: '4px',
-            borderBottomRightRadius: '4px',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.88), inset 0 -3px 0 rgba(241, 245, 249, 0.9)',
+            paddingBottom: isMobile ? '2px' : '0px',
         }}>
             <AnimatePresence mode="wait">
                 <motion.span
@@ -122,10 +113,10 @@ const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false
                     initial="initial"
                     animate="animate"
                     exit="exit"
-                    transition={{ type: 'spring', stiffness: 400, damping: 15, mass: 0.5 }}
+                    transition={{ duration: 0.15 }}
                     style={{
-                        fontSize: isMobile ? (inlineMobile ? (largeText ? '2rem' : '1.88rem') : '1.9rem') : (largeText ? '3.72rem' : '3.4rem'),
-                        fontFamily: 'var(--font-hand)',
+                        fontSize: isMobile ? (largeText ? '1.75rem' : '1.5rem') : (largeText ? '3.72rem' : '3.4rem'),
+                        fontFamily: 'Sniglet, var(--font-hand)',
                         fontWeight: 'bold',
                         color: palette.ink,
                         lineHeight: 1
@@ -135,13 +126,13 @@ const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false
                 </motion.span>
             </AnimatePresence>
 
-            {/* Labels - not bold, properly positioned */}
+            {/* Labels */}
             <span style={{
                 fontFamily: 'var(--font-main)',
-                fontSize: isMobile ? (inlineMobile ? '0.66rem' : '0.74rem') : (largeText ? '1.02rem' : '0.96rem'),
+                fontSize: isMobile ? '0.62rem' : (largeText ? '1.02rem' : '0.96rem'),
                 color: palette.label,
-                letterSpacing: '0.08em',
-                fontWeight: 'normal'
+                letterSpacing: '0.04em',
+                fontWeight: '500',
             }}>
                 {label}
             </span>
@@ -149,7 +140,7 @@ const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false
     </motion.div>
 );
 
-const Countdown = ({ isMobile = false, uiLanguage = 'en', largeText = false, inlineMobile = false }) => {
+const Countdown = ({ isMobile = false, uiLanguage = 'en', largeText = false }) => {
     const [timeLeft, setTimeLeft] = useState(null);
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
 
@@ -177,20 +168,19 @@ const Countdown = ({ isMobile = false, uiLanguage = 'en', largeText = false, inl
 
     return (
         <div style={{
-            display: isMobile ? (inlineMobile ? 'flex' : 'grid') : 'flex',
-            gridTemplateColumns: isMobile && !inlineMobile ? 'repeat(2, minmax(0, 1fr))' : undefined,
+            display: 'flex',
             flexDirection: 'row',
-            gap: isMobile ? (inlineMobile ? '4px' : '8px') : (largeText ? '16px' : '14px'),
+            gap: isMobile ? '6px' : (largeText ? '16px' : '14px'),
             justifyContent: 'center',
             flexWrap: 'nowrap',
             alignItems: 'center',
             width: '100%',
-            maxWidth: isMobile ? (inlineMobile ? '100%' : '320px') : (largeText ? '800px' : 'none')
+            maxWidth: '100%'
         }}>
-            <CalendarPad value={timeLeft.days || 0} label={t.days} delay={0.1} palette={COUNTDOWN_PALETTES[0]} isMobile={isMobile} largeText={largeText} inlineMobile={inlineMobile} />
-            <CalendarPad value={timeLeft.hours || 0} label={t.hours} delay={0.2} palette={COUNTDOWN_PALETTES[1]} isMobile={isMobile} largeText={largeText} inlineMobile={inlineMobile} />
-            <CalendarPad value={timeLeft.minutes || 0} label={t.minutes} delay={0.3} palette={COUNTDOWN_PALETTES[2]} isMobile={isMobile} largeText={largeText} inlineMobile={inlineMobile} />
-            <CalendarPad value={timeLeft.seconds || 0} label={t.seconds} delay={0.4} palette={COUNTDOWN_PALETTES[3]} isMobile={isMobile} largeText={largeText} inlineMobile={inlineMobile} />
+            <CalendarPad value={timeLeft.days || 0} label={t.days} delay={0.05} palette={COUNTDOWN_PALETTES[0]} isMobile={isMobile} largeText={largeText} />
+            <CalendarPad value={timeLeft.hours || 0} label={t.hours} delay={0.1} palette={COUNTDOWN_PALETTES[1]} isMobile={isMobile} largeText={largeText} />
+            <CalendarPad value={timeLeft.minutes || 0} label={t.minutes} delay={0.15} palette={COUNTDOWN_PALETTES[2]} isMobile={isMobile} largeText={largeText} />
+            <CalendarPad value={timeLeft.seconds || 0} label={t.seconds} delay={0.2} palette={COUNTDOWN_PALETTES[3]} isMobile={isMobile} largeText={largeText} />
         </div>
     );
 };

@@ -1,214 +1,359 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, CheckCircle2, BookOpen, RefreshCw } from 'lucide-react';
-import { CHAPTERS, VOLUMES, isMainChapter, VOL_COLORS } from '../../../data/chapters';
+import { motion } from 'framer-motion';
+import { Tv, Award, BookOpen } from 'lucide-react';
+import { VOLUMES, isMainChapter, VOL_COLORS } from '../../../data/chapters';
 import { VOL_BGS, getVolumeTitle } from '../syncConfig';
-
-const StatCard = ({ label, value, accent, bg, border, isMobile, icon: Icon }) => (
-  <div
-    className="sketchbook-border"
-    style={{
-      background: bg,
-      border: `3px solid ${border}`,
-      borderBottom: `8px solid ${border}`,
-      borderRadius: '20px',
-      padding: isMobile ? '14px 14px 12px' : '16px 16px 14px',
-      display: 'grid',
-      gap: '8px',
-      minHeight: isMobile ? '112px' : '120px',
-    }}
-  >
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: accent }}>
-      <Icon size={18} strokeWidth={2.4} />
-      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '0.94rem' : '1rem', fontWeight: '400', lineHeight: 1.2 }}>{label}</span>
-    </div>
-    <div style={{ color: '#0f172a', fontSize: isMobile ? '1.55rem' : '1.75rem', lineHeight: 1, fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400' }}>{value}</div>
-  </div>
-);
+import { triggerHaptic } from '../../../utils/haptics';
 
 const ProgressTab = ({
   isMobile,
-  progressPct,
-  t,
-  finishedCountMain,
-  totalChapters,
-  totalReads,
-  expandedVol,
   setExpandedVol,
   uiLanguage,
   finished,
-  onReadChapter,
-  trackExternalLink,
-  cancelExternalLink,
-  unmarkFinished,
-  readCounts,
-  incrementReadCount,
-  getRemainingCooldown,
-  pendingLinks,
-  MiniChapterRow,
 }) => {
-  const activeVolumes = VOLUMES.filter((vol) => vol.chapters.some((chapterNumber) => finished.has(chapterNumber))).length;
-
   return (
-    <div style={{ display: 'grid', gap: '22px', paddingTop: '6px', paddingBottom: '10px' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 18, rotate: -0.8 }}
-        animate={{ opacity: 1, y: 0, rotate: 0 }}
-        className="sketchbook-border"
-        style={{
-          background: '#ffffff',
-          border: '3.5px solid #10b981',
-          borderBottom: '10px solid #047857',
-          borderRadius: '28px',
-          padding: isMobile ? '20px 18px' : '24px 24px 22px',
-          boxShadow: '0 16px 0 rgba(16, 185, 129, 0.18)',
-          display: 'grid',
-          gap: '18px',
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+      
+      {/* ── SHELF DECORATIVE BANNER ── */}
+      <div style={{
+        width: '100%',
+        padding: '12px 16px',
+        background: 'linear-gradient(90deg, #eff6ff 0%, #fff 100%)',
+        border: '2px solid #bfdbfe',
+        borderBottom: '4px solid #93c5fd',
+        borderRadius: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: isMobile ? '0.86rem' : '0.94rem', color: '#1e3a8a', fontWeight: '400' }}>
+            {uiLanguage === 'ja' ? '巻をタップして、各話の進捗と購入リンクを表示します' : 'Tap a volume to view chapter progress & purchase links!'}
+          </span>
+        </div>
+      </div>
+
+      {/* ── MANGA LIBRARY SHELF GRID ── */}
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(130px, 1fr))' : 'repeat(auto-fill, minmax(170px, 1fr))', 
+          columnGap: isMobile ? '12px' : '24px', 
+          rowGap: isMobile ? '24px' : '36px', 
+          alignItems: 'start',
+          width: '100%',
+          padding: '10px 4px 40px',
+          boxSizing: 'border-box',
+          position: 'relative'
         }}
       >
-        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', gap: '16px', alignItems: isMobile ? 'stretch' : 'center' }}>
-          <div style={{ display: 'grid', gap: '8px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: '#ffffff', border: '3px solid #a7f3d0', borderBottom: '7px solid #34d399', borderRadius: '999px', padding: '8px 14px', width: 'fit-content' }}>
-              <BookOpen size={18} strokeWidth={2.4} style={{ color: '#047857' }} />
-              <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '0.95rem' : '1rem', fontWeight: '400', color: '#065f46' }}>{t.overallCompletion}</span>
-            </div>
-            <div style={{ color: '#065f46', fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '2.2rem' : '2.8rem', lineHeight: 1, fontWeight: '400' }}>{progressPct}%</div>
-            <div style={{ color: '#475569', fontSize: isMobile ? '0.98rem' : '1.02rem', lineHeight: 1.45 }}>
-              {finishedCountMain} / {totalChapters} {t.chaptersDone}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, minmax(0, 170px))', gap: '12px', width: isMobile ? '100%' : 'auto' }}>
-            <StatCard label={t.chaptersDone} value={String(finishedCountMain)} accent="#0f766e" bg="#ecfdf5" border="#86efac" isMobile={isMobile} icon={CheckCircle2} />
-            <StatCard label={t.totalReads} value={String(totalReads)} accent="#1d4ed8" bg="#eff6ff" border="#93c5fd" isMobile={isMobile} icon={RefreshCw} />
-            <StatCard label={t.volumesLabel || 'Volumes'} value={String(activeVolumes)} accent="#7c3aed" bg="#faf5ff" border="#c4b5fd" isMobile={isMobile} icon={BookOpen} />
-          </div>
-        </div>
-      </motion.div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px', alignItems: 'start' }}>
         {VOLUMES.map((vol, idx) => {
-          const volChapters = vol.chapters.map((num) => CHAPTERS.find((chapter) => chapter.number === num)).filter(Boolean);
           const mainVolChapters = vol.chapters.filter((num) => isMainChapter(num));
           const finishedCount = mainVolChapters.filter((chapterNumber) => finished.has(chapterNumber)).length;
           const totalCount = mainVolChapters.length;
           const progress = totalCount > 0 ? Math.round((finishedCount / totalCount) * 100) : 0;
           const isFinished = progress === 100;
-          const isExpanded = expandedVol === vol.number;
-          const accent = VOL_COLORS[vol.number] || '#8b5cf6';
-          const panelBg = VOL_BGS[vol.number] || '#ffffff';
+          const accent = isFinished ? '#10b981' : (VOL_COLORS[vol.number] || '#8b5cf6');
+          const panelBg = isFinished ? '#e6f4ea' : (VOL_BGS[vol.number] || '#ffffff');
 
           return (
-            <div key={vol.number} style={{ display: 'grid', gap: '10px' }}>
+            <div 
+              key={vol.number} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {/* Physical 3D Book Cover Card */}
               <motion.button
-                initial={{ opacity: 0, y: 20, rotate: idx % 2 === 0 ? 0.8 : -0.8 }}
-                animate={{ opacity: 1, y: 0, rotate: 0 }}
-                transition={{ delay: idx * 0.04, type: 'spring', stiffness: 260, damping: 18 }}
-                whileHover={isMobile ? {} : { y: -6, rotate: idx % 2 === 0 ? 0.8 : -0.8 }}
-                whileTap={{ scale: 0.97, y: 4 }}
-                onClick={() => setExpandedVol(isExpanded ? null : vol.number)}
-                className="sketchbook-border paper-interact"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.035, type: 'spring', stiffness: 260, damping: 20 }}
+                whileHover={isMobile ? {} : { 
+                  y: -10, 
+                  rotateY: -8, 
+                  rotateZ: 0.5,
+                  boxShadow: `0 14px 28px ${accent}25, 4px 8px 16px rgba(0,0,0,0.12)`,
+                  transition: { type: 'spring', stiffness: 350, damping: 15 } 
+                }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  triggerHaptic('impactLight');
+                  setExpandedVol(vol.number);
+                }}
                 style={{
-                  background: `linear-gradient(180deg, ${panelBg} 0%, #ffffff 100%)`,
-                  border: `3.5px solid ${accent}`,
-                  borderBottom: `10px solid ${accent}`,
-                  borderRadius: '24px',
-                  padding: isMobile ? '18px 16px' : '20px 18px',
-                  display: 'grid',
-                  gap: '14px',
-                  textAlign: 'left',
+                  width: '100%',
+                  aspectRatio: '11 / 16',
+                  borderRadius: '12px',
+                  background: vol.cover ? '#ffffff' : `linear-gradient(135deg, ${panelBg} 0%, #ffffff 100%)`,
+                  border: `2.5px solid ${accent}`,
+                  boxShadow: `0 6px 14px ${accent}12, 2px 4px 8px rgba(0,0,0,0.06)`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: `0 16px 30px ${accent}20`,
+                  position: 'relative',
+                  overflow: 'visible',
+                  padding: 0,
+                  transformStyle: 'preserve-3d',
+                  perspective: '1000px',
+                  boxSizing: 'border-box'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', alignItems: 'start' }}>
-                  <div style={{ display: 'grid', gap: '8px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'fit-content', minWidth: '56px', padding: '6px 12px', borderRadius: '999px', background: '#ffffff', border: `3px solid ${accent}`, color: accent, fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.96rem', fontWeight: '400' }}>
-                      {vol.number}
-                    </span>
-                    <div style={{ color: '#1e293b', fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1.16rem' : '1.22rem', fontWeight: '400', lineHeight: 1.1 }}>{getVolumeTitle(uiLanguage, vol.number)}</div>
-                  </div>
+                
+                {/* 3D Stacked Page Edges (Right Edge) */}
+                <div style={{
+                  position: 'absolute',
+                  top: '3px',
+                  bottom: '3px',
+                  right: '-5px',
+                  width: '5px',
+                  background: '#fcfcf9',
+                  border: '1.5px solid #cbd5e1',
+                  borderLeft: 'none',
+                  borderRadius: '0 4px 4px 0',
+                  zIndex: -1,
+                  boxShadow: 'inset -2px 0 2px rgba(0,0,0,0.05)'
+                }} />
+                
+                {/* 3D Stacked Page Edges (Bottom Edge) */}
+                <div style={{
+                  position: 'absolute',
+                  left: '3px',
+                  right: '3px',
+                  bottom: '-5px',
+                  height: '5px',
+                  background: '#fcfcf9',
+                  border: '1.5px solid #cbd5e1',
+                  borderTop: 'none',
+                  borderRadius: '0 0 4px 4px',
+                  zIndex: -1,
+                  boxShadow: 'inset 0 -2px 2px rgba(0,0,0,0.05)'
+                }} />
 
-                  <div style={{ display: 'grid', justifyItems: 'end', gap: '8px' }}>
-                    <div style={{ background: isFinished ? '#ecfdf5' : '#ffffff', border: `3px solid ${isFinished ? '#34d399' : accent}`, borderBottom: `7px solid ${isFinished ? '#10b981' : accent}`, borderRadius: '16px', padding: '8px 10px', minWidth: '88px', textAlign: 'center' }}>
-                      <div style={{ color: isFinished ? '#047857' : accent, fontFamily: 'Sniglet, var(--font-main)', fontSize: '1.02rem', fontWeight: '400', lineHeight: 1 }}>{progress}%</div>
-                      <div style={{ color: '#64748b', fontSize: '0.82rem', lineHeight: 1.2 }}>{finishedCount}/{totalCount}</div>
-                    </div>
-                    <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                      <ChevronDown size={20} strokeWidth={2.6} style={{ color: accent }} />
-                    </motion.div>
-                  </div>
+                {/* Overlapping Bookmark Ribbon (Progress Tag) */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '12px',
+                  width: '26px',
+                  height: '38px',
+                  background: accent,
+                  zIndex: 4,
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
+                  clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 80%, 0% 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '2px 0',
+                  boxSizing: 'border-box'
+                }}>
+                  <span style={{ 
+                    color: '#ffffff', 
+                    fontFamily: 'var(--font-main)', 
+                    fontSize: '0.62rem', 
+                    fontWeight: '700', 
+                    lineHeight: 1,
+                    textAlign: 'center'
+                  }}>
+                    {progress}%
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {mainVolChapters.map((chapterNumber) => {
-                    const done = finished.has(chapterNumber);
-                    return (
-                      <span
-                        key={chapterNumber}
-                        style={{
-                          minWidth: '42px',
-                          height: '34px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0 10px',
-                          borderRadius: '14px',
-                          background: done ? `${accent}18` : '#ffffff',
-                          border: `2.5px solid ${done ? accent : '#dbe4f0'}`,
-                          color: done ? accent : '#94a3b8',
-                          fontFamily: 'Sniglet, var(--font-main)',
-                          fontSize: '0.88rem',
-                          fontWeight: '400',
-                          lineHeight: 1,
-                        }}
-                      >
-                        {chapterNumber}
-                      </span>
-                    );
-                  })}
-                </div>
-              </motion.button>
-
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.28 }}
-                    style={{ overflow: 'hidden' }}
+                {/* 100% Completion Gold Award Stamp */}
+                {isFinished && (
+                  <motion.div 
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: -12 }}
+                    transition={{ type: 'spring', delay: idx * 0.05 + 0.1 }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      left: '8px',
+                      zIndex: 3,
+                      background: 'linear-gradient(135deg, #fef08a 0%, #fbbf24 100%)',
+                      border: '2px solid #b45309',
+                      borderRadius: '50%',
+                      width: '26px',
+                      height: '26px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)',
+                    }}
                   >
-                    <div style={{ display: 'grid', gap: '8px', padding: isMobile ? '2px 6px 4px 12px' : '2px 8px 6px 18px', borderLeft: `2px dashed ${accent}` }}>
-                      {volChapters.map((chapter, chapterIndex) => (
-                        <MiniChapterRow
-                          key={chapter.number}
-                          chapter={chapter}
-                          index={chapterIndex}
-                          isMobile={isMobile}
-                          onReadChapter={onReadChapter}
-                          isFinished={(num) => finished.has(num)}
-                          trackExternalLink={trackExternalLink}
-                          cancelExternalLink={cancelExternalLink}
-                          unmarkFinished={unmarkFinished}
-                          getReadCount={(num) => readCounts[num] || 0}
-                          incrementReadCount={incrementReadCount}
-                          getRemainingCooldown={getRemainingCooldown}
-                          pendingLinks={pendingLinks}
-                          plusReadLabel={t.plusRead}
-                          uiLanguage={uiLanguage}
-                        />
-                      ))}
-                    </div>
+                    <Award size={14} color="#b45309" strokeWidth={2.8} />
                   </motion.div>
                 )}
-              </AnimatePresence>
+
+                {/* Anime Season Badge Overlay */}
+                {vol.anime && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    right: '8px',
+                    zIndex: 3,
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    backdropFilter: 'blur(3px)',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '8px',
+                    padding: '2px 5px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}>
+                    <Tv size={9} color="#fff" />
+                    <span style={{ color: '#fff', fontSize: '0.52rem', fontFamily: 'var(--font-hand)', fontWeight: '400' }}>TV</span>
+                  </div>
+                )}
+
+                {/* Book Spine Overlay (Left Book Fold Effect) */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: '8px',
+                  background: 'linear-gradient(90deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.06) 50%, rgba(255,255,255,0.08) 100%)',
+                  zIndex: 2,
+                  borderRadius: '10px 0 0 10px'
+                }} />
+
+                {/* Cover Image or Styled Placeholder */}
+                {vol.cover ? (
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '10px',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}>
+                    <img 
+                      src={vol.cover} 
+                      alt={`Volume ${vol.number} Cover`} 
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }} 
+                    />
+                    {/* Glossy Overlay Reflection */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%)',
+                      pointerEvents: 'none'
+                    }} />
+                  </div>
+                ) : (
+                  // Styled Notebook Diary Placeholder (e.g. Volume 14)
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '10px',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: `linear-gradient(135deg, ${panelBg} 0%, #ffffff 100%)`,
+                    position: 'relative',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Sketch Grid */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: 'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)',
+                      backgroundSize: '12px 12px',
+                      opacity: 0.8
+                    }} />
+                    
+                    {/* Hand-drawn style dashed border */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: '6px',
+                      border: `1.5px dashed ${accent}`,
+                      borderRadius: '8px',
+                      pointerEvents: 'none'
+                    }} />
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', zIndex: 1, marginTop: '12px' }}>
+                      <span style={{ 
+                        fontFamily: '"Coming Soon", cursive', 
+                        fontSize: isMobile ? '0.78rem' : '0.86rem', 
+                        fontWeight: '700', 
+                        color: accent,
+                        padding: '2px 8px',
+                        background: '#ffffff',
+                        border: `1.5px solid ${accent}`,
+                        borderRadius: '999px',
+                        lineHeight: 1
+                      }}>
+                        Vol {vol.number}
+                      </span>
+                      <span style={{ 
+                        fontFamily: '"Coming Soon", cursive', 
+                        fontSize: isMobile ? '0.62rem' : '0.68rem', 
+                        color: '#64748b', 
+                        fontWeight: '400',
+                        marginTop: '4px',
+                        textAlign: 'center'
+                      }}>
+                        {vol.inProgress ? 'In Progress' : 'Latest'}
+                      </span>
+                    </div>
+
+                    <div style={{
+                      zIndex: 1,
+                      marginBottom: '10px'
+                    }}>
+                      <BookOpen size={isMobile ? 24 : 32} color={accent} strokeWidth={1.8} style={{ opacity: 0.8 }} />
+                    </div>
+                  </div>
+                )}
+              </motion.button>
+
+              {/* Volume Title Labels Beneath Book */}
+              <div style={{
+                marginTop: '10px',
+                textAlign: 'center',
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px'
+              }}>
+                <span style={{ 
+                  fontFamily: '"Coming Soon", cursive', 
+                  fontSize: isMobile ? '0.82rem' : '0.9rem', 
+                  fontWeight: '400', 
+                  color: '#1e293b',
+                  lineHeight: 1.2
+                }}>
+                  {getVolumeTitle(uiLanguage, vol.number)}
+                </span>
+                <span style={{ 
+                  fontFamily: 'var(--font-hand)', 
+                  fontSize: isMobile ? '0.66rem' : '0.74rem', 
+                  color: '#64748b',
+                  lineHeight: 1.1
+                }}>
+                  {finishedCount}/{totalCount} {uiLanguage === 'ja' ? '話完了' : 'chapters'}
+                </span>
+              </div>
             </div>
           );
         })}
       </div>
+
     </div>
   );
 };
 
 export default ProgressTab;
-

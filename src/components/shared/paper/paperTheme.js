@@ -2,8 +2,8 @@ export const PAPER_FONT_FAMILY = 'var(--font-paper)';
 
 export const PAPER_PANEL_STYLE = {
   background: 'var(--surface-panel)',
-  border: '3px solid var(--surface-border)',
-  borderBottom: '8px solid var(--surface-border-strong)',
+  border: '2.5px solid var(--surface-border)',
+  borderBottom: '6px solid var(--surface-border-strong)',
   borderRadius: '28px',
   boxShadow: 'var(--shadow-panel)',
 };
@@ -55,8 +55,8 @@ export function createPaperHeadingBadgeStyle({
     padding,
     borderRadius: radius,
     background,
-    border: `3.5px solid ${borderColor}`,
-    borderBottom: `9.5px solid ${bottomColor}`,
+    border: `2.5px solid ${borderColor}`,
+    borderBottom: `6px solid ${bottomColor}`,
     boxShadow: shadow,
     zIndex: 1,
   };
@@ -76,8 +76,8 @@ export function createPaperButtonStyle({
   shadow = '0 10px 20px rgba(15, 23, 42, 0.1)',
 } = {}) {
   return {
-    border: `3px solid ${borderColor}`,
-    borderBottom: `8px solid ${bottomColor}`,
+    border: `2.5px solid ${borderColor}`,
+    borderBottom: `5px solid ${bottomColor}`,
     borderRadius: radius,
     background,
     color,
@@ -110,7 +110,7 @@ export function createPaperInputStyle({
   return {
     width: '100%',
     border: `2.5px solid ${borderColor}`,
-    borderBottom: `5px solid ${bottomColor}`,
+    borderBottom: `4px solid ${bottomColor}`,
     borderRadius: radius,
     background,
     color,
@@ -140,8 +140,8 @@ export function createPaperChipStyle({
     alignItems: 'center',
     gap,
     background,
-    border: `2.5px solid ${borderColor}`,
-    borderBottom: `6px solid ${bottomColor}`,
+    border: `2px solid ${borderColor}`,
+    borderBottom: `4px solid ${bottomColor}`,
     borderRadius: radius,
     padding,
     minHeight,

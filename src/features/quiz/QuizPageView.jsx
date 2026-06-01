@@ -12,6 +12,8 @@ import { useQuizTabNavigation } from './hooks/useQuizTabNavigation';
 import { toUiLabelCase } from '../../utils/textCase';
 import usePageTitle from '../../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../../config/appUiText';
+import PaperPageHeader from '../../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../../components/shared/paper/PaperHeadingBadge';
 
 const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
@@ -63,63 +65,102 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     resetQuiz,
   } = useQuizGameController({ t, uiLanguage });
 
+  const totalPlayed = useMemo(() => displayedHistory.length, [displayedHistory]);
+
+  const bestScorePercent = useMemo(() => {
+    if (displayedHistory.length === 0) return 0;
+    const percentages = displayedHistory.map((h) => {
+      const total = h.total || 10;
+      return Math.round((h.score / total) * 100);
+    });
+    return Math.max(...percentages);
+  }, [displayedHistory]);
+
+  const pillStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '14px 22px',
+    minWidth: '112px',
+    minHeight: '54px',
+    background: '#ffffff',
+    borderRadius: '999px',
+    fontFamily: '"Sniglet", "Coming Soon", cursive',
+    fontSize: isMobile ? '0.94rem' : '1.1rem',
+    fontWeight: '400',
+    lineHeight: 1,
+    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)',
+  };
+
+  const playedPillPalette = {
+    border: '3px solid #fbbf24',
+    borderBottom: '8.5px solid #f59e0b',
+    color: '#92400e',
+  };
+
+  const bestPillPalette = {
+    border: '3px solid #93c5fd',
+    borderBottom: '8.5px solid #2563eb',
+    color: '#1d4ed8',
+  };
+
   return (
     <div
+      className="hide-scrollbar"
       style={{
         width: '100%',
-        padding: isMobile ? '24px 8px 18px 8px' : '28px 40px 34px',
+        padding: isMobile ? '20px 14px 60px' : '32px 40px',
         minHeight: isMobile ? 'auto' : '600px',
         display: 'flex',
         flexDirection: 'column',
         overflowX: 'hidden',
-        overflowY: 'visible',
+        overflowY: 'auto',
         flex: 1,
         position: 'relative',
       }}
     >
+      {/* Redesigned, beautifully balanced Quiz Header Dashboard */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: isMobile ? '20px' : '32px',
           flexDirection: isMobile ? 'column' : 'row',
-          gap: isMobile ? '16px' : '0',
-          position: 'relative',
+          justifyContent: isMobile ? 'center' : 'space-between',
+          alignItems: 'center',
+          gap: '14px',
           width: '100%',
+          marginBottom: '20px',
+          borderBottom: '2.5px dashed #cbd5e1',
+          paddingBottom: '14px',
         }}
       >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '10px 24px',
-            borderRadius: '22px',
-            background: '#ffffff',
-            border: '3px solid #ef4444',
-            borderBottom: '9px solid #b91c1c',
-            boxShadow: '0 10px 0 rgba(239, 68, 68, 0.12)',
-            zIndex: 1,
-          }}
-        >
-          <Trophy size={isMobile ? 22 : 20} style={{ color: '#dc2626' }} />
-          <span
-            style={{
-              fontFamily: '"Sniglet", "Coming Soon", cursive',
-              color: '#dc2626',
-              fontSize: isMobile ? '1.42rem' : '1.3rem',
-              fontWeight: '400',
-              letterSpacing: '0.2px',
-              lineHeight: 1,
-            }}
+        {/* Played / Best stats pills on the left */}
+        {gameState === 'setup' ? (
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, x: isMobile ? 0 : -20 }}
+              animate={{ scale: 1, opacity: 1, x: 0 }}
+              style={{ ...pillStyle, ...playedPillPalette }}
             >
-            {toUiLabelCase(t.header)}
-          </span>
-        </motion.div>
-        <div style={{ position: isMobile ? 'static' : 'absolute', right: isMobile ? 'auto' : '0' }}>
+              {uiLanguage === 'ja'
+                ? `${totalPlayed}${t.historyPlayed || '回'}`
+                : `${totalPlayed} ${t.historyPlayed || 'played'}`}
+            </motion.div>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, x: isMobile ? 0 : -10 }}
+              animate={{ scale: 1, opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 }}
+              style={{ ...pillStyle, ...bestPillPalette }}
+            >
+              {uiLanguage === 'ja'
+                ? `${t.bestScore || '最高'} ${bestScorePercent}%`
+                : `${bestScorePercent}% ${t.bestScore || 'Best'}`}
+            </motion.div>
+          </div>
+        ) : <div />}
+
+        {/* Quiz Sub-tab Selector on the right */}
+        <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', minWidth: 0 }}>
           <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} tabs={tabs} />
         </div>
       </div>
@@ -220,8 +261,8 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               style={{ 
                 background: '#fff', 
-                border: '4px solid #1f2937', 
-                borderBottom: '10px solid #1f2937', 
+                border: '2.5px solid #1f2937', 
+                borderBottom: '6px solid #1f2937', 
                 borderRadius: '28px', 
                 padding: isMobile ? '24px' : '32px', 
                 display: 'grid', 
@@ -238,18 +279,18 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
               </div>
               <div style={{ display: 'flex', gap: '14px' }}>
                 <motion.button
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.9, y: 8 }}
+                  whileHover={{ scale: 1.015, y: -1.5 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setShowMenuConfirm(false)}
-                  style={{ flex: 1, border: '3.5px solid #cbd5e1', borderBottom: '8px solid #94a3b8', background: '#f8fafc', color: '#475569', borderRadius: '22px', padding: '14px', fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+                  style={{ flex: 1, border: '2.5px solid #cbd5e1', borderBottom: '6px solid #94a3b8', background: '#f8fafc', color: '#475569', borderRadius: '22px', padding: '14px', fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
                 >
                   {t.stayQuiz}
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.9, y: 8 }}
+                  whileHover={{ scale: 1.015, y: -1.5 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={resetQuiz}
-                  style={{ flex: 1, border: '3.5px solid #b91c1c', borderBottom: '8px solid #991b1b', background: '#ef4444', color: '#fff', borderRadius: '22px', padding: '14px', fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
+                  style={{ flex: 1, border: '2.5px solid #b91c1c', borderBottom: '6px solid #991b1b', background: '#ef4444', color: '#fff', borderRadius: '22px', padding: '14px', fontFamily: 'var(--font-main)', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', transition: 'all 0.15s ease' }}
                 >
                   {t.leaveQuiz}
                 </motion.button>

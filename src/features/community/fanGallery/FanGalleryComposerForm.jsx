@@ -31,6 +31,7 @@ const FanGalleryComposerForm = ({
       </span>
       <div style={{ position: 'relative' }}>
         <input
+          className="sketchbook-border"
           value={name}
           onChange={(event) => onNameChange(event.target.value)}
           placeholder={copy.artistPlaceholder}
@@ -50,6 +51,7 @@ const FanGalleryComposerForm = ({
         {copy.descriptionLabel}
       </span>
       <textarea
+        className="sketchbook-border"
         value={description}
         onChange={(event) => onDescriptionChange(event.target.value)}
         placeholder={copy.descriptionPlaceholder}
@@ -59,9 +61,11 @@ const FanGalleryComposerForm = ({
     </label>
 
     <div
+      className="sketchbook-border"
       style={{
         ...COMMUNITY_PANEL_STYLE,
         borderStyle: 'dashed',
+        borderWidth: '2.5px',
         borderColor: '#93c5fd',
         borderBottomColor: '#60a5fa',
         background: '#f8fbff',
@@ -75,6 +79,7 @@ const FanGalleryComposerForm = ({
           {copy.uploadLabel}
         </span>
         <label
+          className="sketchbook-border"
           style={{
             ...createCommunityButtonStyle({
               borderColor: '#93c5fd',
@@ -83,10 +88,11 @@ const FanGalleryComposerForm = ({
               color: '#2563eb',
             }),
             padding: '12px 16px',
+            cursor: 'pointer',
           }}
         >
           {isPreparing ? <LoaderCircle size={18} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Upload size={18} strokeWidth={2.5} />}
-          {isPreparing ? copy.preparing : copy.uploadLabel}
+          <span style={{ marginLeft: '8px' }}>{isPreparing ? copy.preparing : copy.uploadLabel}</span>
           <input
             type="file"
             accept="image/*"
@@ -96,12 +102,13 @@ const FanGalleryComposerForm = ({
         </label>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'start', gap: '10px', color: '#475569', lineHeight: 1.55 }}>
+      <div style={{ display: 'flex', alignItems: 'start', gap: '10px', color: '#475569', lineHeight: 1.55, fontSize: '0.9rem' }}>
         <Shield size={18} strokeWidth={2.3} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
         <span>{copy.uploadHint}</span>
       </div>
 
       <div
+        className="sketchbook-border"
         style={{
           ...COMMUNITY_PANEL_STYLE,
           borderColor: '#bfdbfe',
@@ -116,9 +123,10 @@ const FanGalleryComposerForm = ({
       >
         {preparedImage?.dataUrl ? (
           <img
+            className="sketchbook-border"
             src={preparedImage.dataUrl}
             alt={copy.previewAlt}
-            style={{ width: '100%', height: '100%', maxHeight: '320px', objectFit: 'contain', borderRadius: '16px' }}
+            style={{ width: '100%', height: '100%', maxHeight: '320px', objectFit: 'contain' }}
           />
         ) : (
           <div style={{ color: '#94a3b8', fontFamily: COMMUNITY_FONT_FAMILY, textAlign: 'center', lineHeight: 1.5 }}>
@@ -135,8 +143,9 @@ const FanGalleryComposerForm = ({
       )}
     </div>
 
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
       <button
+        className="sketchbook-border"
         type="button"
         onClick={onClose}
         style={createCommunityButtonStyle({
@@ -149,6 +158,7 @@ const FanGalleryComposerForm = ({
         {copy.close}
       </button>
       <button
+        className="sketchbook-border"
         type="submit"
         disabled={isSubmitting || isPreparing}
         style={{
@@ -161,7 +171,7 @@ const FanGalleryComposerForm = ({
         }}
       >
         {isSubmitting ? <LoaderCircle size={18} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ImagePlus size={18} strokeWidth={2.5} />}
-        {isSubmitting ? copy.posting : copy.submit}
+        <span style={{ marginLeft: '8px' }}>{isSubmitting ? copy.posting : copy.submit}</span>
       </button>
     </div>
   </form>

@@ -11,6 +11,8 @@ export const loadSyncPage = () => import('../../pages/SyncPage');
 export const loadBirthdayPage = () => import('../../pages/BirthdayPage');
 export const loadQuizPage = () => import('../../pages/QuizPage');
 export const loadMysteryPage = () => import('../../pages/MysteryPage');
+export const loadTutorialPage = () => import('../../pages/TutorialPage');
+export const loadSettingsPage = () => import('../../pages/SettingsPage');
 
 export const PlannerPage = lazy(loadPlannerPage);
 export const ChaptersPage = lazy(loadChaptersPage);
@@ -23,6 +25,8 @@ export const SyncPage = lazy(loadSyncPage);
 export const BirthdayPage = lazy(loadBirthdayPage);
 export const QuizPage = lazy(loadQuizPage);
 export const MysteryPage = lazy(loadMysteryPage);
+export const TutorialPage = lazy(loadTutorialPage);
+export const SettingsPage = lazy(loadSettingsPage);
 
 const JAPANESE_HIDDEN_PRELOADERS = new Set([loadGalleryPage, loadBlogPage]);
 
@@ -44,6 +48,8 @@ const APP_TAB_PRELOADERS = {
   quiz: [loadMysteryPage, loadBirthdayPage],
   birthdays: [loadMysteryPage, loadHomePageSafe],
   mystery: [loadBlogPage, loadSyncPage],
+  tutorial: [loadSettingsPage, loadPlannerPage],
+  settings: [loadPlannerPage, loadChaptersPage],
 };
 
 function loadHomePageSafe() {

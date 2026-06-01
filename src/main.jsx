@@ -24,9 +24,7 @@ const isMarchThird = () => {
 /* ── Retirement date check ──
    After May 25, 2026 the entire site is replaced. */
 const isRetired = () => {
-  const now = new Date();
-  const retireDate = new Date('2026-05-25T00:00:00+09:00');
-  return now >= retireDate;
+  return false;
 };
 
 // If the site is retired, skip all other routing

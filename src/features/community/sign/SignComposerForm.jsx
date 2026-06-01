@@ -27,6 +27,7 @@ const SignComposerForm = ({
       </span>
       <div style={{ position: 'relative' }}>
         <input
+          className="sketchbook-border"
           value={name}
           onChange={(event) => onNameChange(event.target.value)}
           placeholder={copy.namePlaceholder}
@@ -46,6 +47,7 @@ const SignComposerForm = ({
         {copy.messageLabel}
       </span>
       <textarea
+        className="sketchbook-border"
         value={message}
         onChange={(event) => onMessageChange(event.target.value)}
         placeholder={copy.messagePlaceholder}
@@ -54,8 +56,9 @@ const SignComposerForm = ({
       />
     </label>
 
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
       <button
+        className="sketchbook-border"
         type="button"
         onClick={onClose}
         style={createCommunityButtonStyle({
@@ -68,6 +71,7 @@ const SignComposerForm = ({
         {copy.close}
       </button>
       <button
+        className="sketchbook-border"
         type="submit"
         disabled={isSubmitting}
         style={{
@@ -80,7 +84,7 @@ const SignComposerForm = ({
         }}
       >
         {isSubmitting ? <LoaderCircle size={18} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Send size={18} strokeWidth={2.5} />}
-        {isSubmitting ? copy.posting : copy.submit}
+        <span style={{ marginLeft: '8px' }}>{isSubmitting ? copy.posting : copy.submit}</span>
       </button>
     </div>
   </form>

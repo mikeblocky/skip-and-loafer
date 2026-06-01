@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowUpDown, Newspaper } from 'lucide-react';
 import { UI_TEXT } from './blogShared';
-import { getHeaderRowStyle, getSortButtonStyle } from './blogStyles';
+import PaperPageHeader from '../../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../../components/shared/paper/PaperHeadingBadge';
 
 const BlogPageHeader = ({
   isMobile,
@@ -15,6 +16,11 @@ const BlogPageHeader = ({
   sortOldToNewLabel,
   sortNewToOldLabel,
 }) => {
+  // Hide the page header and badge completely inside the blog reader to save maximum screen space
+  if (hasSelectedBlog) {
+    return null;
+  }
+
   const pillStyle = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -29,23 +35,7 @@ const BlogPageHeader = ({
     fontSize: isMobile ? '0.94rem' : '1.1rem',
     fontWeight: '400',
     lineHeight: 1,
-    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.1)',
-  };
-
-  const statsPillPalette = {
-    border: '3px solid #93c5fd',
-    borderBottom: '8.5px solid #2563eb',
-    color: '#1d4ed8',
-  };
-
-  const mainPillPalette = {
-    border: '3.5px solid #f97316',
-    borderBottom: '9.5px solid #f97316',
-    color: '#f97316',
-    padding: '10px 24px',
-    borderRadius: '24px',
-    gap: '12px',
-    boxShadow: '0 8px 18px rgba(249, 115, 22, 0.12)',
+    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)',
   };
 
   const sortButtonStyle = {
@@ -74,38 +64,16 @@ const BlogPageHeader = ({
   };
 
   return (
-    <div
-      style={{
-        ...getHeaderRowStyle(isMobile),
-        marginBottom: isMobile ? '28px' : '32px',
-        position: 'relative',
-        display: isMobile ? 'flex' : (!hasSelectedBlog ? 'grid' : 'flex'),
-        gridTemplateColumns: !isMobile && !hasSelectedBlog ? '1fr auto 1fr' : undefined,
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: isMobile && !hasSelectedBlog ? 'column' : 'row',
-        gap: isMobile && !hasSelectedBlog ? '20px' : 0,
-        width: '100%',
-      }}
-    >
-      {!hasSelectedBlog && (
-        <div 
-          style={{ 
-            gridColumn: !isMobile ? 1 : 'auto', 
-            justifySelf: !isMobile ? 'start' : 'center',
-            display: 'flex',
-            gap: '12px',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            order: isMobile ? 2 : 1,
-          }}
-        >
+    <PaperPageHeader
+      isMobile={isMobile}
+      leftSlot={(
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0, x: isMobile ? 0 : -20 }}
             animate={{ scale: 1, opacity: 1, x: 0 }}
             style={{ ...pillStyle, ...postsPillPalette }}
           >
-            {totalPosts} { (t.postsLabel || 'Posts').toLowerCase() }
+            {totalPosts} {(t.postsLabel || 'Posts').toLowerCase()}
           </motion.div>
           <motion.div
             initial={{ scale: 0.8, opacity: 0, x: isMobile ? 0 : -10 }}
@@ -117,25 +85,21 @@ const BlogPageHeader = ({
           </motion.div>
         </div>
       )}
-
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        style={{
-          ...pillStyle,
-          ...mainPillPalette,
-          fontSize: isMobile ? '1.45rem' : '1.35rem',
-          letterSpacing: '0.2px',
-          zIndex: 1,
-          gridColumn: !isMobile && !hasSelectedBlog ? 2 : 'auto',
-          order: isMobile ? 1 : 2,
-        }}
-      >
-        <Newspaper size={isMobile ? 28 : 24} strokeWidth={2.5} style={{ color: '#f97316' }} />
-        <span>{title}</span>
-      </motion.div>
-
-      {!hasSelectedBlog && (
+      center={(
+        <PaperHeadingBadge
+          isMobile={isMobile}
+          icon={Newspaper}
+          title={title}
+          palette={{
+            borderColor: '#f97316',
+            bottomColor: '#f97316',
+            shadow: '0 8px 18px rgba(249, 115, 22, 0.1)',
+          }}
+          titleColor="#f97316"
+          iconColor="#f97316"
+        />
+      )}
+      rightSlot={(
         <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.94, y: 6 }}
@@ -144,9 +108,6 @@ const BlogPageHeader = ({
             ...pillStyle,
             ...sortButtonStyle,
             margin: 0,
-            justifySelf: !isMobile ? 'end' : 'auto',
-            gridColumn: !isMobile ? 3 : 'auto',
-            order: 3,
             cursor: 'pointer',
           }}
         >
@@ -156,7 +117,12 @@ const BlogPageHeader = ({
             : (sortNewToOldLabel || UI_TEXT.en.sortNewToOld)}
         </motion.button>
       )}
-    </div>
+      gapMobile="14px"
+      paddingMobile="0"
+      paddingDesktop="0"
+      marginBottomMobile="20px"
+      marginBottomDesktop="24px"
+    />
   );
 };
 

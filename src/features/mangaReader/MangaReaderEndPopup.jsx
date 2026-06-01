@@ -29,24 +29,24 @@ const MangaReaderEndPopup = ({
           top: isMobile ? '60px' : '40px',
           left: '50%',
           zIndex: 10000,
-          background: 'rgba(15,15,15,0.95)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,158,198,0.3)',
-          borderRadius: '16px',
+          background: '#fff8ef',
+          border: '3px solid #0f172a',
+          borderBottom: '8px solid #ff9ec6',
+          borderRadius: '20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '12px',
-          padding: '12px 16px',
+          padding: '16px 20px',
           width: 'auto',
-          minWidth: 'min(280px, 90vw)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+          minWidth: 'min(300px, 92vw)',
+          boxShadow: '8px 8px 0px rgba(0,0,0,0.25)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <span style={{ fontFamily: 'var(--font-hand)', color: '#fff', fontSize: '1.05rem', fontWeight: 'bold' }}>
+            <span style={{ fontFamily: 'var(--font-main)', color: '#0f172a', fontSize: '1.15rem', fontWeight: '900', lineHeight: 1.2 }}>
               Chapter {chapterNumber} ended
             </span>
             {cooldownRemaining === 0 ? (
@@ -56,9 +56,9 @@ const MangaReaderEndPopup = ({
                 transition={{ delay: 0.3, duration: 0.4 }}
                 style={{
                   fontFamily: 'var(--font-hand)',
-                  color: '#ff9ec6',
-                  fontSize: '0.78rem',
-                  fontWeight: 'bold',
+                  color: '#059669',
+                  fontSize: '0.85rem',
+                  fontWeight: '900',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
@@ -70,17 +70,18 @@ const MangaReaderEndPopup = ({
               <span
                 style={{
                   fontFamily: 'var(--font-hand)',
-                  color: 'rgba(255,255,255,0.4)',
-                  fontSize: '0.75rem',
-                  marginTop: '4px',
+                  color: '#475569',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold',
+                  marginTop: '2px',
                 }}
               >
                 Reread count in {cooldownRemaining}s
               </span>
             )}
           </div>
-          <Fab onClick={() => setShowEndPopup(false)} size={28} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)' }}>
-            <X size={16} />
+          <Fab onClick={() => setShowEndPopup(false)} size={28} style={{ background: '#f1f5f9', border: '2px solid #0f172a', borderBottom: '3.5px solid #0f172a', color: '#0f172a' }}>
+            <X size={14} strokeWidth={3} />
           </Fab>
         </div>
 
@@ -90,21 +91,37 @@ const MangaReaderEndPopup = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '0.8rem',
-            fontFamily: 'var(--font-hand)',
-            color: 'rgba(255,255,255,0.7)',
-            background: 'rgba(0,0,0,0.2)',
-            padding: '6px',
-            borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.05)',
+            fontSize: '0.82rem',
+            fontFamily: 'var(--font-main)',
+            fontWeight: '900',
+            color: '#be185d',
+            background: 'rgba(255,158,198,0.12)',
+            padding: '8px',
+            borderRadius: '10px',
+            border: '2px solid #ff9ec6',
           }}
         >
-          <span>{onNextChapter ? 'Auto-next in ' : 'Auto-close in '} <strong style={{ color: '#ff9ec6' }}>{autoNextCountdown}s</strong>...</span>
+          <span>{onNextChapter ? 'Auto-next in ' : 'Auto-close in '} <strong style={{ color: '#dc2626' }}>{autoNextCountdown}s</strong>...</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexDirection: 'row', width: '100%', justifyContent: 'space-between' }}>
-          <Fab disabled={!onPrevChapter} onClick={() => { setShowEndPopup(false); onPrevChapter?.(); }} size={36} style={{ flex: 1, fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold', background: 'rgba(255,255,255,0.08)' }}>
-            Previous chapter
+        <div style={{ display: 'flex', gap: '10px', flexDirection: 'row', width: '100%', justifyContent: 'space-between', marginTop: '4px' }}>
+          <Fab 
+            disabled={!onPrevChapter} 
+            onClick={() => { setShowEndPopup(false); onPrevChapter?.(); }} 
+            size={38} 
+            style={{ 
+              flex: 1, 
+              fontSize: '0.78rem', 
+              fontFamily: 'var(--font-main)', 
+              fontWeight: '900', 
+              background: '#f1f5f9',
+              color: '#0f172a',
+              border: '2.5px solid #0f172a',
+              borderBottom: '5px solid #0f172a',
+              borderRadius: '12px'
+            }}
+          >
+            Previous
           </Fab>
           <Fab
             active={true}
@@ -113,10 +130,18 @@ const MangaReaderEndPopup = ({
               if (onNextChapter) onNextChapter();
               else if (onClose) onClose();
             }}
-            size={36}
-            style={{ flex: 1, fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold' }}
+            size={38}
+            style={{ 
+              flex: 1, 
+              fontSize: '0.78rem', 
+              fontFamily: 'var(--font-main)', 
+              fontWeight: '900',
+              border: '2.5px solid #0f172a',
+              borderBottom: '5px solid #0f172a',
+              borderRadius: '12px'
+            }}
           >
-            {onNextChapter ? 'Next chapter' : 'Close reader'}
+            {onNextChapter ? 'Next Chapter' : 'Close'}
           </Fab>
         </div>
 
@@ -128,8 +153,19 @@ const MangaReaderEndPopup = ({
               imgRefs.current[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           }}
-          size={32}
-          style={{ width: '100%', marginTop: '4px', fontSize: '0.75rem', fontFamily: 'var(--font-hand)', fontWeight: 'bold', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px dashed rgba(255,255,255,0.2)' }}
+          size={34}
+          style={{ 
+            width: '100%', 
+            marginTop: '4px', 
+            fontSize: '0.8rem', 
+            fontFamily: 'var(--font-main)', 
+            fontWeight: '900', 
+            background: '#ffffff', 
+            color: '#0f172a', 
+            border: '2.5px dashed #0f172a', 
+            borderBottom: '4.5px solid #0f172a',
+            borderRadius: '12px'
+          }}
         >
           {mode === MODE.SCROLL ? t.returnToTop : t.returnToFirstPage}
         </Fab>

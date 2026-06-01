@@ -3,8 +3,10 @@ import { createClient } from 'redis';
 const SIGNATURES_KEY = 'community:signatures';
 const FAN_GALLERY_KEY = 'community:fan-gallery';
 
+
 export const SIGNATURE_LIMIT = 80;
 export const FAN_GALLERY_LIMIT = 20;
+
 
 class MemoryClient {
   constructor() {
@@ -112,3 +114,5 @@ export async function addFanGalleryEntry(client, entry) {
   await writeList(client, FAN_GALLERY_KEY, next);
   return next;
 }
+
+

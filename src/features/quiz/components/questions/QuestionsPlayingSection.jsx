@@ -61,14 +61,14 @@ const QuestionsPlayingSection = ({
     : { type: 'spring', stiffness: 500, damping: 12, mass: 1.2 };
 
   return (
-    <div style={{ display: 'grid', gap: '20px', paddingBottom: isMobile ? '104px' : '40px', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, minHeight: 0, paddingBottom: isMobile ? '104px' : '40px', position: 'relative' }}>
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         style={{ display: 'flex', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}
       >
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div style={{ background: '#fff', border: '3.5px solid #1f2937', borderBottom: '7px solid #1f2937', borderRadius: '16px', padding: '8px 16px', display: 'flex', gap: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+          <div style={{ background: '#fff', border: '2.5px solid #1f2937', borderBottom: '5px solid #1f2937', borderRadius: '16px', padding: '8px 16px', display: 'flex', gap: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#1f2937', fontSize: isMobile ? '0.92rem' : '1rem' }}>
               <span style={{ color: '#64748b', fontSize: '0.8em' }}>{currentIndex + 1}</span>/{questions.length}
             </span>
@@ -86,8 +86,8 @@ const QuestionsPlayingSection = ({
               fontWeight: '900',
               color: '#fff',
               background: timerStyle.bg,
-              border: `3.5px solid ${timerStyle.border}`,
-              borderBottom: `7.5px solid ${timerStyle.bottom}`,
+              border: `2.5px solid ${timerStyle.border}`,
+              borderBottom: `5px solid ${timerStyle.bottom}`,
               borderRadius: '20px',
               padding: '8px 16px',
               fontSize: isMobile ? '0.9rem' : '1rem',
@@ -102,12 +102,12 @@ const QuestionsPlayingSection = ({
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.9, y: 6 }}
+          whileHover={{ scale: 1.015, y: -1.5 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setShowMenuConfirm(true)}
           style={{
-            border: '3.5px solid #1f2937',
-            borderBottom: '7.5px solid #1f2937',
+            border: '2.5px solid #1f2937',
+            borderBottom: '5px solid #1f2937',
             background: '#f8fafc',
             color: '#ef4444',
             borderRadius: '16px',
@@ -130,12 +130,12 @@ const QuestionsPlayingSection = ({
         transition={questionCardTransition}
         style={{
           background: '#fef9c3',
-          border: '3.5px solid #ca8a04',
-          borderBottom: '8.5px solid #a16207',
-          borderRadius: '24px',
-          padding: isMobile ? '24px 20px' : '32px 32px',
+          border: '2.5px solid #ca8a04',
+          borderBottom: '6px solid #a16207',
+          borderRadius: '16px',
+          padding: isMobile ? '12px 14px' : '16px 20px',
           display: 'grid',
-          gap: '12px',
+          gap: '6px',
           position: 'relative',
           boxShadow: '0 8px 24px rgba(234, 179, 8, 0.2)',
         }}
@@ -160,7 +160,7 @@ const QuestionsPlayingSection = ({
             {t.question}
           </motion.span>
         </div>
-        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#422006', fontSize: isMobile ? '1.3rem' : '1.7rem', lineHeight: 1.25, marginTop: '4px' }}>
+        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#422006', fontSize: isMobile ? '1.14rem' : '1.34rem', lineHeight: 1.25, marginTop: '4px' }}>
           {currentQuestion.prompt}
         </span>
       </motion.div>
@@ -172,8 +172,8 @@ const QuestionsPlayingSection = ({
             animate={{ opacity: 1, x: 0 }}
             style={{
               background: '#f1f5f9',
-              border: '3.5px solid #94a3b8',
-              borderBottom: '7.5px solid #64748b',
+              border: '2.5px solid #94a3b8',
+              borderBottom: '5px solid #64748b',
               borderRadius: '20px',
               padding: '16px 20px',
               display: 'grid',
@@ -219,31 +219,36 @@ const QuestionsPlayingSection = ({
       <AnimatePresence>
         {feedback && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             style={{
+              position: 'absolute',
+              bottom: isMobile ? '16px' : '10px',
+              left: 0,
+              width: '100%',
+              zIndex: 50,
+              margin: 0,
               fontFamily: 'var(--font-main)',
               fontWeight: '900',
               color: '#fff',
               background: feedback === t.correct ? '#10b981' : '#ef4444',
               border: `3.5px solid ${feedback === t.correct ? '#065f46' : '#991b1b'}`,
-              borderBottom: `9px solid ${feedback === t.correct ? '#064e3b' : '#7f1d1d'}`,
-              borderRadius: '24px',
-              padding: '18px',
-              fontSize: '1.25rem',
+              borderBottom: `6px solid ${feedback === t.correct ? '#064e3b' : '#7f1d1d'}`,
+              borderRadius: '16px',
+              padding: '10px 14px',
+              fontSize: '1.05rem',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: '14px',
-              marginTop: '10px',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
+              gap: '12px',
+              boxShadow: '0 10px 24px rgba(0,0,0,0.15)',
             }}
           >
-            {feedback === t.correct ? <Trophy size={24} /> : <AlertTriangle size={24} />}
+            {feedback === t.correct ? <Trophy size={20} /> : <AlertTriangle size={20} />}
             <span>{feedback === t.correct ? (t.excellent || 'Excellent!') : (t.oops || 'Oops!')}</span>
-            <div style={{ width: '2px', height: '24px', background: 'rgba(255,255,255,0.3)' }} />
+            <div style={{ width: '2px', height: '20px', background: 'rgba(255,255,255,0.3)' }} />
             <span>{t.nextUp}</span>
           </motion.div>
         )}

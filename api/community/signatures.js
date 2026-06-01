@@ -14,6 +14,7 @@ function normalizeSignatureEntry(rawEntry) {
     id: String(rawEntry?.id || ''),
     name: clampText(rawEntry?.name, 48),
     message: clampText(rawEntry?.message, 280),
+    type: rawEntry?.type === 'pride' ? 'pride' : 'sign',
     createdAt: String(rawEntry?.createdAt || createTimestamp()),
   };
 }
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
 
     const name = clampText(req.body?.name, 48);
     const message = clampText(req.body?.message, 280);
+    const type = req.body?.type === 'pride' ? 'pride' : 'sign';
 
     if (!name) {
       return sendJson(res, 400, { error: 'Name is required' });
@@ -45,9 +47,10 @@ export default async function handler(req, res) {
     }
 
     const entry = normalizeSignatureEntry({
-      id: createEntityId('sign'),
+      id: createEntityId(type === 'pride' ? 'pride' : 'sign'),
       name,
       message,
+      type,
       createdAt: createTimestamp(),
     });
 

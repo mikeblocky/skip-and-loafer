@@ -1,8 +1,10 @@
 /* VITE_CACHE_BUST_3 */
 import React, { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { UI_TEXT, TAB_LABELS, TABS } from '../features/gallery/galleryConfig';
 import GalleryPageHeader from '../features/gallery/GalleryPageHeader';
+import GalleryTabSelector from '../features/gallery/GalleryTabSelector';
 import GallerySubtabPanel from '../features/gallery/tabs/GallerySubtabPanel';
 import { IMAGE_LOADED_CACHE } from '../features/gallery/thumbnailCache';
 import GalleryThumb from '../features/gallery/GalleryThumb';
@@ -14,6 +16,34 @@ import { loadGalleryTabImages, preloadGalleryTabImages } from '../features/galle
 
 const loadImageLightbox = () => import('../components/shared/ImageLightbox');
 const ImageLightbox = lazy(loadImageLightbox);
+
+const GalleryNavBtn = ({ onClick, disabled, activeColor, children, isMobile }) => (
+  <motion.button
+    onClick={onClick}
+    disabled={disabled}
+    whileHover={!disabled ? { scale: 1.08, y: -2 } : {}}
+    whileTap={!disabled ? { scale: 0.92, y: 1 } : {}}
+    style={{
+      flexShrink: 0,
+      width: isMobile ? '38px' : '46px',
+      height: isMobile ? '38px' : '46px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#ffffff',
+      color: disabled ? '#cbd5e1' : activeColor,
+      border: `3px solid ${disabled ? '#e2e8f0' : activeColor}`,
+      borderBottom: `6px solid ${disabled ? '#cbd5e1' : activeColor}`,
+      borderRadius: '14px',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      boxShadow: disabled ? 'none' : `0 4px 12px ${activeColor}15`,
+      transition: 'border-color 0.2s, color 0.2s, border-bottom 0.2s, box-shadow 0.2s',
+      opacity: disabled ? 0.6 : 1,
+    }}
+  >
+    {children}
+  </motion.button>
+);
 
 function shuffleInSession(arr) {
   const result = [...arr];
@@ -55,6 +85,14 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     startTransition(() => {
       setActiveTab((previous) => (typeof nextTab === 'function' ? nextTab(previous) : nextTab));
     });
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setActiveTab((prev) => (prev - 1 + TABS.length) % TABS.length);
+  }, []);
+
+  const goNext = useCallback(() => {
+    setActiveTab((prev) => (prev + 1) % TABS.length);
   }, []);
 
   const markLoaded = useCallback((src) => {
@@ -165,21 +203,61 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
     <div
       style={{
         width: '100%',
-        padding: isMobile ? '24px 8px 10px 8px' : '28px 40px',
+        padding: isMobile ? '16px 8px 10px 8px' : '28px 40px',
         minHeight: isMobile ? 'auto' : '600px',
         display: 'flex',
         flexDirection: 'column',
-        overflow: 'visible',
+        overflowX: 'hidden',
+        overflowY: 'visible',
         flex: 1,
       }}
     >
       <GalleryPageHeader
         isMobile={isMobile}
         title={t.header}
-        activeTab={activeTab}
-        setActiveTab={handleSetActiveTab}
-        tabLabels={tabLabels}
       />
+
+      {/* Centered Gallery Tab Selector flanked by reactive navigation chevrons */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: isMobile ? '6px' : '12px',
+          marginBottom: isMobile ? '16px' : '24px',
+          width: '100%',
+          padding: isMobile ? '0' : '0',
+          boxSizing: 'border-box',
+        }}
+      >
+        <GalleryNavBtn
+          onClick={goPrev}
+          disabled={false}
+          activeColor={currentTab.color}
+          isMobile={isMobile}
+        >
+          <ChevronLeft size={isMobile ? 20 : 24} strokeWidth={3} />
+        </GalleryNavBtn>
+
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: isMobile ? 'flex-start' : 'center', overflow: 'hidden' }}>
+          <GalleryTabSelector
+            activeTab={activeTab}
+            setActiveTab={handleSetActiveTab}
+            isMobile={isMobile}
+            tabLabels={tabLabels}
+          />
+        </div>
+
+        <GalleryNavBtn
+          onClick={goNext}
+          disabled={false}
+          activeColor={currentTab.color}
+          isMobile={isMobile}
+        >
+          <ChevronRight size={isMobile ? 20 : 24} strokeWidth={3} />
+        </GalleryNavBtn>
+      </div>
 
       <AnimatePresence>
         {selectedImage ? (
@@ -196,7 +274,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
         ) : null}
       </AnimatePresence>
 
-      <div style={{ position: 'relative', flex: 1, overflow: 'visible' }}>
+      <div style={{ position: 'relative', flex: 1, overflow: isMobile ? 'hidden' : 'visible', minWidth: 0 }}>
         {TABS.map((tab, tabIndex) => {
           if (!visitedTabs.has(tab.id) && tabIndex !== activeTab) {
             return null;

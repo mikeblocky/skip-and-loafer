@@ -37,7 +37,7 @@ const StickerPortrait = ({ charName, src, isSelected, onClick, isMobile, tapeCol
       onClick(charName);
     }}
     whileHover={isSaving ? {} : { scale: 1.05, rotate: isSelected ? 0 : (Math.random() * 4 - 2) }}
-    whileTap={isSaving ? {} : { scale: 0.95 }}
+    whileTap={isSaving ? {} : { scale: 0.98 }}
     className="memo-card portrait-sticker"
     data-char-name={charName}
     style={{ 
@@ -46,7 +46,7 @@ const StickerPortrait = ({ charName, src, isSelected, onClick, isMobile, tapeCol
       borderRadius: '4px', 
       padding: '4px',
       background: 'white',
-      border: isSelected ? '3.5px solid var(--pop-blue)' : '1.5px solid rgba(0,0,0,0.08)',
+      border: isSelected ? '2.5px solid var(--pop-blue)' : '1.5px solid rgba(0,0,0,0.08)',
       cursor: isSaving ? 'default' : 'pointer',
       position: 'relative',
       zIndex: isSelected ? 50 : 1,
@@ -475,7 +475,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
                   flexWrap: 'wrap',
                   gap: '12px',
                   width: '200px',
-                  border: '3px solid var(--pop-blue)'
+                  border: '2.5px solid var(--pop-blue)'
                 }}>
                   {PRESET_TIER_COLORS.map(c => (
                     <button 
@@ -563,7 +563,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
               padding: '32px', 
               borderRadius: '32px', 
               minHeight: '200px',
-              border: '3.5px dashed var(--line-blue)',
+              border: '2.5px dashed var(--line-blue)',
               cursor: selectedCharacter ? 'pointer' : 'default',
               boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
             }}
@@ -589,8 +589,8 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
       {!isSaving && (
         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '12px', paddingBottom: '32px' }}>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.015, y: -1.5 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleReset}
             className="sketchbook-border paper-interact"
             style={{
@@ -599,7 +599,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
               gap: '10px',
               padding: '16px 32px',
               background: '#fff',
-              border: '3.5px solid #fecaca',
+              border: '2.5px solid #fecaca',
               borderRadius: '18px',
               color: '#ef4444',
               fontWeight: 'bold',
@@ -613,8 +613,8 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.015, y: -1.5 }}
+            whileTap={{ scale: 0.98 }}
             disabled={isSaving}
             onClick={handleSaveImage}
             className="sketchbook-border paper-interact"
@@ -624,7 +624,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
               gap: '10px',
               padding: '16px 32px',
               background: '#fff',
-              border: '3.5px solid var(--pop-blue)',
+              border: '2.5px solid var(--pop-blue)',
               borderRadius: '18px',
               color: '#2563eb',
               fontWeight: 'bold',

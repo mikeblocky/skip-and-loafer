@@ -13,29 +13,43 @@ const MangaReaderSideArrows = ({ mode, showNav, isMobile, rtl, go, canPrev, canN
             {showNav && (
                 <>
                     <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
                         style={{
-                            position: 'absolute', left: isMobile ? '2px' : '6px',
+                            position: 'absolute', left: isMobile ? '8px' : '20px',
                             top: '50%', transform: 'translateY(-50%)', zIndex: 25,
                         }}
                     >
                         <Fab onClick={() => { rtl ? go(step) : go(-step); }}
-                            disabled={!canPrev} size={isMobile ? 44 : 42}
-                            style={{ background: isMobile ? 'transparent' : 'rgba(0,0,0,0.3)', border: 'none', color: isMobile ? 'rgba(255,255,255,0.15)' : undefined }}>
-                            <ChevronLeft size={isMobile ? 32 : 28} strokeWidth={1} />
+                            disabled={!canPrev} size={isMobile ? 38 : 46}
+                            style={{ 
+                                borderRadius: '50%', 
+                                border: '2.5px solid #0f172a',
+                                borderBottom: '5px solid #0f172a',
+                                background: '#ffffff',
+                                color: '#0f172a',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                            }}>
+                            <ChevronLeft size={isMobile ? 22 : 26} strokeWidth={3} />
                         </Fab>
                     </motion.div>
                     <motion.div
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
                         style={{
-                            position: 'absolute', right: isMobile ? '2px' : '6px',
+                            position: 'absolute', right: isMobile ? '8px' : '20px',
                             top: '50%', transform: 'translateY(-50%)', zIndex: 25,
                         }}
                     >
                         <Fab onClick={() => { rtl ? go(-step) : go(step); }}
-                            disabled={!canNext} size={isMobile ? 44 : 42}
-                            style={{ background: isMobile ? 'transparent' : 'rgba(0,0,0,0.3)', border: 'none', color: isMobile ? 'rgba(255,255,255,0.15)' : undefined }}>
-                            <ChevronRight size={isMobile ? 32 : 28} strokeWidth={1} />
+                            disabled={!canNext} size={isMobile ? 38 : 46}
+                            style={{ 
+                                borderRadius: '50%', 
+                                border: '2.5px solid #0f172a',
+                                borderBottom: '5px solid #0f172a',
+                                background: '#ffffff',
+                                color: '#0f172a',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                            }}>
+                            <ChevronRight size={isMobile ? 22 : 26} strokeWidth={3} />
                         </Fab>
                     </motion.div>
                 </>

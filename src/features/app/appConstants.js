@@ -3,11 +3,12 @@ import { IS_PRODUCTION_SERVER } from '../../config/runtimeFlags';
 export const ACTIVE_PAGE_STORAGE_KEY = 'skip_activePage';
 export const READER_CHAPTER_STORAGE_KEY = 'skip_readerChapter';
 export const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
+export const READER_PREFS_KEY = 'skip_reader_prefs_v1';
 export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
-export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery'];
+export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery', 'tutorial', 'settings'];
 export const DEFAULT_PAGE = TAB_PAGES[0];
 export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];
 

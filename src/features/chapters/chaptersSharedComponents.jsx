@@ -212,9 +212,9 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
     borderRadius: '12px',
     textDecoration: 'none',
     fontFamily: 'var(--font-main)',
-    fontWeight: '900',
+    fontWeight: '400',
     border: `2px solid ${border || 'rgba(0,0,0,0.2)'}`,
-    borderBottom: `4px solid ${border || 'rgba(0,0,0,0.3)'}`,
+    borderBottom: `3px solid ${border || 'rgba(0,0,0,0.3)'}`,
     boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     flexShrink: 0,
     whiteSpace: 'nowrap',
@@ -246,149 +246,149 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
  
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9, rotate: (index % 2 === 0 ? -2 : 2) }}
-      animate={{ opacity: 1, y: 0, scale: 1, rotate: (index % 2 === 0 ? -0.5 : 0.5) }}
-      transition={{ delay: index * 0.05, type: 'spring', stiffness: 500, damping: 15 }}
+      initial={{ opacity: 0, y: 8, scale: 0.98, rotate: (index % 2 === 0 ? -0.2 : 0.2) }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+      transition={{ delay: index * 0.03, type: 'spring', stiffness: 500, damping: 25 }}
       whileHover={{ 
-        scale: 1.03, 
-        y: -10, 
+        scale: 1.015, 
+        y: -1.5, 
         zIndex: 10,
-        boxShadow: `0 12px 32px ${theme.shadow}`,
-        transition: { type: 'spring', stiffness: 450, damping: 12 } 
+        boxShadow: `0 8px 24px ${theme.shadow}`,
+        transition: { type: 'spring', stiffness: 450, damping: 15 } 
       }}
-      whileTap={{ scale: 0.92, y: 8, rotate: index % 2 === 0 ? 1 : -1 }}
+      whileTap={{ scale: 0.98, y: 0.5 }}
       style={getChapterRowStyle(theme, index, finished, isMobile)}
     >
       <CelebrationHearts show={celebrating} />
       <MilestoneEffects count={readCount} tier={tier} color={theme.accent} isMobile={isMobile} />
  
-      {finished && (
-        <motion.div
-          initial={{ y: -20, opacity: 0, scale: 0.5 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 15, delay: index * 0.05 + 0.2 }}
-          style={{
-            position: 'absolute',
-            top: '-12px',
-            right: '20px',
-            zIndex: 15,
-            background: tier.bg || '#fff',
-            borderRadius: '12px',
-            padding: '4px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            border: `3px solid ${tier.border || theme.border}`,
-            borderBottom: `6px solid ${tier.border || theme.border}`,
-            boxShadow: `0 4px 12px ${theme.shadow}`,
-          }}
-        >
-          <Sparkle size={14} strokeWidth={3} style={{ color: tier.text || theme.accent }} />
-          <span style={{ color: tier.text || theme.accent, fontSize: '0.75rem', fontWeight: '900', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
+    {finished && (
+      <motion.div
+        initial={{ y: -6, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 25, delay: index * 0.04 + 0.1 }}
+        style={{
+          position: 'absolute',
+          top: '-12px',
+          right: '20px',
+          zIndex: 15,
+          background: tier.bg || '#fff',
+          borderRadius: '12px',
+          padding: '4px 12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          border: `2px solid ${tier.border || theme.border}`,
+          borderBottom: `4px solid ${tier.border || theme.border}`,
+          boxShadow: `0 4px 12px ${theme.shadow}`,
+        }}
+      >
+        <Sparkle size={14} strokeWidth={3} style={{ color: tier.text || theme.accent }} />
+        <span style={{ color: tier.text || theme.accent, fontSize: '0.75rem', fontWeight: '400', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
             {tier.label ? `${tier.label} • ${readCount}×` : `${readCount}×`}
           </span>
         </motion.div>
       )}
  
-      <div style={{ 
-        width: isMobile ? '44px' : '52px', 
-        height: isMobile ? '44px' : '52px', 
-        borderRadius: '16px', 
-        background: theme.bg, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        flexShrink: 0, 
-        border: `3px solid ${theme.border}`,
-        borderBottom: `6px solid ${theme.border}`,
-        boxShadow: `0 4px 0 rgba(0,0,0,0.1)`,
-      }}>
-        <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '900', color: theme.accent }}>{chapterBadge}</span>
-      </div>
+    <div style={{ 
+      width: isMobile ? '44px' : '52px', 
+      height: isMobile ? '44px' : '52px', 
+      borderRadius: '16px', 
+      background: theme.bg, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      flexShrink: 0, 
+      border: `2.5px solid ${theme.border}`,
+      borderBottom: `4.5px solid ${theme.border}`,
+      boxShadow: `0 3px 0 rgba(0,0,0,0.1)`,
+    }}>
+      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: theme.accent }}>{chapterBadge}</span>
+    </div>
  
-      <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {chapterTitle && (
-          <span style={{ fontFamily: 'var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: '#111827', fontWeight: '900', lineHeight: 1.2 }}>
-            {chapterTitle}
-          </span>
-        )}
-        {chapter.latest && (
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{ 
-              width: 'fit-content',
-              fontSize: '0.65rem', 
-              fontFamily: 'var(--font-main)', 
-              fontWeight: '900', 
-              color: '#dc2626', 
-              background: '#fee2e2', 
-              border: '2px solid #ef4444',
-              borderBottom: '4px solid #ef4444',
-              padding: '2px 10px', 
-              borderRadius: '9999px', 
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <Plus size={10} strokeWidth={4} /> {t.latest}
-          </motion.div>
-        )}
-      </div>
+    <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {chapterTitle && (
+        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: theme.accent, fontWeight: '400', lineHeight: 1.2 }}>
+          {chapterTitle}
+        </span>
+      )}
+      {chapter.latest && (
+        <motion.div
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ 
+            width: 'fit-content',
+            fontSize: '0.65rem', 
+            fontFamily: 'var(--font-main)', 
+            fontWeight: '400', 
+            color: '#dc2626', 
+            background: '#fee2e2', 
+            border: '1.5px solid #ef4444',
+            borderBottom: '3px solid #ef4444',
+            padding: '2px 10px', 
+            borderRadius: '9999px', 
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          <Plus size={10} strokeWidth={4} /> {t.latest}
+        </motion.div>
+      )}
+    </div>
  
       <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
-        {!comingSoon && (
-          <motion.button
-            whileHover={cooldown > 0 ? {} : { scale: 1.05, y: -4, rotate: 2 }}
-            whileTap={cooldown > 0 ? {} : { scale: 0.85, y: 8, rotate: -2 }}
-            onClick={handleIncrement}
-            disabled={cooldown > 0}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: isMobile ? '0.8rem' : '0.85rem',
-              color: cooldown > 0 ? '#94a3b8' : theme.accent,
-              background: cooldown > 0 ? '#f1f5f9' : theme.surface,
-              padding: isMobile ? '8px 16px' : '10px 20px',
-              borderRadius: '14px',
-              fontFamily: 'var(--font-main)',
-              fontWeight: '900',
-              border: `3px solid ${cooldown > 0 ? '#cbd5e1' : theme.border}`,
-              borderBottom: cooldown > 0 ? '3px solid #cbd5e1' : `8px solid ${theme.border}`,
-              cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
-              boxShadow: cooldown > 0 ? 'none' : `0 6px 16px ${theme.shadow}`,
-              opacity: cooldown > 0 ? 0.7 : 1,
-            }}
-          >
-            {cooldown > 0 ? <Timer size={16} strokeWidth={3} /> : <Plus size={16} strokeWidth={3} />}
-            {cooldown > 0 ? `${cooldown}${t.secondsUnit || 's'}` : t.plusRead}
-          </motion.button>
-        )}
-        {chapter.readInApp && chapter.pages && chapter.pages.length > 0 && (
-          <motion.button
-            whileHover={{ scale: 1.05, y: -4, rotate: -2 }}
-            whileTap={{ scale: 0.85, y: 8, rotate: 2 }}
-            onClick={() => onReadChapter && onReadChapter(chapter)}
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              fontSize: isMobile ? '0.8rem' : '0.85rem', 
-              color: '#fff', 
-              background: '#059669', 
-              padding: isMobile ? '8px 16px' : '10px 20px', 
-              borderRadius: '14px', 
-              fontFamily: 'var(--font-main)', 
-              fontWeight: '900', 
-              border: '3px solid #065f46', 
-              borderBottom: '8px solid #064e3b',
-              cursor: 'pointer',
-              boxShadow: '0 6px 16px rgba(5, 150, 105, 0.2)'
-            }}
-          >
+      {!comingSoon && (
+        <motion.button
+          whileHover={cooldown > 0 ? {} : { scale: 1.015, y: -1, rotate: 0.5 }}
+          whileTap={cooldown > 0 ? {} : { scale: 0.98, y: 0.5 }}
+          onClick={handleIncrement}
+          disabled={cooldown > 0}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: isMobile ? '0.8rem' : '0.85rem',
+            color: cooldown > 0 ? '#94a3b8' : theme.accent,
+            background: cooldown > 0 ? '#f1f5f9' : theme.surface,
+            padding: isMobile ? '6px 14px' : '8px 18px',
+            borderRadius: '12px',
+            fontFamily: 'var(--font-main)',
+            fontWeight: '400',
+            border: `2px solid ${cooldown > 0 ? '#cbd5e1' : theme.border}`,
+            borderBottom: cooldown > 0 ? '2.5px solid #cbd5e1' : `4.5px solid ${theme.border}`,
+            cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
+            boxShadow: cooldown > 0 ? 'none' : `0 4px 12px ${theme.shadow}`,
+            opacity: cooldown > 0 ? 0.7 : 1,
+          }}
+        >
+          {cooldown > 0 ? <Timer size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
+          {cooldown > 0 ? `${cooldown}${t.secondsUnit || 's'}` : t.plusRead}
+        </motion.button>
+      )}
+      {chapter.readInApp && chapter.pages && chapter.pages.length > 0 && (
+        <motion.button
+          whileHover={{ scale: 1.015, y: -1, rotate: -0.5 }}
+          whileTap={{ scale: 0.98, y: 0.5 }}
+          onClick={() => onReadChapter && onReadChapter(chapter)}
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            fontSize: isMobile ? '0.8rem' : '0.85rem', 
+            color: '#fff', 
+            background: '#059669', 
+            padding: isMobile ? '6px 14px' : '8px 18px', 
+            borderRadius: '12px', 
+            fontFamily: 'var(--font-main)', 
+            fontWeight: '400', 
+            border: '2px solid #065f46', 
+            borderBottom: '4.5px solid #064e3b',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.1)'
+          }}
+        >
             <BookMarked size={16} strokeWidth={3} /> {t.readInApp || 'Read'}
           </motion.button>
         )}
@@ -415,31 +415,31 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             <Languages size={14} strokeWidth={3} /> {i + 1}
           </motion.a>
         ))}
-        {linkTimeLeft > 0 && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '6px', 
-            fontSize: '0.75rem', 
-            color: theme.accent, 
-            background: '#fff', 
-            padding: '6px 12px', 
-            borderRadius: '12px', 
-            fontFamily: 'var(--font-main)', 
-            fontWeight: '900',
-            border: `3px solid ${theme.border}`,
-            borderBottom: `6px solid ${theme.border}`
-          }}>
-            <Timer size={14} strokeWidth={3} /> {formatTime(linkTimeLeft)}
-            <button 
-              onClick={() => cancelExternalLink?.(chapter.number)} 
-              style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0 0 4px', fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center' }} 
-              title="Cancel"
-            >
-              &times;
-            </button>
-          </div>
-        )}
+      {linkTimeLeft > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '6px', 
+          fontSize: '0.75rem', 
+          color: theme.accent, 
+          background: '#fff', 
+          padding: '6px 12px', 
+          borderRadius: '12px', 
+          fontFamily: 'var(--font-main)', 
+          fontWeight: '400',
+          border: `2px solid ${theme.border}`,
+          borderBottom: `4.5px solid ${theme.border}`
+        }}>
+          <Timer size={14} strokeWidth={3} /> {formatTime(linkTimeLeft)}
+          <button 
+            onClick={() => cancelExternalLink?.(chapter.number)} 
+            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0 0 4px', fontSize: '1.1rem', fontWeight: 400, display: 'flex', alignItems: 'center' }} 
+            title="Cancel"
+          >
+            &times;
+          </button>
+        </div>
+      )}
       </div>
     </motion.div>
   );
@@ -463,14 +463,10 @@ export const NavBtn = ({ onClick, disabled, volumeNumber, children, isMobile }) 
 export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) => {
   const containerRef = useRef(null);
 
-  const handleSelect = (idx) => {
-    triggerHaptic('tabSwitch');
-    setActiveVol(idx);
-    
-    // Smoothly scroll the selected button into view if possible
+  useEffect(() => {
     const container = containerRef.current;
     if (container) {
-      const btn = container.querySelector(`[data-vol-idx="${idx}"]`);
+      const btn = container.querySelector(`[data-vol-idx="${activeVol}"]`);
       if (btn) {
         const offsetLeft = btn.offsetLeft;
         const width = btn.offsetWidth;
@@ -481,18 +477,23 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
         });
       }
     }
+  }, [activeVol]);
+
+  const handleSelect = (idx) => {
+    triggerHaptic('tabSwitch');
+    setActiveVol(idx);
   };
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '8px 0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0', maxWidth: isMobile ? 'calc(100% - 100px)' : 'calc(100% - 160px)', minWidth: 0 }}>
       <div 
         ref={containerRef}
         className="hide-scrollbar"
         style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: isMobile ? '8px' : '10px', 
-          padding: '10px 20px 20px 20px',
+          gap: isMobile ? '6px' : '8px', 
+          padding: '6px 12px 12px 12px',
           overflowX: 'auto',
           scrollSnapType: 'x proximity',
           maxWidth: '100%',
@@ -519,17 +520,17 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 justifyContent: 'center',
                 background: '#ffffff',
                 color: theme.accent,
-                border: `3.5px solid ${theme.accent}`,
-                borderBottom: isActive ? `8px solid ${theme.accent}` : `4px solid ${theme.accent}`,
+                border: `2.5px solid ${theme.accent}`,
+                borderBottom: isActive ? `6px solid ${theme.accent}` : `3.5px solid ${theme.accent}`,
                 borderRadius: '16px',
                 fontFamily: '"Coming Soon", var(--font-main)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',
-                fontWeight: '700',
+                fontWeight: '400',
                 cursor: 'pointer',
                 position: 'relative',
                 transition: 'border-bottom-width 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.2s',
                 boxShadow: isActive ? `0 6px 16px ${theme.accent}15` : '0 4px 10px rgba(0,0,0,0.05)',
-                transform: isActive ? 'translateY(-4px)' : 'none'
+                transform: isActive ? 'translateY(-2px)' : 'none'
               }}
             >
               {vol.number}

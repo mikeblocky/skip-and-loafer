@@ -90,11 +90,12 @@ const SignNotesBoard = ({
         const stackLayout = getEntryStackLayout(entry, index);
         const gesture = noteGestures[entry.id] || { scale: 1, rotate: 0 };
         const cardDragConstraints = isMobile ? undefined : noteDragConstraints;
+        const washiColor = ['pink', 'blue', 'yellow'][index % 3];
+        const isLeft = index % 2 === 0;
 
         return (
           <motion.article
             key={`${entry.id}-${canvasResetVersion}`}
-            className="sketchbook-border"
             data-no-tab-swipe="1"
             layout
             drag
@@ -103,7 +104,7 @@ const SignNotesBoard = ({
             dragMomentum={false}
             onDragStart={() => onDragStart(entry.id)}
             onDragEnd={() => onDragEnd(entry.id)}
-            whileDrag={{ scale: 1.03, rotate: 0 }}
+            whileDrag={{ scale: 1.015, rotate: 0 }}
             initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.25, rotate: stackLayout.rotate - 0.45, scale: 0.985 }}
             animate={{
               opacity: 1,
@@ -123,7 +124,7 @@ const SignNotesBoard = ({
             style={{
               breakInside: 'avoid',
               maxWidth: '100%',
-              marginBottom: isMobile ? '12px' : '18px',
+              marginBottom: isMobile ? '20px' : '26px',
               position: 'relative',
               zIndex: activeDraggedId === entry.id
                 ? 1000
@@ -136,13 +137,28 @@ const SignNotesBoard = ({
               boxShadow: 'none',
             }}
           >
+            {/* Corner washi tape accent for the message note */}
             <div
+              className={`washi-tape washi-tape--${washiColor}`}
+              style={{
+                top: '-6px',
+                left: isLeft ? '14px' : 'auto',
+                right: isLeft ? 'auto' : '14px',
+                transform: `rotate(${isLeft ? -12 : 12}deg)`,
+                width: '66px',
+                height: '18px',
+                zIndex: 10,
+              }}
+            />
+
+            <div
+              className="sketchbook-border"
               style={{
                 ...createPaperPanelStyle({
-                  background: '#fffdf7',
+                  background: palette.background, // Use card's background instead of hardcoded white
                   borderColor: palette.border,
                   bottomColor: palette.bottom,
-                  radius: '26px',
+                  radius: '28px',
                   shadow: `0 14px 26px ${palette.shadow || 'rgba(15, 23, 42, 0.1)'}`,
                 }),
                 padding: isMobile ? '14px 14px 12px' : '18px 20px 16px',

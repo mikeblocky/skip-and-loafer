@@ -24,6 +24,7 @@ import {
   getInitialShortcutStats,
   getInitialUiLanguageValue,
   persistDisclaimerSeen,
+  getInitialReaderPrefs,
 } from '../appStorage';
 import useDeferredMount from './useDeferredMount';
 import { useGalleryPrefetch } from './useGalleryPrefetch';
@@ -86,6 +87,7 @@ export const useAppController = () => {
   const [subtabShortcut, setSubtabShortcut] = useState({ key: null, token: 0 });
   const [shortcutStats, setShortcutStats] = useState(getInitialShortcutStats);
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(getInitialAccessibilityPrefs);
+  const [readerPrefs, setReaderPrefs] = useState(getInitialReaderPrefs);
 
   const t = APP_UI_TEXT[uiLanguage] || APP_UI_TEXT.en;
   const supportedUiLanguages = getSupportedUiLanguages();
@@ -123,6 +125,7 @@ export const useAppController = () => {
     accessibilityPrefs,
     uiLanguage,
     shortcutStats,
+    readerPrefs,
     accessibilityKey: ACCESSIBILITY_KEY,
     languageKey: LANGUAGE_KEY,
     shortcutStatsKey: SHORTCUT_STATS_KEY,
@@ -291,6 +294,8 @@ export const useAppController = () => {
     stickerLayoutById,
     stickerPositions: stickerPositionsRef.current,
     subtabShortcut,
+    readerPrefs,
+    setReaderPrefs,
     syncData,
     t,
     tabCount: visibleTabPages.length,

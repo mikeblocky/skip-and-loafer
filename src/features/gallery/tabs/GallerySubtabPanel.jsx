@@ -65,7 +65,16 @@ const GallerySubtabPanel = ({
         </div>
       ) : (
         <>
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-5 space-y-5" style={{ overflowAnchor: 'none' }}>
+          <div 
+            style={{ 
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: isMobile ? '12px' : '20px',
+              width: '100%',
+              minWidth: 0,
+              overflowAnchor: 'none' 
+            }}
+          >
           {visibleImages.map((src, index) => {
             const isSelected = isActive && src === selectedImage;
             return (

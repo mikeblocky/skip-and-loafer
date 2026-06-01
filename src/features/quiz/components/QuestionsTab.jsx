@@ -30,7 +30,7 @@ const QuestionsTab = ({
   handleChoiceSelect,
   feedback,
 }) => (
-  <>
+  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
     {gameState === 'setup' && (
       <QuestionsSetupSection
         isMobile={isMobile}
@@ -78,7 +78,7 @@ const QuestionsTab = ({
         resetQuiz={resetQuiz}
       />
     )}
-  </>
+  </div>
 );
 
 export default QuestionsTab;
