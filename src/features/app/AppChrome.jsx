@@ -107,7 +107,7 @@ const AppChrome = ({ app }) => {
               overscrollBehaviorY: 'contain',
               padding: app.isMobile
                 ? 'env(safe-area-inset-top, 0px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0'
-                : '0 18px 16px',
+                : '24px 18px',
               pointerEvents: 'auto',
             }}
             initial={{ opacity: 0, y: 10 }}
@@ -156,8 +156,8 @@ const AppChrome = ({ app }) => {
                 maxWidth: app.isMobile
                   ? '100%'
                   : (app.accessibilityPrefs.largeText ? '1380px' : '1320px'),
-                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 16px)',
-                height: app.isMobile ? 'auto' : 'calc(100dvh - 16px)',
+                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 48px)',
+                height: app.isMobile ? 'auto' : 'calc(100dvh - 48px)',
                 display: 'flex',
                 flexDirection: app.isMobile ? 'column' : 'row',
                 alignItems: 'stretch',
