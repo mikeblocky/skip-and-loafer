@@ -87,7 +87,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
     });
 
     /* ── Sync state ── */
-    const { syncKey, setSyncKey, syncActive, setSyncActive, lastSynced, pushData, pullData, disconnect } = syncData || {};
+    const { syncKey, setSyncKey, syncActive, setSyncActive, lastSynced, pushData, pullData, disconnect, pushNow } = syncData || {};
     
     // Local UI state
     const [inputKey, setInputKey] = useState('');
