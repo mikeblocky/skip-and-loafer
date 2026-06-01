@@ -418,7 +418,8 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                 position: 'relative',
                                 boxShadow: '0 12px 36px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0,0,0,0.02)',
                                 boxSizing: 'border-box',
-                                overflow: 'hidden'
+                                overflowY: isMobile ? 'auto' : 'hidden',
+                                overflowX: 'hidden'
                             }}
                         >
                             
@@ -486,10 +487,9 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             <div style={{
                                 display: 'grid',
                                 gridTemplateColumns: isMobile ? '1fr' : '45% 55%',
-                                height: isMobile ? 'calc(100% - 44px)' : '100%',
+                                height: isMobile ? 'auto' : '100%',
                                 width: '100%',
-                                boxSizing: 'border-box',
-                                overflowY: isMobile ? 'auto' : 'visible'
+                                boxSizing: 'border-box'
                             }}>
                                 
                                 {/* 📖 LEFT PAGE: Book Details & Stats */}
@@ -755,7 +755,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             {/* Volume Switcher inside the modal footer (Mobile Only) */}
                             {isMobile && (
                                 <div style={{
-                                    position: 'absolute',
+                                    position: 'sticky',
                                     bottom: 0,
                                     left: 0,
                                     right: 0,
