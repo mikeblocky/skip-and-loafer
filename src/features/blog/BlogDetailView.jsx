@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, ChevronLeft } from 'lucide-react';
+import { BookOpen, CalendarDays, ChevronLeft, ArrowUp, CornerDownLeft } from 'lucide-react';
 import {
   BLOG_META_DOT_STYLE,
   getBackToListButtonStyle,
@@ -85,6 +85,72 @@ const BlogDetailView = ({
               style={getLoadMoreStyle(isMobile, readerTheme)}
             >
               Loading more...
+            </div>
+          )}
+
+          {visibleChunkCount >= markdownChunksLength && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '16px',
+              marginTop: '40px',
+              paddingTop: '20px',
+              borderTop: '2.5px dashed rgba(0,0,0,0.08)',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  if (readScrollRef.current) {
+                    readScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '2px solid #93c5fd',
+                  borderBottom: '4px solid #3b82f6',
+                  borderRadius: '12px',
+                  padding: '8px 14px',
+                  fontSize: '0.86rem',
+                  fontWeight: 'bold',
+                  color: '#1d4ed8',
+                  fontFamily: 'var(--font-paper)',
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowUp size={14} strokeWidth={3} />
+                Go to top
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBackToList}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '2px solid #fca5a5',
+                  borderBottom: '4px solid #ef4444',
+                  borderRadius: '12px',
+                  padding: '8px 14px',
+                  fontSize: '0.86rem',
+                  fontWeight: 'bold',
+                  color: '#b91c1c',
+                  fontFamily: 'var(--font-paper)',
+                  cursor: 'pointer',
+                }}
+              >
+                <CornerDownLeft size={14} strokeWidth={3} />
+                Return to list
+              </motion.button>
             </div>
           )}
         </div>
