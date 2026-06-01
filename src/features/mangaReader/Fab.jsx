@@ -13,23 +13,27 @@ const Fab = ({ onClick, onPointerDown, active, disabled, children, size = 36, st
       }
     }}
     disabled={disabled}
-    whileHover={!disabled ? { scale: 1.1 } : {}}
-    whileTap={!disabled ? { scale: 0.88 } : {}}
+    whileHover={!disabled ? { scale: 1.08, y: -2 } : {}}
+    whileTap={!disabled ? { scale: 0.94, y: 1 } : {}}
     style={{
       width: `${size}px`,
       height: `${size}px`,
-      borderRadius: '10px',
-      background: active ? 'rgba(255,158,198,0.22)' : 'rgba(255,255,255,0.07)',
-      border: active ? '1.5px solid rgba(255,158,198,0.45)' : '1.5px solid rgba(255,255,255,0.1)',
-      color: active ? '#ff9ec6' : (disabled ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.55)'),
-      cursor: disabled ? 'default' : 'pointer',
+      borderRadius: '12px',
+      background: active ? '#ff9ec6' : (disabled ? '#1e293b' : '#ffffff'),
+      border: '2.5px solid #0f172a',
+      borderBottom: active ? '3.5px solid #0f172a' : (disabled ? '2.5px solid #0f172a' : '5px solid #0f172a'),
+      color: active ? '#0f172a' : (disabled ? '#64748b' : '#0f172a'),
+      cursor: disabled ? 'not-allowed' : 'pointer',
       pointerEvents: 'auto',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 0,
-      transition: 'all 0.15s',
+      fontFamily: 'var(--font-main)',
+      fontWeight: '900',
+      transition: 'background-color 0.15s, border-color 0.15s, color 0.15s',
       flexShrink: 0,
+      opacity: disabled ? 0.6 : 1,
       ...style,
     }}
   >{children}</motion.button>

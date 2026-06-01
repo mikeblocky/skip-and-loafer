@@ -27,7 +27,7 @@ const VolumePurchaseLinks = ({
     borderRadius,
     textDecoration: 'none',
     fontFamily: 'var(--font-main)',
-    fontWeight: '900',
+    fontWeight: '400',
     transition: 'all 0.1s ease',
   };
  

@@ -188,8 +188,8 @@ const ChaptersPage = ({
   const enShortLabel = enIsPreOrder ? t.preOrderEN : t.buyEN;
   const jpShortLabel = jpIsPreOrder ? t.preOrderJP : t.buyJP;
 
-  const goPrev = () => setActiveVol((previous) => Math.max(0, previous - 1));
-  const goNext = () => setActiveVol((previous) => Math.min(VOLUMES.length - 1, previous + 1));
+  const goPrev = () => setActiveVol((previous) => (previous - 1 + VOLUMES.length) % VOLUMES.length);
+  const goNext = () => setActiveVol((previous) => (previous + 1) % VOLUMES.length);
 
   const unreadCount = useMemo(() => {
     const totalAvailable = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && (chapter.links?.en || chapter.pages)).length;

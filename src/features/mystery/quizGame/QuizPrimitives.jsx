@@ -157,8 +157,8 @@ export const QuizActionButton = ({
       className={className}
       palette={resolvedPalette}
       disabled={disabled}
-      whileHover={disabled ? undefined : (whileHover || { scale: 1.05, y: -4 })}
-      whileTap={disabled ? undefined : (whileTap || { scale: 0.92, y: 10 })}
+      whileHover={disabled ? undefined : (whileHover || { scale: 1.015, y: -1.5 })}
+      whileTap={disabled ? undefined : (whileTap || { scale: 0.98 })}
       style={{
         fontFamily: 'var(--font-main)',
         fontSize: isMobile ? '1.1rem' : '1.15rem',
@@ -235,7 +235,7 @@ export const QuizStageFrame = ({
           width: '100%',
           margin: 0,
           lineHeight: 1.3,
-          fontWeight: '700',
+          fontWeight: '400',
         }}
       >
         {questionLabel}

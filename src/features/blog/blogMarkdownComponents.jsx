@@ -40,7 +40,7 @@ export const createBlogMarkdownComponents = ({
           style={{
             margin: '-12px auto 16px auto',
             background: '#fff',
-            border: `3px solid ${readerTheme.codeBorder}`,
+            border: `2.5px solid ${readerTheme.codeBorder}`,
             borderTop: 'none',
             borderRadius: '0 0 16px 16px',
             padding: isMobile ? '8px 14px 10px 14px' : '10px 16px 12px 16px',
@@ -121,7 +121,7 @@ export const createBlogMarkdownComponents = ({
     )
   ),
   pre: ({ children }) => (
-    <pre style={{ margin: '0 0 16px 0', background: readerTheme.codeBg, border: `3px solid ${readerTheme.codeBorder}`, borderBottom: `6px solid ${readerTheme.codeBorder}`, borderRadius: '16px', padding: '16px', overflowX: 'auto' }}>
+    <pre style={{ margin: '0 0 16px 0', background: readerTheme.codeBg, border: `2.5px solid ${readerTheme.codeBorder}`, borderBottom: `5px solid ${readerTheme.codeBorder}`, borderRadius: '16px', padding: '16px', overflowX: 'auto' }}>
       {children}
     </pre>
   ),
@@ -130,8 +130,8 @@ export const createBlogMarkdownComponents = ({
       style={{
         margin: '16px auto 0 auto',
         background: '#fff',
-        border: `3px solid ${readerTheme.codeBorder}`,
-        borderBottom: `6px solid ${readerTheme.codeBorder}`,
+        border: `2.5px solid ${readerTheme.codeBorder}`,
+        borderBottom: `5px solid ${readerTheme.codeBorder}`,
         borderRadius: '20px',
         padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
@@ -172,7 +172,7 @@ export const createBlogMarkdownComponents = ({
     }
  
     return (
-      <div style={{ margin: '16px 0 12px 0', background: '#fff', border: `3px solid ${readerTheme.codeBorder}`, borderBottom: `6px solid ${readerTheme.codeBorder}`, borderRadius: '20px', padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ margin: '16px 0 12px 0', background: '#fff', border: `2.5px solid ${readerTheme.codeBorder}`, borderBottom: `5px solid ${readerTheme.codeBorder}`, borderRadius: '20px', padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
         <img
           src={src}
           alt={alt || ''}
@@ -184,14 +184,14 @@ export const createBlogMarkdownComponents = ({
     );
   },
   video: ({ children, ...props }) => (
-    <div style={{ margin: '16px 0', border: '3px solid #e2e8f0', borderBottom: '8px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
+    <div style={{ margin: '16px 0', border: '2.5px solid #e2e8f0', borderBottom: '5px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
       <video controls playsInline {...props} style={{ width: '100%', display: 'block' }}>
         {children}
       </video>
     </div>
   ),
   iframe: ({ ...props }) => (
-    <div style={{ margin: '16px 0', border: '3px solid #e2e8f0', borderBottom: '8px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
+    <div style={{ margin: '16px 0', border: '2.5px solid #e2e8f0', borderBottom: '5px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
       <iframe title="Embedded media" loading="lazy" {...props} style={{ width: '100%', minHeight: isMobile ? '200px' : '360px', border: 0, display: 'block' }} />
     </div>
   ),

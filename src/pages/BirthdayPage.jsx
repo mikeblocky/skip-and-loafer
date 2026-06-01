@@ -40,15 +40,12 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
     <div
       style={{
         width: '100%',
-        minHeight: '100vh',
-        padding: isMobile ? '24px 16px 40px 16px' : '28px 40px 60px 40px',
-        background: '#ffffff',
-        backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #eef1f6 32px)',
-        backgroundSize: '100% 32px',
+        padding: isMobile ? '20px 14px 60px' : '32px 40px',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'visible',
         position: 'relative',
+        boxSizing: 'border-box',
       }}
     >
       <BirthdayHeader isMobile={isMobile} title={t.title} />

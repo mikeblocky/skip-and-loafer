@@ -100,23 +100,29 @@ const MangaReaderProgressBar = ({
           <div
             style={{
               width: '100%',
-              height: isMobile ? '4px' : '6px',
-              background: 'rgba(255,255,255,0.25)',
-              borderRadius: '4px',
+              height: isMobile ? '10px' : '14px',
+              background: '#ffffff',
+              borderRadius: '6px',
+              border: '2px solid #0f172a',
+              boxShadow: '2px 2px 0px rgba(0,0,0,0.15)',
               position: 'relative',
+              overflow: 'hidden',
+              backgroundImage: 'repeating-linear-gradient(90deg, #cbd5e1, #cbd5e1 1px, transparent 1px, transparent 12px)',
             }}
           >
             <div
               style={{
                 position: 'absolute',
                 top: 0,
-                height: '100%',
+                bottom: 0,
                 left: effectiveRtl ? 'auto' : 0,
                 right: effectiveRtl ? 0 : 'auto',
                 width: `${previewPage !== null ? (previewPage / safeDenominator) * 100 : progressPct}%`,
-                background: previewPage !== null ? '#ff9ec6' : 'rgba(255,158,198,0.85)',
-                borderRadius: '4px',
+                background: '#ff9ec6',
+                borderRight: effectiveRtl ? 'none' : '2.2px solid #0f172a',
+                borderLeft: effectiveRtl ? '2.2px solid #0f172a' : 'none',
                 transition: previewPage !== null ? 'none' : 'width 0.15s ease-out',
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(15,23,42,0.1), rgba(15,23,42,0.1) 1px, transparent 1px, transparent 12px)',
               }}
             />
           </div>

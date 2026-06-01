@@ -7,6 +7,7 @@ export const usePersistedAppState = ({
   accessibilityPrefs,
   uiLanguage,
   shortcutStats,
+  readerPrefs,
   accessibilityKey,
   languageKey,
   shortcutStatsKey,
@@ -41,6 +42,14 @@ export const usePersistedAppState = ({
       // ignore storage failures
     }
   }, [accessibilityKey, accessibilityPrefs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('skip_reader_prefs_v1', JSON.stringify(readerPrefs));
+    } catch {
+      // ignore storage failures
+    }
+  }, [readerPrefs]);
 
   useEffect(() => {
     try {

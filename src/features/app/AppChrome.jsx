@@ -5,7 +5,6 @@ import NavTabs from '../../components/shared/NavTabs';
 import {
   AppDisclaimerModal,
   AppDecorativeLayer,
-  AppQuickControls,
   BirthdayNotification,
   ChangelogPopup,
   RetirementPopup,
@@ -13,6 +12,7 @@ import {
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
 import ReaderOverlayFallback from './ReaderOverlayFallback';
+import { CHAPTERS, isMainChapter } from '../../data/chapters';
 
 const skipLinkStyle = {
   position: 'absolute',
@@ -50,21 +50,26 @@ const copyrightStyle = {
   opacity: 0.6,
 };
 
-const AppChrome = ({ app }) => (
-  <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
-    <div className="app-surface-shell" style={shellViewportStyle}>
-      <a
-        href="#main-content"
-        style={skipLinkStyle}
-        onFocus={(event) => {
-          event.currentTarget.style.transform = 'translateY(0)';
-        }}
-        onBlur={(event) => {
-          event.currentTarget.style.transform = 'translateY(-180%)';
-        }}
-      >
-        {app.t.skipToContent}
-      </a>
+const AppChrome = ({ app }) => {
+  const unreadCount = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && (chapter.links?.en || chapter.pages)).length -
+    CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && app.isFinished(chapter.number)).length;
+  const safeUnreadCount = Math.max(0, unreadCount);
+
+  return (
+    <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
+      <div className="app-surface-shell" style={shellViewportStyle}>
+        <a
+          href="#main-content"
+          style={skipLinkStyle}
+          onFocus={(event) => {
+            event.currentTarget.style.transform = 'translateY(0)';
+          }}
+          onBlur={(event) => {
+            event.currentTarget.style.transform = 'translateY(-180%)';
+          }}
+        >
+          {app.t.skipToContent}
+        </a>
 
       {app.showDisclaimer && app.deferredShellMount && (
         <Suspense fallback={null}>
@@ -159,12 +164,13 @@ const AppChrome = ({ app }) => (
                 width: '100%',
                 maxWidth: app.isMobile
                   ? '100%'
-                  : (app.activePage === 'home'
-                    ? (app.accessibilityPrefs.largeText ? '1420px' : '1360px')
-                    : '1210px'),
+                  : (app.accessibilityPrefs.largeText ? '1380px' : '1320px'),
                 minHeight: app.isMobile ? 'calc(100dvh - 160px)' : 'calc(100dvh - 170px)',
+                height: app.isMobile ? 'auto' : 'calc(100dvh - 76px)',
                 display: 'flex',
-                flexDirection: 'column',
+                flexDirection: app.isMobile ? 'column' : 'row',
+                alignItems: 'stretch',
+                gap: '0px',
                 pointerEvents: 'auto',
                 flex: '1 0 auto',
                 flexShrink: 0,
@@ -178,6 +184,7 @@ const AppChrome = ({ app }) => (
                 labelsById={app.t.tabs}
                 openTabPrefix={app.t.openTabPrefix}
                 tabSuffix={app.t.tabSuffix}
+                unreadCount={safeUnreadCount}
               />
 
               <AppTabContent
@@ -201,8 +208,15 @@ const AppChrome = ({ app }) => (
                 reloadFromStorage={app.reloadFromStorage}
                 syncData={app.syncData}
                 accessibilityPrefs={app.accessibilityPrefs}
+                readerPrefs={app.readerPrefs}
+                setReaderPrefs={app.setReaderPrefs}
                 handleMainTouchStart={app.handleMainTouchStart}
                 handleMainTouchEnd={app.handleMainTouchEnd}
+                setUiLanguage={app.setUiLanguage}
+                toggleAccessibilityPref={app.toggleAccessibilityPref}
+                setAccessibilityColorBlindMode={app.setAccessibilityColorBlindMode}
+                shortcutStats={app.shortcutStats}
+                t={app.t}
               />
             </motion.div>
 
@@ -220,12 +234,6 @@ const AppChrome = ({ app }) => (
       {app.deferredShellMount && (
         <Suspense fallback={null}>
           <BirthdayNotification isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
-        </Suspense>
-      )}
-
-      {app.deferredShellMount && (
-        <Suspense fallback={null}>
-          <RetirementPopup isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
         </Suspense>
       )}
 
@@ -270,32 +278,7 @@ const AppChrome = ({ app }) => (
         )}
       </AnimatePresence>
 
-      {app.deferredShellMount && (
-        <Suspense fallback={null}>
-          <AppQuickControls
-            quickControlsRef={app.quickControlsRef}
-            readerChapter={app.readerChapter}
-            isMobile={app.isMobile}
-            t={app.t}
-            showAccessibilityPanel={app.showAccessibilityPanel}
-            showShortcutPanel={app.showShortcutPanel}
-            showLanguageMenu={app.showLanguageMenu}
-            showSettingsMain={app.showSettingsMain}
-            toggleAccessibilityPanel={app.toggleAccessibilityPanel}
-            toggleShortcutPanel={app.toggleShortcutPanel}
-            toggleLanguagePanel={app.toggleLanguagePanel}
-            toggleSettingsMain={app.toggleSettingsMain}
-            accessibilityPrefs={app.accessibilityPrefs}
-            toggleAccessibilityPref={app.toggleAccessibilityPref}
-            setAccessibilityColorBlindMode={app.setAccessibilityColorBlindMode}
-            uiLanguage={app.uiLanguage}
-            setUiLanguage={app.setUiLanguage}
-            setShowLanguageMenu={app.setShowLanguageMenu}
-            shortcutStats={app.shortcutStats}
-            tabCount={app.tabCount}
-          />
-        </Suspense>
-      )}
+      {/* Settings control controls migrated natively to sidebar Settings tab */}
 
       <AnimatePresence>
         {app.readerChapter && app.readerChapter.pages && (
@@ -317,6 +300,7 @@ const AppChrome = ({ app }) => (
       </AnimatePresence>
     </div>
   </MotionConfig>
-);
+  );
+};
 
 export default AppChrome;

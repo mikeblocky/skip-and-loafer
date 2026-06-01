@@ -228,22 +228,7 @@ const BlogReaderPane = ({
   }
 
   return (
-    <>
-      <div ref={staticControlsRef}>
-        <Suspense fallback={null}>
-          <ReaderControls
-            floating={false}
-            isMobile={isMobile}
-            showFloatingControls={showFloatingControls}
-            readerPrefs={readerPrefs}
-            setReaderPrefs={setReaderPrefs}
-            toggleControls={toggleControls}
-            themeControls={themeControls}
-            label={t.readerControls || UI_TEXT.en.readerControls}
-          />
-        </Suspense>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', flex: isMobile ? 'none' : 1, minHeight: 0, gap: '10px', boxSizing: 'border-box' }}>
       <Suspense fallback={<BlogReaderFallback isMobile={isMobile} label={t.readerControls || UI_TEXT.en.readerControls} />}>
         <BlogDetailView
           isMobile={isMobile}
@@ -275,7 +260,7 @@ const BlogReaderPane = ({
 
       {showBackToTop && createPortal(
         <>
-          {selectedBlog && (
+          {selectedBlog && isMobile && (
             <button
               onClick={handleBackToList}
               style={getBackFabStyle(isMobile, showFloatingFabStack)}
@@ -308,23 +293,7 @@ const BlogReaderPane = ({
           </Suspense>
         )}
       </AnimatePresence>
-
-      {selectedBlog && createPortal(
-        <Suspense fallback={null}>
-          <ReaderControls
-            floating
-            isMobile={isMobile}
-            showFloatingControls={showFloatingControls}
-            readerPrefs={readerPrefs}
-            setReaderPrefs={setReaderPrefs}
-            toggleControls={toggleControls}
-            themeControls={themeControls}
-            label={t.readerControls || UI_TEXT.en.readerControls}
-          />
-        </Suspense>,
-        document.body,
-      )}
-    </>
+    </div>
   );
 };
 

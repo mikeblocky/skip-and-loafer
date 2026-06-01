@@ -14,6 +14,8 @@ import {
   SignPage,
   SyncPage,
   WikiPage,
+  SettingsPage,
+  TutorialPage,
 } from './appPageLoaders';
 
 const PAGE_SHELL_STYLE = {
@@ -72,6 +74,10 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
         return isMobile ? '誕生日を読み込み中...' : '誕生日ページを読み込み中...';
       case 'mystery':
         return isMobile ? 'ミステリーを読み込み中...' : 'ミステリーページを読み込み中...';
+      case 'tutorial':
+        return isMobile ? 'ガイドを読み込み中...' : '使い方ガイドページを読み込み中...';
+      case 'settings':
+        return isMobile ? '設定を読み込み中...' : '設定ページを読み込み中...';
       default:
         return isMobile ? '読み込み中...' : 'ページを読み込み中...';
     }
@@ -96,13 +102,27 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
       return isMobile ? 'Loading birthdays...' : 'Loading birthday page...';
     case 'mystery':
       return isMobile ? 'Loading mystery...' : 'Loading mystery page...';
+    case 'tutorial':
+      return isMobile ? 'Loading guide...' : 'Loading website guide...';
+    case 'settings':
+      return isMobile ? 'Loading settings...' : 'Loading settings page...';
     default:
       return isMobile ? 'Loading...' : 'Loading page...';
   }
 };
 
 const TabFrame = ({ activePage, children, isMobile, style, fallbackLabel }) => (
-  <div key={activePage} style={style}>
+  <div 
+    key={activePage} 
+    className="hide-scrollbar"
+    style={{ 
+      ...style, 
+      height: isMobile ? 'auto' : '100%', 
+      overflowY: isMobile ? 'visible' : 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+    }}
+  >
     <Suspense fallback={<TabFallback isMobile={isMobile} label={fallbackLabel} />}>
       {children}
     </Suspense>
@@ -130,8 +150,15 @@ const AppTabContent = ({
   reloadFromStorage,
   syncData,
   accessibilityPrefs,
+  readerPrefs,
+  setReaderPrefs,
   handleMainTouchStart,
   handleMainTouchEnd,
+  setUiLanguage,
+  toggleAccessibilityPref,
+  setAccessibilityColorBlindMode,
+  shortcutStats,
+  t,
 }) => {
   const tabPreloaders = useMemo(() => getAppTabPreloaders(activePage, uiLanguage), [activePage, uiLanguage]);
   const fallbackLabel = useMemo(() => getFallbackLabel(activePage, isMobile, uiLanguage), [activePage, isMobile, uiLanguage]);
@@ -151,19 +178,7 @@ const AppTabContent = ({
   });
 
   let tabContent = null;
-  let frameStyle = activePage === 'home'
-        ? (isMobile
-      ? { display: 'contents' }
-      : {
-          ...sharedPageShellStyle,
-          flexDirection: 'row',
-          width: 'min(100%, 1328px)',
-          minHeight: homeDesktopMinHeight,
-          margin: '0 auto',
-          minWidth: 0,
-          alignSelf: 'center',
-        })
-    : sharedPageShellStyle;
+  let frameStyle = sharedPageShellStyle;
 
   switch (activePage) {
     case 'home':
@@ -205,7 +220,14 @@ const AppTabContent = ({
       tabContent = <FanGalleryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
     case 'blog':
-      tabContent = <BlogPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      tabContent = (
+        <BlogPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          readerPrefs={readerPrefs}
+          setReaderPrefs={setReaderPrefs}
+        />
+      );
       break;
     case 'wiki':
       tabContent = <WikiPage isMobile={isMobile} uiLanguage={uiLanguage} />;
@@ -249,6 +271,25 @@ const AppTabContent = ({
     case 'mystery':
       tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
+    case 'tutorial':
+      tabContent = <TutorialPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'settings':
+      tabContent = (
+        <SettingsPage
+          isMobile={isMobile}
+          uiLanguage={uiLanguage}
+          setUiLanguage={setUiLanguage}
+          accessibilityPrefs={accessibilityPrefs}
+          toggleAccessibilityPref={toggleAccessibilityPref}
+          setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}
+          shortcutStats={shortcutStats}
+          readerPrefs={readerPrefs}
+          setReaderPrefs={setReaderPrefs}
+          t={t}
+        />
+      );
+      break;
     default:
       tabContent = (
         <PlannerPage
@@ -271,16 +312,22 @@ const AppTabContent = ({
       onTouchEnd={handleMainTouchEnd}
       style={{
         width: '100%',
-        flex: activePage === 'home' ? '0 0 auto' : 1,
+        maxWidth: '100%',
+        minWidth: 0,
+        flex: 1,
         position: 'relative',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        padding: (activePage === 'home' || activePage === 'mystery') ? (isMobile ? '8px 16px 0' : homeDesktopPadding) : 0,
-        zIndex: 10,
+        padding: activePage === 'mystery' ? (isMobile ? '8px 16px 0' : homeDesktopPadding) : 0,
+        zIndex: 110,
         pointerEvents: 'auto',
-        minHeight: isMobile ? 0 : undefined,
-        overflowX: undefined,
-        overflowY: 'visible',
+        minHeight: isMobile ? 0 : '100%',
+        height: isMobile ? 'auto' : '100%',
+        overflow: 'hidden',
+        border: isMobile ? 'none' : '3.5px solid #cbd5e1',
+        borderLeft: isMobile ? 'none' : '3.5px solid #cbd5e1',
+        borderRadius: isMobile ? '12px' : '24px',
+        boxShadow: isMobile ? 'none' : '12px 16px 28px rgba(15, 23, 42, 0.05), 0 4px 10px rgba(15, 23, 42, 0.02)',
       }}
     >
       <TabFrame activePage={activePage} isMobile={isMobile} fallbackLabel={fallbackLabel} style={frameStyle}>

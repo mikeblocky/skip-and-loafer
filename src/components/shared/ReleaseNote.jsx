@@ -2,13 +2,13 @@
 import { motion } from 'framer-motion';
 
 const UI_TEXT = {
-    en: { chapterOut: 'Chapter 79 out now!', quote: '"Today is the day. The 3rd-year students of Tsubame Nishi High School"', read: 'Read ->' },
-    es: { chapterOut: '¡Capítulo 79 disponible!', quote: '"Hoy es el día. Los estudiantes de tercer año de la preparatoria Tsubame Nishi"', read: 'Leer ->' },
-    pt: { chapterOut: 'Capítulo 79 disponível!', quote: '"Hoje é o dia. Os alunos do 3º ano da Escola Secundária Tsubame Nishi"', read: 'Ler ->' },
-    fr: { chapterOut: 'Chapitre 79 disponible !', quote: '"C\'est aujourd\'hui le grand jour. Les élèves de 3ème année du lycée Tsubame Nishi"', read: 'Lire ->' },
-    de: { chapterOut: 'Kapitel 79 ist jetzt da!', quote: '"Heute ist der Tag. Die Schüler des 3. Jahrgangs der Tsubame Nishi High School"', read: 'Lesen ->' },
-    it: { chapterOut: 'Capitolo 79 disponibile ora!', quote: '"Oggi è il giorno. Gli studenti del 3° anno della Tsubame Nishi High School"', read: 'Leggi ->' },
-    ja: { chapterOut: '第79話 配信中', quote: '「今日がその日だ。つばめ西高校の3年生。」', read: '読む ->' },
+    en: { chapterOut: 'Chapter 80 out now!', quote: '"Haa... heartbreak"', read: 'Read ->' },
+    es: { chapterOut: '¡Capítulo 80 disponible!', quote: '"Haa... desamor"', read: 'Leer ->' },
+    pt: { chapterOut: 'Capítulo 80 disponível!', quote: '"Haa... desilusão amorosa"', read: 'Ler ->' },
+    fr: { chapterOut: 'Chapitre 80 disponible !', quote: '"Haa... chagrin d\'amour"', read: 'Lire ->' },
+    de: { chapterOut: 'Kapitel 80 ist jetzt da!', quote: '"Haa... Herzschmerz"', read: 'Lesen ->' },
+    it: { chapterOut: 'Capitolo 80 disponibile ora!', quote: '"Haa... crepacuore"', read: 'Leggi ->' },
+    ja: { chapterOut: '第80話 配信中', quote: '「ハァ〜の失恋②」', read: '読む ->' },
 };
 
 const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = false }) => {
@@ -17,7 +17,7 @@ const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = 
 
     return (
         <motion.a
-            href="https://comic-days.com/episode/12207421983633662678"
+            href="https://comic-days.com/episode/12207421983746014862"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -26,14 +26,13 @@ const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = 
                 right: inline ? 'auto' : '50%',
                 left: 'auto',
                 bottom: 'auto',
-                transform: inline ? 'none' : (isMobile ? 'translateX(50%)' : 'translateX(50%) rotate(-1deg)'),
+                transform: inline ? 'none' : (isMobile ? 'translateX(50%)' : 'translateX(50%)'),
                 alignSelf: 'auto',
                 background: '#fef3c7',
                 padding: mobileInline ? '10px 12px 12px' : (isMobile ? '8px 12px' : (largeText ? '8px 16px' : '7px 15px')),
                 borderRadius: '8px',
-                boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
                 zIndex: 1150,
-                border: '1.5px solid #f59e0b',
+                border: '3px solid #f59e0b',
                 textDecoration: 'none',
                 display: mobileInline ? 'grid' : 'flex',
                 alignItems: 'center',
@@ -51,7 +50,7 @@ const ReleaseNote = ({ isMobile, uiLanguage = 'en', inline = false, largeText = 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.4, type: 'spring' }}
-            whileHover={{ scale: 1.03, rotate: 0 }}
+            whileHover={{ scale: 1.02, borderColor: '#d97706' }}
         >
             <span style={{ fontFamily: 'var(--font-hand)', color: '#92400e', fontSize: isMobile ? '0.82rem' : (largeText ? '0.86rem' : '0.78rem'), fontWeight: 'bold' }}>
                 {t.chapterOut}

@@ -16,11 +16,11 @@ const CARD_PALETTES = [
   { frame: '#f5fff8', border: '#77d59a', bottom: '#22a86f', tape: '#bbf7d0', label: '#166534', shadow: 'rgba(34, 168, 111, 0.16)' },
 ];
 
-const ThumbPlaceholder = ({ palette, selectedBorderColor }) => (
+const ThumbPlaceholder = ({ palette, selectedBorderColor, isMobile }) => (
   <div
     style={{
       width: '100%',
-      minHeight: '200px',
+      minHeight: isMobile ? '120px' : '200px',
       borderRadius: '12px',
       background: '#f8fafc',
       border: '2px solid rgba(255,255,255,0.92)',
@@ -62,9 +62,6 @@ const GalleryThumb = ({
   const palette = CARD_PALETTES[index % CARD_PALETTES.length];
   const shouldAnimateEntrance = index < (isMobile ? 8 : 18);
 
-  // Stable random rotation between -5 and 5 degrees
-  const [rotation] = useState(() => (Math.random() * 10) - 5);
-
 
   useEffect(() => {
     const node = cardRef.current;
@@ -103,23 +100,24 @@ const GalleryThumb = ({
     <motion.div
       ref={cardRef}
       key={src}
-      initial={shouldAnimateEntrance ? { opacity: 0, y: 16, rotate: rotation - 4 } : false}
-      animate={{ opacity: 1, y: 0, rotate: rotation }}
+      initial={shouldAnimateEntrance ? { opacity: 0, y: 16 } : false}
+      animate={{ opacity: 1, y: 0 }}
       transition={shouldAnimateEntrance
         ? { duration: 0.22, ease: 'easeOut', delay: Math.min(index * 0.018, 0.2) }
         : { duration: 0 }}
       whileHover={isMobile ? undefined : {
         scale: 1.02,
-        y: -3,
+        y: -6,
         zIndex: 20,
         transition: { duration: 0.16, ease: 'easeOut' }
       }}
+      whileTap={{ scale: 0.98, y: 1 }}
       className="break-inside-avoid relative group cursor-pointer overflow-visible"
       style={{ 
         contentVisibility: 'auto',
         containIntrinsicSize: '280px 320px',
         overflowAnchor: 'none',
-        marginBottom: '30px',
+        marginBottom: '0',
         cursor: canSelect ? 'pointer' : 'default',
       }}
       onClick={() => {
@@ -130,58 +128,33 @@ const GalleryThumb = ({
     >
       <div 
         style={{ 
-          background: palette.frame,
-          padding: '14px',
-          boxShadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
-          borderRadius: '18px',
-          border: selectedBorderColor ? `4px solid ${selectedBorderColor}` : `3px solid ${palette.border}`,
-          borderBottom: selectedBorderColor ? `10px solid ${selectedBorderColor}` : `10px solid ${palette.bottom}`,
+          background: '#ffffff',
+          padding: isMobile ? '6px' : '12px',
+          boxShadow: isMobile ? `0 4px 0px rgba(0,0,0,0.04)` : `0 8px 0px rgba(0,0,0,0.04)`,
+          borderRadius: isMobile ? '12px' : '18px',
+          border: selectedBorderColor 
+            ? `${isMobile ? '2.5px' : '3.5px'} solid ${selectedBorderColor}` 
+            : `${isMobile ? '2px' : '3.5px'} solid ${palette.border}`,
+          borderBottom: selectedBorderColor 
+            ? `${isMobile ? '6px' : '8px'} solid ${selectedBorderColor}` 
+            : `${isMobile ? '5px' : '8px'} solid ${palette.bottom}`,
           position: 'relative',
           overflow: 'hidden',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            top: '-10px',
-            left: '16px',
-            width: '60px',
-            height: '20px',
-            borderRadius: '999px',
-            background: palette.tape,
-            boxShadow: '0 3px 8px rgba(15,23,42,0.08)',
-            transform: 'rotate(-8deg)',
-            zIndex: 2,
-            opacity: 0.9,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: '-10px',
-            right: '18px',
-            width: '52px',
-            height: '18px',
-            borderRadius: '999px',
-            background: '#ffffffcc',
-            boxShadow: '0 3px 8px rgba(15,23,42,0.06)',
-            transform: 'rotate(10deg)',
-            zIndex: 2,
-          }}
-        />
-        <div
-          style={{
             width: '100%',
             background: '#f8fafc',
-            borderRadius: '12px',
+            borderRadius: isMobile ? '8px' : '12px',
             overflow: 'hidden',
             aspectRatio: dimensions ? `${dimensions.width} / ${dimensions.height}` : 'auto',
-            minHeight: dimensions ? 'auto' : '200px',
+            minHeight: dimensions ? 'auto' : (isMobile ? '120px' : '200px'),
             position: 'relative',
-            border: '2px solid rgba(255,255,255,0.92)',
+            border: isMobile ? '1px solid rgba(255,255,255,0.9)' : '2px solid rgba(255,255,255,0.92)',
           }}
         >
-        {!isVisible && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} />}
+        {!isVisible && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} isMobile={isMobile} />}
         {isVisible && (
           isVideo ? (
             <>
@@ -274,7 +247,7 @@ const GalleryThumb = ({
             </>
           )
         )}
-        {isVisible && !isLoaded && !isVideo && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} />}
+        {isVisible && !isLoaded && !isVideo && <ThumbPlaceholder palette={palette} selectedBorderColor={selectedBorderColor} isMobile={isMobile} />}
         </div>
       </div>
     </motion.div>

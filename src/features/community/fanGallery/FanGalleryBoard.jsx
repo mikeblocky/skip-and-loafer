@@ -95,11 +95,11 @@ const FanGalleryBoard = ({
         const origin = stackLayout.offsetX < 0 ? 'left top' : 'right top';
         const gesture = galleryGestures[entry.id] || { scale: 1, rotate: 0 };
         const cardDragConstraints = isMobile ? undefined : galleryDragConstraints;
+        const washiColor = ['pink', 'blue', 'yellow'][index % 3];
 
         return (
           <motion.article
             key={`${entry.id}-${canvasResetVersion}`}
-            className="sketchbook-border"
             data-no-tab-swipe="1"
             layout
             drag
@@ -108,7 +108,7 @@ const FanGalleryBoard = ({
             dragMomentum={false}
             onDragStart={() => onDragStart(entry.id)}
             onDragEnd={() => onDragEnd(entry.id)}
-            whileDrag={{ scale: 1.03, rotate: 0 }}
+            whileDrag={{ scale: 1.015, rotate: 0 }}
             initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.24, rotate: stackLayout.rotate - 0.4, scale: 0.985 }}
             animate={{ opacity: 1, y: stackLayout.offsetY, x: isMobile ? stackLayout.offsetX * 0.32 : stackLayout.offsetX * 0.42, rotate: isMobile ? stackLayout.rotate * 0.32 : stackLayout.rotate * 0.42, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -122,7 +122,7 @@ const FanGalleryBoard = ({
             style={{
               breakInside: 'avoid',
               maxWidth: '100%',
-              marginBottom: isMobile ? '12px' : '18px',
+              marginBottom: isMobile ? '20px' : '28px',
               position: 'relative',
               zIndex: activeDraggedId === entry.id
                 ? 1000
@@ -135,13 +135,27 @@ const FanGalleryBoard = ({
               boxShadow: 'none',
             }}
           >
+            {/* Scrapbook polaroid washi tape holding the card */}
             <div
+              className={`washi-tape washi-tape--${washiColor}`}
+              style={{
+                top: '-8px',
+                left: '50%',
+                transform: `translateX(-50%) rotate(${(index % 2 === 0 ? -4 : 4) + (stackLayout.rotate * 0.12)}deg)`,
+                width: '74px',
+                height: '18px',
+                zIndex: 10,
+              }}
+            />
+
+            <div
+              className="sketchbook-border"
               style={{
                 ...createPaperPanelStyle({
                   background: palette.frame,
                   borderColor: palette.border,
                   bottomColor: palette.bottom,
-                  radius: '26px',
+                  radius: '28px',
                   shadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
                 }),
                 padding: isMobile ? '12px' : '16px',
@@ -159,7 +173,7 @@ const FanGalleryBoard = ({
               onWheel={(event) => onWheel(entry.id, event)}
             >
               <button
-                className="app-tactile"
+                className="app-tactile sketchbook-border"
                 type="button"
                 onClick={() => onSelectEntry(entry.id, entry.imageDataUrl)}
                 style={{
@@ -167,7 +181,6 @@ const FanGalleryBoard = ({
                   background: '#ffffff',
                   padding: 0,
                   cursor: 'pointer',
-                  borderRadius: '20px',
                   overflow: 'hidden',
                   width: '100%',
                   maxWidth: '100%',
@@ -177,6 +190,7 @@ const FanGalleryBoard = ({
                 }}
               >
                 <img
+                  className="sketchbook-border"
                   src={entry.imageDataUrl}
                   alt={entry.description || entry.name || 'Gallery item'}
                   loading="lazy"
@@ -186,7 +200,6 @@ const FanGalleryBoard = ({
                     width: '100%',
                     display: 'block',
                     maxWidth: '100%',
-                    borderRadius: '20px',
                     background: '#f8fafc',
                     objectFit: 'cover',
                     userSelect: 'none',

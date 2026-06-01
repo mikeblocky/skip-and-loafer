@@ -110,3 +110,23 @@ export const getInitialAccessibilityPrefs = () => {
     colorBlindMode: VALID_COLOR_BLIND_MODES.includes(parsed.colorBlindMode) ? parsed.colorBlindMode : 'none',
   };
 };
+
+export const getInitialReaderPrefs = () => {
+  const parsed = parseStoredJson(safeGetItem('skip_reader_prefs_v1'));
+
+  if (!parsed) {
+    return {
+      largeText: false,
+      wideSpacing: false,
+      focusWidth: false,
+      theme: 'paper',
+    };
+  }
+
+  return {
+    largeText: !!parsed.largeText,
+    wideSpacing: !!parsed.wideSpacing,
+    focusWidth: !!parsed.focusWidth,
+    theme: ['paper', 'sepia', 'night'].includes(parsed.theme) ? parsed.theme : 'paper',
+  };
+};

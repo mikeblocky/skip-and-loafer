@@ -47,6 +47,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Birthdays', mobileLabel: 'Birthdays' },
       mystery: { label: 'Mystery', mobileLabel: 'Mystery' },
+      tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
     },
   },
   es: {
@@ -94,6 +95,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Cumpleaños', mobileLabel: 'Cumpleaños' },
       mystery: { label: 'Misterio', mobileLabel: 'Misterio' },
+      tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
     },
   },
   pt: {
@@ -141,6 +143,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Aniversários', mobileLabel: 'Aniversários' },
       mystery: { label: 'Mistério', mobileLabel: 'Mistério' },
+      tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
     },
   },
   fr: {
@@ -188,6 +191,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Anniversaires', mobileLabel: 'Anniv.' },
       mystery: { label: 'Mystère', mobileLabel: 'Mystère' },
+      tutorial: { label: 'Tutoriel', mobileLabel: 'Tuto.' },
     },
   },
   de: {
@@ -235,6 +239,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Geburtstage', mobileLabel: 'Geburtstage' },
       mystery: { label: 'Mysterium', mobileLabel: 'Mysterium' },
+      tutorial: { label: 'Anleitung', mobileLabel: 'Anleitung' },
     },
   },
   it: {
@@ -282,6 +287,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'Quiz', mobileLabel: 'Quiz' },
       birthdays: { label: 'Compleanni', mobileLabel: 'Compleanni' },
       mystery: { label: 'Mistero', mobileLabel: 'Mistero' },
+      tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
     },
   },
   ja: {
@@ -330,6 +336,7 @@ export const APP_UI_TEXT = {
       quiz: { label: 'クイズ', mobileLabel: 'クイズ' },
       birthdays: { label: '誕生日', mobileLabel: '誕生日' },
       mystery: { label: 'ミステリー', mobileLabel: 'ミステリー' },
+      tutorial: { label: '使い方ガイド', mobileLabel: 'ガイド' },
     },
   },
 };

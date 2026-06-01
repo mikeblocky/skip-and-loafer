@@ -1,17 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, Tv, Pin } from 'lucide-react';
-import { CHAPTERS, VOLUMES, isMainChapter } from '../../../data/chapters';
+import { Tv, Sparkle, ShoppingCart, BookOpen } from 'lucide-react';
+import { VOLUMES, isMainChapter } from '../../../data/chapters';
 import VolumePurchaseLinks from './VolumePurchaseLinks';
 import { VOL_THEMES, getVolumeCardStyle, VOL_TITLE_STYLE, EXTRA_BADGE_STYLE } from '../chapterStyles';
- 
+
 const DesktopChaptersTab = ({
   activeVol,
   setActiveVol,
   volume,
   volChapters,
-  volColor,
-  goPrev,
-  goNext,
   onReadChapter,
   isFinished,
   trackExternalLink,
@@ -30,120 +27,344 @@ const DesktopChaptersTab = ({
   uiLanguage,
   getVolumeTitleFn,
   getVolumeShortWordFn,
-  getCountryPluralSuffixFn,
-  VolSelectorComponent,
-  NavBtnComponent,
   ChapterRowComponent,
-  unreadCount,
 }) => {
-  const theme = VOL_THEMES[volume.number] || VOL_THEMES[1];
+  const currentTheme = VOL_THEMES[volume.number] || VOL_THEMES[1];
   const showVolumeArtwork = uiLanguage !== 'ja';
   const showVolumeTitle = uiLanguage !== 'ja';
-  const volumeTitle = getVolumeTitleFn(uiLanguage, volume.number);
- 
+  const activeVolumeTitle = getVolumeTitleFn(uiLanguage, volume.number);
+
   return (
     <div style={{
-      width: '100%', padding: '32px 48px',
-      minHeight: '600px', display: 'flex', flexDirection: 'column',
+      width: '100%',
+      padding: '16px 24px 48px 24px',
+      minHeight: '600px',
+      display: 'flex',
+      flexDirection: 'row',
+      gap: '32px',
+      alignItems: 'flex-start',
       overflow: 'visible',
     }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', marginBottom: '32px' }}>
-        <VolSelectorComponent
-          activeVol={activeVol}
-          setActiveVol={setActiveVol}
-          isMobile={false}
-          uiLanguage={uiLanguage}
-          unreadCount={unreadCount}
-        />
-      </div>
- 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={volume.number}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-          style={{ flex: 1, display: 'flex', flexDirection: 'row', gap: '48px', alignItems: 'flex-start' }}
+      {/* LEFT COLUMN: Manga Bookshelf Sidebar (310px) */}
+      <div style={{
+        width: '310px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        position: 'sticky',
+        top: '24px',
+      }}>
+        {/* Bookshelf Header */}
+        <div style={{
+          background: '#eff6ff',
+          border: '2.5px solid #4d9cff',
+          borderBottom: '5px solid #4d9cff',
+          borderRadius: '16px',
+          padding: '14px 18px',
+          boxShadow: '0 4px 12px rgba(77, 156, 255, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}>
+          <BookOpen size={20} style={{ color: '#0066ff' }} />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{
+              fontFamily: 'Sniglet, var(--font-main)',
+              fontSize: '1.15rem',
+              fontWeight: '400',
+              color: '#1e3a8a',
+              lineHeight: 1.2,
+            }}>
+              {t.mangaShelf || 'List of volumes'}
+            </span>
+            <span style={{
+              fontFamily: 'Sniglet, var(--font-main)',
+              fontSize: '0.8rem',
+              color: '#3b82f6',
+              fontWeight: '400',
+            }}>
+              {VOLUMES.length} volumes available
+            </span>
+          </div>
+        </div>
+
+        {/* Vertical Bookshelf List (2-column grid of covers) */}
+        <div 
+          className="hide-scrollbar" 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+            overflowY: 'auto',
+            maxHeight: 'calc(100vh - 250px)',
+            padding: '4px 6px 24px 4px',
+          }}
         >
-          <div style={{ flexShrink: 0, width: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.04, duration: 0.18, ease: 'easeOut' }}
-              style={getVolumeCardStyle(theme, false)}
-            >
-              <div style={{
-                width: '100%', height: '100%',
-                borderRadius: '12px', overflow: 'hidden',
-                background: volume.cover ? '#fff' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                position: 'relative'
-              }}>
-                {showVolumeArtwork && volume.cover ? (
-                  <img src={volume.cover} alt={volumeTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
-                ) : (
-                  <span style={{
-                    fontFamily: 'var(--font-main)', fontSize: '2.5rem',
-                    fontWeight: '900', color: theme.accent, opacity: 0.4,
-                    textAlign: 'center', lineHeight: 1.1,
-                  }}>{getVolumeShortWordFn(uiLanguage)}<br />{volume.number}</span>
+          {VOLUMES.map((vol, idx) => {
+            const isActive = idx === activeVol;
+            const theme = VOL_THEMES[vol.number] || VOL_THEMES[1];
+            const title = getVolumeTitleFn(uiLanguage, vol.number);
+            
+            // Calculate progress metrics
+            const mainChapters = vol.chapters.filter(isMainChapter);
+            const totalChs = mainChapters.length;
+            const doneChs = mainChapters.filter(chNum => isFinished?.(chNum)).length;
+            const isVolFinished = doneChs === totalChs;
+            const hasStarted = doneChs > 0;
+
+            return (
+              <motion.div
+                key={vol.number}
+                onClick={() => setActiveVol(idx)}
+                whileHover={{ y: -2, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  position: 'relative',
+                  aspectRatio: '2/3',
+                  borderRadius: '14px',
+                  cursor: 'pointer',
+                  border: isActive ? `2.5px solid ${theme.border}` : `2.5px solid #cbd5e1`,
+                  borderRight: isActive ? `4.5px solid ${theme.border}` : `2.5px solid #cbd5e1`,
+                  borderBottom: isActive ? `6px solid ${theme.border}` : `4.5px solid #cbd5e1`,
+                  boxShadow: isActive ? `0 8px 20px ${theme.shadow}` : `0 4px 10px rgba(0,0,0,0.05)`,
+                  background: isActive ? theme.surface : '#fff',
+                  transition: 'all 0.22s ease',
+                  overflow: 'visible',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {/* Volume Cover Image */}
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: vol.cover ? '#fff' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
+                  opacity: isActive ? 1 : 0.82,
+                }}>
+                  {showVolumeArtwork && vol.cover ? (
+                    <img src={vol.cover} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
+                  ) : (
+                    <span style={{
+                      fontFamily: 'Sniglet, var(--font-main)',
+                      fontSize: '1.5rem',
+                      fontWeight: '400',
+                      color: theme.accent,
+                      opacity: 0.45,
+                      textAlign: 'center',
+                      lineHeight: 1.1,
+                    }}>
+                      {getVolumeShortWordFn(uiLanguage)}<br />{vol.number}
+                    </span>
+                  )}
+                </div>
+
+                {/* Progress Pill Overlay */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-8px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: isVolFinished 
+                    ? 'var(--pop-green, #10b981)' 
+                    : hasStarted 
+                      ? theme.accent 
+                      : '#6b7280',
+                  color: '#fff',
+                  border: `2px solid ${isVolFinished ? '#047857' : theme.border}`,
+                  borderBottom: `3px solid ${isVolFinished ? '#047857' : theme.border}`,
+                  borderRadius: '9999px',
+                  padding: '2px 8px',
+                  fontSize: '0.68rem',
+                  fontFamily: 'var(--font-main)',
+                  fontWeight: '400',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                }}>
+                  {isVolFinished && <Sparkle size={8} strokeWidth={4} style={{ color: '#fff' }} />}
+                  <span>{isVolFinished ? '100%' : `${doneChs}/${totalChs}`}</span>
+                </div>
+
+                {/* Active Selection Ribbon */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-6px',
+                    background: theme.accent,
+                    color: '#ffffff',
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.65rem',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    zIndex: 2,
+                  }}>
+                    ✦
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Volume Details Banner + Chapters Grid Viewport */}
+      <div style={{
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+      }}>
+        {/* Active Volume Hero Banner */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={volume.number}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            style={{
+              background: currentTheme.surface,
+              border: `2.5px solid ${currentTheme.border}`,
+              borderBottom: `6px solid ${currentTheme.border}`,
+              borderRadius: '24px',
+              padding: '24px',
+              boxShadow: `0 8px 24px ${currentTheme.shadow}`,
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '24px',
+              alignItems: 'center',
+            }}
+          >
+            {/* Banner Thumbnail */}
+            <div style={{
+              width: '90px',
+              aspectRatio: '2/3',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              flexShrink: 0,
+              border: `2.5px solid ${currentTheme.border}`,
+              borderRight: `4.5px solid ${currentTheme.border}`,
+              borderBottom: `5px solid ${currentTheme.border}`,
+              boxShadow: `0 4px 12px ${currentTheme.shadow}`,
+              background: volume.cover ? '#fff' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {showVolumeArtwork && volume.cover ? (
+                <img src={volume.cover} alt={activeVolumeTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} draggable="false" />
+              ) : (
+                <span style={{
+                  fontFamily: 'Sniglet, var(--font-main)',
+                  fontSize: '1.25rem',
+                  fontWeight: '400',
+                  color: currentTheme.accent,
+                  opacity: 0.45,
+                  textAlign: 'center',
+                  lineHeight: 1.1,
+                }}>
+                  {getVolumeShortWordFn(uiLanguage)}<br />{volume.number}
+                </span>
+              )}
+            </div>
+
+            {/* Banner Content */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              flex: 1,
+              minWidth: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={VOL_TITLE_STYLE(currentTheme)}>
+                  {activeVolumeTitle}
+                </span>
+
+                {volume.anime && (
+                  <div style={{
+                    background: '#fff',
+                    border: `2px solid ${currentTheme.border}`,
+                    borderRadius: '10px',
+                    padding: '2px 8px',
+                    fontSize: '0.7rem',
+                    fontFamily: 'var(--font-main)',
+                    fontWeight: '400',
+                    color: currentTheme.accent,
+                    boxShadow: `0 2.5px 0 ${currentTheme.border}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}>
+                    <Tv size={12} strokeWidth={2.5} />
+                    <span>{uiLanguage === 'ja' ? 'アニメ第1期' : volume.anime}</span>
+                  </div>
                 )}
               </div>
- 
-              {volume.anime && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.08, duration: 0.16, ease: 'easeOut' }}
-                  style={EXTRA_BADGE_STYLE(theme)}
-                >
-                  <Tv size={14} strokeWidth={3} style={{ marginRight: '4px' }} />{uiLanguage === 'ja' ? 'アニメ第1期' : volume.anime}
-                </motion.div>
-              )}
-            </motion.div>
- 
-            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', width: '100%' }}>
-              {showVolumeTitle && (
-                <motion.p
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06, duration: 0.16, ease: 'easeOut' }}
-                  style={VOL_TITLE_STYLE(theme)}
-                >
-                  {volumeTitle}
-                </motion.p>
-              )}
-              <p style={{ fontFamily: 'var(--font-main)', fontSize: '0.95rem', color: '#6b7280', fontWeight: '400', marginBottom: '8px' }}>
+
+              <p style={{
+                fontFamily: 'var(--font-main)',
+                fontSize: '0.9rem',
+                color: '#4b5563',
+                fontWeight: '400',
+                margin: 0,
+              }}>
                 {t.chaptersRange} {Math.floor(volume.chapters[0])} – {Math.floor(volume.chapters[volume.chapters.length - 1])}
-                {volume.inProgress && <span style={{ color: '#f59e0b', marginLeft: '8px' }}>✦ {t.ongoing}</span>}
+                {volume.inProgress && <span style={{ color: '#d97706', marginLeft: '8px' }}>✦ {t.ongoing}</span>}
               </p>
-              <VolumePurchaseLinks
-                isMobile={false}
-                volColor={theme.border}
-                nativePurchaseUrl={nativePurchaseUrl}
-                nativeVolumeLabel={nativeVolumeLabel || t.buyNativeVolume}
-                enPurchaseUrl={volume.purchaseUrl}
-                enVolumeLabel={enVolumeLabel || t.buyEnVolume}
-                jpPurchaseUrl={volume.purchaseUrlJp}
-                jpVolumeLabel={jpVolumeLabel || t.buyJpVolume}
-              />
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '12px' }}>
-                <NavBtnComponent onClick={goPrev} disabled={activeVol === 0} volumeNumber={volume.number} isMobile={false}>
-                  <ChevronLeft size={24} strokeWidth={3} />
-                </NavBtnComponent>
-                <NavBtnComponent onClick={goNext} disabled={activeVol === VOLUMES.length - 1} volumeNumber={volume.number} isMobile={false}>
-                  <ChevronRight size={24} strokeWidth={3} />
-                </NavBtnComponent>
+
+              <div style={{ alignSelf: 'flex-start', marginTop: '4px' }}>
+                <VolumePurchaseLinks
+                  isMobile={false}
+                  volColor={currentTheme.border}
+                  nativePurchaseUrl={nativePurchaseUrl}
+                  nativeVolumeLabel={nativeVolumeLabel || t.buyNativeVolume}
+                  enPurchaseUrl={volume.purchaseUrl}
+                  enVolumeLabel={enVolumeLabel || t.buyEnVolume}
+                  jpPurchaseUrl={volume.purchaseUrlJp}
+                  jpVolumeLabel={jpVolumeLabel || t.buyJpVolume}
+                />
               </div>
             </div>
-          </div>
- 
-          <div className="hide-scrollbar" style={{
-            flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px', overflowY: 'visible', overflowX: 'visible', maxHeight: 'none',
-            padding: '12px 10px 48px 10px',
-          }}>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Chapters High-Density Grid */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={volume.number}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="hide-scrollbar"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '16px',
+              overflowY: 'visible',
+              overflowX: 'visible',
+              maxHeight: 'none',
+              padding: '4px 6px 48px 6px',
+            }}
+          >
             {volChapters.map((ch, idx) => (
               <ChapterRowComponent
                 key={ch.number}
@@ -165,11 +386,11 @@ const DesktopChaptersTab = ({
                 uiLanguage={uiLanguage}
               />
             ))}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
- 
+
 export default DesktopChaptersTab;

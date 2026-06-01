@@ -1,11 +1,13 @@
 export const getPageRootStyle = (isMobile) => ({
   width: '100%',
   padding: isMobile ? '24px 10px 100px 10px' : '28px 40px',
+  height: isMobile ? 'auto' : '100%',
   minHeight: isMobile ? 'auto' : '600px',
   display: 'flex',
   flexDirection: 'column',
-  overflow: 'visible',
+  overflow: isMobile ? 'visible' : 'hidden',
   flex: 1,
+  boxSizing: 'border-box',
 });
 
 export const getHeaderRowStyle = (isMobile) => ({
@@ -23,8 +25,8 @@ export const getHeaderTitleWrapStyle = (isMobile) => ({
   alignItems: 'center',
   gap: '12px',
   background: '#fff',
-  border: '3px solid #f97316',
-  borderBottom: '6px solid #ea580c',
+  border: '2.5px solid #f97316',
+  borderBottom: '5px solid #ea580c',
   borderRadius: '20px',
   padding: '8px 20px',
   boxShadow: '0 4px 12px rgba(249,115,22,0.1)',
@@ -43,8 +45,8 @@ export const getSortButtonStyle = (isMobile) => ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    border: '3px solid #fbbf24',
-    borderBottom: '9px solid #f59e0b',
+    border: '2.5px solid #fbbf24',
+    borderBottom: '5px solid #f59e0b',
     background: '#fff7d6',
     borderRadius: '24px',
     color: '#b45309',
@@ -90,8 +92,8 @@ export const getReaderControlsContainerStyle = ({ floating, isMobile, showFloati
   borderRadius: isMobile ? '22px' : '28px',
   background: 'rgba(255, 255, 255, 0.94)',
   backdropFilter: 'blur(14px) saturate(1.4)',
-  border: '3px solid #dbeafe',
-  borderBottom: isMobile ? '6px solid #93c5fd' : '8px solid #93c5fd',
+  border: '2.5px solid #dbeafe',
+  borderBottom: isMobile ? '4px solid #93c5fd' : '6px solid #93c5fd',
   position: floating ? 'fixed' : 'relative',
   left: floating ? (isMobile ? 'calc(50% + 14px)' : '50%') : 'auto',
   top: floating && isMobile ? 'max(calc(env(safe-area-inset-top) + 8px), 8px)' : 'auto',
@@ -143,6 +145,7 @@ export const getScrollablePaneStyle = (isMobile) => ({
   overflowY: 'visible',
   overflowX: 'hidden',
   padding: isMobile ? '10px 12px 40px 12px' : '15px 12px 30px 12px',
+  boxSizing: 'border-box',
 });
 
 export const EMPTY_BLOGS_STYLE = {
@@ -157,8 +160,8 @@ export const EMPTY_BLOGS_STYLE = {
 };
 
 export const getBlogCardStyle = (note, isMobile) => ({
-  border: `3px solid ${note.border}`,
-  borderBottom: `8px solid ${note.border}`,
+  border: `2.5px solid ${note.border}`,
+  borderBottom: `6px solid ${note.border}`,
   background: note.bg,
   borderRadius: '24px',
   padding: isMobile ? '20px 18px' : '24px 28px',
@@ -170,6 +173,7 @@ export const getBlogCardStyle = (note, isMobile) => ({
   position: 'relative',
   margin: isMobile ? '0 4px 24px 4px' : '0 8px 28px 8px',
   overflow: 'visible',
+  boxSizing: 'border-box',
 });
 
 export const BLOG_CARD_TITLE_STYLE = {
@@ -199,8 +203,8 @@ export const getBlogMetaStyle = (note, isMobile) => ({
 export const BLOG_META_DOT_STYLE = { color: '#cbd5e1', margin: '0 2px' };
 
 export const getReadPostButtonStyle = (note, isMobile) => ({
-  border: `2.5px solid ${note.border}`,
-  borderBottom: `6px solid ${note.border}`,
+  border: `2px solid ${note.border}`,
+  borderBottom: `4px solid ${note.border}`,
   background: '#fff',
   borderRadius: '16px',
   color: note.accent,
@@ -217,8 +221,8 @@ export const getBackToListButtonStyle = (isMobile) => ({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '8px',
-  border: '3px solid #bfdbfe',
-  borderBottom: '7px solid #60a5fa',
+  border: '2.5px solid #bfdbfe',
+  borderBottom: '5px solid #60a5fa',
   background: '#fff',
   borderRadius: '18px',
   color: '#1d4ed8',
@@ -241,19 +245,20 @@ export const getDetailMetaStyle = (isMobile) => ({
 });
 
 export const getReaderPanelStyle = (readerTheme, isMobile) => ({
-  border: `3px solid ${readerTheme.panelBorder}`,
-  borderBottom: `10px solid ${readerTheme.panelBorder}`,
+  border: `2.5px solid ${readerTheme.panelBorder}`,
+  borderBottom: `6px solid ${readerTheme.panelBorder}`,
   background: readerTheme.panelBg,
   borderRadius: '28px',
   padding: isMobile ? '18px' : '28px',
   display: 'flex',
   flexDirection: 'column',
   gap: '18px',
-  overflow: 'visible',
-  flex: 1,
+  overflow: isMobile ? 'visible' : 'hidden',
+  flex: isMobile ? 'none' : 1,
   minHeight: 0,
   boxShadow: '0 16px 28px rgba(15, 23, 42, 0.08)',
   transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+  boxSizing: 'border-box',
 });
 
 export const getReaderHeadingStyle = (readerTheme, headingFontScale, isMobile) => ({
@@ -261,10 +266,11 @@ export const getReaderHeadingStyle = (readerTheme, headingFontScale, isMobile) =
   color: readerTheme.heading,
   fontFamily: 'Sniglet, var(--font-main)',
   fontWeight: 400,
-  fontSize: isMobile ? `${1.56 * headingFontScale}rem` : `${1.94 * headingFontScale}rem`,
-  lineHeight: 1.12,
+  fontSize: isMobile ? `${1.02 * headingFontScale}rem` : `${1.18 * headingFontScale}rem`,
+  lineHeight: 1.15,
   letterSpacing: '0.012em',
   transition: 'font-size 0.3s ease, color 0.3s ease',
+  boxSizing: 'border-box',
 });
 
 export const getReaderDescriptionStyle = (readerTheme, bodyFontScale, paragraphLineHeight, isMobile) => ({
@@ -272,20 +278,21 @@ export const getReaderDescriptionStyle = (readerTheme, bodyFontScale, paragraphL
   color: readerTheme.subtle,
   fontFamily: 'Sniglet, var(--font-main)',
   fontWeight: 400,
-  fontSize: isMobile ? `${1.02 * bodyFontScale}rem` : `${1.08 * bodyFontScale}rem`,
+  fontSize: isMobile ? `${0.76 * bodyFontScale}rem` : `${0.82 * bodyFontScale}rem`,
   lineHeight: paragraphLineHeight + 0.04,
   letterSpacing: '0.01em',
   opacity: 0.92,
   transition: 'font-size 0.3s ease, line-height 0.3s ease, color 0.3s ease',
 });
 
-export const getReaderScrollStyle = (readerTheme) => ({
-  overflowY: 'visible',
+export const getReaderScrollStyle = (readerTheme, isMobile) => ({
+  overflowY: isMobile ? 'visible' : 'auto',
   flex: 1,
   minHeight: 0,
   borderTop: `3px solid ${readerTheme.divider}`,
   paddingTop: '22px',
   scrollBehavior: 'smooth',
+  boxSizing: 'border-box',
 });
 
 export const getReaderContentWrapStyle = (focusWidth) => ({
@@ -331,8 +338,8 @@ const getFloatingActionBaseStyle = (isMobile) => ({
   position: 'fixed',
   right: isMobile ? '16px' : '28px',
   zIndex: 2110,
-  border: '3px solid #cbd5e1',
-  borderBottom: '7px solid #94a3b8',
+  border: '2.5px solid #cbd5e1',
+  borderBottom: '5px solid #94a3b8',
   background: '#fff',
   color: '#334151',
   borderRadius: '20px',

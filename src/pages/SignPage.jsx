@@ -368,9 +368,9 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       className="hide-scrollbar"
       style={{
         ...COMMUNITY_PAGE_STYLE,
-        padding: isMobile ? '24px 8px 10px 8px' : '28px 40px',
-        overflowX: isMobile ? 'visible' : 'hidden',
-        overflowY: 'hidden',
+        padding: isMobile ? '20px 14px 60px' : '32px 40px',
+        overflowX: 'hidden',
+        overflowY: 'auto',
       }}
     >
       <div style={{ display: 'grid', gap: isMobile ? '16px' : '18px' }}>

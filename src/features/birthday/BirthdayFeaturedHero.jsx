@@ -27,23 +27,23 @@ const BirthdayFeaturedHero = ({
       }}
     >
       <motion.div
+        className="sketchbook-border"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0, rotate: 0 }}
-        whileHover={{ y: -5, scale: 1.01 }}
+        whileHover={{ y: -2, scale: 1.01 }}
         style={{
           width: '100%',
           maxWidth: isMobile ? '100%' : '540px',
           background: `linear-gradient(135deg, ${featuredBirthday.bg} 0%, #ffffff 100%)`,
           border: `3px solid ${featuredBirthday.color}`,
-          borderBottom: `10px solid ${featuredBirthday.color}`,
-          borderRadius: '32px',
+          borderBottom: `8px solid ${featuredBirthday.color}`,
           padding: isMobile ? '24px' : '32px',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: 'center',
           gap: '28px',
           position: 'relative',
-          boxShadow: `0 20px 40px ${featuredBirthday.color}20`,
+          boxShadow: `0 8px 30px ${featuredBirthday.color}20`,
           cursor: 'default',
           transform: 'none',
           overflow: 'hidden',
@@ -69,17 +69,18 @@ const BirthdayFeaturedHero = ({
 
         {uiLanguage !== 'ja' ? (
           <div
+            className="sketchbook-border"
             style={{
               width: isMobile ? '120px' : '150px',
               height: isMobile ? '120px' : '150px',
-              borderRadius: '24px',
               background: '#ffffff',
               border: `3px solid ${featuredBirthday.color}`,
+              borderBottom: `6px solid ${featuredBirthday.color}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              boxShadow: `0 8px 24px ${featuredBirthday.color}25`,
+              boxShadow: `0 6px 16px ${featuredBirthday.color}25`,
               flexShrink: 0,
               zIndex: 1,
             }}
@@ -105,7 +106,7 @@ const BirthdayFeaturedHero = ({
             />
             <span
               style={{
-                fontFamily: '"Sniglet", "Coming Soon", cursive',
+                fontFamily: 'var(--font-paper)',
                 color: featuredBirthday.color,
                 fontSize: '1.1rem',
                 fontWeight: '400',
@@ -117,7 +118,7 @@ const BirthdayFeaturedHero = ({
           </div>
           <h2
             style={{
-              fontFamily: '"Sniglet", "Coming Soon", cursive',
+              fontFamily: 'var(--font-paper)',
               fontSize: isMobile ? '1.8rem' : '2.4rem',
               fontWeight: '400',
               color: featuredBirthday.color,
@@ -137,11 +138,11 @@ const BirthdayFeaturedHero = ({
               background: '#ffffff',
               padding: '8px 20px',
               borderRadius: '99px',
-              border: `3px solid ${featuredBirthday.color}`,
-              borderBottom: `6px solid ${featuredBirthday.color}`,
+              border: `2px solid ${featuredBirthday.color}`,
+              borderBottom: `4px solid ${featuredBirthday.color}`,
               color: featuredBirthday.color,
               fontWeight: '400',
-              fontFamily: '"Sniglet", "Coming Soon", cursive',
+              fontFamily: 'var(--font-paper)',
               boxShadow: `0 4px 12px ${featuredBirthday.color}15`,
             }}
           >

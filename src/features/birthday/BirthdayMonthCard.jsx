@@ -19,41 +19,38 @@ const BirthdayMonthCard = ({
 
   return (
     <motion.div
+      className="sketchbook-border"
       initial={reduceMotion ? false : { opacity: 0, scale: 0.95, y: 20 }}
       animate={reduceMotion ? { opacity: 1, scale: 1, y: 0, rotate: rotation } : { opacity: 1, scale: 1, y: 0, rotate: rotation }}
       transition={{ delay: 0.1 + (month * 0.05) }}
       style={{
         background: '#ffffff',
-        border: '3px solid #e5e7eb',
-        borderBottom: '8px solid #e5e7eb',
-        borderRadius: '24px',
+        border: isCurrentMonth ? '3px solid #3b82f6' : '3px solid #cbd5e1',
+        borderBottom: isCurrentMonth ? '8px solid #1d4ed8' : '8px solid #cbd5e1',
         padding: '20px 16px',
         position: 'relative',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+        boxShadow: isCurrentMonth ? '0 8px 24px rgba(59, 130, 246, 0.12)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
       }}
     >
       <div
+        className={`washi-tape ${isCurrentMonth ? 'washi-tape--blue' : (month % 2 === 0 ? 'washi-tape--pink' : 'washi-tape--yellow')}`}
         style={{
-          position: 'absolute',
-          top: '-15px',
+          top: '-14px',
           left: '50%',
-          transform: 'translateX(-50%) rotate(-2deg)',
-          width: '60px',
-          height: '24px',
-          background: 'rgba(59, 130, 246, 0.1)',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          backdropFilter: 'blur(2px)',
-          zIndex: 2,
+          transform: 'translateX(-50%) rotate(-2.5deg)',
+          width: '74px',
+          height: '22px',
+          zIndex: 5,
         }}
       />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span
           style={{
-            fontFamily: '"Sniglet", "Coming Soon", cursive',
+            fontFamily: 'var(--font-paper)',
             fontSize: '1.2rem',
             color: isCurrentMonth ? '#3b82f6' : '#6b7280',
             fontWeight: '400',
@@ -71,26 +68,26 @@ const BirthdayMonthCard = ({
           return (
             <div
               key={birthday.name}
+              className="sketchbook-border"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
                 padding: isMobile ? '14px 12px' : '14px 16px',
                 background: '#ffffff',
-                borderRadius: '20px',
                 border: `3px solid ${birthday.color}`,
-                borderBottom: `8px solid ${birthday.color}`,
-                boxShadow: `0 8px 20px ${birthday.color}15`,
+                borderBottom: `5px solid ${birthday.color}`,
+                boxShadow: `0 6px 16px ${birthday.color}15`,
                 opacity: status.passed ? 0.6 : 1,
                 transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 position: 'relative',
               }}
             >
               <div
+                className="sketchbook-border"
                 style={{
                   width: isMobile ? '40px' : '44px',
                   height: isMobile ? '40px' : '44px',
-                  borderRadius: '12px',
                   background: birthday.bg,
                   border: `2.5px solid ${birthday.color}`,
                   borderBottom: `4px solid ${birthday.color}`,
@@ -103,7 +100,7 @@ const BirthdayMonthCard = ({
               >
                 <span
                   style={{
-                    fontFamily: '"Sniglet", "Coming Soon", cursive',
+                    fontFamily: 'var(--font-paper)',
                     fontWeight: '400',
                     fontSize: isMobile ? '1.1rem' : '1.2rem',
                   }}
@@ -114,7 +111,7 @@ const BirthdayMonthCard = ({
               <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                 <span
                   style={{
-                    fontFamily: '"Sniglet", "Coming Soon", cursive',
+                    fontFamily: 'var(--font-paper)',
                     fontWeight: '400',
                     fontSize: isMobile ? '1rem' : '1.1rem',
                     color: '#374151',
@@ -128,7 +125,7 @@ const BirthdayMonthCard = ({
                 </span>
                 <span
                   style={{
-                    fontFamily: '"Sniglet", "Coming Soon", cursive',
+                    fontFamily: 'var(--font-paper)',
                     fontSize: '0.75rem',
                     color: status.isToday ? birthday.color : '#9ca3af',
                     fontWeight: '400',

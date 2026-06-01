@@ -9,13 +9,13 @@ import { CHARACTER_COLORS } from '../data/characters';
 import { QUOTES } from '../data/quotes';
 
 const UI_TEXT = {
-  en: { agenda: 'AGENDA', breakShort: 'Chapter 80 will be released in May issue!', breakLong: 'Chapter 80 will be released in May issue!' },
-  es: { agenda: 'AGENDA', breakShort: 'El Capítulo 80 llegará en la edición de mayo!', breakLong: 'El Capítulo 80 llegará en la edición de mayo!' },
-  pt: { agenda: 'AGENDA', breakShort: 'O Capítulo 80 sai na edição de maio!', breakLong: 'O Capítulo 80 sai na edição de maio!' },
-  fr: { agenda: 'AGENDA', breakShort: 'Le chapitre 80 sortira dans l édition de mai !', breakLong: 'Le chapitre 80 sortira dans l édition de mai !' },
-  de: { agenda: 'AGENDA', breakShort: 'Kapitel 80 erscheint in der Mai-Ausgabe!', breakLong: 'Kapitel 80 erscheint in der Mai-Ausgabe!' },
-  it: { agenda: 'AGENDA', breakShort: 'Il capitolo 80 uscirà nel numero di maggio!', breakLong: 'Il capitolo 80 uscirà nel numero di maggio!' },
-  ja: { agenda: '予定', breakShort: '第80話は5月号に掲載予定です。', breakLong: '第80話は5月号に掲載予定です。' },
+  en: { agenda: 'AGENDA', breakShort: 'Chapter 81 will be released in June issue!', breakLong: 'Chapter 81 will be released in June issue!' },
+  es: { agenda: 'AGENDA', breakShort: 'El Capítulo 81 llegará en la edición de junio!', breakLong: 'El Capítulo 81 llegará en la edición de junio!' },
+  pt: { agenda: 'AGENDA', breakShort: 'O Capítulo 81 sai na edição de junho!', breakLong: 'O Capítulo 81 sai na edição de junho!' },
+  fr: { agenda: 'AGENDA', breakShort: 'Le chapitre 81 sortira dans l édition de juin !', breakLong: 'Le chapitre 81 sortira dans l édition de juin !' },
+  de: { agenda: 'AGENDA', breakShort: 'Kapitel 81 erscheint in der Juni-Ausgabe!', breakLong: 'Kapitel 81 erscheint in der Juni-Ausgabe!' },
+  it: { agenda: 'AGENDA', breakShort: 'Il capitolo 81 uscerà nel numero di giugno!', breakLong: 'Il capitolo 81 uscirà nel numero di giugno!' },
+  ja: { agenda: '予定', breakShort: '第81話は6月号に掲載予定です。', breakLong: '第81話は6月号に掲載予定です。' },
 };
 
 const LOCALE_BY_UI_LANGUAGE = {
@@ -49,119 +49,97 @@ const QUOTE_CHARACTER_ALIASES = {
   'Kurume Makoto': 'Makoto',
 };
 
-const AgendaBadge = ({ isMobile, label, largeText = false }) => (
-  <div style={{ display: 'inline-flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
-    <Star size={isMobile ? 20 : 24} fill="#ffc93c" color="#f4b400" strokeWidth={2.2} />
-      <span
-        style={{
-          fontFamily: 'Sniglet, var(--font-main)',
-          fontSize: isMobile ? '1.2rem' : (largeText ? '1.42rem' : '1.3rem'),
-          lineHeight: 1,
-          fontWeight: '400',
-          color: '#425b86',
-          letterSpacing: '0.05em',
-          whiteSpace: 'nowrap',
-        }}
-      >
+const AgendaBadge = ({ isMobile, label }) => (
+  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'default' }}>
+    <Star size={isMobile ? 18 : 22} fill="#fbbf24" color="#d97706" strokeWidth={2.5} />
+    <span
+      style={{
+        fontFamily: 'Sniglet, var(--font-main)',
+        fontSize: isMobile ? '1rem' : '1.25rem',
+        fontWeight: 'bold',
+        color: '#334155',
+        letterSpacing: '0.05em',
+        whiteSpace: 'nowrap',
+      }}
+    >
       {label}
     </span>
-    <Star size={isMobile ? 20 : 24} fill="#ffc93c" color="#f4b400" strokeWidth={2.2} />
   </div>
 );
 
-const YearSticker = ({ isMobile, largeText = false }) => (
-  <div
+const YearSticker = ({ isMobile }) => (
+  <motion.div
     className="sketchbook-border"
+    whileHover={{ y: -2 }}
+    whileTap={{ scale: 0.98 }}
     style={{
-      justifySelf: 'end',
-      background: '#fbfdff',
-      border: '3px solid #bfdbfe',
-      borderBottom: '7px solid #60a5fa',
-      borderRadius: '18px',
-      padding: isMobile ? '10px 18px' : (largeText ? '12px 20px' : '10px 18px'),
-      color: '#a8bfdc',
+      backgroundColor: '#ffffff',
+      border: '3px solid #3b82f6',
+      borderBottom: '7px solid #1d4ed8',
+      borderRadius: '12px',
+      padding: isMobile ? '4px 12px' : '6px 16px',
+      color: '#2563eb',
       fontFamily: 'Sniglet, var(--font-main)',
-      fontSize: isMobile ? '1.8rem' : (largeText ? '2.7rem' : '2.46rem'),
-      lineHeight: 1,
-      fontWeight: '400',
-      transform: 'rotate(-4deg)',
-      boxShadow: '0 12px 22px rgba(96, 165, 250, 0.14)',
+      fontSize: isMobile ? '1rem' : '1.25rem',
+      fontWeight: 'bold',
       whiteSpace: 'nowrap',
+      cursor: 'pointer',
     }}
   >
     2026
-  </div>
+  </motion.div>
 );
 
-const SeriesTitle = ({ seriesTitle, seriesTitleParts, isMobile, largeText = false, fontSize, textAlign = 'left' }) => {
-  const useSingleLineMobile = isMobile && !largeText;
-
+const SeriesTitle = ({ seriesTitle, seriesTitleParts, isMobile, fontSize }) => {
   return (
     <h1
-      data-planner-title="1"
       style={{
         margin: 0,
         fontFamily: 'Sniglet, var(--font-main)',
         fontSize,
-          lineHeight: useSingleLineMobile ? 0.94 : 0.94,
-        fontWeight: '400',
-        textAlign,
+        lineHeight: 1.1,
+        fontWeight: 'normal',
         width: '100%',
         maxWidth: '100%',
-        letterSpacing: '0',
-        whiteSpace: useSingleLineMobile ? 'nowrap' : 'normal',
+        letterSpacing: '-0.02em',
+        whiteSpace: 'nowrap',
       }}
     >
-      {seriesTitleParts.length > 1 ? (
-        useSingleLineMobile ? (
-          <>
-            <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
-            <span style={{ color: '#8d9db8', margin: '0 0.08em', fontSize: '0.75em' }}>&amp;</span>
-            <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
-          </>
-        ) : (
-          <>
-            <span style={{ color: '#4ea4ff' }}>{seriesTitleParts[0]}</span>
-            <span style={{ color: '#8d9db8', marginLeft: '0.08em', fontSize: '0.75em' }}>&amp;</span>
-            <br />
-            <span style={{ color: '#ff5ca8' }}>{seriesTitleParts[1]}</span>
-          </>
-        )
-      ) : (
-        <span style={{ color: '#4ea4ff' }}>{seriesTitle}</span>
+      <span style={{ color: '#3b82f6' }}>{seriesTitleParts[0]}</span>
+      {seriesTitleParts.length > 1 && (
+        <>
+          <span style={{ color: '#64748b', margin: '0 0.1em', fontSize: '0.85em' }}>&amp;</span>
+          <span style={{ color: '#ec4899' }}>{seriesTitleParts[1]}</span>
+        </>
       )}
     </h1>
   );
 };
 
-const QuoteCard = ({ quote, isMobile, largeText = false, readableSpacing = false }) => {
+const QuoteCard = ({ quote, isMobile, readableSpacing = false }) => {
   const paletteKey = QUOTE_CHARACTER_ALIASES[quote.author] || quote.author;
-  const palette = CHARACTER_COLORS[paletteKey] || { bg: '#fff7cc', border: '#facc15', text: '#8a6b00' };
-  const quoteTextColor = palette.text || '#596579';
-  const quoteAuthorColor = palette.border || '#8b6b00';
-  const quoteBackground = palette.bg || '#fff7cc';
+  const palette = CHARACTER_COLORS[paletteKey] || { bg: '#fef9c3', border: '#facc15', text: '#854d0e' };
+  const quoteTextColor = palette.text || '#475569';
+  const quoteAuthorColor = palette.border || '#a16207';
+  const quoteBackground = palette.bg || '#fef9c3';
   const quoteBorder = palette.border || '#facc15';
-  const quoteShadow = `${quoteBorder}55`;
 
   return (
     <motion.div
-      data-planner-quote="1"
       className="sketchbook-border"
-      initial={{ opacity: 0, y: 18, rotate: -2 }}
-      animate={{ opacity: 1, y: 0, rotate: -1 }}
-      transition={{ type: 'spring', stiffness: 220, damping: 18, delay: 0.18 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -3 }}
       style={{
         width: '100%',
-        maxWidth: isMobile ? '100%' : (largeText ? '400px' : '372px'),
-        background: quoteBackground,
+        backgroundColor: quoteBackground,
         border: `3px solid ${quoteBorder}`,
         borderBottom: `8px solid ${quoteBorder}`,
-        borderRadius: '22px',
-        padding: isMobile ? '16px 16px 13px' : (largeText ? '18px 22px 16px' : '16px 20px 15px'),
-        boxShadow: `0 16px 28px ${quoteShadow}`,
+        borderRadius: '20px',
+        padding: isMobile ? '20px' : '24px',
         display: 'grid',
-        gap: isMobile ? '8px' : (largeText ? '12px' : '11px'),
-        justifySelf: isMobile ? 'center' : 'start',
+        gap: '12px',
+        cursor: 'default',
       }}
     >
       <p
@@ -169,9 +147,9 @@ const QuoteCard = ({ quote, isMobile, largeText = false, readableSpacing = false
           margin: 0,
           fontFamily: 'var(--font-main)',
           color: quoteTextColor,
-          fontSize: isMobile ? '0.96rem' : (largeText ? '1.1rem' : '1rem'),
-          lineHeight: isMobile ? 1.55 : (readableSpacing ? 1.76 : 1.66),
-          textAlign: isMobile ? 'left' : 'left',
+          fontSize: isMobile ? '0.98rem' : '1.05rem',
+          lineHeight: readableSpacing ? 1.7 : 1.55,
+          fontWeight: 'bold',
         }}
       >
         "{quote.text}"
@@ -179,83 +157,77 @@ const QuoteCard = ({ quote, isMobile, largeText = false, readableSpacing = false
       <p
         style={{
           margin: 0,
-          textAlign: isMobile ? 'right' : 'right',
+          textAlign: 'right',
           fontFamily: 'Sniglet, var(--font-main)',
           color: quoteAuthorColor,
-          fontSize: isMobile ? '0.92rem' : (largeText ? '1.04rem' : '0.98rem'),
-          lineHeight: 1.2,
-          fontWeight: '400',
+          fontSize: isMobile ? '0.92rem' : '1rem',
+          fontWeight: 'bold',
         }}
       >
-        - {quote.author}
+        — {quote.author}
       </p>
     </motion.div>
   );
 };
 
-const NoteRibbon = ({ text, isMobile, largeText = false }) => (
-  <motion.div
-    data-planner-break-note="1"
-    className="sketchbook-border paper-interact"
-    initial={{ opacity: 0, y: -16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.08, type: 'spring', stiffness: 240, damping: 18 }}
-      style={{
-        width: '100%',
-        maxWidth: isMobile ? '100%' : (largeText ? '760px' : '700px'),
-        background: '#f9fcff',
-        border: '3px solid #93c5fd',
-        borderBottom: '7px solid #3b82f6',
-        borderRadius: '16px',
-        padding: isMobile ? '12px 12px' : (largeText ? '14px 20px' : '12px 18px'),
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr auto',
-        alignItems: 'center',
-        gap: isMobile ? '10px' : (largeText ? '18px' : '16px'),
-        boxShadow: '0 12px 20px rgba(59, 130, 246, 0.16)',
-      }}
+const NoteRibbon = ({ text, isMobile }) => (
+  <div
+    className="sketchbook-border"
+    style={{
+      width: '100%',
+      backgroundColor: '#eff6ff',
+      border: '3px solid #3b82f6',
+      borderBottom: '8px solid #1d4ed8',
+      borderRadius: '16px',
+      padding: isMobile ? '12px 16px' : '16px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '12px',
+    }}
   >
-    <span style={{ width: isMobile ? '12px' : '14px', height: isMobile ? '12px' : '14px', borderRadius: '999px', background: '#ffc93c', border: '2px solid #f59e0b' }} />
+    <span style={{ display: 'inline-flex', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ef4444', border: '2px solid #b91c1c', flexShrink: 0 }} />
     <span
       style={{
         fontFamily: 'Sniglet, var(--font-main)',
-        color: '#53698c',
-        fontSize: isMobile ? '0.93rem' : (largeText ? '1.12rem' : '1.03rem'),
+        color: '#1e40af',
+        fontSize: isMobile ? '0.92rem' : '1.1rem',
         lineHeight: 1.4,
+        fontWeight: 'bold',
         textAlign: 'center',
-        fontWeight: '400',
       }}
     >
       {text}
     </span>
-    <span style={{ width: isMobile ? '12px' : '14px', height: isMobile ? '12px' : '14px', borderRadius: '999px', background: '#fb7185', border: '2px solid #e11d48' }} />
-  </motion.div>
+  </div>
 );
 
-const DateBadge = ({ dateLabel, timezoneLabel, isMobile, largeText = false }) => (
+const DateBadge = ({ dateLabel, timezoneLabel, isMobile }) => (
   <div
-    data-planner-date-badge="1"
     className="sketchbook-border"
     style={{
-      display: 'inline-flex',
-      flexWrap: 'wrap',
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'center',
-      gap: isMobile ? '6px' : '8px',
-      background: '#e1f4ff',
-      border: '3px solid #67c3ff',
-      borderBottom: '8px solid #22a9f1',
-      borderRadius: '18px',
-      padding: isMobile ? '13px 16px' : (largeText ? '15px 26px' : '14px 24px'),
-      width: isMobile ? '100%' : (largeText ? 'min(100%, 620px)' : 'min(100%, 560px)'),
-      boxShadow: '0 14px 20px rgba(34, 169, 241, 0.18)',
+      backgroundColor: '#f8fafc',
+      border: '3px solid #cbd5e1',
+      borderBottom: '8px solid #94a3b8',
+      borderRadius: '16px',
+      padding: isMobile ? '14px 18px' : '18px 24px',
+      width: '100%',
       textAlign: 'center',
     }}
   >
-    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#465973', fontSize: isMobile ? '1.08rem' : (largeText ? '1.24rem' : '1.12rem'), lineHeight: 1.3, fontWeight: '400' }}>
-      {dateLabel}
-    </span>
-    <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#465973', fontSize: isMobile ? '1.08rem' : (largeText ? '1.24rem' : '1.12rem'), lineHeight: 1.3, fontWeight: '400' }}>
-      ({timezoneLabel})
+    <span
+      style={{
+        fontFamily: 'Sniglet, var(--font-main)',
+        color: '#1e293b',
+        fontSize: isMobile ? '1rem' : '1.2rem',
+        lineHeight: 1.3,
+        fontWeight: 'bold',
+      }}
+    >
+      {dateLabel} <span style={{ color: '#475569', fontSize: '0.9em', fontWeight: 'normal' }}>({timezoneLabel})</span>
     </span>
   </div>
 );
@@ -268,7 +240,7 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
 
   usePageTitle(tGlobal.tabs?.home?.label || 'Home');
 
-  const targetDate = new Date('2026-05-25T00:00:00+09:00');
+  const targetDate = new Date('2026-06-25T00:00:00+09:00');
   const localDateString = targetDate.toLocaleString(locale, {
     weekday: 'long',
     month: 'long',
@@ -283,14 +255,8 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
   const timezoneHours = String(Math.floor(timezoneAbsMinutes / 60)).padStart(2, '0');
   const timezoneMinutes = String(timezoneAbsMinutes % 60).padStart(2, '0');
   const timezoneLabel = `UTC${timezoneSign}${timezoneHours}:${timezoneMinutes}`;
-  const desktopTitleSize = largeText ? 'clamp(4.8rem, 6.2vw, 5.6rem)' : 'clamp(4.2rem, 5.6vw, 5.0rem)';
-  const desktopTitlePaddingTop = largeText || readableSpacing ? '60px' : '52px';
-  const desktopQuotePaddingTop = largeText || readableSpacing ? '24px' : '18px';
-  const desktopCountdownPaddingTop = largeText || readableSpacing ? '30px' : '24px';
-  const desktopDatePaddingTop = largeText || readableSpacing ? '20px' : '16px';
-  const desktopReleasePaddingTop = largeText || readableSpacing ? '18px' : '14px';
+
   const agendaLabel = resolveLocalizedValue(t.agenda, uiLanguage, UI_TEXT.en.agenda);
-  const breakShortLabel = resolveLocalizedValue(t.breakShort, uiLanguage, UI_TEXT.en.breakShort);
   const breakLongLabel = resolveLocalizedValue(t.breakLong, uiLanguage, UI_TEXT.en.breakLong);
   const seriesTitle = resolveLocalizedValue(tGlobal.seriesTitle, uiLanguage, 'Skip & Loafer');
   const quoteText = resolveLocalizedValue(randomQuote?.text, uiLanguage, '');
@@ -302,156 +268,87 @@ const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableS
     author: quoteAuthor,
   };
 
-  const pageStyle = {
-    padding: isMobile ? '18px 14px 22px' : (largeText ? '34px 28px 28px' : '28px 22px 26px'),
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative',
-    backgroundColor: 'transparent',
-  };
-  const leftPageStyle = isMobile
-    ? pageStyle
-    : {
-      ...pageStyle,
-      padding: largeText ? '36px 28px 30px' : '30px 24px 28px',
-      flex: largeText ? '0.7 1 0' : '0.68 1 0',
-      minWidth: 0,
-    };
-  const rightPageStyle = isMobile
-    ? pageStyle
-    : {
-      ...pageStyle,
-      padding: largeText ? '38px 30px 34px 24px' : '34px 28px 30px 22px',
-      flex: largeText ? '1.3 1 0' : '1.32 1 0',
-      minWidth: 0,
-    };
-
-  if (isMobile) {
-    return (
+  return (
+    <div
+      style={{
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: isMobile ? '20px' : '28px',
+        padding: isMobile ? '20px 14px 60px' : '32px 40px',
+        boxSizing: 'border-box',
+      }}
+    >
+      {/* Redesigned Pop-Art Sketchbook Header Banner */}
       <div
-        className="planner-page"
         style={{
-          ...pageStyle,
-          padding: largeText ? '18px 16px 20px 20px' : '16px 14px 18px 18px',
-          gap: largeText ? '16px' : '14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '16px',
+          width: '100%',
+          paddingBottom: '16px',
+          borderBottom: '3.5px solid #cbd5e1',
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'start', gap: '10px' }}>
-          <AgendaBadge isMobile={isMobile} label={agendaLabel} />
-          <YearSticker isMobile={isMobile} />
+        <AgendaBadge isMobile={isMobile} label={agendaLabel} />
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
+          <SeriesTitle
+            isMobile={isMobile}
+            seriesTitle={seriesTitle}
+            seriesTitleParts={seriesTitleParts}
+            fontSize={isMobile ? '1.25rem' : '2rem'}
+          />
+        </div>
+        <YearSticker isMobile={isMobile} />
+      </div>
+
+      {/* Main Content Layout - Centered Column with beautiful pop-art widgets */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: isMobile ? '20px' : '28px',
+          width: '100%',
+          maxWidth: '760px',
+          margin: '0 auto',
+          alignItems: 'center',
+        }}
+      >
+        <NoteRibbon text={breakLongLabel} isMobile={isMobile} />
+
+        {/* Center-aligned, non-full-width Countdown Timer */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', maxWidth: isMobile ? '320px' : '620px' }}>
+          <Countdown isMobile={isMobile} uiLanguage={uiLanguage} largeText={largeText} />
         </div>
 
-        <SeriesTitle
-          isMobile={isMobile}
-          largeText={largeText}
-          seriesTitle={seriesTitle}
-          seriesTitleParts={seriesTitleParts}
-          fontSize={largeText ? 'clamp(3.2rem, 10vw, 3.8rem)' : 'clamp(2.4rem, 7.9vw, 3rem)'}
-          textAlign={largeText ? 'left' : 'center'}
-        />
+        <DateBadge dateLabel={localDateString} timezoneLabel={timezoneLabel} isMobile={isMobile} />
 
-        <div style={{ width: '100%', paddingTop: '2px' }}>
-          <NoteRibbon text={breakShortLabel} isMobile={isMobile} largeText={largeText} />
-        </div>
-
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <Countdown isMobile={isMobile} uiLanguage={uiLanguage} largeText={largeText} inlineMobile />
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <DateBadge dateLabel={localDateString} timezoneLabel={timezoneLabel} isMobile={isMobile} largeText={largeText} />
-        </div>
-
+        {/* Quote and Latest Chapter vertically separated on separate rows */}
+        <QuoteCard quote={resolvedQuote} isMobile={isMobile} readableSpacing={readableSpacing} />
+        
         <div
+          className="sketchbook-border"
           style={{
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '12px',
+            backgroundColor: '#fffbeb',
+            border: '3px solid #f59e0b',
+            borderBottom: '8px solid #d97706',
+            borderRadius: '20px',
+            padding: isMobile ? '18px' : '24px',
             width: '100%',
-            paddingTop: '10px',
-            marginTop: '4px',
-            borderTop: '2px solid rgba(191, 219, 254, 0.72)',
+            alignItems: 'center',
           }}
         >
           <ReleaseNote isMobile={isMobile} uiLanguage={uiLanguage} inline largeText={largeText} />
         </div>
-
-        <div style={{ display: 'flex', justifyContent: 'center', width: '100%', paddingTop: '2px', marginTop: 'auto' }}>
-          <QuoteCard quote={resolvedQuote} isMobile={isMobile} largeText={largeText} readableSpacing={readableSpacing} />
-        </div>
       </div>
-    );
-  }
-
-  return (
-    <>
-      <div
-        className="planner-home-panel"
-        style={{
-          ...leftPageStyle,
-        }}
-      >
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'start', gap: '12px', marginBottom: 0 }}>
-          <AgendaBadge isMobile={isMobile} label={agendaLabel} largeText={largeText} />
-          <YearSticker isMobile={isMobile} largeText={largeText} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', alignItems: 'flex-start' }}>
-          <div style={{ display: 'grid', gap: '6px', justifyItems: 'start', width: '100%', paddingTop: desktopTitlePaddingTop }}>
-            <SeriesTitle
-              isMobile={isMobile}
-              largeText={largeText}
-              seriesTitle={seriesTitle}
-              seriesTitleParts={seriesTitleParts}
-              fontSize={desktopTitleSize}
-            />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: 'auto', paddingTop: desktopQuotePaddingTop }}>
-            <QuoteCard quote={resolvedQuote} isMobile={isMobile} largeText={largeText} readableSpacing={readableSpacing} />
-          </div>
-        </div>
-      </div>
-
-      <div className="spiral-binding-center" style={{ zIndex: 20 }} />
-
-      <div
-        className="planner-home-panel"
-        style={{
-          ...rightPageStyle,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: largeText ? '840px' : '780px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: largeText || readableSpacing ? '8px 10px 10px' : '6px 8px 8px',
-          }}
-        >
-          <NoteRibbon text={breakLongLabel} isMobile={isMobile} largeText={largeText} />
-
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: desktopCountdownPaddingTop }}>
-            <Countdown isMobile={isMobile} uiLanguage={uiLanguage} largeText={largeText} />
-          </div>
-
-          <div style={{ paddingTop: desktopDatePaddingTop }}>
-            <DateBadge dateLabel={localDateString} timezoneLabel={timezoneLabel} isMobile={isMobile} largeText={largeText} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', paddingTop: desktopReleasePaddingTop }}>
-            <ReleaseNote isMobile={isMobile} uiLanguage={uiLanguage} inline largeText={largeText} />
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 
 export default PlannerPage;
-

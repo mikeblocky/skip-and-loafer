@@ -27,13 +27,20 @@ const DEFAULT_READER_PREFS = {
   theme: 'paper',
 };
 
-const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
+const BlogPage = ({
+  isMobile,
+  uiLanguage = 'en',
+  readerPrefs: propReaderPrefs,
+  setReaderPrefs: propSetReaderPrefs,
+}) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   usePageTitle(t.header || UI_TEXT.en.header);
 
   const locale = uiLanguage;
   const [selectedBlogId, setSelectedBlogId] = useState(null);
-  const [readerPrefs, setReaderPrefs] = useState(DEFAULT_READER_PREFS);
+  const [localReaderPrefs, setLocalReaderPrefs] = useState(DEFAULT_READER_PREFS);
+  const readerPrefs = propReaderPrefs || localReaderPrefs;
+  const setReaderPrefs = propSetReaderPrefs || setLocalReaderPrefs;
   const [sortOrder, setSortOrder] = useState('desc');
 
   const blogs = useMemo(
@@ -136,7 +143,7 @@ const BlogPage = ({ isMobile, uiLanguage = 'en' }) => {
             exit={CONTENT_SLIDE_COMPACT.exit}
             transition={TRANSITION_FAST}
             className="hide-scrollbar"
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'visible', minHeight: 0 }}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflow: 'visible', minHeight: 0, boxSizing: 'border-box' }}
           >
             <Suspense fallback={<BlogReaderFallback isMobile={isMobile} label={t.openingReader || UI_TEXT.en.openingReader} />}>
               <BlogReaderPane

@@ -10,7 +10,7 @@ const BirthdayFooter = ({ isMobile, count, label, year }) => {
       style={{
         marginTop: '80px',
         textAlign: 'center',
-        fontFamily: '"Sniglet", "Coming Soon", cursive',
+        fontFamily: 'var(--font-paper)',
         fontSize: '1.2rem',
         color: '#9ca3af',
         fontWeight: '400',

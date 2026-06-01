@@ -68,17 +68,18 @@ export const CommunityModal = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="hide-scrollbar"
+            className="hide-scrollbar sketchbook-border"
             role="dialog"
             aria-modal="true"
             aria-label={title}
             style={{
               ...COMMUNITY_PANEL_STYLE,
+              position: 'relative',
               width: '100%',
               maxWidth,
               maxHeight: 'min(86vh, 880px)',
               overflow: 'auto',
-              padding: '18px',
+              padding: '24px 20px 20px',
               borderColor: accentColor,
               borderBottomColor: accentBottom,
               background: '#fffefc',
@@ -86,13 +87,27 @@ export const CommunityModal = ({
               gap: '16px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: '14px' }}>
+            {/* Elegant washi tape seal on the modal header */}
+            <div
+              className={`washi-tape washi-tape--${accentColor === '#f97316' ? 'yellow' : 'blue'}`}
+              style={{
+                position: 'absolute',
+                top: '-12px',
+                left: '50%',
+                transform: 'translateX(-50%) rotate(-1.5deg)',
+                width: '90px',
+                height: '24px',
+                zIndex: 100,
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: '14px', marginTop: '4px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                 <div
+                  className="sketchbook-border"
                   style={{
                     width: '46px',
                     height: '46px',
-                    borderRadius: '16px',
                     border: `3px solid ${accentColor}`,
                     borderBottom: `8px solid ${accentBottom}`,
                     background: '#ffffff',
@@ -112,6 +127,7 @@ export const CommunityModal = ({
                     fontSize: '1.45rem',
                     lineHeight: 1.05,
                     color: '#1e293b',
+                    fontWeight: '400',
                   }}
                 >
                   {title}
@@ -119,13 +135,13 @@ export const CommunityModal = ({
               </div>
 
               <button
+                className="sketchbook-border app-tactile"
                 type="button"
                 onClick={() => onClose?.()}
                 aria-label="Close dialog"
                 style={{
                   width: '42px',
                   height: '42px',
-                  borderRadius: '14px',
                   border: '2px solid #cbd5e1',
                   borderBottom: '6px solid #94a3b8',
                   background: '#ffffff',
