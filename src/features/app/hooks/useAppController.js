@@ -38,6 +38,7 @@ import { useReaderChapterNavigation } from './useReaderChapterNavigation';
 import { useTabSwipeNavigation } from './useTabSwipeNavigation';
 import { useUiBootDelay } from './useUiBootDelay';
 import { useWindowSize } from './useWindowSize';
+import { flushPendingRequests } from '../../../utils/offlineSync';
 
 export const useAppController = () => {
   const {
@@ -143,6 +144,21 @@ export const useAppController = () => {
   });
 
   const { showScrollTop, scrollToTop } = useMainScrollTop({ mainScrollRef, showUI });
+
+  useEffect(() => {
+    // Flush any pending offline requests on boot
+    void flushPendingRequests();
+
+    const handleOnline = () => {
+      console.log('App is back online. Syncing pending requests...');
+      void flushPendingRequests();
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
 
   useEffect(() => {
     const interactiveSelector = 'button, [role="button"], a[href], input[type="button"], input[type="submit"], input[type="reset"]';

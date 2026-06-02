@@ -12,14 +12,14 @@ import {
 import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
 
 const NOTE_PALETTES = [
-  { background: '#fff8be', border: '#facc15', bottom: '#eab308', accent: '#a16207' },
-  { background: '#fee2e2', border: '#fda4af', bottom: '#fb7185', accent: '#be123c' },
-  { background: '#dbeafe', border: '#93c5fd', bottom: '#60a5fa', accent: '#1d4ed8' },
-  { background: '#dcfce7', border: '#86efac', bottom: '#4ade80', accent: '#15803d' },
-  { background: '#fce7f3', border: '#f9a8d4', bottom: '#f472b6', accent: '#be185d' },
-  { background: '#ede9fe', border: '#c4b5fd', bottom: '#a78bfa', accent: '#6d28d9' },
-  { background: '#ffedd5', border: '#fdba74', bottom: '#fb923c', accent: '#c2410c' },
-  { background: '#ecfeff', border: '#67e8f9', bottom: '#22d3ee', accent: '#0f766e' },
+  { background: 'var(--themed-note-bg-1, #fff8be)', border: 'var(--themed-note-border-1, #facc15)', bottom: 'var(--themed-note-bottom-1, #eab308)', accent: 'var(--themed-note-accent-1, #a16207)' },
+  { background: 'var(--themed-note-bg-2, #fee2e2)', border: 'var(--themed-note-border-2, #fda4af)', bottom: 'var(--themed-note-bottom-2, #fb7185)', accent: 'var(--themed-note-accent-2, #be123c)' },
+  { background: 'var(--themed-note-bg-3, #dbeafe)', border: 'var(--themed-note-border-3, #93c5fd)', bottom: 'var(--themed-note-bottom-3, #60a5fa)', accent: 'var(--themed-note-accent-3, #1d4ed8)' },
+  { background: 'var(--themed-note-bg-4, #dcfce7)', border: 'var(--themed-note-border-4, #86efac)', bottom: 'var(--themed-note-bottom-4, #4ade80)', accent: 'var(--themed-note-accent-4, #15803d)' },
+  { background: 'var(--themed-note-bg-5, #fce7f3)', border: 'var(--themed-note-border-5, #f9a8d4)', bottom: 'var(--themed-note-bottom-5, #f472b6)', accent: 'var(--themed-note-accent-5, #be185d)' },
+  { background: 'var(--themed-note-bg-6, #ede9fe)', border: 'var(--themed-note-border-6, #c4b5fd)', bottom: 'var(--themed-note-bottom-6, #a78bfa)', accent: 'var(--themed-note-accent-6, #6d28d9)' },
+  { background: 'var(--themed-note-bg-7, #ffedd5)', border: 'var(--themed-note-border-7, #fdba74)', bottom: 'var(--themed-note-bottom-7, #fb923c)', accent: 'var(--themed-note-accent-7, #c2410c)' },
+  { background: 'var(--themed-note-bg-8, #ecfeff)', border: 'var(--themed-note-border-8, #67e8f9)', bottom: 'var(--themed-note-bottom-8, #22d3ee)', accent: 'var(--themed-note-accent-8, #0f766e)' },
 ];
 
 const STACK_OFFSETS = [
@@ -179,7 +179,7 @@ const SignNotesBoard = ({
                 <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: isMobile ? '0.95rem' : '1rem', color: palette.accent, lineHeight: 1, fontWeight: '400' }}>
                   {entry.name}
                 </span>
-                <p style={{ margin: 0, color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.95rem' : '1rem' }}>
+                <p style={{ margin: 0, color: 'var(--text-secondary, #334155)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.95rem' : '1rem' }}>
                   {entry.message}
                 </p>
               </div>
@@ -190,7 +190,7 @@ const SignNotesBoard = ({
                   style={createCommunityTimestampStyle({
                     borderColor: palette.border,
                     bottomColor: palette.bottom,
-                    background: '#ffffff',
+                    background: 'var(--surface-card, #ffffff)',
                     color: palette.accent,
                   })}
                 >

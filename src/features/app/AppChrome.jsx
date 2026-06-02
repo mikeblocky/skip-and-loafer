@@ -1,6 +1,6 @@
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, WifiOff } from 'lucide-react';
 import NavTabs from '../../components/shared/NavTabs';
 import {
   AppDisclaimerModal,
@@ -43,14 +43,82 @@ const copyrightStyle = {
   display: 'none',
 };
 
+const offlineBannerStyle = (isMobile) => ({
+  position: 'fixed',
+  top: isMobile ? '12px' : '20px',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 2000,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  background: '#fef3c7',
+  border: '3px solid #d97706',
+  borderBottom: '7px solid #b45309',
+  borderRadius: '16px',
+  padding: isMobile ? '10px 16px' : '12px 24px',
+  color: '#b45309',
+  fontFamily: 'Sniglet, var(--font-hand)',
+  fontSize: isMobile ? '0.88rem' : '0.96rem',
+  fontWeight: 'bold',
+  boxShadow: '0 8px 24px rgba(180, 83, 9, 0.15)',
+  pointerEvents: 'auto',
+  maxWidth: '90%',
+  width: isMobile ? '340px' : 'auto',
+  textAlign: 'center',
+});
+
+const OFFLINE_COPY = {
+  en: "Offline Mode — Caching active! Chat and syncing are paused.",
+  es: "Modo sin conexión — ¡Caché activo! Chat y sincronización pausados.",
+  pt: "Modo offline — Cache ativo! Chat e sincronização pausados.",
+  fr: "Mode hors ligne — Cache actif ! Le chat et la synchronisation sont suspendus.",
+  de: "Offline-Modus — Cache aktiv! Chat und Synchronisierung pausiert.",
+  it: "Modalità offline — Cache attiva! Chat e sincronizzazione sono in pausa.",
+  ja: "オフラインモード — キャッシュ有効！チャットと同期は一時停止中です。",
+};
+
+const getOfflineLabel = (uiLanguage) => OFFLINE_COPY[uiLanguage] || OFFLINE_COPY.en;
+
 const AppChrome = ({ app }) => {
   const unreadCount = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && (chapter.links?.en || chapter.pages)).length -
     CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && app.isFinished(chapter.number)).length;
   const safeUnreadCount = Math.max(0, unreadCount);
 
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
       <div className="app-surface-shell" style={shellViewportStyle}>
+        <AnimatePresence>
+          {!isOnline && (
+            <motion.div
+              key="offline-banner"
+              initial={{ y: -100, x: '-50%', opacity: 0 }}
+              animate={{ y: 0, x: '-50%', opacity: 1 }}
+              exit={{ y: -100, x: '-50%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              style={offlineBannerStyle(app.isMobile)}
+            >
+              <WifiOff size={18} strokeWidth={2.5} />
+              <span>{getOfflineLabel(app.uiLanguage)}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <a
           href="#main-content"
           style={skipLinkStyle}
@@ -233,7 +301,7 @@ const AppChrome = ({ app }) => {
         {app.showScrollTop && !app.readerChapter && app.activePage !== 'blog' && app.activePage !== 'quiz' && (
           <motion.button
             key="scroll-top"
-            className="app-tactile"
+            className="app-tactile no-override"
             onClick={app.scrollToTop}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -246,10 +314,10 @@ const AppChrome = ({ app }) => {
               right: app.isMobile ? '16px' : '28px',
               bottom: app.isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : '106px',
               zIndex: 1100,
-              border: '3px solid #cbd5e1',
-              borderBottom: '7px solid #94a3b8',
-              background: '#fff',
-              color: '#374151',
+              border: '3px solid var(--surface-border, #cbd5e1)',
+              borderBottom: '7px solid var(--surface-border-strong, #94a3b8)',
+              background: 'var(--surface-card, #fff)',
+              color: 'var(--text-primary, #374151)',
               borderRadius: '20px',
               padding: app.isMobile ? '14px' : '14px 20px',
               fontFamily: 'var(--font-hand)',

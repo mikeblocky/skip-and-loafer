@@ -223,7 +223,7 @@ const generatePath = (x1, y1, x2, y2, shape, offset = 0) => {
 
 // --- Main Component ---
 
-const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
+const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }) => {
   const containerRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -270,6 +270,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   const [bgStyle, setBgStyle] = useState('dots');
   const [customBgColor, setCustomBgColor] = useState('#ffffff');
   const [isPanMode, setIsPanMode] = useState(false);
+  const [mapTitleStyle, setMapTitleStyle] = useState('minimal');
 
   // Interactive State
   const [draggingItems, setDraggingItems] = useState([]);
@@ -287,6 +288,26 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
     portraitData.forEach(p => map[p.name] = p);
     return map;
   }, [portraitData]);
+
+  const activeBg = useMemo(() => {
+    if (bgStyle === 'custom') {
+      return { bg: customBgColor, css: 'none', size: 'auto' };
+    }
+    const standardBg = BACKGROUNDS.find(b => b.id === bgStyle) || BACKGROUNDS[0];
+    if (!darkMode) return standardBg;
+    switch (bgStyle) {
+      case 'dots':
+        return { id: 'dots', label: 'Dot grid', bg: '#1a1817', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiM0ZDQ2NDEiLz48L3N2Zz4=")', size: '30px 30px' };
+      case 'grid':
+        return { id: 'grid', label: 'Blueprint', bg: '#201e1d', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTSA0MCAwIEwgMCAwIDAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+")', size: '40px 40px' };
+      case 'paper':
+        return { id: 'paper', label: 'Lined paper', bg: '#201e1d', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjMyIj48bGluZSB4MT0iMCIgeTE9IjMxIiB4Mj0iMTAwJSIgeTI9IjMxIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")', size: '100% 32px' };
+      case 'cork':
+        return { id: 'cork', label: 'Corkboard', bg: '#3c362d', css: 'none', size: 'auto' };
+      default:
+        return standardBg;
+    }
+  }, [bgStyle, customBgColor, darkMode]);
 
   // Load / Save
   useEffect(() => {
@@ -309,6 +330,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
         if (data.customBgColor) setCustomBgColor(data.customBgColor);
         if (data.boardTitle) setBoardTitle(data.boardTitle);
         if (data.titlePos) setTitlePos(data.titlePos);
+        if (data.mapTitleStyle) setMapTitleStyle(data.mapTitleStyle);
       } catch (e) { console.error(e); }
     }
     setIsLoaded(true);
@@ -326,9 +348,9 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('skip_loafer_map_v4', JSON.stringify({ nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos }));
+      localStorage.setItem('skip_loafer_map_v4', JSON.stringify({ nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, mapTitleStyle }));
     }
-  }, [nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, isLoaded]);
+  }, [nodes, groups, links, memos, bgStyle, customBgColor, boardTitle, titlePos, mapTitleStyle, isLoaded]);
 
   const selectItem = (id, type) => {
     if (id) setShowAddMenu(false);
@@ -603,8 +625,6 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   };
 
   const performHtml2Canvas = async (opts) => {
-    const activeBg = bgStyle === 'custom' ? { bg: customBgColor, css: 'none', size: 'auto' } : BACKGROUNDS.find(b => b.id === bgStyle);
-    
     const container = scrollContainerRef.current;
     const oldX = container.scrollLeft;
     const oldY = container.scrollTop;
@@ -761,8 +781,6 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
       </div>
     );
   };
-
-  const activeBg = bgStyle === 'custom' ? { bg: customBgColor, css: 'none', size: 'auto' } : BACKGROUNDS.find(b => b.id === bgStyle);
 
   // --- Editor Panels ---
   
@@ -1036,18 +1054,18 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Frame style</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: node.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
+                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} className={`map-sidebar-btn ${node.shape === s.id ? 'active-blue' : ''}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: node.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
                   </div>
                 </div>
                 
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Avatar size</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} className={`map-sidebar-btn ${node.size === s.id ? 'active-gray' : ''}`} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
 
-                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                     {[
@@ -1056,7 +1074,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                       { id: 'left', label: 'Left' },
                       { id: 'right', label: 'Right' }
                     ].map(p => (
-                      <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                      <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} className={`map-sidebar-btn ${(node.charNamePos || 'bottom') === p.id ? 'active-blue' : ''}`} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
                     ))}
                   </div>
                 </div>
@@ -1064,7 +1082,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Presence effect</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.animation === s.id ? 'var(--pop-pink)' : '#f8fafc', color: node.animation === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} className={`map-sidebar-btn ${node.animation === s.id ? 'active-pink' : ''}`} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.animation === s.id ? 'var(--pop-pink)' : '#f8fafc', color: node.animation === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
 
@@ -1098,7 +1116,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                   );
                 })()}
 
-                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <button onClick={deleteSelected} className="map-sidebar-btn delete-btn" style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <Trash2 size={16} /> Delete character
                 </button>
               </>
@@ -1262,7 +1280,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                       <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Sub-circles ({content.circles.length})</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {content.circles.map(c => (
-                          <div key={c.id} style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '8px' }}>{c.title || 'Untitled Circle'}</div>
+                          <div key={c.id} className="map-subcircle-pill" style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '8px' }}>{c.title || 'Untitled Circle'}</div>
                         ))}
                       </div>
                     </div>
@@ -1469,6 +1487,25 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
             transform: scale(0.95);
             border-color: var(--pop-pink);
           }
+
+          html[data-a11y-dark-mode='1'] .mobile-bottom-dock {
+            background: rgba(38, 35, 33, 0.95) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn {
+            color: #ece3cc !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn.active {
+            background: #1e4b85 !important;
+            color: white !important;
+            box-shadow: 0 4px 8px rgba(30, 75, 133, 0.4) !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn-primary {
+            background: #852d5b !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(133, 45, 91, 0.4) !important;
+          }
         `}
       </style>
 
@@ -1510,50 +1547,57 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
         ) : (
           <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="hide-scroll" style={{ 
             display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px', 
-            background: 'rgba(255,255,255,0.98)', borderBottom: '2px solid #e2e8f0',
+            background: darkMode ? '#262321' : 'rgba(255,255,255,0.98)', 
+            borderBottom: darkMode ? '2px solid #4d4641' : '2px solid #e2e8f0',
             alignItems: 'center', WebkitOverflowScrolling: 'touch', flexShrink: 0,
             position: 'relative', zIndex: 500
           }}>
-            <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'var(--pop-pink)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#852d5b' : 'var(--pop-pink)', border: darkMode ? '1.5px solid #a23d70' : 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <UserPlus size={14} /> Person
             </button>
-            <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#334155' : '#f8fafc', border: darkMode ? '1.5px solid #475569' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <CircleDashed size={14} /> Circle
             </button>
-            <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#334155' : '#f8fafc', border: darkMode ? '1.5px solid #475569' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <Share2 size={14} /> Nexus
             </button>
-            <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: '8px', color: '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#5c4e1a' : '#fef3c7', border: darkMode ? '1.5px solid #857007' : '1.5px solid #fde68a', borderRadius: '8px', color: darkMode ? '#fef08a' : '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <StickyNote size={14} /> Memo
             </button>
             
-            <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 2px' }} />
+            <div style={{ width: '1px', height: '18px', background: darkMode ? '#4d4641' : '#e2e8f0', margin: '0 2px' }} />
 
             <button onClick={() => { if (selectedType === 'node') { setIsConnecting(!isConnecting); } else alert("Select a character or nexus first!"); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: isConnecting ? 'var(--pop-blue)' : 'white', border: isConnecting ? '1.5px solid var(--pop-blue)' : '1.5px solid #cbd5e1', borderRadius: '8px', color: isConnecting ? 'white' : '#4b5563', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', 
+                background: isConnecting ? (darkMode ? '#1e4b85' : 'var(--pop-blue)') : (darkMode ? '#262321' : 'white'), 
+                border: isConnecting ? (darkMode ? '1.5px solid #3b82f6' : '1.5px solid var(--pop-blue)') : (darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1'), 
+                borderRadius: '8px', color: isConnecting ? 'white' : (darkMode ? '#ece3cc' : '#4b5563'), 
+                fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' 
+              }}
             >
               <ArrowRight size={14} /> {isConnecting ? "Tap target..." : "Link"}
             </button>
 
             {selectedId && (
-              <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#fee2e2', border: '1.5px solid #fecaca', borderRadius: '8px', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: darkMode ? '#5c1d1d' : '#fee2e2', border: darkMode ? '1.5px solid #991b1b' : '1.5px solid #fecaca', borderRadius: '8px', color: darkMode ? '#fca5a5' : '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 <Trash2 size={14} />
               </button>
             )}
 
             <div style={{ flex: 1, minWidth: '20px' }} />
 
-            <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
+            <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
               {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
             </button>
 
-            <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', cursor: 'pointer', position: 'relative' }}>
+            <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', cursor: 'pointer', position: 'relative' }}>
               <MapIcon size={16} />
             </button>
-            <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }}>
+            <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#64748b', cursor: 'pointer' }}>
               <RotateCcw size={16} />
             </button>
-            <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1px solid #4d4641' : '1px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <Download size={14} /> PNG
             </button>
           </motion.div>
@@ -1670,7 +1714,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                   <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', fontWeight: '800' }}>Press Enter to save</div>
                 </div>
               ) : (
-                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : 'rgba(255,255,255,0.7)', backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : '1px solid rgba(0,0,0,0.05)', display: 'block' }}>
+                <div onClick={() => !isSaving && setIsEditingTitle(true)} style={{ textAlign: 'center', padding: isMobile ? '8px 20px 12px' : '12px 40px 18px', borderRadius: '24px', background: isSaving ? 'transparent' : (mapTitleStyle === 'paper' ? '#fffefc' : 'rgba(255,255,255,0.7)'), backdropFilter: isSaving ? 'none' : 'blur(8px)', textShadow: isSaving ? '0 2px 10px rgba(255,255,255,0.9)' : 'none', border: isSaving ? 'none' : (mapTitleStyle === 'paper' ? '2.5px solid #94a3b8' : '1px solid rgba(0,0,0,0.05)'), display: 'block', boxShadow: isSaving ? 'none' : (mapTitleStyle === 'paper' ? '5px 5px 0px rgba(148,163,184,0.15)' : 'none') }}>
                   <h2 style={{ fontFamily: 'var(--font-paper)', color: '#1e293b', margin: 0, fontSize: isSaving ? (isMobile ? '1.4rem' : '2rem') : (isMobile ? '1.6rem' : '2.4rem'), cursor: isSaving ? 'default' : 'pointer', textAlign: 'center', lineHeight: '1', display: 'inline-block' }}>
                     {boardTitle}
                   </h2>
@@ -1892,12 +1936,14 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
                     >
                       <button 
                         onClick={(e) => { e.stopPropagation(); setIsConnecting(!isConnecting); triggerHaptic('selection'); }}
+                        className={`map-sidebar-btn ${isConnecting ? 'active-blue' : ''}`}
                         style={{ width: '36px', height: '36px', borderRadius: '10px', background: isConnecting ? 'var(--pop-blue)' : '#f1f5f9', color: isConnecting ? 'white' : '#475569', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <ArrowRight size={18} />
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); deleteSelected(); }}
+                        className="map-sidebar-btn delete-btn"
                         style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <Trash2 size={18} />

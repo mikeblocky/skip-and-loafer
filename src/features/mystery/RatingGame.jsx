@@ -45,8 +45,8 @@ const StickerPortrait = ({ charName, src, isSelected, onClick, isMobile, tapeCol
       height: isMobile ? '64px' : '90px', 
       borderRadius: '4px', 
       padding: '4px',
-      background: 'white',
-      border: isSelected ? '2.5px solid var(--pop-blue)' : '1.5px solid rgba(0,0,0,0.08)',
+      background: 'var(--themed-card-bg, white)',
+      border: isSelected ? '2.5px solid var(--pop-blue)' : '1.5px solid var(--themed-card-border, rgba(0,0,0,0.08))',
       cursor: isSaving ? 'default' : 'pointer',
       position: 'relative',
       zIndex: isSelected ? 50 : 1,
@@ -293,14 +293,14 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
           display: 'flex', 
           alignItems: 'flex-start', 
           gap: '12px', 
-          background: 'rgba(255,255,255,0.7)', 
+          background: 'var(--themed-card-inactive-bg, rgba(255,255,255,0.7))', 
           padding: '14px 18px', 
           borderRadius: '20px', 
           border: '2.5px dashed var(--line-blue)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
         }}>
           <Info size={20} color="var(--pop-blue)" style={{ marginTop: '2px', flexShrink: 0 }} />
-          <p style={{ margin: 0, fontSize: '0.95rem', color: '#4b5563', lineHeight: 1.5, fontFamily: 'var(--font-paper)' }}>
+          <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--themed-text-secondary, #4b5563)', lineHeight: 1.5, fontFamily: 'var(--font-paper)' }}>
             {t.mystery.rating.instructions} Click titles to rename or the palette to change colors!
           </p>
         </div>
@@ -384,9 +384,9 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
           <div key={tier.id} style={{ 
             display: 'flex', 
             minHeight: isMobile ? '92px' : '120px', 
-            background: 'rgba(255,255,255,0.92)', 
+            background: 'var(--themed-card-bg, rgba(255,255,255,0.92))', 
             borderRadius: '16px', 
-            border: '1.5px solid rgba(0,0,0,0.06)',
+            border: '1.5px solid var(--themed-card-border, rgba(0,0,0,0.06))',
             boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
             position: 'relative',
             zIndex: showColorPicker === tier.id ? 100 : 1
@@ -420,7 +420,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
                   onChange={(e) => updateTierLabel(tier.id, e.target.value)}
                   onBlur={() => setEditingTierId(null)}
                   onKeyDown={(e) => e.key === 'Enter' && setEditingTierId(null)}
-                  style={{ width: '100%', background: 'white', border: 'none', textAlign: 'center', fontWeight: 'bold', fontSize: 'inherit', color: 'inherit', outline: 'none', borderRadius: '4px' }}
+                  style={{ width: '100%', background: 'var(--themed-card-inactive-bg, white)', border: 'none', textAlign: 'center', fontWeight: 'bold', fontSize: 'inherit', color: 'inherit', outline: 'none', borderRadius: '4px' }}
                 />
               ) : (
                 tier.label
@@ -438,21 +438,24 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
                   gap: '8px'
                 }}>
                   <button 
+                    className="no-override"
                     onClick={(e) => { e.stopPropagation(); handleAddRow(idx); }}
-                    style={{ background: 'white', borderRadius: '50%', border: '1.5px solid #cbd5e1', padding: '4px', cursor: 'pointer', color: '#4b5563', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
+                    style={{ background: 'var(--themed-card-inactive-bg, white)', borderRadius: '50%', border: '1.5px solid var(--themed-card-border, #cbd5e1)', padding: '4px', cursor: 'pointer', color: 'var(--themed-text-secondary, #4b5563)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
                   >
                     <Plus size={12} strokeWidth={3} />
                   </button>
                   <button 
+                    className="no-override"
                     onClick={(e) => { e.stopPropagation(); setShowColorPicker(showColorPicker === tier.id ? null : tier.id); }}
-                    style={{ background: 'white', borderRadius: '50%', border: '1.5px solid #cbd5e1', padding: '4px', cursor: 'pointer', color: '#4b5563', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
+                    style={{ background: 'var(--themed-card-inactive-bg, white)', borderRadius: '50%', border: '1.5px solid var(--themed-card-border, #cbd5e1)', padding: '4px', cursor: 'pointer', color: 'var(--themed-text-secondary, #4b5563)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
                   >
                     <Palette size={12} strokeWidth={3} />
                   </button>
                   {tiers.length > 1 && (
                     <button 
+                      className="no-override"
                       onClick={(e) => { e.stopPropagation(); handleRemoveRow(tier.id); }}
-                      style={{ background: 'white', borderRadius: '50%', border: '1.5px solid #fecaca', padding: '4px', cursor: 'pointer', color: '#ef4444', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
+                      style={{ background: 'var(--themed-card-inactive-bg, white)', borderRadius: '50%', border: '1.5px solid var(--themed-card-border, #fecaca)', padding: '4px', cursor: 'pointer', color: 'var(--pop-pink, #ef4444)', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex' }}
                     >
                       <Trash2 size={12} strokeWidth={3} />
                     </button>
@@ -467,7 +470,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
                   top: '10%', 
                   left: '115%', 
                   zIndex: 200, 
-                  background: 'white', 
+                  background: 'var(--themed-card-bg, white)', 
                   padding: '16px', 
                   borderRadius: '24px', 
                   boxShadow: '0 15px 45px rgba(0,0,0,0.25)',
@@ -496,7 +499,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
                   ))}
                   <button 
                     onClick={(e) => { e.stopPropagation(); setShowColorPicker(null); }}
-                    style={{ width: '100%', marginTop: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: '#64748b', background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    style={{ width: '100%', marginTop: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--themed-text-secondary, #64748b)', background: 'var(--themed-button-disabled-bg, #f1f5f9)', border: 'none', borderRadius: '10px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                   >
                     <X size={16} /> Close
                   </button>
@@ -559,7 +562,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
               display: 'flex', 
               flexWrap: 'wrap', 
               gap: '22px', 
-              background: 'rgba(255,255,255,0.6)', 
+              background: 'var(--themed-card-inactive-bg, rgba(255,255,255,0.6))', 
               padding: '32px', 
               borderRadius: '32px', 
               minHeight: '200px',
@@ -592,16 +595,16 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
             whileHover={{ scale: 1.015, y: -1.5 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleReset}
-            className="sketchbook-border paper-interact"
+            className="sketchbook-border paper-interact no-override"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               padding: '16px 32px',
-              background: '#fff',
-              border: '2.5px solid #fecaca',
+              background: 'var(--themed-card-inactive-bg, #fff)',
+              border: '2.5px solid var(--themed-card-inactive-border, #fecaca)',
               borderRadius: '18px',
-              color: '#ef4444',
+              color: 'var(--pop-pink, #ef4444)',
               fontWeight: 'bold',
               fontSize: '1.2rem',
               cursor: 'pointer',
@@ -617,16 +620,16 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
             whileTap={{ scale: 0.98 }}
             disabled={isSaving}
             onClick={handleSaveImage}
-            className="sketchbook-border paper-interact"
+            className="sketchbook-border paper-interact no-override"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               padding: '16px 32px',
-              background: '#fff',
-              border: '2.5px solid var(--pop-blue)',
+              background: 'var(--themed-card-inactive-bg, #fff)',
+              border: '2.5px solid var(--themed-card-border, var(--pop-blue))',
               borderRadius: '18px',
-              color: '#2563eb',
+              color: 'var(--pop-blue, #2563eb)',
               fontWeight: 'bold',
               fontSize: '1.2rem',
               cursor: 'pointer',

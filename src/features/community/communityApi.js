@@ -7,7 +7,7 @@ import {
 
 const COMMUNITY_CACHE_TTL_MS = 30_000;
 
-function createCachedCollectionResource(loadEntries) {
+function createCachedCollectionResource(loadEntries, storageKey) {
   let cache = null;
   let request = null;
   let updatedAt = 0;
@@ -15,12 +15,44 @@ function createCachedCollectionResource(loadEntries) {
   const writeCache = (entries) => {
     cache = Array.isArray(entries) ? entries : [];
     updatedAt = Date.now();
+    if (storageKey) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(cache));
+      } catch {}
+    }
     return cache;
   };
 
-  const readCache = () => cache;
+  const readCache = () => {
+    if (cache == null && storageKey) {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        cache = raw ? JSON.parse(raw) : [];
+      } catch {
+        cache = [];
+      }
+    }
+    const currentCache = cache || [];
+
+    if (storageKey === 'skip_signatures_cache') {
+      try {
+        const pending = JSON.parse(localStorage.getItem('skip_pending_signatures') || '[]');
+        return [...pending, ...currentCache];
+      } catch {}
+    } else if (storageKey === 'skip_fangallery_cache') {
+      try {
+        const pending = JSON.parse(localStorage.getItem('skip_pending_gallery') || '[]');
+        return [...pending, ...currentCache];
+      } catch {}
+    }
+
+    return currentCache;
+  };
 
   const fetchEntries = async ({ force = false, maxAgeMs = COMMUNITY_CACHE_TTL_MS } = {}) => {
+    if (!navigator.onLine) {
+      return readCache();
+    }
     const isFresh = cache != null && Number.isFinite(maxAgeMs) && (Date.now() - updatedAt) <= maxAgeMs;
     if (!force && isFresh) return cache;
     if (request) return request;
@@ -97,8 +129,8 @@ async function requestFanGalleryEntries() {
   }
 }
 
-const signaturesResource = createCachedCollectionResource(requestSignatures);
-const fanGalleryResource = createCachedCollectionResource(requestFanGalleryEntries);
+const signaturesResource = createCachedCollectionResource(requestSignatures, 'skip_signatures_cache');
+const fanGalleryResource = createCachedCollectionResource(requestFanGalleryEntries, 'skip_fangallery_cache');
 
 export function getCachedSignatures() {
   return signaturesResource.readCache();
@@ -114,6 +146,9 @@ export async function fetchSignatures(options) {
 
 export async function createSignature(body) {
   try {
+    if (!navigator.onLine) {
+      throw new TypeError('Failed to fetch (offline)');
+    }
     const response = await fetch('/api/community/signatures', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -133,7 +168,16 @@ export async function createSignature(body) {
       signaturesResource.writeCache(result.signatures);
       return result;
     }
-    throw error;
+    
+    // Offline queue fallback
+    console.error('Failed to post signature, queuing offline:', error);
+    const { enqueueSignature } = await import('../../utils/offlineSync');
+    const entry = enqueueSignature(body);
+    const signatures = signaturesResource.readCache();
+    return {
+      entry,
+      signatures,
+    };
   }
 }
 
@@ -143,6 +187,9 @@ export async function fetchFanGalleryEntries(options) {
 
 export async function createFanGalleryEntry(body) {
   try {
+    if (!navigator.onLine) {
+      throw new TypeError('Failed to fetch (offline)');
+    }
     const response = await fetch('/api/community/fan-gallery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -162,6 +209,15 @@ export async function createFanGalleryEntry(body) {
       fanGalleryResource.writeCache(result.entries);
       return result;
     }
-    throw error;
+    
+    // Offline queue fallback
+    console.error('Failed to post drawing, queuing offline:', error);
+    const { enqueueFanGallery } = await import('../../utils/offlineSync');
+    const entry = enqueueFanGallery(body);
+    const entries = fanGalleryResource.readCache();
+    return {
+      entry,
+      entries,
+    };
   }
 }

@@ -15,6 +15,7 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
       whileHover={!isMobile && !isLocked ? { scale: 1.015, y: -1.5, rotate: 0, boxShadow: `0 4px 0 ${note.border}` } : {}}
       whileTap={!isLocked ? { scale: 0.98 } : {}}
       onClick={isLocked ? undefined : onClick}
+      className={`quiz-choice-card ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''} ${isLocked ? 'locked' : ''}`}
       style={{
         position: 'relative',
         display: 'flex',
@@ -32,6 +33,7 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
       }}
     >
       <div
+        className="choice-index-badge"
         style={{
           width: isMobile ? '26px' : '30px',
           height: isMobile ? '26px' : '30px',
@@ -45,13 +47,13 @@ const ChoiceChapterCard = ({ index, text, isMobile, isLocked, isCorrect, isWrong
           boxShadow: isCorrect || isWrong ? '0 2px 4px rgba(0,0,0,0.1)' : 'inset 0 1px 2px rgba(0,0,0,0.1)',
         }}
       >
-        <span style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: isCorrect || isWrong ? '#fff' : note.accent, fontSize: isMobile ? '0.85rem' : '1rem' }}>
+        <span className="choice-index-text" style={{ fontFamily: 'var(--font-main)', fontWeight: '900', color: isCorrect || isWrong ? '#fff' : note.accent, fontSize: isMobile ? '0.85rem' : '1rem' }}>
           {index + 1}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ 
+        <span className="choice-text" style={{ 
           fontFamily: 'Sniglet, var(--font-main)', 
           color: isCorrect ? '#064e3b' : isWrong ? '#7f1d1d' : isLocked ? '#64748b' : '#1e293b', 
           fontWeight: '400', 

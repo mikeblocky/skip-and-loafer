@@ -1,12 +1,13 @@
 import { memo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Tv } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
 const DEFAULT_TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', textColor: '#be185d', desktopFlex: 1 },
     { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', textColor: '#1d4ed8', desktopFlex: 1.18 },
+    { id: 'anime', label: 'Anime', mobileLabel: 'Anime', icon: Tv, color: '#e040fb', textColor: '#9c27b0', desktopFlex: 1 },
     { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#7c4dff', textColor: '#6d28d9', desktopFlex: 1 },
     { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan gallery', icon: ImagePlus, color: '#2563eb', textColor: '#1e40af', desktopFlex: 1.42 },
     { id: 'sign', label: 'Sign', mobileLabel: 'Sign', icon: PenLine, color: '#f97316', textColor: '#c2410c', desktopFlex: 0.96 },
@@ -110,14 +111,18 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                     padding: isActive ? '7px 12px 9px 12px' : '8px 12px',
                     background: isActive ? '#ffffff' : `${tab.color}15`,
                     border: `3px solid ${isActive ? tab.color : tab.color + '50'}`,
-                    borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}40`,
+                    borderBottom: isActive
+                      ? `5px solid var(--themed-nav-active-border-bottom, ${tab.textColor})`
+                      : `5px solid var(--themed-nav-border-bottom, ${tab.textColor}40)`,
                     borderRadius: '14px',
                     cursor: 'pointer',
                     fontFamily: 'Sniglet, var(--font-main)',
                     fontSize: '0.86rem',
                     lineHeight: 1.1,
                     fontWeight: isActive ? '700' : '600',
-                    color: isActive ? tab.color : tab.textColor,
+                    color: isActive
+                      ? `var(--themed-nav-active-text-mobile, ${tab.color})`
+                      : `var(--themed-nav-text, ${tab.textColor})`,
                     opacity: isActive ? 1 : 0.82,
                     boxShadow: isActive
                       ? `0 4px 12px ${tab.color}25`
@@ -183,7 +188,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
               background: isActive ? tab.color : `${tab.color}25`,
               border: `3px solid ${tab.color}`,
               borderRight: isActive ? 'none' : `3px solid ${tab.color}88`,
-              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}88`,
+              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid var(--themed-nav-border-bottom-hover, ${tab.textColor}88)`,
               boxShadow: isActive 
                 ? `0 8px 24px ${tab.color}40, 0 0 16px ${tab.color}20`
                 : `0 6px 16px ${tab.color}18, 0 0 8px ${tab.color}0c`
@@ -201,14 +206,16 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
               background: isActive ? tab.color : `${tab.color}15`,
               border: `3px solid ${isActive ? tab.color : tab.color + '50'}`,
               borderRight: isActive ? 'none' : `3px solid ${tab.color}40`,
-              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}40`,
+              borderBottom: isActive
+                ? `5px solid ${tab.textColor}`
+                : `5px solid var(--themed-nav-border-bottom, ${tab.textColor}40)`,
               borderRadius: isActive ? '16px 0 0 16px' : '16px 6px 6px 16px',
               cursor: 'pointer',
               fontFamily: 'Sniglet, var(--font-main)',
               fontSize: '0.94rem',
               lineHeight: 1.2,
               fontWeight: isActive ? '700' : '600',
-              color: isActive ? '#ffffff' : tab.textColor,
+              color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
               opacity: isActive ? 1 : 0.82,
               boxShadow: isActive 
                 ? `0 6px 18px ${tab.color}30` 
@@ -223,7 +230,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isActive ? '#ffffff' : tab.textColor,
+                color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
                 flexShrink: 0,
               }}
             >

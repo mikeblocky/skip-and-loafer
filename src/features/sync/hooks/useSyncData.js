@@ -18,14 +18,6 @@ const collectSyncData = () => {
 const serializeSyncSnapshot = (data) => JSON.stringify(
     Object.entries(data || {}).sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
 );
-
-/**
- * Merge remote sync data with local data.
- * - skip_finished: union of local and remote arrays
- * - skip_readCount: max of local and remote per chapter
- * - skip_syncKey: keep local (never overwrite from remote)
- * - All other skip_* keys: remote wins (last-write-wins)
- */
 const mergeSyncData = (remoteData) => {
     if (typeof localStorage === 'undefined') return;
 
@@ -59,25 +51,45 @@ const mergeSyncData = (remoteData) => {
         mergedCounts = remoteCountsRaw || localCountsRaw || '{}';
     }
 
+    // --- Merge skip_chapter_notes_v1 (per-chapter key-by-key merge) ---
+    const localNotesRaw = localStorage.getItem('skip_chapter_notes_v1');
+    const remoteNotesRaw = remoteData['skip_chapter_notes_v1'];
+    let mergedNotes;
+    try {
+        const localNotes = localNotesRaw ? JSON.parse(localNotesRaw) : {};
+        const remoteNotes = remoteNotesRaw ? JSON.parse(remoteNotesRaw) : {};
+        const merged = { ...localNotes };
+        Object.entries(remoteNotes).forEach(([ch, remoteVal]) => {
+            const localVal = localNotes[ch];
+            if (!localVal) {
+                merged[ch] = remoteVal;
+            } else if (remoteVal && remoteVal.length > localVal.length) {
+                // Keep the longer note to preserve maximum details
+                merged[ch] = remoteVal;
+            }
+        });
+        mergedNotes = JSON.stringify(merged);
+    } catch {
+        mergedNotes = remoteNotesRaw || localNotesRaw || '{}';
+    }
+
     // --- Apply: selectively update keys without wiping unrelated ones ---
     // Preserve skip_syncKey, skip_linkClicks, skip_activePage, skip_readerChapter
     const preserveKeys = ['skip_syncKey', 'skip_linkClicks', 'skip_activePage', 'skip_readerChapter'];
 
     // Write remote data for all non-progress, non-preserved keys  
     Object.entries(remoteData).forEach(([key, value]) => {
-        if (key === 'skip_finished' || key === 'skip_readCount') return;
+        if (key === 'skip_finished' || key === 'skip_readCount' || key === 'skip_chapter_notes_v1') return;
         if (preserveKeys.includes(key)) return;
         localStorage.setItem(key, value);
     });
 
-    // Write merged progress keys
+    // Write merged keys
     localStorage.setItem('skip_finished', mergedFinished);
     localStorage.setItem('skip_readCount', mergedCounts);
+    localStorage.setItem('skip_chapter_notes_v1', mergedNotes);
 };
 
-/**
- * Clear all read progress data from localStorage.
- */
 const clearProgressData = () => {
     if (typeof localStorage === 'undefined') return;
     localStorage.removeItem('skip_finished');

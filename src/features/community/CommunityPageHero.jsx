@@ -34,10 +34,10 @@ const CommunityPageHero = ({
       aria-label={resetLabel}
       icon={RotateCcw}
       palette={{
-        borderColor: '#cbd5e1',
-        bottomColor: '#94a3b8',
-        background: '#ffffff',
-        color: '#475569',
+        borderColor: 'var(--surface-border, #cbd5e1)',
+        bottomColor: 'var(--surface-border-strong, #94a3b8)',
+        background: 'var(--surface-card, #ffffff)',
+        color: 'var(--text-secondary, #475569)',
       }}
       style={{
         opacity: 0.96,
@@ -52,10 +52,10 @@ const CommunityPageHero = ({
       <div
         style={{
           ...createCommunityCounterStyle({
-            borderColor: counterColors.borderColor,
-            bottomColor: counterColors.bottomColor,
-            background: '#ffffff',
-            color: counterColors.color,
+            borderColor: 'var(--themed-card-border, ' + counterColors.borderColor + ')',
+            bottomColor: 'var(--themed-card-inactive-border, ' + counterColors.bottomColor + ')',
+            background: 'var(--surface-card, #ffffff)',
+            color: 'var(--themed-text-secondary, ' + counterColors.color + ')',
           }),
           minWidth: '126px',
         }}
@@ -66,10 +66,10 @@ const CommunityPageHero = ({
         onClick={onAction}
         icon={ActionIcon}
         palette={{
-          borderColor: actionColors.borderColor,
-          bottomColor: actionColors.bottomColor,
-          background: '#ffffff',
-          color: actionColors.color,
+          borderColor: 'var(--themed-card-border, ' + actionColors.borderColor + ')',
+          bottomColor: 'var(--themed-card-inactive-border, ' + actionColors.bottomColor + ')',
+          background: 'var(--surface-card, #ffffff)',
+          color: 'var(--keycap-color, ' + actionColors.color + ')',
         }}
       >
         {actionLabel}
@@ -93,10 +93,10 @@ const CommunityPageHero = ({
             aria-label={resetLabel}
             icon={RotateCcw}
             palette={{
-              borderColor: '#cbd5e1',
-              bottomColor: '#94a3b8',
-              background: '#ffffff',
-              color: '#475569',
+              borderColor: 'var(--surface-border, #cbd5e1)',
+              bottomColor: 'var(--surface-border-strong, #94a3b8)',
+              background: 'var(--surface-card, #ffffff)',
+              color: 'var(--text-secondary, #475569)',
             }}
             style={{
               position: 'static',

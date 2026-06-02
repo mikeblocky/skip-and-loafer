@@ -22,7 +22,9 @@ import {
   Timer,
   Plus,
   ChevronDown,
-  Pin
+  Pin,
+  Pencil,
+  StickyNote
 } from 'lucide-react';
 import { VOLUMES, VOL_COLORS } from '../../data/chapters';
 import { TAP_SCALE_DEFAULT, HOVER_SCALE_TAB, TAP_SCALE_TAB, PRESS_SPRING, ENTER_SPRING, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../../components/shared/animationPresets';
@@ -32,6 +34,7 @@ import {
   getChapterRowStyle,
   getNavButtonStyle,
   getVolSelectorButtonStyle,
+  getNotePaletteForChapter,
 } from './chapterStyles';
 import { getChapterDisplayTitle } from '../../data/chapterTitles';
 
@@ -159,13 +162,16 @@ const MilestoneEffects = ({ count, tier, color, isMobile }) => {
   );
 };
  
-export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks, t, uiLanguage = 'en', getReadTierFn }) => {
+export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks, t, uiLanguage = 'en', getReadTierFn, noteText = '', onSaveNote }) => {
   const finished = isFinished?.(chapter.number);
   const readCount = getReadCount?.(chapter.number) || 0;
   const tier = getReadTierFn(readCount, uiLanguage);
   
   // Use Volume-specific theme
   const theme = VOL_THEMES[volumeNumber || 1] || VOL_THEMES[1];
+  const notePalette = getNotePaletteForChapter(chapter.number);
+
+  const [showNoteInput, setShowNoteInput] = useState(false);
   
   const jpLinks = chapter.links.jp || [];
   const comingSoon = !chapter.links.en && jpLinks.length === 0;
@@ -272,19 +278,19 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
           top: '-12px',
           right: '20px',
           zIndex: 15,
-          background: tier.bg || '#fff',
+          background: `var(--themed-card-bg, ${tier.bg || '#fff'})`,
           borderRadius: '12px',
           padding: '4px 12px',
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          border: `2px solid ${tier.border || theme.border}`,
-          borderBottom: `4px solid ${tier.border || theme.border}`,
+          border: `2px solid var(--themed-card-border, ${tier.border || theme.border})`,
+          borderBottom: `4px solid var(--themed-card-border, ${tier.border || theme.border})`,
           boxShadow: `0 4px 12px ${theme.shadow}`,
         }}
       >
         <Sparkle size={14} strokeWidth={3} style={{ color: tier.text || theme.accent }} />
-        <span style={{ color: tier.text || theme.accent, fontSize: '0.75rem', fontWeight: '400', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
+        <span style={{ color: `var(--themed-text-secondary, ${tier.text || theme.accent})`, fontSize: '0.75rem', fontWeight: '400', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
             {tier.label ? `${tier.label} • ${readCount}×` : `${readCount}×`}
           </span>
         </motion.div>
@@ -294,22 +300,44 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       width: isMobile ? '44px' : '52px', 
       height: isMobile ? '44px' : '52px', 
       borderRadius: '16px', 
-      background: theme.bg, 
+      background: `var(--themed-card-inactive-bg, ${theme.bg})`, 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
       flexShrink: 0, 
-      border: `2.5px solid ${theme.border}`,
-      borderBottom: `4.5px solid ${theme.border}`,
+      border: `2.5px solid var(--themed-card-border, ${theme.border})`,
+      borderBottom: `4.5px solid var(--themed-card-border, ${theme.border})`,
       boxShadow: `0 3px 0 rgba(0,0,0,0.1)`,
     }}>
-      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: theme.accent }}>{chapterBadge}</span>
+      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: `var(--themed-badge-text, ${theme.accent})` }}>{chapterBadge}</span>
     </div>
  
     <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {chapterTitle && (
-        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: theme.accent, fontWeight: '400', lineHeight: 1.2 }}>
+        <span style={{ 
+          fontFamily: 'Sniglet, var(--font-main)', 
+          fontSize: isMobile ? '1rem' : '1.1rem', 
+          color: `var(--themed-text-primary, ${theme.accent})`, 
+          fontWeight: '400', 
+          lineHeight: 1.2,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
           {chapterTitle}
+          {noteText && (
+            <StickyNote 
+              size={isMobile ? 14 : 16} 
+              strokeWidth={3} 
+              style={{ 
+                color: 'var(--note-text, #d97706)',
+                flexShrink: 0,
+                transform: 'rotate(-8deg)',
+                filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.1))'
+              }} 
+              title={t.chapterNote || "Chapter has notes"}
+            />
+          )}
         </span>
       )}
       {chapter.latest && (
@@ -341,6 +369,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
       {!comingSoon && (
         <motion.button
+          className="no-override"
           whileHover={cooldown > 0 ? {} : { scale: 1.015, y: -1, rotate: 0.5 }}
           whileTap={cooldown > 0 ? {} : { scale: 0.98, y: 0.5 }}
           onClick={handleIncrement}
@@ -350,14 +379,14 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             alignItems: 'center',
             gap: '6px',
             fontSize: isMobile ? '0.8rem' : '0.85rem',
-            color: cooldown > 0 ? '#94a3b8' : theme.accent,
-            background: cooldown > 0 ? '#f1f5f9' : theme.surface,
+            color: cooldown > 0 ? 'var(--themed-text-muted, #94a3b8)' : 'var(--themed-button-text, ' + theme.accent + ')',
+            background: cooldown > 0 ? 'var(--themed-button-disabled-bg, #f1f5f9)' : 'var(--themed-card-inactive-bg, ' + theme.surface + ')',
             padding: isMobile ? '6px 14px' : '8px 18px',
             borderRadius: '12px',
             fontFamily: 'var(--font-main)',
             fontWeight: '400',
-            border: `2px solid ${cooldown > 0 ? '#cbd5e1' : theme.border}`,
-            borderBottom: cooldown > 0 ? '2.5px solid #cbd5e1' : `4.5px solid ${theme.border}`,
+            border: `2px solid ${cooldown > 0 ? 'var(--themed-card-inactive-border, #cbd5e1)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
+            borderBottom: cooldown > 0 ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid var(--themed-card-border, ${theme.border})`,
             cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
             boxShadow: cooldown > 0 ? 'none' : `0 4px 12px ${theme.shadow}`,
             opacity: cooldown > 0 ? 0.7 : 1,
@@ -378,13 +407,13 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             gap: '6px', 
             fontSize: isMobile ? '0.8rem' : '0.85rem', 
             color: '#fff', 
-            background: '#059669', 
+            background: 'var(--pop-green, #059669)', 
             padding: isMobile ? '6px 14px' : '8px 18px', 
             borderRadius: '12px', 
             fontFamily: 'var(--font-main)', 
             fontWeight: '400', 
-            border: '2px solid #065f46', 
-            borderBottom: '4.5px solid #064e3b',
+            border: '2px solid var(--themed-card-border, #065f46)', 
+            borderBottom: '4.5px solid var(--themed-card-border, #064e3b)',
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(5, 150, 105, 0.1)'
           }}
@@ -415,6 +444,48 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             <Languages size={14} strokeWidth={3} /> {i + 1}
           </motion.a>
         ))}
+      {!comingSoon && (
+        <motion.button
+          className="no-override"
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            triggerHaptic('tap');
+            setShowNoteInput(!showNoteInput);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: isMobile ? '32px' : '36px',
+            height: isMobile ? '32px' : '36px',
+            borderRadius: '12px',
+            background: noteText ? notePalette.background : 'var(--themed-card-inactive-bg, var(--surface-card))',
+            color: noteText ? notePalette.accent : 'var(--themed-badge-text, ' + theme.accent + ')',
+            border: `2px solid ${noteText ? notePalette.bottom : 'var(--themed-card-border, ' + theme.border + ')'}`,
+            borderBottom: noteText ? `4px solid ${notePalette.bottom}` : `4.5px solid ${theme.border}`,
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            position: 'relative',
+          }}
+          title={t.chapterNote || 'Write a note'}
+        >
+          <Pencil size={15} strokeWidth={2.5} />
+          {noteText && (
+            <span style={{
+              position: 'absolute',
+              top: '-3px',
+              right: '-3px',
+              background: '#ef4444',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              border: '1.5px solid #fff',
+            }} />
+          )}
+        </motion.button>
+      )}
       {linkTimeLeft > 0 && (
         <div style={{ 
           display: 'flex', 
@@ -432,7 +503,10 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         }}>
           <Timer size={14} strokeWidth={3} /> {formatTime(linkTimeLeft)}
           <button 
-            onClick={() => cancelExternalLink?.(chapter.number)} 
+            onClick={(e) => {
+              e.stopPropagation();
+              cancelExternalLink?.(chapter.number);
+            }} 
             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0 0 4px', fontSize: '1.1rem', fontWeight: 400, display: 'flex', alignItems: 'center' }} 
             title="Cancel"
           >
@@ -441,6 +515,104 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         </div>
       )}
       </div>
+
+      <AnimatePresence>
+        {showNoteInput && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            style={{ width: '100%', overflow: 'hidden', zIndex: 5 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              background: notePalette.background,
+              border: `2px solid ${notePalette.border}`,
+              borderBottom: `4px solid ${notePalette.bottom}`,
+              borderRadius: '16px',
+              padding: isMobile ? '10px 12px' : '12px 16px',
+              position: 'relative',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.05)',
+              transform: 'rotate(-0.5deg)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              boxSizing: 'border-box',
+            }}>
+              {/* Scrapbook pin/tape deco */}
+              <div style={{
+                position: 'absolute',
+                top: '-10px',
+                left: '50%',
+                transform: 'translateX(-50%) rotate(1deg)',
+                width: '60px',
+                height: '18px',
+                background: 'rgba(255,255,255,0.4)',
+                backdropFilter: 'blur(1.5px)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                border: '1px dashed rgba(0,0,0,0.1)',
+                zIndex: 2,
+              }} />
+              
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{
+                  fontFamily: 'var(--font-paper)',
+                  fontSize: '0.8rem',
+                  color: notePalette.accent,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  <Pin size={12} strokeWidth={3} style={{ transform: 'rotate(45deg)' }} />
+                  {t.myNotes || 'My notes'}
+                </span>
+                  {noteText && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSaveNote?.(chapter.number, '');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: notePalette.accent,
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-main)',
+                      padding: 0,
+                      textDecoration: 'underline',
+                      opacity: 0.8,
+                    }}
+                  >
+                    {t.clearNote || 'Clear'}
+                  </button>
+                )}
+              </div>
+
+              <textarea
+                value={noteText}
+                onChange={(e) => onSaveNote?.(chapter.number, e.target.value)}
+                placeholder={t.writeNotePlaceholder || 'Jot down some thoughts about this chapter...'}
+                rows={3}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  resize: 'none',
+                  fontFamily: 'var(--font-paper)',
+                  fontSize: '0.88rem',
+                  lineHeight: '1.4',
+                  color: notePalette.accent,
+                  padding: '4px 0',
+                  margin: 0,
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -506,7 +678,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
           return (
             <motion.button
               key={vol.number}
-              className="volume-selector-button"
+              className="volume-selector-button no-override"
               data-vol-idx={idx}
               onClick={() => handleSelect(idx)}
               whileHover={{ y: -4, scale: 1.05 }}
@@ -518,10 +690,10 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#ffffff',
-                color: theme.accent,
-                border: `2.5px solid ${theme.accent}`,
-                borderBottom: isActive ? `6px solid ${theme.accent}` : `3.5px solid ${theme.accent}`,
+                background: 'var(--themed-card-bg, #ffffff)',
+                color: 'var(--themed-badge-text, ' + theme.accent + ')',
+                border: `2.5px solid var(--themed-badge-text, ${theme.accent})`,
+                borderBottom: isActive ? `6px solid var(--themed-badge-text, ${theme.accent})` : `3.5px solid var(--themed-badge-text, ${theme.accent})`,
                 borderRadius: '16px',
                 fontFamily: '"Coming Soon", var(--font-main)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',

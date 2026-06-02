@@ -82,7 +82,7 @@ export const CommunityModal = ({
               padding: '24px 20px 20px',
               borderColor: accentColor,
               borderBottomColor: accentBottom,
-              background: '#fffefc',
+              background: 'var(--surface-elevated, #fffefc)',
               display: 'grid',
               gap: '16px',
             }}
@@ -110,7 +110,7 @@ export const CommunityModal = ({
                     height: '46px',
                     border: `3px solid ${accentColor}`,
                     borderBottom: `8px solid ${accentBottom}`,
-                    background: '#ffffff',
+                    background: 'var(--surface-card, #ffffff)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -126,7 +126,7 @@ export const CommunityModal = ({
                     fontFamily: COMMUNITY_FONT_FAMILY,
                     fontSize: '1.45rem',
                     lineHeight: 1.05,
-                    color: '#1e293b',
+                    color: 'var(--text-primary, #1e293b)',
                     fontWeight: '400',
                   }}
                 >
@@ -142,10 +142,10 @@ export const CommunityModal = ({
                 style={{
                   width: '42px',
                   height: '42px',
-                  border: '2px solid #cbd5e1',
-                  borderBottom: '6px solid #94a3b8',
-                  background: '#ffffff',
-                  color: '#475569',
+                  border: '2.5px solid var(--surface-border, #cbd5e1)',
+                  borderBottom: '6px solid var(--surface-border-strong, #94a3b8)',
+                  background: 'var(--surface-card, #ffffff)',
+                  color: 'var(--text-secondary, #475569)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',

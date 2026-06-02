@@ -87,7 +87,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
     });
 
     /* ── Sync state ── */
-    const { syncKey, setSyncKey, syncActive, setSyncActive, lastSynced, pushData, pullData, disconnect } = syncData || {};
+    const { syncKey, setSyncKey, syncActive, setSyncActive, lastSynced, pushData, pullData, disconnect, pushNow } = syncData || {};
     
     // Local UI state
     const [inputKey, setInputKey] = useState('');
@@ -248,6 +248,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                         totalChapters={totalChapters}
                         totalReads={totalReads}
                         activeVolumes={activeVolumes}
+                        pushNow={pushNow}
                     />
                 </div>
 
@@ -404,11 +405,12 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             exit={{ scale: 0.94, y: 15, rotate: 0.5 }}
                             transition={{ type: 'spring', stiffness: 350, damping: 22 }}
                             onClick={(e) => e.stopPropagation()} // Prevent closing
+                            className="planner-diary-modal no-override"
                             style={{
                                 width: '100%',
                                 maxWidth: isMobile ? '420px' : '820px',
                                 maxHeight: isMobile ? '85vh' : '660px',
-                                background: '#ffffff',
+                                background: 'var(--surface-card, #ffffff)',
                                 border: `3px solid ${selectedAccentColor}`,
                                 borderBottom: `9px solid ${selectedAccentColor}`,
                                 borderRadius: '24px',
@@ -417,7 +419,8 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                 position: 'relative',
                                 boxShadow: '0 12px 36px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0,0,0,0.02)',
                                 boxSizing: 'border-box',
-                                overflow: 'hidden'
+                                overflowY: isMobile ? 'auto' : 'hidden',
+                                overflowX: 'hidden'
                             }}
                         >
                             
@@ -485,7 +488,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             <div style={{
                                 display: 'grid',
                                 gridTemplateColumns: isMobile ? '1fr' : '45% 55%',
-                                height: '100%',
+                                height: isMobile ? 'auto' : '100%',
                                 width: '100%',
                                 boxSizing: 'border-box'
                             }}>
@@ -499,7 +502,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     flexDirection: 'column',
                                     gap: '12px',
                                     boxSizing: 'border-box',
-                                    overflowY: isMobile ? 'auto' : 'visible',
+                                    overflowY: 'visible',
                                     justifyContent: 'flex-start',
                                     alignItems: 'center'
                                 }}>
@@ -677,7 +680,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                     padding: isMobile ? '8px 12px 14px' : '24px 24px 24px 30px',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    height: '100%',
+                                    height: isMobile ? 'auto' : '100%',
                                     minHeight: 0,
                                     boxSizing: 'border-box'
                                 }}>
@@ -712,7 +715,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                                         className="hide-scrollbar"
                                         style={{
                                             flex: 1,
-                                            overflowY: 'auto',
+                                            overflowY: isMobile ? 'visible' : 'auto',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '6px',
@@ -753,7 +756,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             {/* Volume Switcher inside the modal footer (Mobile Only) */}
                             {isMobile && (
                                 <div style={{
-                                    position: 'absolute',
+                                    position: 'sticky',
                                     bottom: 0,
                                     left: 0,
                                     right: 0,

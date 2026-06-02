@@ -108,6 +108,7 @@ export const getInitialAccessibilityPrefs = () => {
     simplifyVisuals: !!parsed.simplifyVisuals,
     dimNonEssentialColors: !!parsed.dimNonEssentialColors,
     colorBlindMode: VALID_COLOR_BLIND_MODES.includes(parsed.colorBlindMode) ? parsed.colorBlindMode : 'none',
+    darkMode: !!parsed.darkMode,
   };
 };
 

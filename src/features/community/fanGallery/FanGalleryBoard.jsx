@@ -10,14 +10,14 @@ import {
 import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
 
 const CARD_PALETTES = [
-  { frame: '#fff8ef', border: '#f7b267', bottom: '#ea7c31', label: '#9a3412', shadow: 'rgba(234, 124, 49, 0.16)' },
-  { frame: '#f6fbff', border: '#8dc8ff', bottom: '#4d9de0', label: '#1d4ed8', shadow: 'rgba(77, 157, 224, 0.16)' },
-  { frame: '#fff5fb', border: '#f39acb', bottom: '#e0569f', label: '#9d174d', shadow: 'rgba(224, 86, 159, 0.16)' },
-  { frame: '#f5fff8', border: '#77d59a', bottom: '#22a86f', label: '#166534', shadow: 'rgba(34, 168, 111, 0.16)' },
-  { frame: '#f7f0ff', border: '#b98cff', bottom: '#8b5cf6', label: '#6d28d9', shadow: 'rgba(139, 92, 246, 0.16)' },
-  { frame: '#fff1e6', border: '#ffb36b', bottom: '#f97316', label: '#9a3412', shadow: 'rgba(249, 115, 22, 0.16)' },
-  { frame: '#eff6ff', border: '#93c5fd', bottom: '#2563eb', label: '#1e3a8a', shadow: 'rgba(37, 99, 235, 0.16)' },
-  { frame: '#f0fdf4', border: '#86efac', bottom: '#16a34a', label: '#166534', shadow: 'rgba(22, 163, 74, 0.16)' },
+  { frame: 'var(--themed-gallery-frame-1, #fff8ef)', border: 'var(--themed-gallery-border-1, #f7b267)', bottom: 'var(--themed-gallery-bottom-1, #ea7c31)', label: 'var(--themed-gallery-label-1, #9a3412)', shadow: 'var(--themed-gallery-shadow-1, rgba(234, 124, 49, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-2, #f6fbff)', border: 'var(--themed-gallery-border-2, #8dc8ff)', bottom: 'var(--themed-gallery-bottom-2, #4d9de0)', label: 'var(--themed-gallery-label-2, #1d4ed8)', shadow: 'var(--themed-gallery-shadow-2, rgba(77, 157, 224, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-3, #fff5fb)', border: 'var(--themed-gallery-border-3, #f39acb)', bottom: 'var(--themed-gallery-bottom-3, #e0569f)', label: 'var(--themed-gallery-label-3, #9d174d)', shadow: 'var(--themed-gallery-shadow-3, rgba(224, 86, 159, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-4, #f5fff8)', border: 'var(--themed-gallery-border-4, #77d59a)', bottom: 'var(--themed-gallery-bottom-4, #22a86f)', label: 'var(--themed-gallery-label-4, #166534)', shadow: 'var(--themed-gallery-shadow-4, rgba(34, 168, 111, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-5, #f7f0ff)', border: 'var(--themed-gallery-border-5, #b98cff)', bottom: 'var(--themed-gallery-bottom-5, #8b5cf6)', label: 'var(--themed-gallery-label-5, #6d28d9)', shadow: 'var(--themed-gallery-shadow-5, rgba(139, 92, 246, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-6, #fff1e6)', border: 'var(--themed-gallery-border-6, #ffb36b)', bottom: 'var(--themed-gallery-bottom-6, #f97316)', label: 'var(--themed-gallery-label-6, #9a3412)', shadow: 'var(--themed-gallery-shadow-6, rgba(249, 115, 22, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-7, #eff6ff)', border: 'var(--themed-gallery-border-7, #93c5fd)', bottom: 'var(--themed-gallery-bottom-7, #2563eb)', label: 'var(--themed-gallery-label-7, #1e3a8a)', shadow: 'var(--themed-gallery-shadow-7, rgba(37, 99, 235, 0.16))' },
+  { frame: 'var(--themed-gallery-frame-8, #f0fdf4)', border: 'var(--themed-gallery-border-8, #86efac)', bottom: 'var(--themed-gallery-bottom-8, #16a34a)', label: 'var(--themed-gallery-label-8, #166534)', shadow: 'var(--themed-gallery-shadow-8, rgba(22, 163, 74, 0.16))' },
 ];
 
 const STACK_OFFSETS = [
@@ -178,13 +178,13 @@ const FanGalleryBoard = ({
                 onClick={() => onSelectEntry(entry.id, entry.imageDataUrl)}
                 style={{
                   border: 'none',
-                  background: '#ffffff',
+                  background: 'var(--surface-card, #ffffff)',
                   padding: 0,
                   cursor: 'pointer',
                   overflow: 'hidden',
                   width: '100%',
                   maxWidth: '100%',
-                  boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.95)',
+                  boxShadow: 'inset 0 0 0 2px var(--surface-card, rgba(255,255,255,0.95))',
                   transform: `rotate(${stackLayout.imageTilt * 0.4}deg)`,
                   transformOrigin: origin,
                 }}
@@ -220,7 +220,7 @@ const FanGalleryBoard = ({
                       </span>
                     )}
                     {entry.description && (
-                      <p style={{ margin: 0, color: '#475569', lineHeight: 1.5, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.9rem' : '0.98rem' }}>
+                      <p style={{ margin: 0, color: 'var(--text-secondary, #475569)', lineHeight: 1.5, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.9rem' : '0.98rem' }}>
                         {entry.description}
                       </p>
                     )}
@@ -233,7 +233,7 @@ const FanGalleryBoard = ({
                     style={createCommunityTimestampStyle({
                       borderColor: palette.border,
                       bottomColor: palette.bottom,
-                      background: '#ffffff',
+                      background: 'var(--surface-card, #ffffff)',
                       color: palette.label,
                     })}
                   >

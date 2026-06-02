@@ -16,6 +16,7 @@ import {
   WikiPage,
   SettingsPage,
   TutorialPage,
+  AnimePage,
 } from './appPageLoaders';
 
 const PAGE_SHELL_STYLE = {
@@ -78,6 +79,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
         return isMobile ? 'ガイドを読み込み中...' : '使い方ガイドページを読み込み中...';
       case 'settings':
         return isMobile ? '設定を読み込み中...' : '設定ページを読み込み中...';
+      case 'anime':
+        return isMobile ? 'アニメを読み込み中...' : 'アニメ動画を読み込み中...';
       default:
         return isMobile ? '読み込み中...' : 'ページを読み込み中...';
     }
@@ -106,6 +109,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
       return isMobile ? 'Loading guide...' : 'Loading website guide...';
     case 'settings':
       return isMobile ? 'Loading settings...' : 'Loading settings page...';
+    case 'anime':
+      return isMobile ? 'Loading anime...' : 'Loading anime player...';
     default:
       return isMobile ? 'Loading...' : 'Loading page...';
   }
@@ -207,6 +212,7 @@ const AppTabContent = ({
           incrementReadCount={incrementReadCount}
           getRemainingCooldown={getRemainingCooldown}
           pendingLinks={pendingLinks}
+          pushNow={syncData?.pushNow}
         />
       );
       break;
@@ -265,11 +271,12 @@ const AppTabContent = ({
           uiLanguage={uiLanguage}
           reduceMotion={accessibilityPrefs.reduceMotion}
           simplifyVisuals={accessibilityPrefs.simplifyVisuals}
+          darkMode={accessibilityPrefs.darkMode}
         />
       );
       break;
     case 'mystery':
-      tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} darkMode={accessibilityPrefs.darkMode} />;
       break;
     case 'tutorial':
       tabContent = <TutorialPage isMobile={isMobile} uiLanguage={uiLanguage} />;
@@ -289,6 +296,9 @@ const AppTabContent = ({
           t={t}
         />
       );
+      break;
+    case 'anime':
+      tabContent = <AnimePage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
     default:
       tabContent = (
@@ -314,14 +324,14 @@ const AppTabContent = ({
         width: '100%',
         maxWidth: '100%',
         minWidth: 0,
-        flex: 1,
+        flex: activePage === 'anime' && isMobile ? '0 0 auto' : 1,
         position: 'relative',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         padding: activePage === 'mystery' ? (isMobile ? '8px 16px 0' : homeDesktopPadding) : 0,
         zIndex: 110,
         pointerEvents: 'auto',
-        minHeight: isMobile ? 0 : '100%',
+        minHeight: activePage === 'anime' && isMobile ? 'auto' : (isMobile ? 0 : '100%'),
         height: isMobile ? 'auto' : '100%',
         overflow: 'hidden',
         border: isMobile ? 'none' : '3.5px solid #cbd5e1',

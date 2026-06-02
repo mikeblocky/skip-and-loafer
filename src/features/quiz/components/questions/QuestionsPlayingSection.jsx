@@ -129,9 +129,9 @@ const QuestionsPlayingSection = ({
         animate={questionCardAnimation}
         transition={questionCardTransition}
         style={{
-          background: '#fef9c3',
-          border: '2.5px solid #ca8a04',
-          borderBottom: '6px solid #a16207',
+          background: 'var(--themed-note-bg-1, #fef9c3)',
+          border: '2.5px solid var(--themed-note-border-1, #ca8a04)',
+          borderBottom: '6px solid var(--themed-note-bottom-1, #a16207)',
           borderRadius: '16px',
           padding: isMobile ? '12px 14px' : '16px 20px',
           display: 'grid',
@@ -148,19 +148,19 @@ const QuestionsPlayingSection = ({
             style={{
               fontFamily: 'var(--font-main)',
               fontWeight: '900',
-              color: '#fff',
+              color: '#ffffff',
               fontSize: '0.8rem',
-              background: '#eab308',
+              background: 'var(--themed-note-border-1, #eab308)',
               padding: '6px 14px',
               borderRadius: '12px',
-              border: '2.5px solid #a16207',
+              border: '2.5px solid var(--themed-note-bottom-1, #a16207)',
               display: 'inline-block',
             }}
           >
             {t.question}
           </motion.span>
         </div>
-        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: '#422006', fontSize: isMobile ? '1.14rem' : '1.34rem', lineHeight: 1.25, marginTop: '4px' }}>
+        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400', color: 'var(--note-text, #422006)', fontSize: isMobile ? '1.14rem' : '1.34rem', lineHeight: 1.25, marginTop: '4px' }}>
           {currentQuestion.prompt}
         </span>
       </motion.div>

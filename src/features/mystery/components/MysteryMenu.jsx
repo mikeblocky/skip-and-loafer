@@ -92,13 +92,14 @@ const MemoStickyNote = ({ isMobile }) => (
       right: isMobile ? 'auto' : '30px',
       width: '180px',
       minHeight: '130px',
-      background: 'linear-gradient(135deg, #fef9c3 0%, #fef08a 100%)',
+      background: 'var(--note-bg, linear-gradient(135deg, #fef9c3 0%, #fef08a 100%))',
       boxShadow: '3px 8px 20px rgba(0, 0, 0, 0.06)',
       padding: '16px',
       borderRadius: '2px',
       zIndex: 5,
       cursor: 'default',
-      borderLeft: '1px solid rgba(0,0,0,0.05)',
+      borderLeft: '1.5px solid var(--note-border, rgba(0,0,0,0.05))',
+      borderBottom: '4.5px solid var(--note-border-bottom, transparent)',
     }}
   >
     <PushPin color="#3b82f6" />
@@ -106,14 +107,14 @@ const MemoStickyNote = ({ isMobile }) => (
       margin: 0,
       fontFamily: 'var(--font-hand)',
       fontSize: '0.95rem',
-      color: '#854d0e',
+      color: 'var(--note-text, #854d0e)',
       lineHeight: 1.4,
       paddingTop: '8px',
       textAlign: 'center',
       fontWeight: 'bold',
     }}>
       📁 Mika's detective log<br />
-      <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#a16207' }}>
+      <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: 'var(--note-text, #a16207)', opacity: 0.85 }}>
         * Follow instincts.<br />
         * Play every day.<br />
         * Keep it light!
@@ -132,10 +133,10 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       styleType: 'polaroid',
       pinColor: '#f43f5e',
       theme: {
-        background: '#ffffff',
-        border: 'rgba(0,0,0,0.06)',
+        background: 'var(--themed-card-bg-gacha, #ffffff)',
+        border: 'var(--themed-card-border-gacha, rgba(0,0,0,0.06))',
         shadow: '0 12px 28px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.02)',
-        textColor: '#374151',
+        textColor: 'var(--themed-card-text-gacha, #374151)',
       },
     },
     {
@@ -146,11 +147,11 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       styleType: 'document',
       paperclip: true,
       theme: {
-        background: '#f8fafc',
-        border: '#cbd5e1',
-        borderBottom: '#94a3b8',
+        background: 'var(--themed-card-bg-quiz, #f8fafc)',
+        border: 'var(--themed-card-border-quiz, #cbd5e1)',
+        borderBottom: 'var(--themed-card-bottom-quiz, #94a3b8)',
         shadow: '0 8px 24px rgba(148, 163, 184, 0.08)',
-        textColor: '#1e293b',
+        textColor: 'var(--themed-card-text-quiz, #1e293b)',
       },
     },
     {
@@ -161,11 +162,11 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       styleType: 'notebook',
       washiColor: 'rgba(52, 211, 153, 0.35)',
       theme: {
-        background: '#f0fdf4',
-        border: '#a7f3d0',
-        borderBottom: '#34d399',
+        background: 'var(--themed-card-bg-animal, #f0fdf4)',
+        border: 'var(--themed-card-border-animal, #a7f3d0)',
+        borderBottom: 'var(--themed-card-bottom-animal, #34d399)',
         shadow: '0 8px 24px rgba(52, 211, 153, 0.08)',
-        textColor: '#065f46',
+        textColor: 'var(--themed-card-text-animal, #065f46)',
       },
     },
     {
@@ -176,11 +177,11 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       styleType: 'blueprint',
       washiColor: 'rgba(167, 139, 250, 0.35)',
       theme: {
-        background: '#faf5ff',
-        border: '#ddd6fe',
-        borderBottom: '#a78bfa',
+        background: 'var(--themed-card-bg-map, #faf5ff)',
+        border: 'var(--themed-card-border-map, #ddd6fe)',
+        borderBottom: 'var(--themed-card-bottom-map, #a78bfa)',
         shadow: '0 8px 24px rgba(167, 139, 250, 0.08)',
-        textColor: '#5b21b6',
+        textColor: 'var(--themed-card-text-map, #5b21b6)',
       },
     },
     {
@@ -191,11 +192,11 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
       styleType: 'sticker-board',
       pinColor: '#fbbf24',
       theme: {
-        background: '#fffbeb',
-        border: '#fde68a',
-        borderBottom: '#f59e0b',
+        background: 'var(--themed-card-bg-rating, #fffbeb)',
+        border: 'var(--themed-card-border-rating, #fde68a)',
+        borderBottom: 'var(--themed-card-bottom-rating, #f59e0b)',
         shadow: '0 8px 24px rgba(245, 158, 11, 0.08)',
-        textColor: '#78350f',
+        textColor: 'var(--themed-card-text-rating, #78350f)',
       },
     },
   ];
@@ -333,8 +334,8 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                   <div style={{
                     width: '100%',
                     height: isMobile ? '120px' : '140px',
-                    background: pulledCharacter ? 'white' : '#f3f4f6',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    background: pulledCharacter ? 'var(--surface-card, white)' : 'var(--surface-shell, #f3f4f6)',
+                    border: '1.5px solid var(--surface-border, rgba(0,0,0,0.06))',
                     borderRadius: '2px',
                     display: 'flex',
                     alignItems: 'center',
@@ -359,10 +360,10 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                       <motion.div
                         animate={{ rotate: [0, -10, 10, 0] }}
                         transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#9ca3af' }}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: 'var(--text-secondary, #9ca3af)' }}
                       >
                         <Camera size={38} strokeWidth={1.8} />
-                        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-hand)' }}>Draw spirit!</span>
+                        <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-hand)', color: 'var(--text-secondary, #9ca3af)' }}>Draw spirit!</span>
                       </motion.div>
                     )}
                   </div>
@@ -371,7 +372,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                   <span style={{
                     fontFamily: 'var(--font-hand)',
                     fontSize: '1.25rem',
-                    color: '#1f2937',
+                    color: 'var(--text-primary, #1f2937)',
                     fontWeight: 'bold',
                     marginTop: '4px',
                     letterSpacing: '-0.02em',
@@ -386,8 +387,8 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                 // Standard Scrapbook / Sketch Styled Cards
                 <>
                   <div style={{
-                    background: isNotebook ? '#fff' : isBlueprint ? '#1e3a8a' : 'transparent',
-                    border: isNotebook ? '2.5px solid #a7f3d0' : isBlueprint ? '2px solid #60a5fa' : 'none',
+                    background: isNotebook ? 'var(--surface-card, #fff)' : isBlueprint ? 'var(--keycap-bg, #1e3a8a)' : 'transparent',
+                    border: isNotebook ? '2.5px solid var(--themed-card-border-animal, #a7f3d0)' : isBlueprint ? '2px solid var(--themed-card-border-map, #60a5fa)' : 'none',
                     borderRadius: '50%',
                     width: '64px',
                     height: '64px',
@@ -395,14 +396,14 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: isNotebook ? '0 4px 10px rgba(167, 243, 208, 0.3)' : 'none',
-                    color: isBlueprint ? '#ffffff' : option.theme.textColor,
+                    color: isBlueprint ? 'var(--keycap-color, #1d4ed8)' : option.theme.textColor,
                   }}>
                     <IconComponent size={34} strokeWidth={isBlueprint ? 2.2 : 2.5} />
                   </div>
 
                   <span style={{
                     fontSize: isMobile ? '1.35rem' : '1.5rem',
-                    color: isBlueprint ? '#1e3a8a' : option.theme.textColor,
+                    color: isBlueprint ? 'var(--themed-card-text-map, #1e3a8a)' : option.theme.textColor,
                     fontFamily: 'var(--font-paper)',
                     fontWeight: 'bold',
                   }}>
@@ -410,7 +411,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                   </span>
                   
                   <span style={{
-                    color: isBlueprint ? '#475569' : '#64748b',
+                    color: isBlueprint ? 'var(--text-secondary, #475569)' : 'var(--text-secondary, #64748b)',
                     fontSize: isMobile ? '0.9rem' : '0.95rem',
                     fontFamily: 'var(--font-hand)',
                     lineHeight: 1.35,

@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wifi, WifiOff, Cloud, Clock, Check, Copy, Loader2, KeyRound, ArrowDownToLine, AlertCircle, RefreshCw, BookOpen, CheckCircle2, Milestone } from 'lucide-react';
+import { Wifi, WifiOff, Cloud, Clock, Check, Copy, Loader2, KeyRound, ArrowDownToLine, AlertCircle, RefreshCw, BookOpen, CheckCircle2, Milestone, Edit3 } from 'lucide-react';
 import { toUiLabelCase } from '../../../utils/textCase';
 import { createPaperPanelStyle } from '../../../components/shared/paper/paperTheme';
 
@@ -82,7 +83,29 @@ const SyncTab = ({
   totalChapters = 0,
   totalReads = 0,
   activeVolumes = 0,
+  pushNow,
 }) => {
+  const [logName, setLogName] = useState(() => {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('skip_logName') || "Mitsumi's progress log";
+    }
+    return "Mitsumi's progress log";
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const handleSyncComplete = () => {
+      if (typeof localStorage !== 'undefined') {
+        const remoteName = localStorage.getItem('skip_logName');
+        if (remoteName && remoteName !== logName) {
+          setLogName(remoteName);
+        }
+      }
+    };
+    window.addEventListener('skip_sync_complete', handleSyncComplete);
+    return () => window.removeEventListener('skip_sync_complete', handleSyncComplete);
+  }, [logName]);
+
   // Circular Progress Metrics
   const strokeWidth = 6.5;
   const radius = 28;
@@ -148,9 +171,76 @@ const SyncTab = ({
               <BookOpen size={13} strokeWidth={2.8} style={{ color: '#10b981' }} />
               <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.78rem', color: '#065f46' }}>{t.overallCompletion || 'Overall completion'}</span>
             </div>
-            <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.86rem', color: '#475569', marginTop: '2px', paddingLeft: '4px' }}>
-              Mitsumi's progress log
-            </div>
+            {isEditing ? (
+              <input 
+                autoFocus
+                value={logName}
+                onChange={(e) => setLogName(e.target.value)}
+                onBlur={() => {
+                  setIsEditing(false);
+                  const cleanName = logName.trim();
+                  if (!cleanName) {
+                    setLogName("Mitsumi's progress log");
+                    localStorage.setItem('skip_logName', "Mitsumi's progress log");
+                  } else {
+                    setLogName(cleanName);
+                    localStorage.setItem('skip_logName', cleanName);
+                  }
+                  pushNow?.();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setIsEditing(false);
+                    const cleanName = logName.trim();
+                    if (!cleanName) {
+                      setLogName("Mitsumi's progress log");
+                      localStorage.setItem('skip_logName', "Mitsumi's progress log");
+                    } else {
+                      setLogName(cleanName);
+                      localStorage.setItem('skip_logName', cleanName);
+                    }
+                    pushNow?.();
+                  } else if (e.key === 'Escape') {
+                    setIsEditing(false);
+                    setLogName(localStorage.getItem('skip_logName') || "Mitsumi's progress log");
+                  }
+                }}
+                style={{
+                  fontFamily: COMMUNITY_FONT_FAMILY,
+                  fontSize: '0.86rem',
+                  color: '#1e293b',
+                  background: '#ffffff',
+                  border: '2px solid #10b981',
+                  borderRadius: '8px',
+                  padding: '2px 8px',
+                  outline: 'none',
+                  marginTop: '2px',
+                  marginLeft: '4px',
+                  width: '100%',
+                  maxWidth: '180px',
+                  boxSizing: 'border-box'
+                }}
+              />
+            ) : (
+              <div 
+                onClick={() => setIsEditing(true)} 
+                style={{ 
+                  fontFamily: COMMUNITY_FONT_FAMILY, 
+                  fontSize: '0.86rem', 
+                  color: '#475569', 
+                  marginTop: '2px', 
+                  paddingLeft: '4px', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: 'fit-content'
+                }}
+              >
+                <span>{logName}</span>
+                <Edit3 size={11} style={{ color: '#10b981', opacity: 0.7 }} />
+              </div>
+            )}
           </div>
 
           {/* Radial Completion SVG Ring */}

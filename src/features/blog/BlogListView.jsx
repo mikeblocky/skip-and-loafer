@@ -30,10 +30,10 @@ const BlogListView = ({
         style={{
           textAlign: 'center',
           padding: '60px 0',
-          background: '#f8fafc',
+          background: 'var(--themed-card-bg, #f8fafc)',
           borderRadius: '24px',
-          border: '3px dashed #cbd5e1',
-          color: '#94a3b8',
+          border: '3px dashed var(--themed-card-border, #cbd5e1)',
+          color: 'var(--themed-text-muted, #94a3b8)',
           fontFamily: 'var(--font-main)',
           fontWeight: '900',
         }}
@@ -57,9 +57,9 @@ const BlogListView = ({
         transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.1 }}
         className="sketchbook-border"
         style={{
-          background: '#fff7ed',
-          border: '3.5px solid #fdba74',
-          borderBottom: '10px solid #f97316',
+          background: 'var(--themed-card-bg, #fff7ed)',
+          border: '3.5px solid var(--themed-card-border, #fdba74)',
+          borderBottom: '10px solid var(--themed-card-border, #f97316)',
           borderRadius: '30px',
           padding: isMobile ? '20px 18px' : '26px 28px',
           display: 'grid',
@@ -76,15 +76,15 @@ const BlogListView = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#ffffff',
-                border: '3px solid #fdba74',
-                borderBottom: '7px solid #fb923c',
+                background: 'var(--themed-badge-bg, #ffffff)',
+                border: '3px solid var(--themed-badge-border, #fdba74)',
+                borderBottom: '7px solid var(--themed-badge-border, #fb923c)',
                 borderRadius: '999px',
                 padding: '8px 12px',
                 fontFamily: 'Sniglet, var(--font-main)',
                 fontSize: '0.94rem',
                 lineHeight: 1,
-                color: '#c2410c',
+                color: 'var(--themed-text-secondary, #c2410c)',
                 fontWeight: '400',
               }}
             >
@@ -94,7 +94,7 @@ const BlogListView = ({
             <span
               style={{
                 fontFamily: 'var(--font-main)',
-                color: '#9a3412',
+                color: 'var(--themed-text-muted, #9a3412)',
                 fontSize: '0.88rem',
                 lineHeight: 1.3,
                 fontWeight: '700',
@@ -108,7 +108,7 @@ const BlogListView = ({
             style={{
               margin: 0,
               fontFamily: 'Sniglet, var(--font-main)',
-              color: '#7c2d12',
+              color: 'var(--themed-text-primary, #7c2d12)',
               fontSize: isMobile ? '1.7rem' : '2.35rem',
               lineHeight: 1.08,
               fontWeight: '400',
@@ -120,7 +120,7 @@ const BlogListView = ({
           <p
             style={{
               margin: 0,
-              color: '#7c5f3a',
+              color: 'var(--themed-text-secondary, #7c5f3a)',
               fontFamily: 'var(--font-main)',
               fontWeight: '700',
               fontSize: isMobile ? `${0.92 * bodyFontScale}rem` : `${0.98 * bodyFontScale}rem`,
@@ -225,9 +225,9 @@ const BlogListView = ({
                 whileHover={{ y: -6, scale: 1.01 }}
                 className="sketchbook-border"
                 style={{
-                  background: '#ffffff',
-                  border: `3px solid ${note.border}`,
-                  borderBottom: `9px solid ${note.border}`,
+                  background: 'var(--themed-card-bg, #ffffff)',
+                  border: `3px solid var(--themed-card-border, ${note.border})`,
+                  borderBottom: `9px solid var(--themed-card-border, ${note.border})`,
                   borderRadius: '26px',
                   padding: isMobile ? '18px 16px' : '20px 22px',
                   boxShadow: '0 12px 24px rgba(15, 23, 42, 0.06)',
@@ -242,9 +242,9 @@ const BlogListView = ({
                   style={{
                     width: isMobile ? 'fit-content' : '56px',
                     minWidth: '56px',
-                    background: note.bg,
-                    border: `3px solid ${note.border}`,
-                    borderBottom: `7px solid ${note.border}`,
+                    background: `var(--themed-badge-bg, ${note.bg})`,
+                    border: `3px solid var(--themed-badge-border, ${note.border})`,
+                    borderBottom: `7px solid var(--themed-badge-border, ${note.border})`,
                     borderRadius: '20px',
                     padding: '10px 12px',
                     display: 'grid',
@@ -252,7 +252,7 @@ const BlogListView = ({
                     justifyItems: 'center',
                   }}
                 >
-                  <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: note.accent, fontSize: '0.8rem', lineHeight: 1, fontWeight: '400' }}>
+                  <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: `var(--themed-text-secondary, ${note.accent})`, fontSize: '0.8rem', lineHeight: 1, fontWeight: '400' }}>
                     {String(index + 2).padStart(2, '0')}
                   </span>
                 </div>
@@ -262,7 +262,7 @@ const BlogListView = ({
                     style={{
                       margin: 0,
                       fontFamily: 'Sniglet, var(--font-main)',
-                      color: '#1e293b',
+                      color: 'var(--themed-text-primary, #1e293b)',
                       fontSize: isMobile ? '1.12rem' : '1.28rem',
                       lineHeight: 1.18,
                       fontWeight: '400',
@@ -278,12 +278,12 @@ const BlogListView = ({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: note.bg,
-                        border: `2.5px solid ${note.border}`,
-                        borderBottom: `6px solid ${note.border}`,
+                        background: `var(--themed-badge-bg, ${note.bg})`,
+                        border: `2.5px solid var(--themed-badge-border, ${note.border})`,
+                        borderBottom: `6px solid var(--themed-badge-border, ${note.border})`,
                         borderRadius: '999px',
                         padding: '6px 10px',
-                        color: note.accent,
+                        color: `var(--themed-text-secondary, ${note.accent})`,
                         fontFamily: 'var(--font-main)',
                         fontSize: '0.8rem',
                         lineHeight: 1,
@@ -299,12 +299,12 @@ const BlogListView = ({
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: note.bg,
-                        border: `2.5px solid ${note.border}`,
-                        borderBottom: `6px solid ${note.border}`,
+                        background: `var(--themed-badge-bg, ${note.bg})`,
+                        border: `2.5px solid var(--themed-badge-border, ${note.border})`,
+                        borderBottom: `6px solid var(--themed-badge-border, ${note.border})`,
                         borderRadius: '999px',
                         padding: '6px 10px',
-                        color: note.accent,
+                        color: `var(--themed-text-secondary, ${note.accent})`,
                         fontFamily: 'var(--font-main)',
                         fontSize: '0.8rem',
                         lineHeight: 1,
@@ -319,7 +319,7 @@ const BlogListView = ({
                   <p
                     style={{
                       margin: 0,
-                      color: '#475569',
+                      color: 'var(--themed-text-muted, #475569)',
                       fontFamily: 'var(--font-main)',
                       fontWeight: '700',
                       fontSize: isMobile ? `${0.82 * bodyFontScale}rem` : `${0.86 * bodyFontScale}rem`,
@@ -342,11 +342,11 @@ const BlogListView = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    border: `3px solid ${note.border}`,
-                    borderBottom: `7px solid ${note.border}`,
-                    background: note.bg,
+                    border: `3px solid var(--themed-card-border, ${note.border})`,
+                    borderBottom: `7px solid var(--themed-card-border, ${note.border})`,
+                    background: `var(--themed-card-bg, ${note.bg})`,
                     borderRadius: '18px',
-                    color: note.accent,
+                    color: `var(--themed-text-secondary, ${note.accent})`,
                     fontFamily: 'Sniglet, var(--font-main)',
                     fontSize: '0.98rem',
                     lineHeight: 1,

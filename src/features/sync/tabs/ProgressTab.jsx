@@ -17,9 +17,9 @@ const ProgressTab = ({
       <div style={{
         width: '100%',
         padding: '12px 16px',
-        background: 'linear-gradient(90deg, #eff6ff 0%, #fff 100%)',
-        border: '2px solid #bfdbfe',
-        borderBottom: '4px solid #93c5fd',
+        background: 'var(--themed-bookshelf-header-bg, linear-gradient(90deg, #eff6ff 0%, #fff 100%))',
+        border: '2px solid var(--themed-bookshelf-header-border, #bfdbfe)',
+        borderBottom: '4px solid var(--themed-bookshelf-header-border, #93c5fd)',
         borderRadius: '16px',
         display: 'flex',
         alignItems: 'center',
@@ -28,7 +28,7 @@ const ProgressTab = ({
         boxSizing: 'border-box'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: isMobile ? '0.86rem' : '0.94rem', color: '#1e3a8a', fontWeight: '400' }}>
+          <span style={{ fontFamily: '"Coming Soon", cursive', fontSize: isMobile ? '0.86rem' : '0.94rem', color: 'var(--themed-bookshelf-header-text, #1e3a8a)', fontWeight: '400' }}>
             {uiLanguage === 'ja' ? '巻をタップして、各話の進捗と購入リンクを表示します' : 'Tap a volume to view chapter progress & purchase links!'}
           </span>
         </div>
@@ -89,7 +89,7 @@ const ProgressTab = ({
                   width: '100%',
                   aspectRatio: '11 / 16',
                   borderRadius: '12px',
-                  background: vol.cover ? '#ffffff' : `linear-gradient(135deg, ${panelBg} 0%, #ffffff 100%)`,
+                  background: vol.cover ? 'var(--themed-card-bg, #ffffff)' : `var(--themed-cover-placeholder-bg, ${panelBg})`,
                   border: `2.5px solid ${accent}`,
                   boxShadow: `0 6px 14px ${accent}12, 2px 4px 8px rgba(0,0,0,0.06)`,
                   display: 'flex',
@@ -261,7 +261,7 @@ const ProgressTab = ({
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    background: `linear-gradient(135deg, ${panelBg} 0%, #ffffff 100%)`,
+                    background: `var(--themed-cover-placeholder-bg, ${panelBg})`,
                     position: 'relative',
                     boxSizing: 'border-box',
                     overflow: 'hidden'
@@ -270,7 +270,7 @@ const ProgressTab = ({
                     <div style={{
                       position: 'absolute',
                       inset: 0,
-                      backgroundImage: 'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)',
+                      backgroundImage: 'radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)',
                       backgroundSize: '12px 12px',
                       opacity: 0.8
                     }} />
@@ -291,7 +291,7 @@ const ProgressTab = ({
                         fontWeight: '700', 
                         color: accent,
                         padding: '2px 8px',
-                        background: '#ffffff',
+                        background: 'var(--surface-card, #ffffff)',
                         border: `1.5px solid ${accent}`,
                         borderRadius: '999px',
                         lineHeight: 1
@@ -301,7 +301,7 @@ const ProgressTab = ({
                       <span style={{ 
                         fontFamily: '"Coming Soon", cursive', 
                         fontSize: isMobile ? '0.62rem' : '0.68rem', 
-                        color: '#64748b', 
+                        color: 'var(--text-muted, #64748b)', 
                         fontWeight: '400',
                         marginTop: '4px',
                         textAlign: 'center'
@@ -333,7 +333,7 @@ const ProgressTab = ({
                   fontFamily: '"Coming Soon", cursive', 
                   fontSize: isMobile ? '0.82rem' : '0.9rem', 
                   fontWeight: '400', 
-                  color: '#1e293b',
+                  color: 'var(--text-primary, #1e293b)',
                   lineHeight: 1.2
                 }}>
                   {getVolumeTitle(uiLanguage, vol.number)}
@@ -341,7 +341,7 @@ const ProgressTab = ({
                 <span style={{ 
                   fontFamily: 'var(--font-hand)', 
                   fontSize: isMobile ? '0.66rem' : '0.74rem', 
-                  color: '#64748b',
+                  color: 'var(--text-secondary, #64748b)',
                   lineHeight: 1.1
                 }}>
                   {finishedCount}/{totalCount} {uiLanguage === 'ja' ? '話完了' : 'chapters'}
