@@ -79,13 +79,16 @@
   --themed-disclaimer-btn-border: #eab308;
   --themed-disclaimer-btn-text: #854d0e;
 
-  /* Unified Design Tokens for Light Mode (overridden in dark mode) */
+  /* Unified Design Tokens for Light Mode (commented out to restore colorful layouts/text in light mode, dark mode re-defines them) */
+  /*
   --themed-card-bg: var(--surface-card);
   --themed-card-border: var(--surface-border);
   --themed-card-inactive-bg: #fdfaf8;
   --themed-card-inactive-border: var(--surface-border);
+  */
   --themed-button-disabled-bg: #f8fafc;
 
+  /*
   --themed-badge-bg: var(--surface-card);
   --themed-badge-border: var(--surface-border);
   
@@ -94,12 +97,12 @@
   --themed-text-muted: var(--text-muted);
   --themed-badge-text: var(--keycap-color);
 
-  /* Bookshelf Header styling */
   --themed-bookshelf-header-bg: var(--surface-card);
   --themed-bookshelf-header-border: var(--surface-border);
   --themed-bookshelf-header-icon: #f59e0b;
   --themed-bookshelf-header-text: var(--text-primary);
   --themed-bookshelf-header-muted: var(--text-muted);
+  */
 
   /* Blog pills styling */
   --themed-pill-posts-border: #fef08a;
