@@ -1,12 +1,13 @@
 import { memo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Tv } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
 const DEFAULT_TABS = [
     { id: 'home', label: 'Home', icon: Home, color: '#f45b93', textColor: '#be185d', desktopFlex: 1 },
     { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', textColor: '#1d4ed8', desktopFlex: 1.18 },
+    { id: 'anime', label: 'Anime', mobileLabel: 'Anime', icon: Tv, color: '#e040fb', textColor: '#9c27b0', desktopFlex: 1 },
     { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#7c4dff', textColor: '#6d28d9', desktopFlex: 1 },
     { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan gallery', icon: ImagePlus, color: '#2563eb', textColor: '#1e40af', desktopFlex: 1.42 },
     { id: 'sign', label: 'Sign', mobileLabel: 'Sign', icon: PenLine, color: '#f97316', textColor: '#c2410c', desktopFlex: 0.96 },

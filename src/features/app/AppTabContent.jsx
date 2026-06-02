@@ -16,6 +16,7 @@ import {
   WikiPage,
   SettingsPage,
   TutorialPage,
+  AnimePage,
 } from './appPageLoaders';
 
 const PAGE_SHELL_STYLE = {
@@ -78,6 +79,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
         return isMobile ? 'ガイドを読み込み中...' : '使い方ガイドページを読み込み中...';
       case 'settings':
         return isMobile ? '設定を読み込み中...' : '設定ページを読み込み中...';
+      case 'anime':
+        return isMobile ? 'アニメを読み込み中...' : 'アニメ動画を読み込み中...';
       default:
         return isMobile ? '読み込み中...' : 'ページを読み込み中...';
     }
@@ -106,6 +109,8 @@ const getFallbackLabel = (activePage, isMobile, uiLanguage) => {
       return isMobile ? 'Loading guide...' : 'Loading website guide...';
     case 'settings':
       return isMobile ? 'Loading settings...' : 'Loading settings page...';
+    case 'anime':
+      return isMobile ? 'Loading anime...' : 'Loading anime player...';
     default:
       return isMobile ? 'Loading...' : 'Loading page...';
   }
@@ -291,6 +296,9 @@ const AppTabContent = ({
           t={t}
         />
       );
+      break;
+    case 'anime':
+      tabContent = <AnimePage isMobile={isMobile} uiLanguage={uiLanguage} />;
       break;
     default:
       tabContent = (

@@ -49,6 +49,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Birthdays', mobileLabel: 'Birthdays' },
       mystery: { label: 'Mystery', mobileLabel: 'Mystery' },
       tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   es: {
@@ -98,6 +99,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Cumpleaños', mobileLabel: 'Cumpleaños' },
       mystery: { label: 'Misterio', mobileLabel: 'Misterio' },
       tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   pt: {
@@ -147,6 +149,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Aniversários', mobileLabel: 'Aniversários' },
       mystery: { label: 'Mistério', mobileLabel: 'Mistério' },
       tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   fr: {
@@ -196,6 +199,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Anniversaires', mobileLabel: 'Anniv.' },
       mystery: { label: 'Mystère', mobileLabel: 'Mystère' },
       tutorial: { label: 'Tutoriel', mobileLabel: 'Tuto.' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   de: {
@@ -245,6 +249,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Geburtstage', mobileLabel: 'Geburtstage' },
       mystery: { label: 'Mysterium', mobileLabel: 'Mysterium' },
       tutorial: { label: 'Anleitung', mobileLabel: 'Anleitung' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   it: {
@@ -294,6 +299,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: 'Compleanni', mobileLabel: 'Compleanni' },
       mystery: { label: 'Mistero', mobileLabel: 'Mistero' },
       tutorial: { label: 'Tutorial', mobileLabel: 'Tutorial' },
+      anime: { label: 'Anime', mobileLabel: 'Anime' },
     },
   },
   ja: {
@@ -344,6 +350,7 @@ export const APP_UI_TEXT = {
       birthdays: { label: '誕生日', mobileLabel: '誕生日' },
       mystery: { label: 'ミステリー', mobileLabel: 'ミステリー' },
       tutorial: { label: '使い方ガイド', mobileLabel: 'ガイド' },
+      anime: { label: 'アニメ', mobileLabel: 'アニメ' },
     },
   },
 };

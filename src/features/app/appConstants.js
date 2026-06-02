@@ -8,7 +8,26 @@ export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
-export const TAB_PAGES = ['home', 'chapters', 'gallery', 'fanGallery', 'sign', 'blog', 'sync', 'quiz', 'birthdays', 'mystery', 'tutorial', 'settings'];
+export const isAnimeTabActive = () => {
+  const expiryDate = new Date('2026-07-01T00:00:00');
+  return new Date() < expiryDate;
+};
+
+export const TAB_PAGES = [
+  'home',
+  'chapters',
+  ...(isAnimeTabActive() ? ['anime'] : []),
+  'gallery',
+  'fanGallery',
+  'sign',
+  'blog',
+  'sync',
+  'quiz',
+  'birthdays',
+  'mystery',
+  'tutorial',
+  'settings'
+];
 export const DEFAULT_PAGE = TAB_PAGES[0];
 export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];
 

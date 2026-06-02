@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { enqueueReadIncrement } from '../../../utils/offlineSync';
 
 const STORAGE_KEY = 'skip_finished';
 const READ_COUNT_KEY = 'skip_readCount';
@@ -96,11 +96,19 @@ export const useReadProgress = () => {
         }));
 
         // Increment global read count
-        fetch('/api/reads/increment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chapter: chapterNumber })
-        }).catch(err => console.error('Global increment failed', err));
+        if (navigator.onLine) {
+            fetch('/api/reads/increment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chapter: chapterNumber })
+            }).catch(err => {
+                console.error('Global increment failed, queuing offline', err);
+                enqueueReadIncrement(chapterNumber);
+            });
+        } else {
+            console.log('Offline: Queued chapter read increment');
+            enqueueReadIncrement(chapterNumber);
+        }
     }, []);
 
     const incrementReadCount = useCallback((chapterNumber) => {
@@ -122,11 +130,19 @@ export const useReadProgress = () => {
             [chapterNumber]: (prev[chapterNumber] || 0) + 1
         }));
 
-        fetch('/api/reads/increment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chapter: chapterNumber })
-        }).catch(err => console.error('Global increment failed', err));
+        if (navigator.onLine) {
+            fetch('/api/reads/increment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chapter: chapterNumber })
+            }).catch(err => {
+                console.error('Global increment failed, queuing offline', err);
+                enqueueReadIncrement(chapterNumber);
+            });
+        } else {
+            console.log('Offline: Queued chapter read increment');
+            enqueueReadIncrement(chapterNumber);
+        }
     }, []);
 
     const unmarkFinished = useCallback((chapterNumber) => {
@@ -200,11 +216,19 @@ export const useReadProgress = () => {
                         }));
 
                         // Increment global read count
-                        fetch('/api/reads/increment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chapter: chNum })
-                        }).catch(err => console.error('Global increment failed', err));
+                        if (navigator.onLine) {
+                            fetch('/api/reads/increment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ chapter: chNum })
+                            }).catch(err => {
+                                console.error('Global increment failed, queuing offline', err);
+                                enqueueReadIncrement(chNum);
+                            });
+                        } else {
+                            console.log('Offline: Queued chapter read increment');
+                            enqueueReadIncrement(chNum);
+                        }
 
                         delete clicks[ch];
                         changed = true;

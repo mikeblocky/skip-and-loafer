@@ -50,12 +50,20 @@ export const useCommunityEntries = ({
       void syncEntries().catch(() => {});
     };
 
+    const handleSyncComplete = (event) => {
+      if (event.detail?.type === 'signatures' || event.detail?.type === 'gallery') {
+        void syncEntries({ force: true }).catch(() => {});
+      }
+    };
+
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
+    window.addEventListener('skip_offline_sync_complete', handleSyncComplete);
 
     return () => {
       window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleRefresh);
+      window.removeEventListener('skip_offline_sync_complete', handleSyncComplete);
     };
   }, [syncEntries]);
 
