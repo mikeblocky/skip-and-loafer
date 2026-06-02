@@ -89,7 +89,7 @@ const ProgressTab = ({
                   width: '100%',
                   aspectRatio: '11 / 16',
                   borderRadius: '12px',
-                  background: vol.cover ? 'var(--surface-card, #ffffff)' : `linear-gradient(135deg, ${panelBg} 0%, var(--surface-card, #ffffff) 100%)`,
+                  background: vol.cover ? 'var(--themed-card-bg, #ffffff)' : `var(--themed-cover-placeholder-bg, ${panelBg})`,
                   border: `2.5px solid ${accent}`,
                   boxShadow: `0 6px 14px ${accent}12, 2px 4px 8px rgba(0,0,0,0.06)`,
                   display: 'flex',
@@ -261,7 +261,7 @@ const ProgressTab = ({
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    background: `linear-gradient(135deg, ${panelBg} 0%, var(--surface-card, #ffffff) 100%)`,
+                    background: `var(--themed-cover-placeholder-bg, ${panelBg})`,
                     position: 'relative',
                     boxSizing: 'border-box',
                     overflow: 'hidden'

@@ -42,7 +42,7 @@ const StepCard = ({
   bottom = '#b8c7da',
 }) => (
   <div
-    className="sketchbook-border"
+    className="sketchbook-border quiz-step-card"
     style={{
       ...panelStyle(background, border, bottom),
       padding: isMobile ? '10px 12px' : '14px 16px',
@@ -59,11 +59,12 @@ const StepCard = ({
   >
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
       <div style={{ display: 'grid', gap: '6px' }}>
-        <span style={sectionTitleStyle}>
+        <span style={sectionTitleStyle} className="step-card-label">
           <Icon size={18} strokeWidth={2.4} />
           {stepLabel}
         </span>
         <h2
+          className="step-card-title"
           style={{
             margin: 0,
             fontFamily: 'Sniglet, var(--font-main)',
@@ -77,6 +78,7 @@ const StepCard = ({
         </h2>
         {description && (
           <p
+            className="step-card-desc"
             style={{
               margin: 0,
               fontFamily: 'var(--font-main)',
@@ -92,6 +94,7 @@ const StepCard = ({
 
       {locked && (
         <span
+          className="step-card-lock-badge"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -118,6 +121,7 @@ const StepCard = ({
       {locked && (
         <div
           aria-hidden="true"
+          className="quiz-setup-lock-overlay"
           style={{
             position: 'absolute',
             inset: 0,
@@ -356,6 +360,7 @@ const QuestionsSetupSection = ({
             </div>
           ) : (
             <div
+              className="quiz-setup-lock-overlay-inner"
               style={{
                 minHeight: 'auto',
                 borderRadius: '20px',
@@ -372,7 +377,7 @@ const QuestionsSetupSection = ({
                 flex: 1,
               }}
             >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: '#64748b' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', color: '#64748b' }}>
                 <Lock size={18} strokeWidth={2.4} />
                 <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: '1rem', lineHeight: 1 }}>
                   {t.difficultyFirst}
@@ -423,7 +428,7 @@ const QuestionsSetupSection = ({
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...PANEL_TRANSITION, delay: 0.24 }}
-        className="sketchbook-border"
+        className="sketchbook-border quiz-setup-review-banner"
         style={{
           ...panelStyle('#fff1f2', '#fda4af', '#ef4444'),
           padding: isMobile ? '10px 12px' : '10px 16px',

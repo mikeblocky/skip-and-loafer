@@ -365,7 +365,7 @@ const SettingsPage = ({
               }}
             />
             <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#34d399', '#059669', '#ecfdf5', '#059669')}>
+              <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#34d399', '#059669', '#ecfdf5', '#059669')}>
                 <Accessibility size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.accessibility || 'Accessibility Options'}</span>
@@ -575,8 +575,8 @@ const SettingsPage = ({
                   zIndex: 5,
                 }}
               />
-              <div style={PANEL_TITLE_STYLE}>
-                <div style={getPanelIconBoxStyle('#f59e0b', '#d97706', '#fef3c7', '#d97706')}>
+               <div style={PANEL_TITLE_STYLE}>
+                <div className="panel-icon-box orange-box no-override" style={getPanelIconBoxStyle('#f59e0b', '#d97706', '#fef3c7', '#d97706')}>
                   <Sparkle size={18} strokeWidth={2.4} style={{ color: '#d97706' }} />
                 </div>
                 <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.readerControls || 'Blog reader options'}</span>
@@ -706,8 +706,8 @@ const SettingsPage = ({
                 zIndex: 5,
               }}
             />
-            <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#f59e0b', '#d97706', '#fef3c7', '#d97706')}>
+             <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box orange-box no-override" style={getPanelIconBoxStyle('#f59e0b', '#d97706', '#fef3c7', '#d97706')}>
                 <Sparkle size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Visual preview</span>
@@ -800,8 +800,8 @@ const SettingsPage = ({
                 zIndex: 5,
               }}
             />
-            <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#60a5fa', '#2563eb', '#eef6ff', '#1d4ed8')}>
+             <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box blue-box no-override" style={getPanelIconBoxStyle('#60a5fa', '#2563eb', '#eef6ff', '#1d4ed8')}>
                 <Languages size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.language || 'LanguageSelector'}</span>
@@ -867,8 +867,8 @@ const SettingsPage = ({
                 zIndex: 5,
               }}
             />
-            <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#c4b5fd', '#7c3aed', '#f5f3ff', '#7c3aed')}>
+             <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box purple-box no-override" style={getPanelIconBoxStyle('#c4b5fd', '#7c3aed', '#f5f3ff', '#7c3aed')}>
                 <Keyboard size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.shortcuts || 'Keyboard Shortcuts'}</span>

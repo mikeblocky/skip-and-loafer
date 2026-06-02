@@ -1054,18 +1054,18 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Frame style</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: node.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
+                    {NODE_SHAPES.map(s => { const Icon = s.icon; return <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'shape', s.id)} className={`map-sidebar-btn ${node.shape === s.id ? 'active-blue' : ''}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', fontSize: '10px', fontWeight: '800', background: node.shape === s.id ? 'var(--pop-blue)' : '#f8fafc', color: node.shape === s.id ? 'white' : '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer' }}> <Icon size={16} /> {s.label} </button>; })}
                   </div>
                 </div>
                 
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Avatar size</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_SIZES.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'size', s.id)} className={`map-sidebar-btn ${node.size === s.id ? 'active-gray' : ''}`} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.size === s.id ? '#cbd5e1' : '#f8fafc', color: node.size === s.id ? '#0f172a' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
 
-                <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Label position</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                     {[
@@ -1074,7 +1074,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                       { id: 'left', label: 'Left' },
                       { id: 'right', label: 'Right' }
                     ].map(p => (
-                      <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
+                      <button key={p.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'charNamePos', p.id)} className={`map-sidebar-btn ${(node.charNamePos || 'bottom') === p.id ? 'active-blue' : ''}`} style={{ padding: '8px 4px', fontSize: '10px', fontWeight: '800', background: (node.charNamePos || 'bottom') === p.id ? 'var(--pop-blue)' : '#f8fafc', color: (node.charNamePos || 'bottom') === p.id ? 'white' : '#64748b', border: 'none', borderRadius: '10px' }}>{p.label}</button>
                     ))}
                   </div>
                 </div>
@@ -1082,7 +1082,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                 <div style={{ background: 'white', padding: '12px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Presence effect</div>
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.animation === s.id ? 'var(--pop-pink)' : '#f8fafc', color: node.animation === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
+                    {NODE_ANIMATIONS.map(s => <button key={s.id} onClick={() => updateItemProperty(nodes, setNodes, selectedId, 'animation', s.id)} className={`map-sidebar-btn ${node.animation === s.id ? 'active-pink' : ''}`} style={{ flex: 1, padding: '8px', fontSize: '11px', fontWeight: '800', background: node.animation === s.id ? 'var(--pop-pink)' : '#f8fafc', color: node.animation === s.id ? 'white' : '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{s.label}</button> )}
                   </div>
                 </div>
 
@@ -1116,7 +1116,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                   );
                 })()}
 
-                <button onClick={deleteSelected} style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <button onClick={deleteSelected} className="map-sidebar-btn delete-btn" style={{ width: '100%', padding: '12px', borderRadius: '16px', background: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: '800', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <Trash2 size={16} /> Delete character
                 </button>
               </>
@@ -1280,7 +1280,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                       <div style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', marginBottom: '8px' }}>Sub-circles ({content.circles.length})</div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {content.circles.map(c => (
-                          <div key={c.id} style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '8px' }}>{c.title || 'Untitled Circle'}</div>
+                          <div key={c.id} className="map-subcircle-pill" style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: '8px' }}>{c.title || 'Untitled Circle'}</div>
                         ))}
                       </div>
                     </div>
@@ -1936,12 +1936,14 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
                     >
                       <button 
                         onClick={(e) => { e.stopPropagation(); setIsConnecting(!isConnecting); triggerHaptic('selection'); }}
+                        className={`map-sidebar-btn ${isConnecting ? 'active-blue' : ''}`}
                         style={{ width: '36px', height: '36px', borderRadius: '10px', background: isConnecting ? 'var(--pop-blue)' : '#f1f5f9', color: isConnecting ? 'white' : '#475569', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <ArrowRight size={18} />
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); deleteSelected(); }}
+                        className="map-sidebar-btn delete-btn"
                         style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fee2e2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <Trash2 size={18} />

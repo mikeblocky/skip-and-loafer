@@ -299,7 +299,7 @@ const AppQuickControls = ({
             }}
           >
             <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#a7f3d0', '#34d399', '#ecfdf5', '#059669')}>
+              <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#a7f3d0', '#34d399', '#ecfdf5', '#059669')}>
                 <Accessibility size={18} strokeWidth={2.4} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -558,7 +558,7 @@ const AppQuickControls = ({
             }}
           >
             <div style={PANEL_TITLE_STYLE}>
-              <div style={getPanelIconBoxStyle('#c4b5fd', '#8b5cf6', '#f5f3ff', '#7c3aed')}>
+              <div className="panel-icon-box purple-box no-override" style={getPanelIconBoxStyle('#c4b5fd', '#8b5cf6', '#f5f3ff', '#7c3aed')}>
                 <Keyboard size={18} strokeWidth={2.4} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

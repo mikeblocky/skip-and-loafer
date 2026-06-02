@@ -1,8 +1,7 @@
 import { startTransition, useEffect, useMemo, useState } from 'react';
-import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS, isMainChapter } from '../data/chapters';
+import { CHAPTERS, VOLUMES, VOL_COLORS, isMainChapter } from '../data/chapters';
 import MobileChaptersTab from '../features/chapters/tabs/MobileChaptersTab';
 import DesktopChaptersTab from '../features/chapters/tabs/DesktopChaptersTab';
-import SideWorksTab from '../features/chapters/tabs/SideWorksTab';
 import NotesTab from '../features/chapters/tabs/NotesTab';
 import ChaptersPageHeader from '../features/chapters/ChaptersPageHeader';
 import usePageTitle from '../hooks/shared/usePageTitle';
@@ -318,24 +317,6 @@ const ChaptersPage = ({
 
       {displaySubtab === 'main' ? (
         isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />
-      ) : displaySubtab === 'side' ? (
-        <SideWorksTab
-          isMobile={isMobile}
-          sideWorks={SIDE_WORKS}
-          onReadChapter={onReadChapter}
-          isFinished={isFinished}
-          trackExternalLink={trackExternalLink}
-          cancelExternalLink={cancelExternalLink}
-          markFinished={markFinished}
-          unmarkFinished={unmarkFinished}
-          getReadCount={getReadCount}
-          incrementReadCount={incrementReadCount}
-          getRemainingCooldown={getRemainingCooldown}
-          pendingLinks={pendingLinks}
-          t={t}
-          uiLanguage={uiLanguage}
-          ChapterRowComponent={ChapterRow}
-        />
       ) : (
         <NotesTab
           isMobile={isMobile}

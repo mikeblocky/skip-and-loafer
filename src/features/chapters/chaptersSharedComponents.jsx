@@ -367,6 +367,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
       {!comingSoon && (
         <motion.button
+          className="no-override"
           whileHover={cooldown > 0 ? {} : { scale: 1.015, y: -1, rotate: 0.5 }}
           whileTap={cooldown > 0 ? {} : { scale: 0.98, y: 0.5 }}
           onClick={handleIncrement}
@@ -376,14 +377,14 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             alignItems: 'center',
             gap: '6px',
             fontSize: isMobile ? '0.8rem' : '0.85rem',
-            color: cooldown > 0 ? '#94a3b8' : theme.accent,
-            background: cooldown > 0 ? '#f1f5f9' : theme.surface,
+            color: cooldown > 0 ? 'var(--themed-text-muted, #94a3b8)' : 'var(--themed-button-text, ' + theme.accent + ')',
+            background: cooldown > 0 ? 'var(--themed-button-disabled-bg, #f1f5f9)' : 'var(--themed-card-inactive-bg, ' + theme.surface + ')',
             padding: isMobile ? '6px 14px' : '8px 18px',
             borderRadius: '12px',
             fontFamily: 'var(--font-main)',
             fontWeight: '400',
-            border: `2px solid ${cooldown > 0 ? '#cbd5e1' : theme.border}`,
-            borderBottom: cooldown > 0 ? '2.5px solid #cbd5e1' : `4.5px solid ${theme.border}`,
+            border: `2px solid ${cooldown > 0 ? 'var(--themed-card-inactive-border, #cbd5e1)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
+            borderBottom: cooldown > 0 ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid var(--themed-card-border, ${theme.border})`,
             cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
             boxShadow: cooldown > 0 ? 'none' : `0 4px 12px ${theme.shadow}`,
             opacity: cooldown > 0 ? 0.7 : 1,
@@ -404,13 +405,13 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             gap: '6px', 
             fontSize: isMobile ? '0.8rem' : '0.85rem', 
             color: '#fff', 
-            background: '#059669', 
+            background: 'var(--pop-green, #059669)', 
             padding: isMobile ? '6px 14px' : '8px 18px', 
             borderRadius: '12px', 
             fontFamily: 'var(--font-main)', 
             fontWeight: '400', 
-            border: '2px solid #065f46', 
-            borderBottom: '4.5px solid #064e3b',
+            border: '2px solid var(--themed-card-border, #065f46)', 
+            borderBottom: '4.5px solid var(--themed-card-border, #064e3b)',
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(5, 150, 105, 0.1)'
           }}
@@ -443,6 +444,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         ))}
       {!comingSoon && (
         <motion.button
+          className="no-override"
           whileHover={{ scale: 1.05, y: -1 }}
           whileTap={{ scale: 0.95 }}
           onClick={(e) => {
@@ -457,9 +459,9 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             width: isMobile ? '32px' : '36px',
             height: isMobile ? '32px' : '36px',
             borderRadius: '12px',
-            background: noteText ? 'var(--note-bg)' : 'var(--surface-card)',
-            color: noteText ? 'var(--note-text)' : theme.accent,
-            border: `2px solid ${noteText ? 'var(--note-border-bottom)' : theme.border}`,
+            background: noteText ? 'var(--note-bg)' : 'var(--themed-card-inactive-bg, var(--surface-card))',
+            color: noteText ? 'var(--note-text)' : 'var(--themed-badge-text, ' + theme.accent + ')',
+            border: `2px solid ${noteText ? 'var(--note-border-bottom)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
             borderBottom: noteText ? '4px solid var(--note-border-bottom)' : `4.5px solid ${theme.border}`,
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -674,7 +676,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
           return (
             <motion.button
               key={vol.number}
-              className="volume-selector-button"
+              className="volume-selector-button no-override"
               data-vol-idx={idx}
               onClick={() => handleSelect(idx)}
               whileHover={{ y: -4, scale: 1.05 }}
@@ -687,9 +689,9 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: 'var(--themed-card-bg, #ffffff)',
-                color: theme.accent,
-                border: `2.5px solid ${theme.accent}`,
-                borderBottom: isActive ? `6px solid ${theme.accent}` : `3.5px solid ${theme.accent}`,
+                color: 'var(--themed-badge-text, ' + theme.accent + ')',
+                border: `2.5px solid var(--themed-badge-text, ${theme.accent})`,
+                borderBottom: isActive ? `6px solid var(--themed-badge-text, ${theme.accent})` : `3.5px solid var(--themed-badge-text, ${theme.accent})`,
                 borderRadius: '16px',
                 fontFamily: '"Coming Soon", var(--font-main)',
                 fontSize: isMobile ? '1.35rem' : '1.45rem',

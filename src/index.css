@@ -78,86 +78,269 @@
   --themed-disclaimer-btn-bg: var(--pop-yellow);
   --themed-disclaimer-btn-border: #eab308;
   --themed-disclaimer-btn-text: #854d0e;
+
+  /* Unified Design Tokens for Light Mode (overridden in dark mode) */
+  --themed-card-bg: var(--surface-card);
+  --themed-card-border: var(--surface-border);
+  --themed-card-inactive-bg: #fdfaf8;
+  --themed-card-inactive-border: var(--surface-border);
+  --themed-button-disabled-bg: #f8fafc;
+
+  --themed-badge-bg: var(--surface-card);
+  --themed-badge-border: var(--surface-border);
+  
+  --themed-text-primary: var(--text-primary);
+  --themed-text-secondary: var(--text-secondary);
+  --themed-text-muted: var(--text-muted);
+  --themed-badge-text: var(--keycap-color);
+
+  /* Bookshelf Header styling */
+  --themed-bookshelf-header-bg: var(--surface-card);
+  --themed-bookshelf-header-border: var(--surface-border);
+  --themed-bookshelf-header-icon: #f59e0b;
+  --themed-bookshelf-header-text: var(--text-primary);
+  --themed-bookshelf-header-muted: var(--text-muted);
+
+  /* Blog pills styling */
+  --themed-pill-posts-border: #fef08a;
+  --themed-pill-posts-bottom: #eab308;
+  --themed-pill-posts-text: #713f12;
+
+  --themed-pill-minutes-border: #cbd5e1;
+  --themed-pill-minutes-bottom: #94a3b8;
+  --themed-pill-minutes-text: #334155;
+
+  /* Sticky Notes custom palettes */
+  --themed-note-bg-1: #fef9c3;
+  --themed-note-border-1: #fef08a;
+  --themed-note-bottom-1: #eab308;
+  --themed-note-accent-1: #713f12;
+
+  --themed-note-bg-2: #ffe4e6;
+  --themed-note-border-2: #fecdd3;
+  --themed-note-bottom-2: #f43f5e;
+  --themed-note-accent-2: #9f1239;
+
+  --themed-note-bg-3: #dbeafe;
+  --themed-note-border-3: #bfdbfe;
+  --themed-note-bottom-3: #3b82f6;
+  --themed-note-accent-3: #1e3a8a;
+
+  --themed-note-bg-4: #dcfce7;
+  --themed-note-border-4: #bbf7d0;
+  --themed-note-bottom-4: #22c55e;
+  --themed-note-accent-4: #14532d;
+
+  --themed-note-bg-5: #fce7f3;
+  --themed-note-border-5: #fbcfe8;
+  --themed-note-bottom-5: #ec4899;
+  --themed-note-accent-5: #9d174d;
+
+  --themed-note-bg-6: #f3e8ff;
+  --themed-note-border-6: #e9d5ff;
+  --themed-note-bottom-6: #a855f7;
+  --themed-note-accent-6: #581c87;
+
+  --themed-note-bg-7: #ffedd5;
+  --themed-note-border-7: #fed7aa;
+  --themed-note-bottom-7: #f97316;
+  --themed-note-accent-7: #7c2d12;
+
+  --themed-note-bg-8: #ecfeff;
+  --themed-note-border-8: #cffafe;
+  --themed-note-bottom-8: #06b6d4;
+  --themed-note-accent-8: #164e63;
+
+  /* Polaroid Gallery custom palettes */
+  --themed-gallery-frame-1: #ffffff;
+  --themed-gallery-border-1: #e2e8f0;
+  --themed-gallery-bottom-1: #cbd5e1;
+  --themed-gallery-label-1: #475569;
+  --themed-gallery-shadow-1: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-2: #ffffff;
+  --themed-gallery-border-2: #e2e8f0;
+  --themed-gallery-bottom-2: #cbd5e1;
+  --themed-gallery-label-2: #475569;
+  --themed-gallery-shadow-2: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-3: #ffffff;
+  --themed-gallery-border-3: #e2e8f0;
+  --themed-gallery-bottom-3: #cbd5e1;
+  --themed-gallery-label-3: #475569;
+  --themed-gallery-shadow-3: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-4: #ffffff;
+  --themed-gallery-border-4: #e2e8f0;
+  --themed-gallery-bottom-4: #cbd5e1;
+  --themed-gallery-label-4: #475569;
+  --themed-gallery-shadow-4: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-5: #ffffff;
+  --themed-gallery-border-5: #e2e8f0;
+  --themed-gallery-bottom-5: #cbd5e1;
+  --themed-gallery-label-5: #475569;
+  --themed-gallery-shadow-5: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-6: #ffffff;
+  --themed-gallery-border-6: #e2e8f0;
+  --themed-gallery-bottom-6: #cbd5e1;
+  --themed-gallery-label-6: #475569;
+  --themed-gallery-shadow-6: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-7: #ffffff;
+  --themed-gallery-border-7: #e2e8f0;
+  --themed-gallery-bottom-7: #cbd5e1;
+  --themed-gallery-label-7: #475569;
+  --themed-gallery-shadow-7: rgba(0, 0, 0, 0.08);
+
+  --themed-gallery-frame-8: #ffffff;
+  --themed-gallery-border-8: #e2e8f0;
+  --themed-gallery-bottom-8: #cbd5e1;
+  --themed-gallery-label-8: #475569;
+  --themed-gallery-shadow-8: rgba(0, 0, 0, 0.08);
+
+  /* Mystery Dashboard Cards styling */
+  --themed-card-bg-gacha: var(--surface-card);
+  --themed-card-border-gacha: var(--surface-border);
+  --themed-card-text-gacha: var(--text-primary);
+
+  --themed-card-bg-quiz: #dbeafe;
+  --themed-card-border-quiz: #bfdbfe;
+  --themed-card-bottom-quiz: #3b82f6;
+  --themed-card-text-quiz: #1e3a8a;
+
+  --themed-card-bg-animal: #dcfce7;
+  --themed-card-border-animal: #bbf7d0;
+  --themed-card-bottom-animal: #22c55e;
+  --themed-card-text-animal: #14532d;
+  --themed-card-border-animal-badge: #86efac;
+
+  --themed-card-bg-map: #f3e8ff;
+  --themed-card-border-map: #e9d5ff;
+  --themed-card-bottom-map: #a855f7;
+  --themed-card-text-map: #581c87;
+
+  --themed-card-bg-rating: #ffedd5;
+  --themed-card-border-rating: #fed7aa;
+  --themed-card-bottom-rating: #f97316;
+  --themed-card-text-rating: #7c2d12;
+
+  /* Mystery Navigation Tabs styling */
+  --themed-mystery-tab-bg-menu: #fef9c3;
+  --themed-mystery-tab-border-menu: #fef08a;
+  --themed-mystery-tab-text-menu: #713f12;
+  --themed-mystery-tab-icon-menu: #eab308;
+  --themed-mystery-tab-accent-menu: #ca8a04;
+
+  --themed-mystery-tab-bg-gacha: #fce7f3;
+  --themed-mystery-tab-border-gacha: #fbcfe8;
+  --themed-mystery-tab-text-gacha: #9d174d;
+  --themed-mystery-tab-icon-gacha: #ec4899;
+  --themed-mystery-tab-accent-gacha: #db2777;
+
+  --themed-mystery-tab-bg-quiz: #dbeafe;
+  --themed-mystery-tab-border-quiz: #bfdbfe;
+  --themed-mystery-tab-text-quiz: #1e3a8a;
+  --themed-mystery-tab-icon-quiz: #3b82f6;
+  --themed-mystery-tab-accent-quiz: #2563eb;
+
+  --themed-mystery-tab-bg-animalQuiz: #dcfce7;
+  --themed-mystery-tab-border-animalQuiz: #bbf7d0;
+  --themed-mystery-tab-text-animalQuiz: #14532d;
+  --themed-mystery-tab-icon-animalQuiz: #22c55e;
+  --themed-mystery-tab-accent-animalQuiz: #16a34a;
+
+  --themed-mystery-tab-bg-map: #f3e8ff;
+  --themed-mystery-tab-border-map: #e9d5ff;
+  --themed-mystery-tab-text-map: #581c87;
+  --themed-mystery-tab-icon-map: #a855f7;
+  --themed-mystery-tab-accent-map: #9333ea;
+
+  --themed-mystery-tab-bg-rating: #ffedd5;
+  --themed-mystery-tab-border-rating: #fed7aa;
+  --themed-mystery-tab-text-rating: #7c2d12;
+  --themed-mystery-tab-icon-rating: #f97316;
+  --themed-mystery-tab-accent-rating: #ea580c;
 }
 
 /* Comfortable Dark Mode Globals */
 html[data-a11y-dark-mode='1'] {
-  --paper-white: #2e2a27;
-  --line-blue: #3d3936;
-  --surface-card: #201e1d;
-  --surface-panel: #262321;
-  --surface-elevated: rgba(38, 35, 33, 0.96);
-  --surface-shell: #1a1817;
-  --surface-border: #4d4641;
-  --surface-border-strong: #665e57;
-  --warm-glow: rgba(255, 158, 198, 0.05);
-  --warm-glow-strong: rgba(255, 158, 198, 0.1);
-  --love-shadow: 0 4px 20px rgba(255, 158, 198, 0.08);
+  color-scheme: dark;
+  --paper-white: #192734;
+  --line-blue: #253341;
+  --surface-card: #192734;
+  --surface-panel: #15202b;
+  --surface-elevated: rgba(25, 39, 52, 0.96);
+  --surface-shell: #15202b;
+  --surface-border: #38444d;
+  --surface-border-strong: #4b5a66;
+  --warm-glow: transparent;
+  --warm-glow-strong: transparent;
+  --love-shadow: none;
 
-  --paper-lines: repeating-linear-gradient(transparent, transparent 31px, rgba(255, 255, 255, 0.04) 31px, rgba(255, 255, 255, 0.04) 32px);
-  --shell-background-image:
-    radial-gradient(circle at top left, rgba(255, 158, 198, 0.05), transparent 35%),
-    radial-gradient(circle at top right, rgba(143, 211, 255, 0.05), transparent 35%),
-    radial-gradient(circle at bottom left, rgba(255, 229, 127, 0.03), transparent 40%),
-    radial-gradient(circle at bottom right, rgba(151, 235, 169, 0.03), transparent 40%),
-    linear-gradient(135deg, #181615 0%, #1e1b1c 25%, #181b1e 50%, #1e1e18 75%, #1d191e 100%),
-    var(--paper-lines);
-  --planner-shell-background-image:
-    linear-gradient(135deg, rgba(32, 30, 29, 0.94) 0%, rgba(38, 35, 33, 0.97) 100%),
-    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(255, 255, 255, 0.04) 31px, rgba(255, 255, 255, 0.04) 32px);
-  --planner-page-background-image:
-    linear-gradient(135deg, rgba(32, 30, 29, 0.97) 0%, rgba(20, 19, 18, 0.99) 100%),
-    var(--paper-lines);
+  --paper-lines: none;
+  --shell-background-image: none;
+  --planner-shell-background-image: none;
+  --planner-page-background-image: none;
 
-  --note-bg: #3c362d;
-  --note-border: #4d4436;
-  --note-border-bottom: #927510;
-  --note-text: #ece2c8;
+  --note-bg: #1b2936;
+  --note-border: #2c3d4e;
+  --note-border-bottom: #1d9bf0;
+  --note-text: #ffffff;
 
-  --text-primary: #ece3cc;
-  --text-secondary: #bdae93;
-  --text-muted: #928374;
-  --surface-card-active: #2b394d;
-  --keycap-bg: #2b394d;
-  --keycap-color: #60a5fa;
+  --text-primary: #ffffff;
+  --text-secondary: #8899a6;
+  --text-muted: #5b7083;
+  --surface-card-active: #22303c;
+  --keycap-bg: #22303c;
+  --keycap-color: #1d9bf0;
+
+  /* Dim all pop colors in dark mode */
+  --pop-pink: #d07d9c;
+  --pop-green: #6dbf7f;
+  --pop-blue: #62a2cc;
+  --pop-yellow: #cca84b;
 
   /* Comfortable Dark Mode Custom Variables */
-  --themed-card-bg: #201e1d;
-  --themed-card-border: #4d4641;
-  --themed-card-inactive-bg: #1a1817;
-  --themed-card-inactive-border: #3d3936;
-  --themed-button-disabled-bg: #262321;
+  --themed-card-bg: #192734;
+  --themed-card-border: #38444d;
+  --themed-card-inactive-bg: #15202b;
+  --themed-card-inactive-border: #253341;
+  --themed-button-disabled-bg: #1b2c3a;
+  --themed-cover-placeholder-bg: var(--themed-card-bg);
 
-  --themed-badge-bg: #262321;
-  --themed-badge-border: #4d4641;
+  --themed-badge-bg: #1b2c3a;
+  --themed-badge-border: #38444d;
   
-  --themed-text-primary: #ece3cc;
-  --themed-text-secondary: #bdae93;
-  --themed-text-muted: #928374;
-  --themed-badge-text: #60a5fa;
+  --themed-text-primary: #ffffff;
+  --themed-text-secondary: #8899a6;
+  --themed-text-muted: #5b7083;
+  --themed-badge-text: #1d9bf0;
+  --themed-button-text: #ffffff;
 
   /* Bookshelf Header styling for dark mode */
-  --themed-bookshelf-header-bg: #201e1d;
-  --themed-bookshelf-header-border: #4d4641;
-  --themed-bookshelf-header-icon: #f59e0b;
-  --themed-bookshelf-header-text: #ece3cc;
-  --themed-bookshelf-header-muted: #bdae93;
+  --themed-bookshelf-header-bg: #192734;
+  --themed-bookshelf-header-border: #38444d;
+  --themed-bookshelf-header-icon: #1d9bf0;
+  --themed-bookshelf-header-text: #ffffff;
+  --themed-bookshelf-header-muted: #8899a6;
 
   /* Blog pills styling for dark mode */
-  --themed-pill-posts-border: #fbbf24;
-  --themed-pill-posts-bottom: #b45309;
-  --themed-pill-posts-text: #fef08a;
+  --themed-pill-posts-border: #cca84b;
+  --themed-pill-posts-bottom: #947116;
+  --themed-pill-posts-text: #ffeed0;
 
-  --themed-pill-minutes-border: #3b82f6;
-  --themed-pill-minutes-bottom: #1d4ed8;
-  --themed-pill-minutes-text: #93c5fd;
+  --themed-pill-minutes-border: #1d9bf0;
+  --themed-pill-minutes-bottom: #0f7bb5;
+  --themed-pill-minutes-text: #d2e9ff;
 
   /* NavTabs styling for dark mode */
-  --themed-nav-text: #ece3cc;
-  --themed-nav-active-text-mobile: #ece3cc;
-  --themed-nav-active-border-bottom: #ffffff;
-  --themed-nav-border-bottom: rgba(236, 227, 204, 0.15);
-  --themed-nav-border-bottom-hover: rgba(236, 227, 204, 0.4);
+  --themed-nav-text: #8899a6;
+  --themed-nav-active-text-mobile: #ffffff;
+  --themed-nav-active-border-bottom: #1d9bf0;
+  --themed-nav-border-bottom: rgba(136, 153, 166, 0.15);
+  --themed-nav-border-bottom-hover: rgba(136, 153, 166, 0.4);
 
   /* Sticky Notes custom palettes for dark mode */
   --themed-note-bg-1: #383321;
@@ -312,13 +495,13 @@ html[data-a11y-dark-mode='1'] {
   --themed-mystery-tab-icon-rating: var(--themed-note-accent-7);
   --themed-mystery-tab-accent-rating: #fb923c;
 
-  --themed-disclaimer-btn-bg: #3c362d;
-  --themed-disclaimer-btn-border: #857007;
-  --themed-disclaimer-btn-text: #fef08a;
+  --themed-disclaimer-btn-bg: #1b2936;
+  --themed-disclaimer-btn-border: #2c3d4e;
+  --themed-disclaimer-btn-text: #1d9bf0;
 }
 
 html[data-a11y-dark-mode='1'] body {
-  color: #ece3cc;
+  color: #ffffff;
 }
 
 /* Comprehensive Cozy Dark Mode Styling Suite */
@@ -329,9 +512,38 @@ html[data-a11y-dark-mode='1'] #main-content {
   box-shadow: none !important;
 }
 
-/* Force clean, high-contrast white text globally inside all elements under Cozy Dark Mode */
+/* Property Sidebar Button Overrides for Relationship Map in Dark Mode */
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: #f8fafc"],
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background-color: #f8fafc"],
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: rgb(248, 250, 252)"] {
+  background-color: var(--surface-shell) !important;
+  color: var(--text-secondary) !important;
+  border: 1.5px solid var(--surface-border) !important;
+}
+
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: #cbd5e1"],
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background-color: #cbd5e1"] {
+  background-color: var(--surface-border-strong) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid var(--keycap-color) !important;
+}
+
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: #fee2e2"] {
+  background-color: #5f2424 !important;
+  color: #fca5a5 !important;
+  border: 1.5px solid #ef4444 !important;
+}
+
+
+/* Force clean, high-contrast text globally inside all elements under Cozy Dark Mode */
 html[data-a11y-dark-mode='1'] *:not(svg):not(path):not(circle):not(rect):not(polygon):not(line):not(polyline):not(ellipse):not(g):not(.washi-tape):not(.washi-tape--pink):not(.washi-tape--blue):not(.washi-tape--yellow):not(.heart-float):not(.sparkle-float):not(.no-override):not(.no-override *) {
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
+}
+
+/* Strip away all glows, dropshadows, and text halos in dark mode */
+html[data-a11y-dark-mode='1'] *:not(.no-override):not(.no-override *) {
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 /* Scoped button and anchor spans inside mystery UI tab blocks to inherit color */
@@ -1957,5 +2169,219 @@ html[data-a11y-dark-mode='1'] .planner-diary-modal div[style*="width: 24px"][sty
   background-color: var(--surface-panel) !important;
   border-color: var(--surface-border-strong) !important;
 }
+
+/* Quiz Choice Card Badge Overrides in Dark Mode */
+html[data-a11y-dark-mode='1'] .quiz-choice-card {
+  background: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+  border-bottom-color: var(--surface-border-strong) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-choice-card .choice-text {
+  color: var(--text-primary) !important;
+}
+
+/* Correct Choice Card in Dark Mode */
+html[data-a11y-dark-mode='1'] .quiz-choice-card.correct {
+  background: #14532d !important; /* Deep Green */
+  border-color: #10b981 !important;
+  border-bottom-color: #059669 !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.correct .choice-text {
+  color: #a7f3d0 !important; /* Light Green */
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.correct .choice-index-badge {
+  background: #10b981 !important;
+  border-color: #059669 !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.correct .choice-index-text {
+  color: #ffffff !important;
+}
+
+/* Wrong Choice Card in Dark Mode */
+html[data-a11y-dark-mode='1'] .quiz-choice-card.wrong {
+  background: #7f1d1d !important; /* Deep Red */
+  border-color: #ef4444 !important;
+  border-bottom-color: #dc2626 !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.wrong .choice-text {
+  color: #fecaca !important; /* Light Red */
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.wrong .choice-index-badge {
+  background: #ef4444 !important;
+  border-color: #dc2626 !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.wrong .choice-index-text {
+  color: #ffffff !important;
+}
+
+/* Locked Card in Dark Mode (neither correct nor wrong) */
+html[data-a11y-dark-mode='1'] .quiz-choice-card.locked:not(.correct):not(.wrong) {
+  background: #15202b !important; /* Slightly dimmer than card background */
+  border-color: #253341 !important;
+  border-bottom-color: #1c2732 !important;
+  opacity: 0.65 !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card.locked:not(.correct):not(.wrong) .choice-text {
+  color: var(--text-secondary) !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card:not(.correct):not(.wrong) .choice-index-badge {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--surface-border) !important;
+}
+html[data-a11y-dark-mode='1'] .quiz-choice-card:not(.correct):not(.wrong) .choice-index-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Settings & Quick Controls Section Header Icon Box Overrides in Dark Mode */
+html[data-a11y-dark-mode='1'] .panel-icon-box.green-box {
+  background-color: #143a28 !important;
+  border-color: #059669 !important;
+  border-bottom-color: #047857 !important;
+  color: #34d399 !important;
+}
+html[data-a11y-dark-mode='1'] .panel-icon-box.orange-box {
+  background-color: #3c2305 !important;
+  border-color: #d97706 !important;
+  border-bottom-color: #b45309 !important;
+  color: #fbbf24 !important;
+}
+html[data-a11y-dark-mode='1'] .panel-icon-box.blue-box {
+  background-color: #172554 !important;
+  border-color: #2563eb !important;
+  border-bottom-color: #1d4ed8 !important;
+  color: #60a5fa !important;
+}
+html[data-a11y-dark-mode='1'] .panel-icon-box.purple-box {
+  background-color: #2e1065 !important;
+  border-color: #7c3aed !important;
+  border-bottom-color: #6d28d9 !important;
+  color: #c4b5fd !important;
+}
+
+/* Relationship Map Sidebar Button & Control overrides in Cozy Dark Mode */
+html[data-a11y-dark-mode='1'] .map-sidebar-btn {
+  background-color: var(--surface-card) !important;
+  color: var(--text-secondary) !important;
+  border: 1.5px solid var(--surface-border) !important;
+}
+
+html[data-a11y-dark-mode='1'] .map-sidebar-btn.active-blue {
+  background-color: var(--pop-blue) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+html[data-a11y-dark-mode='1'] .map-sidebar-btn.active-gray {
+  background-color: var(--surface-border-strong) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid var(--keycap-color) !important;
+}
+
+html[data-a11y-dark-mode='1'] .map-sidebar-btn.active-pink {
+  background-color: var(--pop-pink) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+html[data-a11y-dark-mode='1'] .map-sidebar-btn.delete-btn {
+  background-color: #5f2424 !important;
+  color: #fca5a5 !important;
+  border: 1.5px solid #ef4444 !important;
+}
+
+html[data-a11y-dark-mode='1'] .map-subcircle-pill {
+  background-color: var(--surface-panel) !important;
+  color: var(--text-secondary) !important;
+  border: 1.5px solid var(--surface-border) !important;
+}
+
+/* Backwards-compatible / Fallback matches for inline styles that compile to rgb(...) in browser */
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: rgb(203, 213, 225)"],
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background-color: rgb(203, 213, 225)"] {
+  background-color: var(--surface-border-strong) !important;
+  color: var(--text-primary) !important;
+  border: 1.5px solid var(--keycap-color) !important;
+}
+
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background: rgb(254, 226, 226)"],
+html[data-a11y-dark-mode='1'] .property-sidebar button[style*="background-color: rgb(254, 226, 226)"] {
+  background-color: #5f2424 !important;
+  color: #fca5a5 !important;
+  border: 1.5px solid #ef4444 !important;
+}
+
+html[data-a11y-dark-mode='1'] .relationship-map [style*="background: rgb(241, 245, 249)"],
+html[data-a11y-dark-mode='1'] .relationship-map [style*="background-color: rgb(241, 245, 249)"] {
+  background-color: var(--surface-panel) !important;
+  color: var(--text-secondary) !important;
+  border: 1.5px solid var(--surface-border) !important;
+}
+
+/* Dark Mode Gradient Hiding Overrides */
+html[data-a11y-dark-mode='1'] .makoto-secret-page,
+html[data-a11y-dark-mode='1'] .makoto-scene {
+  background: var(--surface-panel) !important;
+  background-image: none !important;
+  border-color: var(--surface-border) !important;
+}
+
+html[data-a11y-dark-mode='1'] .makoto-secret-page__wash {
+  background-image: none !important;
+}
+
+/* Quiz Setup Screen Dark Mode Overrides */
+html[data-a11y-dark-mode='1'] .quiz-step-card {
+  background-color: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+  border-bottom-color: var(--surface-border-strong) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-step-card .step-card-label {
+  color: var(--text-primary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-step-card .step-card-title {
+  color: var(--text-primary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-step-card .step-card-desc {
+  color: var(--text-secondary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-setup-lock-overlay {
+  background: rgba(21, 32, 43, 0.65) !important;
+  background-image: none !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-setup-lock-overlay-inner {
+  background: rgba(21, 32, 43, 0.75) !important;
+  background-image: none !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-muted) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-setup-lock-overlay-inner span {
+  color: var(--text-muted) !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-setup-review-banner {
+  background-color: #5f1e24 !important; /* Cozy Deep Red-pink */
+  background-image: none !important;
+  border-color: #ef4444 !important;
+  border-bottom-color: #991b1b !important;
+}
+
+html[data-a11y-dark-mode='1'] .quiz-setup-review-banner span {
+  color: #fca5a5 !important;
+}
+
+/* Hide colorful morphing shapes in Dark Mode */
+html[data-a11y-dark-mode='1'] .morphing-shape {
+  display: none !important;
+}
+
+
+
 
 

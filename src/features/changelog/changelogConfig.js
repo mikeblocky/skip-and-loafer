@@ -1,6 +1,6 @@
 import { BookMarked, Map, Layout, Zap } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-06-02-v18.0';
+export const CHANGELOG_VERSION = '2026-06-02-v18.1';
 export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,6 +26,20 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
+    title: 'Cozy dark mode refinements',
+    icon: BookMarked,
+    lines: [
+      { type: 'fixed', text: 'Fixed dark mode readability of Settings page & Quick Controls section header icons.' },
+      { type: 'fixed', text: 'Fixed contrast and text color in Quiz answer choices after choosing an answer.' },
+      { type: 'fixed', text: 'Fixed dark mode styling of Relationship Map property sidebars, control buttons, and sub-circle elements.' },
+      { type: 'fixed', text: 'Hid colorful background morphing shape gradients in Cozy Dark Mode.' },
+      { type: 'fixed', text: 'Resolved dark mode color visibility on scroll-to-top buttons, changelog inner cards, and detailed planner modal.' },
+      { type: 'fixed', text: 'Fixed volume popup scroll layout, sticky footer switcher, and un-bolded blog reader bottom buttons.' },
+      { type: 'added', text: 'Added "Go to top" and "Return to list" buttons to the blog article detail view.' },
+      { type: 'fixed', text: 'Fixed pushNow destructuring reference error on the Sync progress page.' }
+    ],
+  },
+  {
     title: 'Cozy dark mode & notes overhaul',
     icon: BookMarked,
     lines: [
@@ -37,6 +51,19 @@ export const CHANGELOG_SERIES = [
       { type: 'fixed', text: 'Fixed a typing bug in notes which prevented input or updates to note content.' },
       { type: 'changed', text: 'Globally hid native web browsers scrollbars to preserve the premium, distraction-free scrapbooking aesthetic.' },
       { type: 'removed', text: 'Removed Side Works subtab from the chapter selection pages.' },
+    ],
+  },
+  {
+    title: 'Mobile navigation & layout optimization',
+    icon: Layout,
+    lines: [
+      { type: 'fixed', text: 'Fixed volume selection modal height and pop-up scrollability.' },
+      { type: 'added', text: 'Added editable and syncable log name features on the progress dashboard.' },
+      { type: 'added', text: 'Added Pride tab inside the Fan Messages community board.' },
+      { type: 'fixed', text: 'Fixed Relationship Map rendering error and disabled mobile edge-swiping navigation.' },
+      { type: 'changed', text: 'Updated tab headers to use the Sniglet font for a cleaner aesthetic.' },
+      { type: 'fixed', text: 'Adjusted layout padding, page spacing, and reading overlay modal sizing.' },
+      { type: 'removed', text: 'Removed Pride game submodule to optimize bundle size and fit Hobby plan serverless limits.' }
     ],
   },
   {

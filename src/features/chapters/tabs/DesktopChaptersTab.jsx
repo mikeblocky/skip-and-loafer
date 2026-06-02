@@ -148,7 +148,7 @@ const DesktopChaptersTab = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: vol.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
+                  background: vol.cover ? 'var(--themed-card-bg, #fff)' : `var(--themed-cover-placeholder-bg, ${theme.surface})`,
                   opacity: isActive ? 1 : 0.82,
                 }}>
                   {showVolumeArtwork && vol.cover ? (
@@ -265,7 +265,7 @@ const DesktopChaptersTab = ({
               borderRight: `4.5px solid var(--themed-card-border, ${currentTheme.border})`,
               borderBottom: `5px solid var(--themed-card-border, ${currentTheme.border})`,
               boxShadow: `0 4px 12px ${currentTheme.shadow}`,
-              background: volume.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
+              background: volume.cover ? 'var(--themed-card-bg, #fff)' : `var(--themed-cover-placeholder-bg, ${currentTheme.surface})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

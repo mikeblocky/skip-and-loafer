@@ -1,16 +1,16 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StickyNote, Trash2, Edit3, Check, BookOpen, ExternalLink } from 'lucide-react';
+import { StickyNote, Trash2, Edit3, Check } from 'lucide-react';
 import { triggerHaptic } from '../../../utils/haptics';
 import { CHAPTERS, SIDE_WORKS } from '../../../data/chapters';
+
+void motion;
 
 const NotesTab = ({
   isMobile,
   chapterNotes = {},
   onSaveNote,
-  uiLanguage = 'en',
   t,
-  onReadChapter,
 }) => {
   const [editingChapter, setEditingChapter] = useState(null);
   const [editText, setEditText] = useState('');
@@ -52,24 +52,7 @@ const NotesTab = ({
     }
   };
 
-  const getChapterTitleLabel = (number, chapter) => {
-    const isSide = SIDE_WORKS.some(c => c.number === number);
-    const prefix = isSide ? (t.sideWorks || 'Side Work') : `${t.chapterRange || 'Chapter'} ${number}`;
-    if (!chapter) return prefix;
-    
-    // Support dynamic translation fields if any, otherwise standard title
-    const title = chapter.titleJp && uiLanguage === 'ja' ? chapter.titleJp : chapter.title;
-    return `${prefix}: ${title}`;
-  };
 
-  // Pre-selected warm scrapbook sticky note palettes for variety
-  const NOTE_PALETTES = [
-    { bg: 'var(--themed-note-bg-1, #fef9c3)', border: 'var(--themed-note-border-1, #fef08a)', bottom: 'var(--themed-note-bottom-1, #eab308)', text: 'var(--note-text, #713f12)' },
-    { bg: 'var(--themed-note-bg-3, #dbeafe)', border: 'var(--themed-note-border-3, #bfdbfe)', bottom: 'var(--themed-note-bottom-3, #3b82f6)', text: 'var(--note-text, #1e3a8a)' },
-    { bg: 'var(--themed-note-bg-4, #d1fae5)', border: 'var(--themed-note-border-4, #a7f3d0)', bottom: 'var(--themed-note-bottom-4, #10b981)', text: 'var(--note-text, #065f46)' },
-    { bg: 'var(--themed-note-bg-5, #fce7f3)', border: 'var(--themed-note-border-5, #fbcfe8)', bottom: 'var(--themed-note-bottom-5, #ec4899)', text: 'var(--note-text, #831843)' },
-    { bg: 'var(--themed-note-bg-6, #f3e8ff)', border: 'var(--themed-note-border-6, #e9d5ff)', bottom: 'var(--themed-note-bottom-6, #8b5cf6)', text: 'var(--note-text, #581c87)' },
-  ];
 
   return (
     <div
@@ -124,24 +107,23 @@ const NotesTab = ({
             }}
           >
             {notesList.map((note, idx) => {
-              const palette = NOTE_PALETTES[idx % NOTE_PALETTES.length];
               const isEditing = editingChapter === note.number;
 
               return (
                 <motion.div
                   key={note.number}
-                  className="sketchbook-border"
+                  className="no-override"
                   initial={{ opacity: 0, scale: 0.96, y: 15 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   whileHover={{ y: -4, rotate: (idx % 2 === 0 ? 0.5 : -0.5) }}
                   style={{
-                    background: palette.bg,
-                    border: `2px solid ${palette.border}`,
-                    borderBottom: `6px solid ${palette.bottom}`,
+                    background: 'var(--note-bg)',
+                    border: '2px solid var(--note-border)',
+                    borderBottom: '4px solid var(--note-border-bottom)',
                     padding: '20px',
                     borderRadius: '16px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.05)',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -149,6 +131,21 @@ const NotesTab = ({
                     position: 'relative',
                   }}
                 >
+                  {/* Scrapbook pin/tape deco */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    left: '50%',
+                    transform: 'translateX(-50%) rotate(1deg)',
+                    width: '60px',
+                    height: '18px',
+                    background: 'rgba(255,255,255,0.4)',
+                    backdropFilter: 'blur(1.5px)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    border: '1px dashed rgba(0,0,0,0.1)',
+                    zIndex: 2,
+                  }} />
+
                   <div>
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
@@ -157,7 +154,7 @@ const NotesTab = ({
                           fontFamily: 'var(--font-paper)',
                           fontWeight: '400',
                           fontSize: '1.05rem',
-                          color: palette.text,
+                          color: 'var(--note-text)',
                           lineHeight: '1.2',
                           flex: 1,
                         }}
@@ -170,7 +167,7 @@ const NotesTab = ({
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: palette.text,
+                            color: 'var(--note-text)',
                             cursor: 'pointer',
                             padding: '4px',
                             opacity: 0.7,
@@ -186,7 +183,7 @@ const NotesTab = ({
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: palette.text,
+                            color: 'var(--note-text)',
                             cursor: 'pointer',
                             padding: '4px',
                             opacity: 0.7,
@@ -217,7 +214,7 @@ const NotesTab = ({
                             fontFamily: 'var(--font-paper)',
                             fontSize: '0.94rem',
                             lineHeight: '1.4',
-                            color: palette.text,
+                            color: 'var(--note-text)',
                             padding: '8px',
                             resize: 'none',
                             margin: '4px 0 0 0',
@@ -228,7 +225,7 @@ const NotesTab = ({
                           style={{
                             fontFamily: 'var(--font-hand)',
                             fontSize: '1rem',
-                            color: palette.text,
+                            color: 'var(--note-text)',
                             margin: '4px 0 0 0',
                             lineHeight: '1.4',
                             whiteSpace: 'pre-wrap',
