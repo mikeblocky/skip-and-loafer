@@ -69,7 +69,7 @@ const GalleryTabSelector = ({ activeTab, setActiveTab, isMobile, tabLabels }) =>
               alignItems: 'center',
               gap: '5px',
               padding: isActive ? '6px 11px 8px 11px' : '7px 11px 7px 11px',
-              background: isActive ? '#ffffff' : `${tab.color}10`,
+              background: isActive ? 'var(--themed-card-bg, #ffffff)' : `${tab.color}10`,
               color: tab.color,
               border: `2px solid ${tab.color}${isActive ? '' : '35'}`,
               borderBottom: isActive ? `5px solid ${tab.color}` : `2px solid ${tab.color}35`,

@@ -22,7 +22,9 @@ import {
   Timer,
   Plus,
   ChevronDown,
-  Pin
+  Pin,
+  Pencil,
+  StickyNote
 } from 'lucide-react';
 import { VOLUMES, VOL_COLORS } from '../../data/chapters';
 import { TAP_SCALE_DEFAULT, HOVER_SCALE_TAB, TAP_SCALE_TAB, PRESS_SPRING, ENTER_SPRING, JELLY_TAP, JELLY_HOVER, SQUASH_TRANSITION } from '../../components/shared/animationPresets';
@@ -159,13 +161,15 @@ const MilestoneEffects = ({ count, tier, color, isMobile }) => {
   );
 };
  
-export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks, t, uiLanguage = 'en', getReadTierFn }) => {
+export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapter, isFinished, trackExternalLink, cancelExternalLink, getReadCount, incrementReadCount, getRemainingCooldown, pendingLinks, t, uiLanguage = 'en', getReadTierFn, noteText = '', onSaveNote }) => {
   const finished = isFinished?.(chapter.number);
   const readCount = getReadCount?.(chapter.number) || 0;
   const tier = getReadTierFn(readCount, uiLanguage);
   
   // Use Volume-specific theme
   const theme = VOL_THEMES[volumeNumber || 1] || VOL_THEMES[1];
+
+  const [showNoteInput, setShowNoteInput] = useState(false);
   
   const jpLinks = chapter.links.jp || [];
   const comingSoon = !chapter.links.en && jpLinks.length === 0;
@@ -272,19 +276,19 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
           top: '-12px',
           right: '20px',
           zIndex: 15,
-          background: tier.bg || '#fff',
+          background: `var(--themed-card-bg, ${tier.bg || '#fff'})`,
           borderRadius: '12px',
           padding: '4px 12px',
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          border: `2px solid ${tier.border || theme.border}`,
-          borderBottom: `4px solid ${tier.border || theme.border}`,
+          border: `2px solid var(--themed-card-border, ${tier.border || theme.border})`,
+          borderBottom: `4px solid var(--themed-card-border, ${tier.border || theme.border})`,
           boxShadow: `0 4px 12px ${theme.shadow}`,
         }}
       >
         <Sparkle size={14} strokeWidth={3} style={{ color: tier.text || theme.accent }} />
-        <span style={{ color: tier.text || theme.accent, fontSize: '0.75rem', fontWeight: '400', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
+        <span style={{ color: `var(--themed-text-secondary, ${tier.text || theme.accent})`, fontSize: '0.75rem', fontWeight: '400', fontFamily: 'var(--font-main)', lineHeight: 1.2 }}>
             {tier.label ? `${tier.label} • ${readCount}×` : `${readCount}×`}
           </span>
         </motion.div>
@@ -294,22 +298,44 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       width: isMobile ? '44px' : '52px', 
       height: isMobile ? '44px' : '52px', 
       borderRadius: '16px', 
-      background: theme.bg, 
+      background: `var(--themed-card-inactive-bg, ${theme.bg})`, 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
       flexShrink: 0, 
-      border: `2.5px solid ${theme.border}`,
-      borderBottom: `4.5px solid ${theme.border}`,
+      border: `2.5px solid var(--themed-card-border, ${theme.border})`,
+      borderBottom: `4.5px solid var(--themed-card-border, ${theme.border})`,
       boxShadow: `0 3px 0 rgba(0,0,0,0.1)`,
     }}>
-      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: theme.accent }}>{chapterBadge}</span>
+      <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: `var(--themed-badge-text, ${theme.accent})` }}>{chapterBadge}</span>
     </div>
  
     <div style={{ flex: '1 1 120px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {chapterTitle && (
-        <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.1rem', color: theme.accent, fontWeight: '400', lineHeight: 1.2 }}>
+        <span style={{ 
+          fontFamily: 'Sniglet, var(--font-main)', 
+          fontSize: isMobile ? '1rem' : '1.1rem', 
+          color: `var(--themed-text-primary, ${theme.accent})`, 
+          fontWeight: '400', 
+          lineHeight: 1.2,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
           {chapterTitle}
+          {noteText && (
+            <StickyNote 
+              size={isMobile ? 14 : 16} 
+              strokeWidth={3} 
+              style={{ 
+                color: 'var(--note-text, #d97706)',
+                flexShrink: 0,
+                transform: 'rotate(-8deg)',
+                filter: 'drop-shadow(0px 2px 3px rgba(0,0,0,0.1))'
+              }} 
+              title={t.chapterNote || "Chapter has notes"}
+            />
+          )}
         </span>
       )}
       {chapter.latest && (
@@ -415,6 +441,47 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             <Languages size={14} strokeWidth={3} /> {i + 1}
           </motion.a>
         ))}
+      {!comingSoon && (
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            triggerHaptic('tap');
+            setShowNoteInput(!showNoteInput);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: isMobile ? '32px' : '36px',
+            height: isMobile ? '32px' : '36px',
+            borderRadius: '12px',
+            background: noteText ? 'var(--note-bg)' : 'var(--surface-card)',
+            color: noteText ? 'var(--note-text)' : theme.accent,
+            border: `2px solid ${noteText ? 'var(--note-border-bottom)' : theme.border}`,
+            borderBottom: noteText ? '4px solid var(--note-border-bottom)' : `4.5px solid ${theme.border}`,
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            position: 'relative',
+          }}
+          title={t.chapterNote || 'Write a note'}
+        >
+          <Pencil size={15} strokeWidth={2.5} />
+          {noteText && (
+            <span style={{
+              position: 'absolute',
+              top: '-3px',
+              right: '-3px',
+              background: '#ef4444',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              border: '1.5px solid #fff',
+            }} />
+          )}
+        </motion.button>
+      )}
       {linkTimeLeft > 0 && (
         <div style={{ 
           display: 'flex', 
@@ -432,7 +499,10 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         }}>
           <Timer size={14} strokeWidth={3} /> {formatTime(linkTimeLeft)}
           <button 
-            onClick={() => cancelExternalLink?.(chapter.number)} 
+            onClick={(e) => {
+              e.stopPropagation();
+              cancelExternalLink?.(chapter.number);
+            }} 
             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 0 0 4px', fontSize: '1.1rem', fontWeight: 400, display: 'flex', alignItems: 'center' }} 
             title="Cancel"
           >
@@ -441,6 +511,104 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         </div>
       )}
       </div>
+
+      <AnimatePresence>
+        {showNoteInput && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            style={{ width: '100%', overflow: 'hidden', zIndex: 5 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              background: 'var(--note-bg)',
+              border: '2px solid var(--note-border)',
+              borderBottom: '4px solid var(--note-border-bottom)',
+              borderRadius: '16px',
+              padding: isMobile ? '10px 12px' : '12px 16px',
+              position: 'relative',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.05)',
+              transform: 'rotate(-0.5deg)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+              boxSizing: 'border-box',
+            }}>
+              {/* Scrapbook pin/tape deco */}
+              <div style={{
+                position: 'absolute',
+                top: '-10px',
+                left: '50%',
+                transform: 'translateX(-50%) rotate(1deg)',
+                width: '60px',
+                height: '18px',
+                background: 'rgba(255,255,255,0.4)',
+                backdropFilter: 'blur(1.5px)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                border: '1px dashed rgba(0,0,0,0.1)',
+                zIndex: 2,
+              }} />
+              
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span style={{
+                  fontFamily: 'var(--font-paper)',
+                  fontSize: '0.8rem',
+                  color: 'var(--note-text)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}>
+                  <Pin size={12} strokeWidth={3} style={{ transform: 'rotate(45deg)' }} />
+                  {t.myNotes || 'My notes'}
+                </span>
+                  {noteText && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSaveNote?.(chapter.number, '');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--note-text)',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-main)',
+                      padding: 0,
+                      textDecoration: 'underline',
+                      opacity: 0.8,
+                    }}
+                  >
+                    {t.clearNote || 'Clear'}
+                  </button>
+                )}
+              </div>
+
+              <textarea
+                value={noteText}
+                onChange={(e) => onSaveNote?.(chapter.number, e.target.value)}
+                placeholder={t.writeNotePlaceholder || 'Jot down some thoughts about this chapter...'}
+                rows={3}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  resize: 'none',
+                  fontFamily: 'var(--font-paper)',
+                  fontSize: '0.88rem',
+                  lineHeight: '1.4',
+                  color: 'var(--note-text)',
+                  padding: '4px 0',
+                  margin: 0,
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -518,7 +686,7 @@ export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) =
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#ffffff',
+                background: 'var(--themed-card-bg, #ffffff)',
                 color: theme.accent,
                 border: `2.5px solid ${theme.accent}`,
                 borderBottom: isActive ? `6px solid ${theme.accent}` : `3.5px solid ${theme.accent}`,

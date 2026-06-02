@@ -17,12 +17,12 @@ const SignComposerForm = ({
   onSubmit,
 }) => (
   <form onSubmit={onSubmit} style={{ display: 'grid', gap: '12px' }}>
-    <p style={{ margin: 0, color: '#7c2d12', lineHeight: 1.6 }}>
+    <p style={{ margin: 0, color: 'var(--themed-text-secondary, #7c2d12)', lineHeight: 1.6 }}>
       {copy.subtitle}
     </p>
 
     <label style={{ display: 'grid', gap: '8px' }}>
-      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: '#9a3412', fontSize: '0.95rem' }}>
+      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: 'var(--themed-text-secondary, #9a3412)', fontSize: '0.95rem' }}>
         {copy.nameLabel}
       </span>
       <div style={{ position: 'relative' }}>
@@ -37,13 +37,13 @@ const SignComposerForm = ({
         <UserRound
           size={18}
           strokeWidth={2.3}
-          style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#f97316' }}
+          style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--keycap-color, #f97316)' }}
         />
       </div>
     </label>
 
     <label style={{ display: 'grid', gap: '8px' }}>
-      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: '#9a3412', fontSize: '0.95rem' }}>
+      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: 'var(--themed-text-secondary, #9a3412)', fontSize: '0.95rem' }}>
         {copy.messageLabel}
       </span>
       <textarea
@@ -62,10 +62,10 @@ const SignComposerForm = ({
         type="button"
         onClick={onClose}
         style={createCommunityButtonStyle({
-          borderColor: '#cbd5e1',
-          bottomColor: '#94a3b8',
-          background: '#ffffff',
-          color: '#475569',
+          borderColor: 'var(--surface-border, #cbd5e1)',
+          bottomColor: 'var(--surface-border-strong, #94a3b8)',
+          background: 'var(--surface-card, #ffffff)',
+          color: 'var(--text-secondary, #475569)',
         })}
       >
         {copy.close}

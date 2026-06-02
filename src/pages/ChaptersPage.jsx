@@ -3,6 +3,7 @@ import { CHAPTERS, SIDE_WORKS, VOLUMES, VOL_COLORS, isMainChapter } from '../dat
 import MobileChaptersTab from '../features/chapters/tabs/MobileChaptersTab';
 import DesktopChaptersTab from '../features/chapters/tabs/DesktopChaptersTab';
 import SideWorksTab from '../features/chapters/tabs/SideWorksTab';
+import NotesTab from '../features/chapters/tabs/NotesTab';
 import ChaptersPageHeader from '../features/chapters/ChaptersPageHeader';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
@@ -67,7 +68,7 @@ const DesktopChapters = (props) => (
   />
 );
 
-const SUBTABS = ['main', 'side'];
+const SUBTABS = ['main', 'notes'];
 
 const ChaptersPage = ({
   isMobile,
@@ -83,16 +84,57 @@ const ChaptersPage = ({
   incrementReadCount,
   getRemainingCooldown,
   pendingLinks,
+  pushNow,
 }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
   const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
   const chaptersTitle = t.chapters || 'Chapters';
-  const subtabPages = useMemo(() => (uiLanguage === 'ja' ? ['main'] : SUBTABS), [uiLanguage]);
+  const subtabPages = useMemo(() => (uiLanguage === 'ja' ? ['main', 'notes'] : SUBTABS), [uiLanguage]);
 
   usePageTitle(tGlobal.tabs?.chapters?.label || 'Chapters');
 
   const [countryCode, setCountryCode] = useState(null);
   const [activeSubtab, _setActiveSubtab] = useState('main');
+
+  const [chapterNotes, setChapterNotes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('skip_chapter_notes_v1');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const saveChapterNote = (chapterNumber, noteText) => {
+    setChapterNotes((prev) => {
+      const updated = { ...prev, [chapterNumber]: noteText };
+      try {
+        localStorage.setItem('skip_chapter_notes_v1', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
+    pushNow?.();
+  };
+
+  useEffect(() => {
+    const handleSync = () => {
+      try {
+        const saved = localStorage.getItem('skip_chapter_notes_v1');
+        setChapterNotes(saved ? JSON.parse(saved) : {});
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('skip_sync_complete', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('skip_sync_complete', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   const setActiveSubtab = (valueOrFn) => {
     startTransition(() => {
@@ -249,6 +291,8 @@ const ChaptersPage = ({
     jpShortLabel,
     uiLanguage,
     unreadCount,
+    chapterNotes,
+    onSaveNote: saveChapterNote,
   };
 
   return (
@@ -274,7 +318,7 @@ const ChaptersPage = ({
 
       {displaySubtab === 'main' ? (
         isMobile ? <MobileChapters {...shared} /> : <DesktopChapters {...shared} />
-      ) : (
+      ) : displaySubtab === 'side' ? (
         <SideWorksTab
           isMobile={isMobile}
           sideWorks={SIDE_WORKS}
@@ -291,6 +335,15 @@ const ChaptersPage = ({
           t={t}
           uiLanguage={uiLanguage}
           ChapterRowComponent={ChapterRow}
+        />
+      ) : (
+        <NotesTab
+          isMobile={isMobile}
+          chapterNotes={chapterNotes}
+          onSaveNote={saveChapterNote}
+          uiLanguage={uiLanguage}
+          t={t}
+          onReadChapter={onReadChapter}
         />
       )}
     </div>

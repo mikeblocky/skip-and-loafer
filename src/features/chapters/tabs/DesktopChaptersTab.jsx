@@ -28,6 +28,8 @@ const DesktopChaptersTab = ({
   getVolumeTitleFn,
   getVolumeShortWordFn,
   ChapterRowComponent,
+  chapterNotes = {},
+  onSaveNote,
 }) => {
   const currentTheme = VOL_THEMES[volume.number] || VOL_THEMES[1];
   const showVolumeArtwork = uiLanguage !== 'ja';
@@ -57,9 +59,9 @@ const DesktopChaptersTab = ({
       }}>
         {/* Bookshelf Header */}
         <div style={{
-          background: '#eff6ff',
-          border: '2.5px solid #4d9cff',
-          borderBottom: '5px solid #4d9cff',
+          background: 'var(--themed-bookshelf-header-bg, #eff6ff)',
+          border: '2.5px solid var(--themed-bookshelf-header-border, #4d9cff)',
+          borderBottom: '5px solid var(--themed-bookshelf-header-border, #4d9cff)',
           borderRadius: '16px',
           padding: '14px 18px',
           boxShadow: '0 4px 12px rgba(77, 156, 255, 0.1)',
@@ -67,13 +69,13 @@ const DesktopChaptersTab = ({
           alignItems: 'center',
           gap: '10px',
         }}>
-          <BookOpen size={20} style={{ color: '#0066ff' }} />
+          <BookOpen size={20} style={{ color: 'var(--themed-bookshelf-header-icon, #0066ff)' }} />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{
               fontFamily: 'Sniglet, var(--font-main)',
               fontSize: '1.15rem',
               fontWeight: '400',
-              color: '#1e3a8a',
+              color: 'var(--themed-bookshelf-header-text, #1e3a8a)',
               lineHeight: 1.2,
             }}>
               {t.mangaShelf || 'List of volumes'}
@@ -81,7 +83,7 @@ const DesktopChaptersTab = ({
             <span style={{
               fontFamily: 'Sniglet, var(--font-main)',
               fontSize: '0.8rem',
-              color: '#3b82f6',
+              color: 'var(--themed-bookshelf-header-muted, #3b82f6)',
               fontWeight: '400',
             }}>
               {VOLUMES.length} volumes available
@@ -124,11 +126,11 @@ const DesktopChaptersTab = ({
                   aspectRatio: '2/3',
                   borderRadius: '14px',
                   cursor: 'pointer',
-                  border: isActive ? `2.5px solid ${theme.border}` : `2.5px solid #cbd5e1`,
-                  borderRight: isActive ? `4.5px solid ${theme.border}` : `2.5px solid #cbd5e1`,
-                  borderBottom: isActive ? `6px solid ${theme.border}` : `4.5px solid #cbd5e1`,
+                  border: isActive ? `2.5px solid var(--themed-card-border, ${theme.border})` : `2.5px solid var(--themed-card-inactive-border, #cbd5e1)`,
+                  borderRight: isActive ? `4.5px solid var(--themed-card-border, ${theme.border})` : `2.5px solid var(--themed-card-inactive-border, #cbd5e1)`,
+                  borderBottom: isActive ? `6px solid var(--themed-card-border, ${theme.border})` : `4.5px solid var(--themed-card-inactive-border, #cbd5e1)`,
                   boxShadow: isActive ? `0 8px 20px ${theme.shadow}` : `0 4px 10px rgba(0,0,0,0.05)`,
-                  background: isActive ? theme.surface : '#fff',
+                  background: isActive ? `var(--themed-card-bg, ${theme.surface})` : 'var(--themed-card-inactive-bg, #fff)',
                   transition: 'all 0.22s ease',
                   overflow: 'visible',
                   display: 'flex',
@@ -146,7 +148,7 @@ const DesktopChaptersTab = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: vol.cover ? '#fff' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
+                  background: vol.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
                   opacity: isActive ? 1 : 0.82,
                 }}>
                   {showVolumeArtwork && vol.cover ? (
@@ -240,9 +242,9 @@ const DesktopChaptersTab = ({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             style={{
-              background: currentTheme.surface,
-              border: `2.5px solid ${currentTheme.border}`,
-              borderBottom: `6px solid ${currentTheme.border}`,
+              background: `var(--themed-card-bg, ${currentTheme.surface})`,
+              border: `2.5px solid var(--themed-card-border, ${currentTheme.border})`,
+              borderBottom: `6px solid var(--themed-card-border, ${currentTheme.border})`,
               borderRadius: '24px',
               padding: '24px',
               boxShadow: `0 8px 24px ${currentTheme.shadow}`,
@@ -259,11 +261,11 @@ const DesktopChaptersTab = ({
               borderRadius: '12px',
               overflow: 'hidden',
               flexShrink: 0,
-              border: `2.5px solid ${currentTheme.border}`,
-              borderRight: `4.5px solid ${currentTheme.border}`,
-              borderBottom: `5px solid ${currentTheme.border}`,
+              border: `2.5px solid var(--themed-card-border, ${currentTheme.border})`,
+              borderRight: `4.5px solid var(--themed-card-border, ${currentTheme.border})`,
+              borderBottom: `5px solid var(--themed-card-border, ${currentTheme.border})`,
               boxShadow: `0 4px 12px ${currentTheme.shadow}`,
-              background: volume.cover ? '#fff' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
+              background: volume.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -300,15 +302,15 @@ const DesktopChaptersTab = ({
 
                 {volume.anime && (
                   <div style={{
-                    background: '#fff',
-                    border: `2px solid ${currentTheme.border}`,
+                    background: 'var(--themed-card-bg, #fff)',
+                    border: `2px solid var(--themed-card-border, ${currentTheme.border})`,
                     borderRadius: '10px',
                     padding: '2px 8px',
                     fontSize: '0.7rem',
                     fontFamily: 'var(--font-main)',
                     fontWeight: '400',
-                    color: currentTheme.accent,
-                    boxShadow: `0 2.5px 0 ${currentTheme.border}`,
+                    color: `var(--themed-text-secondary, ${currentTheme.accent})`,
+                    boxShadow: `0 2.5px 0 var(--themed-card-border, ${currentTheme.border})`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -322,7 +324,7 @@ const DesktopChaptersTab = ({
               <p style={{
                 fontFamily: 'var(--font-main)',
                 fontSize: '0.9rem',
-                color: '#4b5563',
+                color: 'var(--text-secondary, #4b5563)',
                 fontWeight: '400',
                 margin: 0,
               }}>
@@ -384,6 +386,8 @@ const DesktopChaptersTab = ({
                 pendingLinks={pendingLinks}
                 t={t}
                 uiLanguage={uiLanguage}
+                noteText={chapterNotes[ch.number] || ''}
+                onSaveNote={onSaveNote}
               />
             ))}
           </motion.div>

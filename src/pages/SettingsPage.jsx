@@ -16,10 +16,10 @@ const PANEL_TITLE_STYLE = {
   gap: '10px',
   fontFamily: 'var(--font-paper)',
   fontWeight: '400',
-  color: '#1e293b',
+  color: 'var(--text-primary)',
   fontSize: '1.2rem',
   letterSpacing: '0.2px',
-  borderBottom: '2.5px dashed #cbd5e1',
+  borderBottom: '2.5px dashed var(--surface-border)',
   paddingBottom: '10px',
   marginBottom: '16px',
 };
@@ -44,9 +44,9 @@ const getPanelIconBoxStyle = (border, bottom, background, color) => ({
 
 const getOptionCardStyle = (active = false) => ({
   ...createPaperPanelStyle({
-    background: active ? '#f0f7ff' : 'var(--surface-card)',
-    borderColor: active ? '#3b82f6' : '#cbd5e1',
-    bottomColor: active ? '#2563eb' : '#cbd5e1',
+    background: active ? 'var(--surface-card-active)' : 'var(--surface-card)',
+    borderColor: active ? '#3b82f6' : 'var(--surface-border)',
+    bottomColor: active ? '#2563eb' : 'var(--surface-border-strong)',
     radius: '16px',
     shadow: active ? '0 6px 14px rgba(59,130,246,0.06)' : '0 4px 8px rgba(0,0,0,0.01)',
   }),
@@ -63,10 +63,10 @@ const getOptionCardStyle = (active = false) => ({
 
 const KEYCAP_STYLE = {
   ...createPaperChipStyle({
-    borderColor: '#93c5fd',
-    bottomColor: '#60a5fa',
-    background: '#eff6ff',
-    color: '#1d4ed8',
+    borderColor: 'var(--surface-border-strong)',
+    bottomColor: 'var(--surface-border-strong)',
+    background: 'var(--keycap-bg)',
+    color: 'var(--keycap-color)',
     radius: '10px',
     padding: '4px 8px',
     fontSize: '0.8rem',
@@ -132,10 +132,11 @@ const SettingsPage = ({
     { key: 'reduceMotion', label: t.reduceMotion || fallbackText.reduceMotion },
     { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals },
     { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors' },
+    { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Comfortable dark mode' },
   ];
 
   const readingOptions = accessibilityOptions.filter(o => ['largeText', 'largeControls', 'readableSpacing', 'underlineLinks'].includes(o.key));
-  const clarityOptions = accessibilityOptions.filter(o => ['highContrast', 'reduceTransparency'].includes(o.key));
+  const clarityOptions = accessibilityOptions.filter(o => ['highContrast', 'reduceTransparency', 'darkMode'].includes(o.key));
   const visualsOptions = accessibilityOptions.filter(o => ['reduceMotion', 'simplifyVisuals', 'dimNonEssentialColors'].includes(o.key));
 
   const getLanguageVisual = (code) => {
@@ -195,6 +196,18 @@ const SettingsPage = ({
             border: '2px solid #000',
             marginRight: '6px'
           }} />
+        );
+      case 'darkMode':
+        return (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '6px',
+            width: '18px',
+          }}>
+            <span style={{ fontSize: '0.85rem' }}>🌙</span>
+          </div>
         );
       case 'reduceTransparency':
         return (
@@ -329,9 +342,9 @@ const SettingsPage = ({
           <div
             className="sketchbook-border"
             style={{
-              background: '#ffffff',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #cbd5e1',
+              background: 'var(--surface-card)',
+              border: '3px solid var(--surface-border)',
+              borderBottom: '8px solid var(--surface-border)',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -540,9 +553,9 @@ const SettingsPage = ({
             <div
               className="sketchbook-border"
               style={{
-                background: '#ffffff',
-                border: '3px solid #cbd5e1',
-                borderBottom: '8px solid #cbd5e1',
+                background: 'var(--surface-card)',
+                border: '3px solid var(--surface-border)',
+                borderBottom: '8px solid var(--surface-border)',
                 padding: '20px 24px 24px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -671,9 +684,9 @@ const SettingsPage = ({
           <div
             className="sketchbook-border"
             style={{
-              background: '#ffffff',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #cbd5e1',
+              background: 'var(--surface-card)',
+              border: '3px solid var(--surface-border)',
+              borderBottom: '8px solid var(--surface-border)',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -765,9 +778,9 @@ const SettingsPage = ({
           <div
             className="sketchbook-border"
             style={{
-              background: '#ffffff',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #cbd5e1',
+              background: 'var(--surface-card)',
+              border: '3px solid var(--surface-border)',
+              borderBottom: '8px solid var(--surface-border)',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -808,11 +821,11 @@ const SettingsPage = ({
                       ...getOptionCardStyle(isActive),
                       fontFamily: 'var(--font-paper)',
                       fontSize: '0.88rem',
-                      color: isActive ? '#1d4ed8' : '#334155',
+                      color: isActive ? 'var(--keycap-color)' : 'var(--text-secondary)',
                       padding: '10px 14px',
-                      background: isActive ? '#eff6ff' : '#fff',
-                      border: isActive ? '2.5px solid #3b82f6' : '2.5px solid #cbd5e1',
-                      borderBottom: isActive ? '5px solid #2563eb' : '4px solid #cbd5e1',
+                      background: isActive ? 'var(--surface-card-active)' : 'var(--surface-card)',
+                      border: isActive ? '2.5px solid #3b82f6' : '2.5px solid var(--surface-border)',
+                      borderBottom: isActive ? '5px solid #2563eb' : '4px solid var(--surface-border)',
                       boxShadow: isActive ? '0 4px 8px rgba(59, 130, 246, 0.05)' : 'none',
                       justifyContent: 'flex-start',
                       width: '100%',
@@ -832,9 +845,9 @@ const SettingsPage = ({
           <div
             className="sketchbook-border"
             style={{
-              background: '#ffffff',
-              border: '3px solid #cbd5e1',
-              borderBottom: '8px solid #cbd5e1',
+              background: 'var(--surface-card)',
+              border: '3px solid var(--surface-border)',
+              borderBottom: '8px solid var(--surface-border)',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -878,8 +891,8 @@ const SettingsPage = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
-                  background: '#f8fafc',
-                  border: '2px solid #e2e8f0',
+                  background: 'var(--surface-panel)',
+                  border: '2px solid var(--surface-border)',
                   borderRadius: '12px',
                   padding: '8px 12px',
                 }} className="sketchbook-border">
@@ -887,7 +900,7 @@ const SettingsPage = ({
                   <div style={{ fontSize: '1.15rem' }}>{row.icon}</div>
                   <div style={{
                     fontFamily: 'var(--font-paper)',
-                    color: '#334155',
+                    color: 'var(--text-secondary)',
                     fontSize: '0.84rem',
                     fontWeight: '400',
                   }}>

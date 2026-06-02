@@ -110,14 +110,18 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                     padding: isActive ? '7px 12px 9px 12px' : '8px 12px',
                     background: isActive ? '#ffffff' : `${tab.color}15`,
                     border: `3px solid ${isActive ? tab.color : tab.color + '50'}`,
-                    borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}40`,
+                    borderBottom: isActive
+                      ? `5px solid var(--themed-nav-active-border-bottom, ${tab.textColor})`
+                      : `5px solid var(--themed-nav-border-bottom, ${tab.textColor}40)`,
                     borderRadius: '14px',
                     cursor: 'pointer',
                     fontFamily: 'Sniglet, var(--font-main)',
                     fontSize: '0.86rem',
                     lineHeight: 1.1,
                     fontWeight: isActive ? '700' : '600',
-                    color: isActive ? tab.color : tab.textColor,
+                    color: isActive
+                      ? `var(--themed-nav-active-text-mobile, ${tab.color})`
+                      : `var(--themed-nav-text, ${tab.textColor})`,
                     opacity: isActive ? 1 : 0.82,
                     boxShadow: isActive
                       ? `0 4px 12px ${tab.color}25`
@@ -183,7 +187,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
               background: isActive ? tab.color : `${tab.color}25`,
               border: `3px solid ${tab.color}`,
               borderRight: isActive ? 'none' : `3px solid ${tab.color}88`,
-              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}88`,
+              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid var(--themed-nav-border-bottom-hover, ${tab.textColor}88)`,
               boxShadow: isActive 
                 ? `0 8px 24px ${tab.color}40, 0 0 16px ${tab.color}20`
                 : `0 6px 16px ${tab.color}18, 0 0 8px ${tab.color}0c`
@@ -201,14 +205,16 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
               background: isActive ? tab.color : `${tab.color}15`,
               border: `3px solid ${isActive ? tab.color : tab.color + '50'}`,
               borderRight: isActive ? 'none' : `3px solid ${tab.color}40`,
-              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid ${tab.textColor}40`,
+              borderBottom: isActive
+                ? `5px solid ${tab.textColor}`
+                : `5px solid var(--themed-nav-border-bottom, ${tab.textColor}40)`,
               borderRadius: isActive ? '16px 0 0 16px' : '16px 6px 6px 16px',
               cursor: 'pointer',
               fontFamily: 'Sniglet, var(--font-main)',
               fontSize: '0.94rem',
               lineHeight: 1.2,
               fontWeight: isActive ? '700' : '600',
-              color: isActive ? '#ffffff' : tab.textColor,
+              color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
               opacity: isActive ? 1 : 0.82,
               boxShadow: isActive 
                 ? `0 6px 18px ${tab.color}30` 
@@ -223,7 +229,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isActive ? '#ffffff' : tab.textColor,
+                color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
                 flexShrink: 0,
               }}
             >

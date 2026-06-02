@@ -40,4 +40,5 @@ export const DEFAULT_ACCESSIBILITY_PREFS = {
   simplifyVisuals: false,
   dimNonEssentialColors: false,
   colorBlindMode: 'none',
+  darkMode: false,
 };

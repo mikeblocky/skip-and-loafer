@@ -30,6 +30,8 @@ const MobileChaptersTab = ({
   getVolumeTitleFn,
   getVolumeShortWordFn,
   ChapterRowComponent,
+  chapterNotes = {},
+  onSaveNote,
 }) => {
   const currentTheme = VOL_THEMES[volume.number] || VOL_THEMES[1];
   const showVolumeArtwork = uiLanguage !== 'ja';
@@ -78,11 +80,11 @@ const MobileChaptersTab = ({
           gap: '6px',
           padding: '0 8px',
         }}>
-          <BookOpen size={16} style={{ color: '#0066ff' }} />
+          <BookOpen size={16} style={{ color: 'var(--themed-bookshelf-header-icon, #0066ff)' }} />
           <span style={{
             fontFamily: 'Sniglet, var(--font-main)',
             fontSize: '0.9rem',
-            color: '#1e3a8a',
+            color: 'var(--themed-bookshelf-header-text, #1e3a8a)',
             fontWeight: '400',
           }}>
             {t.mangaShelf || 'List of volumes'} ({VOLUMES.length} vols)
@@ -128,11 +130,11 @@ const MobileChaptersTab = ({
                   aspectRatio: '2/3',
                   borderRadius: '10px',
                   cursor: 'pointer',
-                  border: isActive ? `2px solid ${theme.border}` : `2px solid #cbd5e1`,
-                  borderRight: isActive ? `3.5px solid ${theme.border}` : `2px solid #cbd5e1`,
-                  borderBottom: isActive ? `4.5px solid ${theme.border}` : `3.5px solid #cbd5e1`,
+                  border: isActive ? `2px solid var(--themed-card-border, ${theme.border})` : `2px solid var(--themed-card-inactive-border, #cbd5e1)`,
+                  borderRight: isActive ? `3.5px solid var(--themed-card-border, ${theme.border})` : `2px solid var(--themed-card-inactive-border, #cbd5e1)`,
+                  borderBottom: isActive ? `4.5px solid var(--themed-card-border, ${theme.border})` : `3.5px solid var(--themed-card-inactive-border, #cbd5e1)`,
                   boxShadow: isActive ? `0 6px 14px ${theme.shadow}` : '0 2px 6px rgba(0,0,0,0.05)',
-                  background: isActive ? theme.surface : '#fff',
+                  background: isActive ? `var(--themed-card-bg, ${theme.surface})` : 'var(--themed-card-inactive-bg, #fff)',
                   transition: 'all 0.2s ease',
                   position: 'relative',
                   display: 'flex',
@@ -151,7 +153,7 @@ const MobileChaptersTab = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: vol.cover ? '#fff' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
+                  background: vol.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${theme.bg}, ${theme.surface})`,
                   opacity: isActive ? 1 : 0.8,
                 }}>
                   {showVolumeArtwork && vol.cover ? (
@@ -239,9 +241,9 @@ const MobileChaptersTab = ({
         >
           {/* Active Volume Hero Banner */}
           <div style={{
-            background: currentTheme.surface,
-            border: `2.5px solid ${currentTheme.border}`,
-            borderBottom: `5px solid ${currentTheme.border}`,
+            background: `var(--themed-card-bg, ${currentTheme.surface})`,
+            border: `2.5px solid var(--themed-card-border, ${currentTheme.border})`,
+            borderBottom: `5px solid var(--themed-card-border, ${currentTheme.border})`,
             borderRadius: '20px',
             padding: '16px',
             boxShadow: `0 6px 16px ${currentTheme.shadow}`,
@@ -257,11 +259,11 @@ const MobileChaptersTab = ({
               borderRadius: '8px',
               overflow: 'hidden',
               flexShrink: 0,
-              border: `2px solid ${currentTheme.border}`,
-              borderRight: `3.5px solid ${currentTheme.border}`,
-              borderBottom: `4px solid ${currentTheme.border}`,
+              border: `2px solid var(--themed-card-border, ${currentTheme.border})`,
+              borderRight: `3.5px solid var(--themed-card-border, ${currentTheme.border})`,
+              borderBottom: `4px solid var(--themed-card-border, ${currentTheme.border})`,
               boxShadow: `0 3px 8px ${currentTheme.shadow}`,
-              background: volume.cover ? '#fff' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
+              background: volume.cover ? 'var(--themed-card-bg, #fff)' : `linear-gradient(145deg, ${currentTheme.bg}, ${currentTheme.surface})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -299,15 +301,15 @@ const MobileChaptersTab = ({
 
                 {volume.anime && (
                   <div style={{
-                    background: '#fff',
-                    border: `1.5px solid ${currentTheme.border}`,
+                    background: 'var(--themed-card-bg, #fff)',
+                    border: `1.5px solid var(--themed-card-border, ${currentTheme.border})`,
                     borderRadius: '8px',
                     padding: '1px 6px',
                     fontSize: '0.65rem',
                     fontFamily: 'var(--font-main)',
                     fontWeight: '400',
-                    color: currentTheme.accent,
-                    boxShadow: `0 2px 0 ${currentTheme.border}`,
+                    color: `var(--themed-text-secondary, ${currentTheme.accent})`,
+                    boxShadow: `0 2px 0 var(--themed-card-border, ${currentTheme.border})`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '3px',
@@ -321,7 +323,7 @@ const MobileChaptersTab = ({
               <p style={{
                 fontFamily: 'var(--font-main)',
                 fontSize: '0.8rem',
-                color: '#4b5563',
+                color: 'var(--text-secondary, #4b5563)',
                 fontWeight: '400',
                 margin: 0,
               }}>
@@ -370,6 +372,8 @@ const MobileChaptersTab = ({
                 pendingLinks={pendingLinks}
                 t={t}
                 uiLanguage={uiLanguage}
+                noteText={chapterNotes[ch.number] || ''}
+                onSaveNote={onSaveNote}
               />
             ))}
           </div>

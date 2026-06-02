@@ -1,6 +1,6 @@
 import { BookMarked, Map, Layout, Zap } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-05-02-v17.0';
+export const CHANGELOG_VERSION = '2026-06-02-v18.0';
 export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -25,6 +25,20 @@ export const getUtcOffsetLabel = () => {
 };
 
 export const CHANGELOG_SERIES = [
+  {
+    title: 'Cozy dark mode & notes overhaul',
+    icon: BookMarked,
+    lines: [
+      { type: 'added', text: 'Adapted Relationship Map toolbar, options menu, and sidebars to Cozy Dark Mode.' },
+      { type: 'added', text: 'Implemented a dedicated chapter notes manager tab to view, edit, and search all your reading notes in one cozy screen.' },
+      { type: 'added', text: 'Added small scrapbook note indicators directly next to chapter titles in the list.' },
+      { type: 'changed', text: 'Simplified and unbolded chapter notes headers to render clean numbers (e.g. Chapter 1).' },
+      { type: 'changed', text: 'Adapted the fan-made website disclaimer dialog for a comfortable dark theme.' },
+      { type: 'fixed', text: 'Fixed a typing bug in notes which prevented input or updates to note content.' },
+      { type: 'changed', text: 'Globally hid native web browsers scrollbars to preserve the premium, distraction-free scrapbooking aesthetic.' },
+      { type: 'removed', text: 'Removed Side Works subtab from the chapter selection pages.' },
+    ],
+  },
   {
     title: 'Custom story map',
     icon: Map,

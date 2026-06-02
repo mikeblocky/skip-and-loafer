@@ -29,7 +29,7 @@ const BlogPageHeader = ({
     padding: '14px 22px',
     minWidth: '112px',
     minHeight: '54px',
-    background: '#ffffff',
+    background: 'var(--themed-card-bg, #ffffff)',
     borderRadius: '999px',
     fontFamily: '"Sniglet", "Coming Soon", cursive',
     fontSize: isMobile ? '0.94rem' : '1.1rem',
@@ -39,10 +39,10 @@ const BlogPageHeader = ({
   };
 
   const sortButtonStyle = {
-    border: '3px solid #f97316',
-    borderBottom: '8px solid #f97316',
-    background: '#ffffff',
-    color: '#f97316',
+    border: '3px solid var(--themed-pill-posts-border, #f97316)',
+    borderBottom: '8px solid var(--themed-pill-posts-bottom, #f97316)',
+    background: 'var(--themed-card-bg, #ffffff)',
+    color: 'var(--themed-pill-posts-text, #f97316)',
     borderRadius: '16px',
     padding: '15px 26px',
     minHeight: '54px',
@@ -52,15 +52,15 @@ const BlogPageHeader = ({
   };
 
   const postsPillPalette = {
-    border: '3px solid #fbbf24',
-    borderBottom: '8.5px solid #f59e0b',
-    color: '#92400e',
+    border: '3px solid var(--themed-pill-posts-border, #fbbf24)',
+    borderBottom: '8.5px solid var(--themed-pill-posts-bottom, #f59e0b)',
+    color: 'var(--themed-pill-posts-text, #92400e)',
   };
 
   const minutesPillPalette = {
-    border: '3px solid #93c5fd',
-    borderBottom: '8.5px solid #2563eb',
-    color: '#1d4ed8',
+    border: '3px solid var(--themed-pill-minutes-border, #93c5fd)',
+    borderBottom: '8.5px solid var(--themed-pill-minutes-bottom, #2563eb)',
+    color: 'var(--themed-pill-minutes-text, #1d4ed8)',
   };
 
   return (

@@ -33,7 +33,7 @@ const tabsConfig = [
   { view: 'rating', label: 'Tier Board', shortLabel: 'Tier', icon: Star, bg: '#fffbeb', color: '#d97706', border: '#fde68a' },
 ];
 
-const MysteryExperience = ({ isMobile }) => {
+const MysteryExperience = ({ isMobile, darkMode = false }) => {
   const { text: t, isReady } = useMysteryText();
   const loadingMysteryLabel = 'Loading mystery...';
   const loadingAnimalQuizLabel = 'Loading animal quiz...';
@@ -157,10 +157,10 @@ const MysteryExperience = ({ isMobile }) => {
                       gap: '10px',
                       padding: '12px 18px',
                       borderRadius: '16px 0 0 16px',
-                      border: `2px solid ${isActive ? tab.color : 'rgba(0,0,0,0.06)'}`,
+                      border: `2px solid ${isActive ? (darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : tab.color) : 'var(--themed-mystery-tab-border-' + tab.view + ', rgba(0,0,0,0.06))'}`,
                       borderRight: 'none',
-                      background: isActive ? '#ffffff' : tab.bg,
-                      color: isActive ? tab.color : '#475569',
+                      background: isActive ? 'var(--surface-card, #ffffff)' : 'var(--themed-mystery-tab-bg-' + tab.view + ', ' + tab.bg + ')',
+                      color: isActive ? (darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : tab.color) : 'var(--themed-mystery-tab-text-' + tab.view + ', #475569)',
                       fontWeight: isActive ? 'bold' : '500',
                       cursor: 'pointer',
                       fontFamily: 'var(--font-paper)',
@@ -177,7 +177,7 @@ const MysteryExperience = ({ isMobile }) => {
                     whileHover={isActive ? {} : { scale: 1.02, x: 2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2.0} color={tab.color} />
+                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2.0} color={isActive ? (darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : tab.color) : 'var(--themed-mystery-tab-icon-' + tab.view + ', ' + tab.color + ')'} />
                     <span>{tab.shortLabel}</span>
                   </motion.button>
                 );
@@ -214,8 +214,8 @@ const MysteryExperience = ({ isMobile }) => {
                       gap: '6px',
                       padding: '8px 14px',
                       borderRadius: '4px',
-                      background: isActive ? '#ffffff' : tab.bg,
-                      color: tab.color,
+                      background: isActive ? 'var(--surface-card, #ffffff)' : 'var(--themed-mystery-tab-bg-' + tab.view + ', ' + tab.bg + ')',
+                      color: isActive ? (darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : 'var(--keycap-color, ' + tab.color + ')') : 'var(--themed-mystery-tab-text-' + tab.view + ', ' + tab.color + ')',
                       fontSize: '0.88rem',
                       fontWeight: isActive ? 'bold' : '500',
                       fontFamily: 'var(--font-hand)',
@@ -223,7 +223,7 @@ const MysteryExperience = ({ isMobile }) => {
                         ? `0 4px 10px ${tab.color}25, 0 1px 2px rgba(0,0,0,0.05)` 
                         : '0 2px 4px rgba(0,0,0,0.03)',
                       transform: isActive ? 'scale(1.03)' : 'none',
-                      border: isActive ? `2px solid ${tab.color}` : '1.5px dashed rgba(0,0,0,0.12)',
+                      border: isActive ? `2px solid ${darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : tab.color}` : '1.5px dashed var(--themed-mystery-tab-border-' + tab.view + ', rgba(0,0,0,0.12))',
                       whiteSpace: 'nowrap',
                       zIndex: isActive ? 10 : 1,
                       cursor: 'pointer',
@@ -231,7 +231,7 @@ const MysteryExperience = ({ isMobile }) => {
                     }}
                     whileTap={{ scale: 0.96 }}
                   >
-                    <Icon size={14} strokeWidth={isActive ? 2.5 : 2.0} />
+                    <Icon size={14} strokeWidth={isActive ? 2.5 : 2.0} color={isActive ? (darkMode ? 'var(--themed-mystery-tab-accent-' + tab.view + ', ' + tab.color + ')' : tab.color) : 'var(--themed-mystery-tab-icon-' + tab.view + ', ' + tab.color + ')'} />
                     <span>{tab.shortLabel}</span>
                   </motion.button>
                 );
@@ -243,8 +243,8 @@ const MysteryExperience = ({ isMobile }) => {
           <div
             style={{
               flex: 1,
-              background: '#ffffff',
-              border: isMobile ? '2px solid rgba(0,0,0,0.05)' : `3.5px solid ${activeBorderColor}`,
+              background: 'var(--surface-card, #ffffff)',
+              border: isMobile ? '2px solid var(--surface-border, rgba(0,0,0,0.05))' : `3.5px solid ${activeBorderColor}`,
               borderRadius: isMobile ? '18px' : '24px',
               padding: isMobile ? '16px 12px' : '32px',
               boxShadow: '0 15px 45px rgba(15, 23, 42, 0.05), 0 2px 4px rgba(15, 23, 42, 0.02)',
@@ -330,6 +330,7 @@ const MysteryExperience = ({ isMobile }) => {
                         portraitData={PORTRAIT_DATA}
                         t={t}
                         onBack={leaveSubView}
+                        darkMode={darkMode}
                       />
                     </Suspense>
                   )}

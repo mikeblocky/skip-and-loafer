@@ -223,7 +223,7 @@ const generatePath = (x1, y1, x2, y2, shape, offset = 0) => {
 
 // --- Main Component ---
 
-const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
+const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }) => {
   const containerRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -288,6 +288,26 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
     portraitData.forEach(p => map[p.name] = p);
     return map;
   }, [portraitData]);
+
+  const activeBg = useMemo(() => {
+    if (bgStyle === 'custom') {
+      return { bg: customBgColor, css: 'none', size: 'auto' };
+    }
+    const standardBg = BACKGROUNDS.find(b => b.id === bgStyle) || BACKGROUNDS[0];
+    if (!darkMode) return standardBg;
+    switch (bgStyle) {
+      case 'dots':
+        return { id: 'dots', label: 'Dot grid', bg: '#1a1817', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiM0ZDQ2NDEiLz48L3N2Zz4=")', size: '30px 30px' };
+      case 'grid':
+        return { id: 'grid', label: 'Blueprint', bg: '#201e1d', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTSA0MCAwIEwgMCAwIDAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+")', size: '40px 40px' };
+      case 'paper':
+        return { id: 'paper', label: 'Lined paper', bg: '#201e1d', css: 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjMyIj48bGluZSB4MT0iMCIgeTE9IjMxIiB4Mj0iMTAwJSIgeTI9IjMxIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==")', size: '100% 32px' };
+      case 'cork':
+        return { id: 'cork', label: 'Corkboard', bg: '#3c362d', css: 'none', size: 'auto' };
+      default:
+        return standardBg;
+    }
+  }, [bgStyle, customBgColor, darkMode]);
 
   // Load / Save
   useEffect(() => {
@@ -605,8 +625,6 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
   };
 
   const performHtml2Canvas = async (opts) => {
-    const activeBg = bgStyle === 'custom' ? { bg: customBgColor, css: 'none', size: 'auto' } : BACKGROUNDS.find(b => b.id === bgStyle);
-    
     const container = scrollContainerRef.current;
     const oldX = container.scrollLeft;
     const oldY = container.scrollTop;
@@ -763,8 +781,6 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
       </div>
     );
   };
-
-  const activeBg = bgStyle === 'custom' ? { bg: customBgColor, css: 'none', size: 'auto' } : BACKGROUNDS.find(b => b.id === bgStyle);
 
   // --- Editor Panels ---
   
@@ -1471,6 +1487,25 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
             transform: scale(0.95);
             border-color: var(--pop-pink);
           }
+
+          html[data-a11y-dark-mode='1'] .mobile-bottom-dock {
+            background: rgba(38, 35, 33, 0.95) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn {
+            color: #ece3cc !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn.active {
+            background: #1e4b85 !important;
+            color: white !important;
+            box-shadow: 0 4px 8px rgba(30, 75, 133, 0.4) !important;
+          }
+          html[data-a11y-dark-mode='1'] .dock-btn-primary {
+            background: #852d5b !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(133, 45, 91, 0.4) !important;
+          }
         `}
       </style>
 
@@ -1512,50 +1547,57 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack }) => {
         ) : (
           <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="hide-scroll" style={{ 
             display: 'flex', overflowX: 'auto', gap: '8px', padding: '8px 12px', 
-            background: 'rgba(255,255,255,0.98)', borderBottom: '2px solid #e2e8f0',
+            background: darkMode ? '#262321' : 'rgba(255,255,255,0.98)', 
+            borderBottom: darkMode ? '2px solid #4d4641' : '2px solid #e2e8f0',
             alignItems: 'center', WebkitOverflowScrolling: 'touch', flexShrink: 0,
             position: 'relative', zIndex: 500
           }}>
-            <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'var(--pop-pink)', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={() => setShowAddMenu(!showAddMenu)} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#852d5b' : 'var(--pop-pink)', border: darkMode ? '1.5px solid #a23d70' : 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <UserPlus size={14} /> Person
             </button>
-            <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddGroup} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#334155' : '#f8fafc', border: darkMode ? '1.5px solid #475569' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <CircleDashed size={14} /> Circle
             </button>
-            <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddHub} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#334155' : '#f8fafc', border: darkMode ? '1.5px solid #475569' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <Share2 size={14} /> Nexus
             </button>
-            <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: '8px', color: '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleAddMemo} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#5c4e1a' : '#fef3c7', border: darkMode ? '1.5px solid #857007' : '1.5px solid #fde68a', borderRadius: '8px', color: darkMode ? '#fef08a' : '#d97706', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <StickyNote size={14} /> Memo
             </button>
             
-            <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 2px' }} />
+            <div style={{ width: '1px', height: '18px', background: darkMode ? '#4d4641' : '#e2e8f0', margin: '0 2px' }} />
 
             <button onClick={() => { if (selectedType === 'node') { setIsConnecting(!isConnecting); } else alert("Select a character or nexus first!"); }}
-              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: isConnecting ? 'var(--pop-blue)' : 'white', border: isConnecting ? '1.5px solid var(--pop-blue)' : '1.5px solid #cbd5e1', borderRadius: '8px', color: isConnecting ? 'white' : '#4b5563', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', 
+                background: isConnecting ? (darkMode ? '#1e4b85' : 'var(--pop-blue)') : (darkMode ? '#262321' : 'white'), 
+                border: isConnecting ? (darkMode ? '1.5px solid #3b82f6' : '1.5px solid var(--pop-blue)') : (darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1'), 
+                borderRadius: '8px', color: isConnecting ? 'white' : (darkMode ? '#ece3cc' : '#4b5563'), 
+                fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' 
+              }}
             >
               <ArrowRight size={14} /> {isConnecting ? "Tap target..." : "Link"}
             </button>
 
             {selectedId && (
-              <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#fee2e2', border: '1.5px solid #fecaca', borderRadius: '8px', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <button onClick={deleteSelected} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: darkMode ? '#5c1d1d' : '#fee2e2', border: darkMode ? '1.5px solid #991b1b' : '1.5px solid #fecaca', borderRadius: '8px', color: darkMode ? '#fca5a5' : '#ef4444', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 <Trash2 size={14} />
               </button>
             )}
 
             <div style={{ flex: 1, minWidth: '20px' }} />
 
-            <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
+            <button onClick={toggleFullscreen} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#64748b', cursor: 'pointer' }} title="Toggle Fullscreen">
               {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
             </button>
 
-            <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#475569', cursor: 'pointer', position: 'relative' }}>
+            <button onClick={() => setShowMapSettings(!showMapSettings)} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#475569', cursor: 'pointer', position: 'relative' }}>
               <MapIcon size={16} />
             </button>
-            <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: 'white', border: '1.5px solid #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer' }}>
+            <button onClick={handleReset} style={{ display: 'flex', alignItems: 'center', padding: '6px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1.5px solid #4d4641' : '1.5px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#64748b', cursor: 'pointer' }}>
               <RotateCcw size={16} />
             </button>
-            <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
+            <button onClick={handleSaveImage} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: darkMode ? '#262321' : 'white', border: darkMode ? '1px solid #4d4641' : '1px solid #cbd5e1', borderRadius: '8px', color: darkMode ? '#ece3cc' : '#334155', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}>
               <Download size={14} /> PNG
             </button>
           </motion.div>

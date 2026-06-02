@@ -15,7 +15,7 @@ import {
   groupBirthdaysByMonth,
 } from '../features/birthday/birthdayUtils';
 
-const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simplifyVisuals = false }) => {
+const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simplifyVisuals = false, darkMode = false }) => {
   const t = getBirthdayText(uiLanguage);
   const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
 
@@ -57,6 +57,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
         t={t}
         referenceDate={today}
         uiLanguage={uiLanguage}
+        darkMode={darkMode}
       />
 
       <div
@@ -80,6 +81,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
             reduceMotion={reduceMotion}
             referenceDate={today}
             uiLanguage={uiLanguage}
+            darkMode={darkMode}
           />
         ))}
       </div>

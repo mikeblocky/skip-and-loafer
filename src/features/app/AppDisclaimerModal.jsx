@@ -45,11 +45,11 @@ const AppDisclaimerModal = ({ showDisclaimer, onClose }) => {
 
             <Heart size={32} style={{ color: 'var(--pop-pink)', margin: '0 auto 12px auto' }} />
 
-            <h2 style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#374151', fontSize: '1.4rem', marginBottom: '12px', marginTop: 0, fontWeight: 'normal' }}>
+            <h2 style={{ fontFamily: 'Sniglet, var(--font-main)', color: 'var(--text-primary)', fontSize: '1.4rem', marginBottom: '12px', marginTop: 0, fontWeight: 'normal' }}>
               Fan-made website
             </h2>
 
-            <p style={{ fontFamily: 'var(--font-hand)', color: '#4b5563', fontSize: '1rem', lineHeight: 1.5, marginBottom: '20px' }}>
+            <p style={{ fontFamily: 'var(--font-hand)', color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.5, marginBottom: '20px' }}>
               This is a fan-made website and is not intended to promote any translation! Please support the official translation by purchasing volumes in your local country if available, or buy Japanese volumes and chapters on Comic DAYS.
             </p>
 
@@ -57,10 +57,13 @@ const AppDisclaimerModal = ({ showDisclaimer, onClose }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onClose}
+              className="no-override"
               aria-label="Confirm disclaimer"
               style={{
-                background: 'var(--pop-yellow)', border: '2px solid #eab308',
-                color: '#854d0e', padding: '8px 24px', borderRadius: '9999px',
+                background: 'var(--themed-disclaimer-btn-bg, var(--pop-yellow))',
+                border: '2px solid var(--themed-disclaimer-btn-border, #eab308)',
+                color: 'var(--themed-disclaimer-btn-text, #854d0e)',
+                padding: '8px 24px', borderRadius: '9999px',
                 fontFamily: 'var(--font-hand)', fontWeight: 'bold', fontSize: '1.1rem',
                 cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
               }}

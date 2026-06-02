@@ -16,6 +16,8 @@ const SideWorksTab = ({
   t,
   uiLanguage,
   ChapterRowComponent,
+  chapterNotes = {},
+  onSaveNote,
 }) => (
   <div
     style={{
@@ -38,7 +40,7 @@ const SideWorksTab = ({
     }}>
       <p style={{
         fontFamily: 'Sniglet, var(--font-main)',
-        color: '#64748b',
+        color: 'var(--themed-text-muted, #64748b)',
         fontSize: isMobile ? '0.9rem' : '1rem',
         lineHeight: 1.6,
         maxWidth: '500px',
@@ -74,6 +76,8 @@ const SideWorksTab = ({
           pendingLinks={pendingLinks}
           t={t}
           uiLanguage={uiLanguage}
+          noteText={chapterNotes[story.number] || ''}
+          onSaveNote={onSaveNote}
         />
       ))}
     </motion.div>

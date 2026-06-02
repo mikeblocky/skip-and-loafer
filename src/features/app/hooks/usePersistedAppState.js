@@ -81,6 +81,7 @@ export const usePersistedAppState = ({
     root.setAttribute('data-a11y-simplify-visuals', accessibilityPrefs.simplifyVisuals ? '1' : '0');
     root.setAttribute('data-a11y-dim-non-essential-colors', accessibilityPrefs.dimNonEssentialColors ? '1' : '0');
     root.setAttribute('data-a11y-colorblind-mode', accessibilityPrefs.colorBlindMode || 'none');
+    root.setAttribute('data-a11y-dark-mode', accessibilityPrefs.darkMode ? '1' : '0');
     root.setAttribute('lang', uiLanguage);
   }, [accessibilityPrefs, uiLanguage]);
 };

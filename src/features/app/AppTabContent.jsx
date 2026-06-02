@@ -207,6 +207,7 @@ const AppTabContent = ({
           incrementReadCount={incrementReadCount}
           getRemainingCooldown={getRemainingCooldown}
           pendingLinks={pendingLinks}
+          pushNow={syncData?.pushNow}
         />
       );
       break;
@@ -265,11 +266,12 @@ const AppTabContent = ({
           uiLanguage={uiLanguage}
           reduceMotion={accessibilityPrefs.reduceMotion}
           simplifyVisuals={accessibilityPrefs.simplifyVisuals}
+          darkMode={accessibilityPrefs.darkMode}
         />
       );
       break;
     case 'mystery':
-      tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      tabContent = <MysteryPage isMobile={isMobile} uiLanguage={uiLanguage} darkMode={accessibilityPrefs.darkMode} />;
       break;
     case 'tutorial':
       tabContent = <TutorialPage isMobile={isMobile} uiLanguage={uiLanguage} />;
