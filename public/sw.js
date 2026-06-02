@@ -11,6 +11,11 @@ const STATIC_ASSETS = [
   '/Kei_Ji-P.ttf',
 ];
 
+const OFFLINE_RESPONSE = new Response('', {
+  status: 503,
+  statusText: 'Offline',
+});
+
 // Install Event: cache static shell assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -42,8 +47,11 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Bypass API routes (let them hit network or fail gracefully)
-  if (url.pathname.startsWith('/api/')) {
+  // Bypass API routes and Vercel runtime scripts.
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/_vercel/')
+  ) {
     return;
   }
 
@@ -61,7 +69,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           // If offline, serve the pre-cached SPA shell
-          return caches.match('/');
+          return caches.match('/').then((cachedResponse) => cachedResponse || OFFLINE_RESPONSE.clone());
         })
     );
     return;
@@ -96,6 +104,7 @@ self.addEventListener('fetch', (event) => {
           })
           .catch((err) => {
             console.log('[Service Worker] Fetch failed (probably offline):', err);
+            return cachedResponse || OFFLINE_RESPONSE.clone();
           });
 
         // Return cache instantly if available, otherwise wait for network fetch

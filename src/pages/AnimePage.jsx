@@ -14,6 +14,7 @@ const ANIME_COPY = {
     unmute: 'Unmute',
     fullscreen: 'Fullscreen',
     exitFullscreen: 'Exit fullscreen',
+    videoError: 'This episode could not be loaded. Check that the video file is deployed and uses a browser-supported MP4 format.',
   },
   es: {
     title: 'Ver Episodio 1',
@@ -25,6 +26,7 @@ const ANIME_COPY = {
     unmute: 'Activar sonido',
     fullscreen: 'Pantalla completa',
     exitFullscreen: 'Salir de pantalla completa',
+    videoError: 'No se pudo cargar este episodio. Comprueba que el video esté desplegado y use un formato MP4 compatible.',
   },
   pt: {
     title: 'Assistir Episódio 1',
@@ -36,6 +38,7 @@ const ANIME_COPY = {
     unmute: 'Ativar som',
     fullscreen: 'Tela cheia',
     exitFullscreen: 'Sair da tela cheia',
+    videoError: 'Este episódio não pôde ser carregado. Verifique se o vídeo foi implantado e usa um formato MP4 compatível.',
   },
   fr: {
     title: 'Regarder l\'Épisode 1',
@@ -47,6 +50,7 @@ const ANIME_COPY = {
     unmute: 'Activer le son',
     fullscreen: 'Plein écran',
     exitFullscreen: 'Quitter le plein écran',
+    videoError: 'Impossible de charger cet épisode. Vérifiez que la vidéo est déployée et utilise un format MP4 compatible.',
   },
   de: {
     title: 'Folge 1 ansehen',
@@ -58,6 +62,7 @@ const ANIME_COPY = {
     unmute: 'Ton einschalten',
     fullscreen: 'Vollbild',
     exitFullscreen: 'Vollbild verlassen',
+    videoError: 'Diese Folge konnte nicht geladen werden. Prüfe, ob die Videodatei bereitgestellt wurde und ein unterstütztes MP4-Format verwendet.',
   },
   it: {
     title: 'Guarda l\'Episodio 1',
@@ -69,6 +74,7 @@ const ANIME_COPY = {
     unmute: 'Riattiva audio',
     fullscreen: 'Schermo intero',
     exitFullscreen: 'Esci da schermo intero',
+    videoError: 'Non è stato possibile caricare questo episodio. Verifica che il video sia pubblicato e usi un formato MP4 supportato.',
   },
   ja: {
     title: '第1話を見る',
@@ -80,6 +86,7 @@ const ANIME_COPY = {
     unmute: 'ミュート解除',
     fullscreen: '全画面表示',
     exitFullscreen: '全画面解除',
+    videoError: 'このエピソードを読み込めませんでした。動画ファイルが公開され、対応するMP4形式であることを確認してください。',
   },
 };
 
@@ -112,6 +119,7 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
   const [isMuted, setIsMuted] = useState(_persistedState.isMuted);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const controlsTimeoutRef = useRef(null);
   const wasPlayingRef = useRef(_persistedState.isPlaying);
 
@@ -170,7 +178,10 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
     if (isPlaying) {
       videoRef.current.pause();
     } else {
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {
+        setVideoError(true);
+        setIsPlaying(false);
+      });
     }
   }, [isPlaying]);
 
@@ -281,8 +292,9 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
         padding: isMobile ? '16px 12px 80px' : '32px 40px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '18px',
+        gap: isMobile ? '14px' : '18px',
         boxSizing: 'border-box',
+        flex: isMobile ? '0 0 auto' : 1,
       }}
     >
       {/* Clean page header */}
@@ -356,11 +368,11 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
           borderRadius: isFullscreen ? '0' : '16px',
           overflow: 'hidden',
           boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+          flexShrink: 0,
         }}
       >
         <video
           ref={videoRef}
-          src="/anime/episode1.mp4"
           onClick={handlePlayPause}
           onTimeUpdate={() => {
             if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
@@ -368,8 +380,15 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
           onLoadedMetadata={() => {
             if (videoRef.current) setDuration(videoRef.current.duration);
           }}
+          onCanPlay={() => setVideoError(false)}
+          onError={() => {
+            setVideoError(true);
+            setIsPlaying(false);
+          }}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          preload="metadata"
+          playsInline
           style={{
             width: '100%',
             height: '100%',
@@ -377,11 +396,36 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
             cursor: 'pointer',
             display: 'block',
           }}
-        />
+        >
+          <source src="/anime/episode1.mp4" type="video/mp4" />
+        </video>
+
+        {videoError && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: isMobile ? '18px' : '24px',
+              background: 'rgba(15, 15, 15, 0.88)',
+              color: '#ffffff',
+              textAlign: 'center',
+              fontFamily: 'var(--font-main)',
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              fontWeight: 700,
+              lineHeight: 1.45,
+            }}
+          >
+            {t.videoError}
+          </div>
+        )}
 
         {/* Play overlay */}
         <AnimatePresence>
-          {!isPlaying && (
+          {!isPlaying && !videoError && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
