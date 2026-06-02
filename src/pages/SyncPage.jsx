@@ -405,11 +405,12 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                             exit={{ scale: 0.94, y: 15, rotate: 0.5 }}
                             transition={{ type: 'spring', stiffness: 350, damping: 22 }}
                             onClick={(e) => e.stopPropagation()} // Prevent closing
+                            className="planner-diary-modal no-override"
                             style={{
                                 width: '100%',
                                 maxWidth: isMobile ? '420px' : '820px',
                                 maxHeight: isMobile ? '85vh' : '660px',
-                                background: '#ffffff',
+                                background: 'var(--surface-card, #ffffff)',
                                 border: `3px solid ${selectedAccentColor}`,
                                 borderBottom: `9px solid ${selectedAccentColor}`,
                                 borderRadius: '24px',

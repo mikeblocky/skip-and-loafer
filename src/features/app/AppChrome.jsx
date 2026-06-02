@@ -233,7 +233,7 @@ const AppChrome = ({ app }) => {
         {app.showScrollTop && !app.readerChapter && app.activePage !== 'blog' && app.activePage !== 'quiz' && (
           <motion.button
             key="scroll-top"
-            className="app-tactile"
+            className="app-tactile no-override"
             onClick={app.scrollToTop}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -246,10 +246,10 @@ const AppChrome = ({ app }) => {
               right: app.isMobile ? '16px' : '28px',
               bottom: app.isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : '106px',
               zIndex: 1100,
-              border: '3px solid #cbd5e1',
-              borderBottom: '7px solid #94a3b8',
-              background: '#fff',
-              color: '#374151',
+              border: '3px solid var(--surface-border, #cbd5e1)',
+              borderBottom: '7px solid var(--surface-border-strong, #94a3b8)',
+              background: 'var(--surface-card, #fff)',
+              color: 'var(--text-primary, #374151)',
               borderRadius: '20px',
               padding: app.isMobile ? '14px' : '14px 20px',
               fontFamily: 'var(--font-hand)',

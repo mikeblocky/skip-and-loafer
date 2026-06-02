@@ -1901,3 +1901,61 @@ html[data-a11y-colorblind-mode='black-white'] [role="button"]:focus-visible {
   -ms-overflow-style: none !important;
 }
 
+/* Sync Page Notebook Diary Modal in Dark Mode */
+html[data-a11y-dark-mode='1'] .planner-diary-modal {
+  background-color: var(--surface-card) !important;
+  background-image: none !important;
+  border-color: var(--surface-border) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal div,
+html[data-a11y-dark-mode='1'] .planner-diary-modal section,
+html[data-a11y-dark-mode='1'] .planner-diary-modal p,
+html[data-a11y-dark-mode='1'] .planner-diary-modal h2,
+html[data-a11y-dark-mode='1'] .planner-diary-modal h3,
+html[data-a11y-dark-mode='1'] .planner-diary-modal span:not([class*="lucide"]) {
+  border-color: var(--surface-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal div[style*="background"] {
+  background: var(--surface-card) !important;
+  background-color: var(--surface-card) !important;
+  background-image: none !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal .paper-interact {
+  background-color: var(--surface-panel) !important;
+  border-color: var(--surface-border) !important;
+  border-bottom-color: var(--surface-border-strong) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal div[style*="border-left"] {
+  background-color: var(--surface-panel) !important;
+  border-color: var(--surface-border) !important;
+  border-bottom-color: var(--surface-border-strong) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal div[style*="width: 18px"][style*="height: 18px"] {
+  background-color: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal button,
+html[data-a11y-dark-mode='1'] .planner-diary-modal a {
+  background-color: var(--surface-card) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal button span,
+html[data-a11y-dark-mode='1'] .planner-diary-modal a span {
+  color: var(--text-primary) !important;
+}
+
+html[data-a11y-dark-mode='1'] .planner-diary-modal div[style*="width: 24px"][style*="height: 10px"] {
+  background-color: var(--surface-panel) !important;
+  border-color: var(--surface-border-strong) !important;
+}
+
+

@@ -80,7 +80,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                             style={{
                                 position: 'absolute', top: '12px', right: '12px',
                                 background: 'transparent', border: 'none', cursor: 'pointer',
-                                color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: 'var(--text-muted, #6b7280)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                         >
                             <X size={20} />
@@ -89,7 +89,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                         {/* Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', justifyContent: 'center', flexDirection: 'column' }}>
                             <h2 style={{
-                                fontFamily: PAPER_FONT_FAMILY, color: '#374151',
+                                fontFamily: PAPER_FONT_FAMILY, color: 'var(--text-primary, #374151)',
                                 fontSize: isMobile ? '1.2rem' : '1.4rem', margin: 0,
                                 fontWeight: 'normal',
                             }}>
@@ -97,7 +97,7 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                             </h2>
                             <span style={{
                                 fontFamily: 'var(--font-hand)',
-                                color: '#9ca3af',
+                                color: 'var(--text-muted, #9ca3af)',
                                 fontSize: isMobile ? '0.75rem' : '0.8rem',
                                 lineHeight: 1.2,
                             }}>
@@ -117,19 +117,19 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                                         transition={{ delay: featureIdx * 0.06, type: 'spring', stiffness: 260, damping: 20 }}
                                         style={{
                                             padding: isMobile ? '10px 10px' : '12px 12px',
-                                            background: '#fafafa',
+                                            background: 'var(--surface-panel, #fafafa)',
                                             borderRadius: '10px',
-                                            border: '1px solid #e5e7eb',
+                                            border: '1px solid var(--surface-border, #e5e7eb)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '8px',
                                         }}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <span style={{ color: '#6b7280', display: 'inline-flex', alignItems: 'center' }}><Icon size={14} /></span>
+                                            <span style={{ color: 'var(--text-muted, #6b7280)', display: 'inline-flex', alignItems: 'center' }}><Icon size={14} /></span>
                                             <span style={{
                                                 fontFamily: 'Sniglet, var(--font-main)',
-                                                color: '#374151',
+                                                color: 'var(--text-primary, #374151)',
                                                 fontSize: isMobile ? '0.95rem' : '1rem',
                                                 lineHeight: 1.2,
                                                 fontWeight: 'normal',
@@ -144,24 +144,27 @@ const ChangelogPopup = ({ isMobile, uiLanguage = 'en' }) => {
                                                 const typeStyle = { ...baseTypeStyle, label: t.type[line.type] || baseTypeStyle.label };
                                                 return (
                                                     <div key={`${feature.title}-${lineIdx}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                                                        <span style={{
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            fontSize: '0.62rem',
-                                                            fontWeight: 'bold',
-                                                            fontFamily: 'var(--font-hand)',
-                                                            padding: '2px 7px',
-                                                            borderRadius: '9999px',
-                                                            background: typeStyle.bg,
-                                                            color: typeStyle.text,
-                                                            flexShrink: 0,
-                                                            marginTop: '1px',
-                                                        }}>
+                                                        <span 
+                                                            className="no-override"
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                fontSize: '0.62rem',
+                                                                fontWeight: 'bold',
+                                                                fontFamily: 'var(--font-hand)',
+                                                                padding: '2px 7px',
+                                                                borderRadius: '9999px',
+                                                                background: typeStyle.bg,
+                                                                color: typeStyle.text,
+                                                                flexShrink: 0,
+                                                                marginTop: '1px',
+                                                            }}
+                                                        >
                                                             {typeStyle.label}
                                                         </span>
                                                         <span style={{
                                                             fontFamily: 'var(--font-hand)',
-                                                            color: '#374151',
+                                                            color: 'var(--text-secondary, #374151)',
                                                             fontSize: isMobile ? '0.82rem' : '0.88rem',
                                                             lineHeight: 1.35,
                                                         }}>
