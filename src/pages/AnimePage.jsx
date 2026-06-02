@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, AlertCircle } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
 
+const EPISODE_1_VIDEO_SOURCES = [
+  import.meta.env.VITE_ANIME_EPISODE_1_URL || 'https://media.githubusercontent.com/media/mikeblocky/skip-and-loafer/main/public/anime/episode1.mp4',
+  '/anime/episode1.mp4',
+];
+
 const ANIME_COPY = {
   en: {
     title: 'Watch Episode 1',
@@ -14,7 +19,7 @@ const ANIME_COPY = {
     unmute: 'Unmute',
     fullscreen: 'Fullscreen',
     exitFullscreen: 'Exit fullscreen',
-    videoError: 'This episode could not be loaded. Check that the video file is deployed and uses a browser-supported MP4 format.',
+    videoError: 'This episode could not be loaded. Check that the video source is reachable and uses a browser-supported MP4 format.',
   },
   es: {
     title: 'Ver Episodio 1',
@@ -26,7 +31,7 @@ const ANIME_COPY = {
     unmute: 'Activar sonido',
     fullscreen: 'Pantalla completa',
     exitFullscreen: 'Salir de pantalla completa',
-    videoError: 'No se pudo cargar este episodio. Comprueba que el video esté desplegado y use un formato MP4 compatible.',
+    videoError: 'No se pudo cargar este episodio. Comprueba que la fuente del video sea accesible y use un formato MP4 compatible.',
   },
   pt: {
     title: 'Assistir Episódio 1',
@@ -38,7 +43,7 @@ const ANIME_COPY = {
     unmute: 'Ativar som',
     fullscreen: 'Tela cheia',
     exitFullscreen: 'Sair da tela cheia',
-    videoError: 'Este episódio não pôde ser carregado. Verifique se o vídeo foi implantado e usa um formato MP4 compatível.',
+    videoError: 'Este episódio não pôde ser carregado. Verifique se a fonte do vídeo está acessível e usa um formato MP4 compatível.',
   },
   fr: {
     title: 'Regarder l\'Épisode 1',
@@ -50,7 +55,7 @@ const ANIME_COPY = {
     unmute: 'Activer le son',
     fullscreen: 'Plein écran',
     exitFullscreen: 'Quitter le plein écran',
-    videoError: 'Impossible de charger cet épisode. Vérifiez que la vidéo est déployée et utilise un format MP4 compatible.',
+    videoError: 'Impossible de charger cet épisode. Vérifiez que la source vidéo est accessible et utilise un format MP4 compatible.',
   },
   de: {
     title: 'Folge 1 ansehen',
@@ -62,7 +67,7 @@ const ANIME_COPY = {
     unmute: 'Ton einschalten',
     fullscreen: 'Vollbild',
     exitFullscreen: 'Vollbild verlassen',
-    videoError: 'Diese Folge konnte nicht geladen werden. Prüfe, ob die Videodatei bereitgestellt wurde und ein unterstütztes MP4-Format verwendet.',
+    videoError: 'Diese Folge konnte nicht geladen werden. Prüfe, ob die Videoquelle erreichbar ist und ein unterstütztes MP4-Format verwendet.',
   },
   it: {
     title: 'Guarda l\'Episodio 1',
@@ -74,7 +79,7 @@ const ANIME_COPY = {
     unmute: 'Riattiva audio',
     fullscreen: 'Schermo intero',
     exitFullscreen: 'Esci da schermo intero',
-    videoError: 'Non è stato possibile caricare questo episodio. Verifica che il video sia pubblicato e usi un formato MP4 supportato.',
+    videoError: 'Non è stato possibile caricare questo episodio. Verifica che la sorgente video sia raggiungibile e usi un formato MP4 supportato.',
   },
   ja: {
     title: '第1話を見る',
@@ -86,7 +91,7 @@ const ANIME_COPY = {
     unmute: 'ミュート解除',
     fullscreen: '全画面表示',
     exitFullscreen: '全画面解除',
-    videoError: 'このエピソードを読み込めませんでした。動画ファイルが公開され、対応するMP4形式であることを確認してください。',
+    videoError: 'このエピソードを読み込めませんでした。動画ソースにアクセスでき、対応するMP4形式であることを確認してください。',
   },
 };
 
@@ -397,7 +402,9 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
             display: 'block',
           }}
         >
-          <source src="/anime/episode1.mp4" type="video/mp4" />
+          {EPISODE_1_VIDEO_SOURCES.map((source) => (
+            <source key={source} src={source} type="video/mp4" />
+          ))}
         </video>
 
         {videoError && (
