@@ -396,7 +396,7 @@ const MysteryMenu = ({ isMobile, t, animalQuizCopy, onSelectView, pulledCharacte
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: isNotebook ? '0 4px 10px rgba(167, 243, 208, 0.3)' : 'none',
-                    color: isBlueprint ? '#ffffff' : option.theme.textColor,
+                    color: isBlueprint ? 'var(--keycap-color, #1d4ed8)' : option.theme.textColor,
                   }}>
                     <IconComponent size={34} strokeWidth={isBlueprint ? 2.2 : 2.5} />
                   </div>

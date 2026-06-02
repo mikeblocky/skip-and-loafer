@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { StickyNote, Trash2, Edit3, Check } from 'lucide-react';
 import { triggerHaptic } from '../../../utils/haptics';
 import { CHAPTERS, SIDE_WORKS } from '../../../data/chapters';
+import { getNotePaletteForChapter } from '../chapterStyles';
 
 void motion;
 
@@ -108,6 +109,7 @@ const NotesTab = ({
           >
             {notesList.map((note, idx) => {
               const isEditing = editingChapter === note.number;
+              const palette = getNotePaletteForChapter(note.number);
 
               return (
                 <motion.div
@@ -118,9 +120,9 @@ const NotesTab = ({
                   transition={{ delay: idx * 0.05 }}
                   whileHover={{ y: -4, rotate: (idx % 2 === 0 ? 0.5 : -0.5) }}
                   style={{
-                    background: 'var(--note-bg)',
-                    border: '2px solid var(--note-border)',
-                    borderBottom: '4px solid var(--note-border-bottom)',
+                    background: palette.background,
+                    border: `2px solid ${palette.border}`,
+                    borderBottom: `4px solid ${palette.bottom}`,
                     padding: '20px',
                     borderRadius: '16px',
                     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.05)',
@@ -154,7 +156,7 @@ const NotesTab = ({
                           fontFamily: 'var(--font-paper)',
                           fontWeight: '400',
                           fontSize: '1.05rem',
-                          color: 'var(--note-text)',
+                          color: palette.accent,
                           lineHeight: '1.2',
                           flex: 1,
                         }}
@@ -167,7 +169,7 @@ const NotesTab = ({
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'var(--note-text)',
+                            color: palette.accent,
                             cursor: 'pointer',
                             padding: '4px',
                             opacity: 0.7,
@@ -183,7 +185,7 @@ const NotesTab = ({
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: 'var(--note-text)',
+                            color: palette.accent,
                             cursor: 'pointer',
                             padding: '4px',
                             opacity: 0.7,
@@ -214,7 +216,7 @@ const NotesTab = ({
                             fontFamily: 'var(--font-paper)',
                             fontSize: '0.94rem',
                             lineHeight: '1.4',
-                            color: 'var(--note-text)',
+                            color: palette.accent,
                             padding: '8px',
                             resize: 'none',
                             margin: '4px 0 0 0',
@@ -225,7 +227,7 @@ const NotesTab = ({
                           style={{
                             fontFamily: 'var(--font-hand)',
                             fontSize: '1rem',
-                            color: 'var(--note-text)',
+                            color: palette.accent,
                             margin: '4px 0 0 0',
                             lineHeight: '1.4',
                             whiteSpace: 'pre-wrap',

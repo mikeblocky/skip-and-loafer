@@ -1,5 +1,23 @@
 import { VOL_COLORS } from '../../data/chapters';
 
+export const NOTE_PALETTES = [
+  { background: 'var(--themed-note-bg-1, #fff8be)', border: 'var(--themed-note-border-1, #facc15)', bottom: 'var(--themed-note-bottom-1, #eab308)', accent: 'var(--themed-note-accent-1, #a16207)' },
+  { background: 'var(--themed-note-bg-2, #fee2e2)', border: 'var(--themed-note-border-2, #fda4af)', bottom: 'var(--themed-note-bottom-2, #fb7185)', accent: 'var(--themed-note-accent-2, #be123c)' },
+  { background: 'var(--themed-note-bg-3, #dbeafe)', border: 'var(--themed-note-border-3, #93c5fd)', bottom: 'var(--themed-note-bottom-3, #60a5fa)', accent: 'var(--themed-note-accent-3, #1d4ed8)' },
+  { background: 'var(--themed-note-bg-4, #dcfce7)', border: 'var(--themed-note-border-4, #86efac)', bottom: 'var(--themed-note-bottom-4, #4ade80)', accent: 'var(--themed-note-accent-4, #15803d)' },
+  { background: 'var(--themed-note-bg-5, #fce7f3)', border: 'var(--themed-note-border-5, #f9a8d4)', bottom: 'var(--themed-note-bottom-5, #f472b6)', accent: 'var(--themed-note-accent-5, #be185d)' },
+  { background: 'var(--themed-note-bg-6, #ede9fe)', border: 'var(--themed-note-border-6, #c4b5fd)', bottom: 'var(--themed-note-bottom-6, #a78bfa)', accent: 'var(--themed-note-accent-6, #6d28d9)' },
+  { background: 'var(--themed-note-bg-7, #ffedd5)', border: 'var(--themed-note-border-7, #fdba74)', bottom: 'var(--themed-note-bottom-7, #fb923c)', accent: 'var(--themed-note-accent-7, #c2410c)' },
+  { background: 'var(--themed-note-bg-8, #ecfeff)', border: 'var(--themed-note-border-8, #67e8f9)', bottom: 'var(--themed-note-bottom-8, #22d3ee)', accent: 'var(--themed-note-accent-8, #0f766e)' },
+];
+
+export const getNotePaletteForChapter = (chapterNumber) => {
+  const num = parseFloat(chapterNumber) || 1;
+  const idx = (Math.floor(num) + (num % 1 !== 0 ? 3 : 0)) % NOTE_PALETTES.length;
+  return NOTE_PALETTES[idx];
+};
+
+
 // Helper to lighten/darken colors for the Soft-UI palette
 const adjustColor = (hex, amount) => {
   const clamp = (num) => Math.min(255, Math.max(0, num));

@@ -34,6 +34,7 @@ import {
   getChapterRowStyle,
   getNavButtonStyle,
   getVolSelectorButtonStyle,
+  getNotePaletteForChapter,
 } from './chapterStyles';
 import { getChapterDisplayTitle } from '../../data/chapterTitles';
 
@@ -168,6 +169,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
   
   // Use Volume-specific theme
   const theme = VOL_THEMES[volumeNumber || 1] || VOL_THEMES[1];
+  const notePalette = getNotePaletteForChapter(chapter.number);
 
   const [showNoteInput, setShowNoteInput] = useState(false);
   
@@ -459,10 +461,10 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             width: isMobile ? '32px' : '36px',
             height: isMobile ? '32px' : '36px',
             borderRadius: '12px',
-            background: noteText ? 'var(--note-bg)' : 'var(--themed-card-inactive-bg, var(--surface-card))',
-            color: noteText ? 'var(--note-text)' : 'var(--themed-badge-text, ' + theme.accent + ')',
-            border: `2px solid ${noteText ? 'var(--note-border-bottom)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
-            borderBottom: noteText ? '4px solid var(--note-border-bottom)' : `4.5px solid ${theme.border}`,
+            background: noteText ? notePalette.background : 'var(--themed-card-inactive-bg, var(--surface-card))',
+            color: noteText ? notePalette.accent : 'var(--themed-badge-text, ' + theme.accent + ')',
+            border: `2px solid ${noteText ? notePalette.bottom : 'var(--themed-card-border, ' + theme.border + ')'}`,
+            borderBottom: noteText ? `4px solid ${notePalette.bottom}` : `4.5px solid ${theme.border}`,
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             position: 'relative',
@@ -525,9 +527,9 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{
-              background: 'var(--note-bg)',
-              border: '2px solid var(--note-border)',
-              borderBottom: '4px solid var(--note-border-bottom)',
+              background: notePalette.background,
+              border: `2px solid ${notePalette.border}`,
+              borderBottom: `4px solid ${notePalette.bottom}`,
               borderRadius: '16px',
               padding: isMobile ? '10px 12px' : '12px 16px',
               position: 'relative',
@@ -557,7 +559,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
                 <span style={{
                   fontFamily: 'var(--font-paper)',
                   fontSize: '0.8rem',
-                  color: 'var(--note-text)',
+                  color: notePalette.accent,
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
@@ -574,7 +576,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: 'var(--note-text)',
+                      color: notePalette.accent,
                       fontSize: '0.75rem',
                       cursor: 'pointer',
                       fontFamily: 'var(--font-main)',
@@ -602,7 +604,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
                   fontFamily: 'var(--font-paper)',
                   fontSize: '0.88rem',
                   lineHeight: '1.4',
-                  color: 'var(--note-text)',
+                  color: notePalette.accent,
                   padding: '4px 0',
                   margin: 0,
                 }}
