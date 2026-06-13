@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap } from 'lucide-react';
 import { getAppLanguageOptions, APP_UI_TEXT } from '../config/appUiText';
 import {
   createPaperChipStyle,
   createPaperPanelStyle,
   PAPER_FONT_FAMILY,
 } from '../components/shared/paper/paperTheme';
-import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
-import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 
 const PANEL_TITLE_STYLE = {
   display: 'flex',
@@ -77,6 +75,20 @@ const KEYCAP_STYLE = {
   fontWeight: '400',
   lineHeight: 1.1,
   flexShrink: 0,
+};
+
+const BUTTON_RESET_STYLE = {
+  width: '100%',
+  textAlign: 'left',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  fontFamily: 'inherit',
+  fontSize: 'inherit',
+  fontWeight: 'inherit',
+  color: 'inherit',
+  outline: 'none',
+  margin: 0,
 };
 
 const PREVIEW_QUOTES = {
@@ -273,55 +285,13 @@ const SettingsPage = ({
   return (
     <div style={{
       width: '100%',
-      padding: isMobile ? '20px 14px 60px' : '32px 40px',
+      padding: isMobile ? '16px 14px 60px' : '24px 40px',
       display: 'flex',
       flexDirection: 'column',
       gap: '28px',
       boxSizing: 'border-box',
       fontFamily: 'var(--font-paper)',
     }}>
-      
-      {/* SVG Color Blindness Matrix Filters */}
-      <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
-        <defs>
-          <filter id="filter-protanopia">
-            <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0, 0.558, 0.442, 0, 0, 0, 0, 0.242, 0.758, 0, 0, 0, 0, 0, 1, 0" />
-          </filter>
-          <filter id="filter-deuteranopia">
-            <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0, 0.7, 0.3, 0, 0, 0, 0, 0.3, 0.7, 0, 0, 0, 0, 0, 1, 0" />
-          </filter>
-          <filter id="filter-tritanopia">
-            <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0, 0, 0.433, 0.567, 0, 0, 0, 0.475, 0.525, 0, 0, 0, 0, 0, 1, 0" />
-          </filter>
-          <filter id="filter-black-white">
-            <feColorMatrix type="matrix" values="0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 1, 0" />
-          </filter>
-        </defs>
-      </svg>
-      
-      {/* Redesigned Pop-Art Sketchbook Header Banner */}
-      <PaperPageHeader
-        isMobile={isMobile}
-        center={(
-          <PaperHeadingBadge
-            isMobile={isMobile}
-            icon={Settings}
-            title={t.settings || 'Settings'}
-            palette={{
-              borderColor: '#818cf8',
-              bottomColor: '#818cf8',
-              shadow: '0 4px 15px rgba(129, 140, 248, 0.1)',
-            }}
-            titleColor="#818cf8"
-            iconColor="#818cf8"
-          />
-        )}
-        marginBottomMobile="20px"
-        marginBottomDesktop="32px"
-        gapMobile="16px"
-        paddingMobile="0"
-        paddingDesktop="0"
-      />
 
       {/* Beautiful, Balanced Scrapbook Two-Column Grid Dashboard */}
       <div style={{
@@ -334,21 +304,169 @@ const SettingsPage = ({
         margin: '0 auto',
         boxSizing: 'border-box',
       }}>
-        
         {/* LEFT COLUMN: Accessibility Options & Blog Reader Preferences */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          
-          {/* A. Flat Accessibility Suite */}
+          {/* A1. Text & Reading Preferences Card */}
           <div
             className="sketchbook-border"
             style={{
               background: 'var(--surface-card)',
-              border: '3px solid var(--surface-border)',
-              borderBottom: '8px solid var(--surface-border)',
+              border: '3px solid #f472b6',
+              borderBottom: '8px solid #db2777',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '20px',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
+            }}
+          >
+            <div
+              className="washi-tape washi-tape--pink"
+              style={{
+                top: '-14px',
+                left: '24px',
+                transform: 'rotate(-1.5deg)',
+                width: '74px',
+                height: '22px',
+                zIndex: 5,
+              }}
+            />
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box pink-box no-override" style={getPanelIconBoxStyle('#fbcfe8', '#ec4899', '#fdf2f8', '#db2777')}>
+                <FileTextIcon size={18} strokeWidth={2.4} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.textAndReading || 'Text & Reading'}</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+              {readingOptions.map(option => {
+                const val = !!accessibilityPrefs[option.key];
+                return (
+                  <motion.button
+                    key={option.key}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={val}
+                    onClick={() => toggleAccessibilityPref(option.key)}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      ...BUTTON_RESET_STYLE,
+                      ...getOptionCardStyle(val),
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {getVisualPreview(option.key, val)}
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                        {option.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '6px',
+                      border: '2px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: val ? '#3b82f6' : '#fff',
+                      borderColor: val ? '#2563eb' : '#cbd5e1',
+                      flexShrink: 0,
+                    }}>
+                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* A2. Display & Contrast Card */}
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #3b82f6',
+              borderBottom: '8px solid #2563eb',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
+            }}
+          >
+            <div
+              className="washi-tape washi-tape--blue"
+              style={{
+                top: '-14px',
+                right: '24px',
+                transform: 'rotate(2deg)',
+                width: '74px',
+                height: '22px',
+                zIndex: 5,
+              }}
+            />
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box blue-box no-override" style={getPanelIconBoxStyle('#bfdbfe', '#3b82f6', '#eff6ff', '#1d4ed8')}>
+                <Eye size={18} strokeWidth={2.4} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.displayAndContrast || 'Display & Contrast'}</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+              {clarityOptions.map(option => {
+                const val = !!accessibilityPrefs[option.key];
+                return (
+                  <motion.button
+                    key={option.key}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={val}
+                    onClick={() => toggleAccessibilityPref(option.key)}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      ...BUTTON_RESET_STYLE,
+                      ...getOptionCardStyle(val),
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {getVisualPreview(option.key, val)}
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                        {option.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '6px',
+                      border: '2px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: val ? '#3b82f6' : '#fff',
+                      borderColor: val ? '#2563eb' : '#cbd5e1',
+                      flexShrink: 0,
+                    }}>
+                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* A3. Motion & Visuals Card */}
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #eab308',
+              borderBottom: '8px solid #ca8a04',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
               position: 'relative',
               boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
             }}
@@ -357,194 +475,142 @@ const SettingsPage = ({
               className="washi-tape washi-tape--yellow"
               style={{
                 top: '-14px',
-                left: '24px',
-                transform: 'rotate(-2deg)',
+                left: '32px',
+                transform: 'rotate(-2.5deg)',
                 width: '74px',
                 height: '22px',
                 zIndex: 5,
               }}
             />
             <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#34d399', '#059669', '#ecfdf5', '#059669')}>
-                <Accessibility size={18} strokeWidth={2.4} />
+              <div className="panel-icon-box orange-box no-override" style={getPanelIconBoxStyle('#fef08a', '#eab308', '#fef9c3', '#ca8a04')}>
+                <Zap size={18} strokeWidth={2.4} />
               </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.accessibility || 'Accessibility Options'}</span>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.motionAndVisuals || 'Motion & Visuals'}</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              
-              {/* Text & Reading */}
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-paper)', fontWeight: '400', fontSize: '0.98rem', color: '#64748b', margin: '0 0 10px 0', borderBottom: '1.5px dashed #cbd5e1', paddingBottom: '4px' }}>
-                  Text & Reading Preferences
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
-                  {readingOptions.map(option => {
-                    const val = !!accessibilityPrefs[option.key];
-                    return (
-                      <motion.div
-                        key={option.key}
-                        onClick={() => toggleAccessibilityPref(option.key)}
-                        whileTap={{ scale: 0.98 }}
-                        style={getOptionCardStyle(val)}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {getVisualPreview(option.key, val)}
-                          <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
-                            {option.label}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '6px',
-                          border: '2px solid #cbd5e1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: val ? '#3b82f6' : '#fff',
-                          borderColor: val ? '#2563eb' : '#cbd5e1',
-                          flexShrink: 0,
-                        }}>
-                          {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+              {visualsOptions.map(option => {
+                const val = !!accessibilityPrefs[option.key];
+                return (
+                  <motion.button
+                    key={option.key}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={val}
+                    onClick={() => toggleAccessibilityPref(option.key)}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      ...BUTTON_RESET_STYLE,
+                      ...getOptionCardStyle(val),
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {getVisualPreview(option.key, val)}
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                        {option.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '6px',
+                      border: '2px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: val ? '#3b82f6' : '#fff',
+                      borderColor: val ? '#2563eb' : '#cbd5e1',
+                      flexShrink: 0,
+                    }}>
+                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
 
-              {/* Display & Clarity */}
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-paper)', fontWeight: '400', fontSize: '0.98rem', color: '#64748b', margin: '0 0 10px 0', borderBottom: '1.5px dashed #cbd5e1', paddingBottom: '4px' }}>
-                  Display & Contrast
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
-                  {clarityOptions.map(option => {
-                    const val = !!accessibilityPrefs[option.key];
-                    return (
-                      <motion.div
-                        key={option.key}
-                        onClick={() => toggleAccessibilityPref(option.key)}
-                        whileTap={{ scale: 0.98 }}
-                        style={getOptionCardStyle(val)}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {getVisualPreview(option.key, val)}
-                          <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
-                            {option.label}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '6px',
-                          border: '2px solid #cbd5e1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: val ? '#3b82f6' : '#fff',
-                          borderColor: val ? '#2563eb' : '#cbd5e1',
-                          flexShrink: 0,
-                        }}>
-                          {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+          {/* A4. Colorblindness Settings Card */}
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #a855f7',
+              borderBottom: '8px solid #7e22ce',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
+            }}
+          >
+            <div
+              className="washi-tape washi-tape--pink"
+              style={{
+                top: '-14px',
+                right: '32px',
+                transform: 'rotate(1.8deg)',
+                width: '74px',
+                height: '22px',
+                zIndex: 5,
+              }}
+            />
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box purple-box no-override" style={getPanelIconBoxStyle('#e9d5ff', '#a855f7', '#f3e8ff', '#7e22ce')}>
+                <Accessibility size={18} strokeWidth={2.4} />
               </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{colorBlindLabel}</span>
+            </div>
 
-              {/* Motion & Colors */}
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-paper)', fontWeight: '400', fontSize: '0.98rem', color: '#64748b', margin: '0 0 10px 0', borderBottom: '1.5px dashed #cbd5e1', paddingBottom: '4px' }}>
-                  Motion & Colors
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', marginBottom: '12px' }}>
-                  {visualsOptions.map(option => {
-                    const val = !!accessibilityPrefs[option.key];
-                    return (
-                      <motion.div
-                        key={option.key}
-                        onClick={() => toggleAccessibilityPref(option.key)}
-                        whileTap={{ scale: 0.98 }}
-                        style={getOptionCardStyle(val)}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {getVisualPreview(option.key, val)}
-                          <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
-                            {option.label}
-                          </span>
-                        </div>
+            <div role="radiogroup" aria-label={colorBlindLabel} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {colorBlindOptions.map((option) => {
+                const selected = (accessibilityPrefs.colorBlindMode || 'none') === option.key;
+                return (
+                  <motion.button
+                    key={option.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setAccessibilityColorBlindMode(option.key)}
+                    whileTap={{ scale: 0.98 }}
+                    className="sketchbook-border"
+                    style={{
+                      ...BUTTON_RESET_STYLE,
+                      ...getOptionCardStyle(selected),
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {getColorBlindPreview(option.key)}
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: '#334155', fontWeight: '400' }}>
+                        {option.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid #cbd5e1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#fff',
+                      borderColor: selected ? '#3b82f6' : '#cbd5e1',
+                      flexShrink: 0,
+                    }}>
+                      {selected && (
                         <div style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '6px',
-                          border: '2px solid #cbd5e1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: val ? '#3b82f6' : '#fff',
-                          borderColor: val ? '#2563eb' : '#cbd5e1',
-                          flexShrink: 0,
-                        }}>
-                          {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Colorblindness Settings Row */}
-              <div style={{ background: '#f8fafc', border: '2.5px solid #cbd5e1', borderBottom: '5px solid #cbd5e1', borderRadius: '20px', padding: '14px 16px' }} className="sketchbook-border">
-                <span style={{ fontFamily: 'var(--font-paper)', color: '#4b5563', fontSize: '0.84rem', display: 'block', marginBottom: '8px', fontWeight: '400' }}>
-                  {colorBlindLabel}
-                </span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {colorBlindOptions.map((option) => {
-                    const selected = (accessibilityPrefs.colorBlindMode || 'none') === option.key;
-                    return (
-                      <motion.div
-                        key={option.key}
-                        onClick={() => setAccessibilityColorBlindMode(option.key)}
-                        whileTap={{ scale: 0.98 }}
-                        className="sketchbook-border"
-                        style={getOptionCardStyle(selected)}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {getColorBlindPreview(option.key)}
-                          <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: '#334155', fontWeight: '400' }}>
-                            {option.label}
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '18px',
-                          height: '18px',
+                          width: '10px',
+                          height: '10px',
                           borderRadius: '50%',
-                          border: '2px solid #cbd5e1',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: '#fff',
-                          borderColor: selected ? '#3b82f6' : '#cbd5e1',
-                          flexShrink: 0,
-                        }}>
-                          {selected && (
-                            <div style={{
-                              width: '10px',
-                              height: '10px',
-                              borderRadius: '50%',
-                              background: '#3b82f6',
-                            }} />
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-
+                          background: '#3b82f6',
+                        }} />
+                      )}
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
@@ -554,8 +620,8 @@ const SettingsPage = ({
               className="sketchbook-border"
               style={{
                 background: 'var(--surface-card)',
-                border: '3px solid var(--surface-border)',
-                borderBottom: '8px solid var(--surface-border)',
+                border: '3px solid #f97316',
+                borderBottom: '8px solid #ea580c',
                 padding: '20px 24px 24px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -565,11 +631,11 @@ const SettingsPage = ({
               }}
             >
               <div
-                className="washi-tape washi-tape--blue"
+                className="washi-tape washi-tape--yellow"
                 style={{
                   top: '-14px',
-                  right: '24px',
-                  transform: 'rotate(2deg)',
+                  left: '24px',
+                  transform: 'rotate(-1.8deg)',
                   width: '74px',
                   height: '22px',
                   zIndex: 5,
@@ -590,11 +656,17 @@ const SettingsPage = ({
                 ].map((pref) => {
                   const isActive = !!readerPrefs[pref.key];
                   return (
-                    <motion.div
+                    <motion.button
                       key={pref.key}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={isActive}
                       onClick={() => setReaderPrefs(prev => ({ ...prev, [pref.key]: !prev[pref.key] }))}
                       whileTap={{ scale: 0.98 }}
-                      style={getOptionCardStyle(isActive)}
+                      style={{
+                        ...BUTTON_RESET_STYLE,
+                        ...getOptionCardStyle(isActive),
+                      }}
                     >
                       <span style={{
                         fontFamily: 'var(--font-paper)',
@@ -622,7 +694,7 @@ const SettingsPage = ({
                       }}>
                         {isActive && <Check size={14} color="#fff" strokeWidth={3} />}
                       </div>
-                    </motion.div>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -685,8 +757,8 @@ const SettingsPage = ({
             className="sketchbook-border"
             style={{
               background: 'var(--surface-card)',
-              border: '3px solid var(--surface-border)',
-              borderBottom: '8px solid var(--surface-border)',
+              border: '3px solid #14b8a6',
+              borderBottom: '8px solid #0f766e',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -707,7 +779,7 @@ const SettingsPage = ({
               }}
             />
              <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box orange-box no-override" style={getPanelIconBoxStyle('#f59e0b', '#d97706', '#fef3c7', '#d97706')}>
+              <div className="panel-icon-box teal-box no-override" style={getPanelIconBoxStyle('#99f6e4', '#14b8a6', '#f0fdfa', '#0f766e')}>
                 <Sparkle size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Visual preview</span>
@@ -716,8 +788,8 @@ const SettingsPage = ({
             <div
               className="sketchbook-border"
               style={{
-                border: accessibilityPrefs.highContrast ? '3.5px solid #000' : '3px solid #fdba74',
-                borderBottom: accessibilityPrefs.highContrast ? '7px solid #000' : '6px solid #f97316',
+                border: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '3.5px solid #fff' : '3.5px solid #000') : '3px solid #fdba74',
+                borderBottom: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '7px solid #fff' : '7px solid #000') : '6px solid #f97316',
                 background: readerPrefs?.theme === 'night' ? '#0f172a' : (readerPrefs?.theme === 'sepia' ? '#fef3c7' : '#fff7ed'),
                 color: readerPrefs?.theme === 'night' ? '#f8fafc' : (readerPrefs?.theme === 'sepia' ? '#451a03' : '#431407'),
                 padding: accessibilityPrefs.largeControls ? '16px 18px' : '12px 14px',
@@ -756,8 +828,8 @@ const SettingsPage = ({
                 type="button"
                 style={{
                   alignSelf: 'flex-start',
-                  border: accessibilityPrefs.highContrast ? '3px solid #000' : '2px solid #bfdbfe',
-                  borderBottom: accessibilityPrefs.highContrast ? '5px solid #000' : '4px solid #60a5fa',
+                  border: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '3px solid #fff' : '3px solid #000') : '2px solid #bfdbfe',
+                  borderBottom: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '5px solid #fff' : '5px solid #000') : '4px solid #60a5fa',
                   background: '#fff',
                   color: '#1d4ed8',
                   borderRadius: accessibilityPrefs.largeControls ? '12px' : '9px',
@@ -779,8 +851,8 @@ const SettingsPage = ({
             className="sketchbook-border"
             style={{
               background: 'var(--surface-card)',
-              border: '3px solid var(--surface-border)',
-              borderBottom: '8px solid var(--surface-border)',
+              border: '3px solid #10b981',
+              borderBottom: '8px solid #047857',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -794,14 +866,14 @@ const SettingsPage = ({
               style={{
                 top: '-14px',
                 left: '24px',
-                transform: 'rotate(-1.5deg)',
+                transform: 'rotate(-2deg)',
                 width: '74px',
                 height: '22px',
                 zIndex: 5,
               }}
             />
              <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box blue-box no-override" style={getPanelIconBoxStyle('#60a5fa', '#2563eb', '#eef6ff', '#1d4ed8')}>
+              <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#a7f3d0', '#10b981', '#ecfdf5', '#047857')}>
                 <Languages size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.language || 'LanguageSelector'}</span>
@@ -846,8 +918,8 @@ const SettingsPage = ({
             className="sketchbook-border"
             style={{
               background: 'var(--surface-card)',
-              border: '3px solid var(--surface-border)',
-              borderBottom: '8px solid var(--surface-border)',
+              border: '3px solid #6366f1',
+              borderBottom: '8px solid #4f46e5',
               padding: '20px 24px 24px',
               display: 'flex',
               flexDirection: 'column',
@@ -868,7 +940,7 @@ const SettingsPage = ({
               }}
             />
              <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box purple-box no-override" style={getPanelIconBoxStyle('#c4b5fd', '#7c3aed', '#f5f3ff', '#7c3aed')}>
+              <div className="panel-icon-box indigo-box no-override" style={getPanelIconBoxStyle('#c7d2fe', '#6366f1', '#e0e7ff', '#4f46e5')}>
                 <Keyboard size={18} strokeWidth={2.4} />
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.shortcuts || 'Keyboard Shortcuts'}</span>
