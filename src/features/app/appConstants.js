@@ -9,8 +9,7 @@ export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
 export const isAnimeTabActive = () => {
-  const expiryDate = new Date('2026-07-01T00:00:00');
-  return new Date() < expiryDate;
+  return false;
 };
 
 export const TAB_PAGES = [

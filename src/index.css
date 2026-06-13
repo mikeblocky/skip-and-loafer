@@ -1286,25 +1286,106 @@ html[data-a11y-reduce-motion='1'] *::after {
   scroll-behavior: auto !important;
 }
 
-html[data-a11y-high-contrast='1'] body {
-  color: #111827;
-  background-color: #ffffff;
-  background-image: none;
+/* High Contrast - Light Mode */
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) body {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
 }
 
-html[data-a11y-high-contrast='1'] .planner-container,
-html[data-a11y-high-contrast='1'] .planner-page,
-html[data-a11y-high-contrast='1'] .calendar-pad,
-html[data-a11y-high-contrast='1'] .memo-card {
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .planner-container,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .planner-page,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .calendar-pad,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .memo-card,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .sketchbook-border {
   box-shadow: none !important;
-  border-color: #111827 !important;
+  border-color: #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
-html[data-a11y-high-contrast='1'] button,
-html[data-a11y-high-contrast='1'] a,
-html[data-a11y-high-contrast='1'] [role="button"] {
-  color: #111827 !important;
-  border-color: #111827 !important;
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) button,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) a,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) [role="button"],
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) [role="checkbox"],
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) [role="radio"] {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) button[aria-pressed='true'],
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) button[aria-selected='true'],
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) [role="checkbox"][aria-checked='true'],
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) [role="radio"][aria-checked='true'] {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) input,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) select,
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) textarea {
+  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) *:focus-visible {
+  outline: 3px solid #000000 !important;
+  outline-offset: 2px !important;
+}
+
+/* High Contrast - Dark Mode */
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] body {
+  color: #ffffff !important;
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .planner-container,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .planner-page,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .calendar-pad,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .memo-card,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .sketchbook-border {
+  box-shadow: none !important;
+  border-color: #ffffff !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] button,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] a,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] [role="button"],
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] [role="checkbox"],
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] [role="radio"] {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  background: #000000 !important;
+  background-color: #000000 !important;
+  box-shadow: none !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] button[aria-pressed='true'],
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] button[aria-selected='true'],
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] [role="checkbox"][aria-checked='true'],
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] [role="radio"][aria-checked='true'] {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] input,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] select,
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] textarea {
+  border: 2px solid #ffffff !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] *:focus-visible {
+  outline: 3px solid #ffffff !important;
+  outline-offset: 2px !important;
 }
 
 html[data-a11y-readable-spacing='1'] body,
@@ -1353,19 +1434,19 @@ html[data-a11y-dim-non-essential-colors='1'] {
 }
 
 html[data-a11y-colorblind-mode='protanopia'] {
-  filter: saturate(0.82) hue-rotate(-8deg);
+  filter: url('#filter-protanopia') !important;
 }
 
 html[data-a11y-colorblind-mode='deuteranopia'] {
-  filter: saturate(0.78) hue-rotate(12deg);
+  filter: url('#filter-deuteranopia') !important;
 }
 
 html[data-a11y-colorblind-mode='tritanopia'] {
-  filter: saturate(0.82) hue-rotate(40deg);
+  filter: url('#filter-tritanopia') !important;
 }
 
 html[data-a11y-colorblind-mode='black-white'] {
-  filter: grayscale(1) contrast(1.15);
+  filter: url('#filter-black-white') !important;
 }
 
 html[data-a11y-colorblind-mode='black-white'] button,
@@ -1409,6 +1490,22 @@ html[data-a11y-colorblind-mode='black-white'] [role="button"]:focus-visible {
   outline: 3px solid #000000 !important;
   outline-offset: 2px !important;
 }
+
+.accessibility-option-label:focus-within {
+  outline: 3px solid var(--pop-blue) !important;
+  outline-offset: 2px !important;
+}
+
+html[data-a11y-high-contrast='1']:not([data-a11y-dark-mode='1']) .accessibility-option-label:focus-within {
+  outline: 3px solid #000000 !important;
+  outline-offset: 2px !important;
+}
+
+html[data-a11y-high-contrast='1'][data-a11y-dark-mode='1'] .accessibility-option-label:focus-within {
+  outline: 3px solid #ffffff !important;
+  outline-offset: 2px !important;
+}
+
 
 .makoto-secret-page {
   position: relative;

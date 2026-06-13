@@ -318,6 +318,8 @@ const AppQuickControls = ({
                     <button
                       className="app-tactile"
                       type="button"
+                      aria-expanded={isSelected}
+                      aria-controls={`a11y-panel-${section.key}`}
                       onClick={() => setActiveAccessibilityGroup(section.key)}
                       style={{
                         ...getCompactOptionCardStyle(isSelected),
@@ -356,6 +358,7 @@ const AppQuickControls = ({
 
                     {isSelected && !section.isColorGroup && (
                       <div
+                        id={`a11y-panel-${section.key}`}
                         style={{
                           ...getCompactOptionCardStyle(false),
                           flexDirection: 'column',
@@ -385,6 +388,7 @@ const AppQuickControls = ({
                           {section.options.map((option) => (
                             <label
                               key={option.key}
+                              className="accessibility-option-label"
                               style={{
                                 ...getCompactOptionCardStyle(!!accessibilityPrefs[option.key]),
                                 fontFamily: PAPER_FONT_FAMILY,
@@ -417,6 +421,7 @@ const AppQuickControls = ({
 
                     {isSelected && section.isColorGroup && (
                       <div
+                        id={`a11y-panel-${section.key}`}
                         style={{
                           ...getCompactOptionCardStyle(false),
                           flexDirection: 'column',
