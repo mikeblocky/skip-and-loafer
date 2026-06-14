@@ -4,6 +4,11 @@ test.describe('Mystery WebKit smoke', () => {
   test('loads the mystery page and shows a result entry point', async ({ page }) => {
     await page.goto('/#mystery');
 
+    const closeReleaseNotes = page.getByRole('button', { name: /got it/i });
+    if (await closeReleaseNotes.isVisible().catch(() => false)) {
+      await closeReleaseNotes.click();
+    }
+
     await expect(page.getByRole('button', { name: /who are you|which animal are you|character portrait|mystery/i }).first()).toBeVisible();
   });
 

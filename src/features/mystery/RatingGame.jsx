@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, Download, Info, Plus, Trash2, Palette, Edit3, X } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { triggerHaptic } from '../../utils/haptics';
 
 const PRESET_TIER_COLORS = [
@@ -214,9 +213,9 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
     setIsSaving(true);
     triggerHaptic('selection');
     
-    // Pro trick: Wait for layout to settle
     setTimeout(async () => {
       try {
+        const html2canvas = (await import('html2canvas')).default;
         const canvas = await html2canvas(boardRef.current, {
           backgroundColor: '#ffffff',
           scale: 3, 
