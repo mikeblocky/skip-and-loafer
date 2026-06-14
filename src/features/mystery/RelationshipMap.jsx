@@ -7,7 +7,6 @@ import {
   StickyNote, Waves, CircleDashed, Share2, UserPlus, Palette,
   Video, Maximize, Minimize, ChevronLeft, ArrowLeft, MoveHorizontal
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import { triggerHaptic } from '../../utils/haptics';
 import GIF from 'gif.js';
 import { createPortal } from 'react-dom';
@@ -625,6 +624,7 @@ const RelationshipMap = ({ isMobile, portraitData, t, onBack, darkMode = false }
   };
 
   const performHtml2Canvas = async (opts) => {
+    const html2canvas = (await import('html2canvas')).default;
     const container = scrollContainerRef.current;
     const oldX = container.scrollLeft;
     const oldY = container.scrollTop;

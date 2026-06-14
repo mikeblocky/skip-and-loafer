@@ -7,8 +7,8 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/favicon.ico',
   '/swt2-512.png',
-  '/Kei_Ji.ttf',
-  '/Kei_Ji-P.ttf',
+  '/Kei_Ji.woff2',
+  '/Kei_Ji-P.woff2',
 ];
 
 const OFFLINE_RESPONSE = new Response('', {
@@ -81,6 +81,8 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.ttf') ||
+    url.pathname.endsWith('.woff') ||
+    url.pathname.endsWith('.woff2') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg') ||
