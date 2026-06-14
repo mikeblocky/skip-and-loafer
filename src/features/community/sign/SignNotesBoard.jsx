@@ -97,7 +97,6 @@ const SignNotesBoard = ({
           <motion.article
             key={`${entry.id}-${canvasResetVersion}`}
             data-no-tab-swipe="1"
-            layout
             drag
             dragConstraints={cardDragConstraints}
             dragElastic={isMobile ? 0.82 : 0.16}
