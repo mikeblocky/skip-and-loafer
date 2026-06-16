@@ -263,7 +263,7 @@ const AppChrome = ({ app }) => {
                 width: '100%',
                 maxWidth: app.isMobile
                   ? '100%'
-                  : (app.accessibilityPrefs.largeText ? '1420px' : '1300px'),
+                  : (app.accessibilityPrefs.largeText ? '1300px' : '1180px'),
                 minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
                 height: app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
                 display: 'flex',
