@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import PageLayout from '../../components/shared/paper/PageLayout';
 import { History as HistoryIcon, ListChecks, Trophy } from 'lucide-react';
 import { TabSelector } from '../sync/syncSharedComponents';
 import { CONTENT_SLIDE, TRANSITION_TAB } from '../../components/shared/animationPresets';
@@ -106,20 +107,7 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   };
 
   return (
-    <div
-      className="hide-scrollbar"
-      style={{
-        width: '100%',
-        padding: isMobile ? '20px 14px 60px' : '32px 40px',
-        minHeight: isMobile ? 'auto' : '600px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflowX: 'hidden',
-        overflowY: 'auto',
-        flex: 1,
-        position: 'relative',
-      }}
-    >
+    <PageLayout isMobile={isMobile} style={{ minHeight: isMobile ? 'auto' : '600px' }}>
       {/* Redesigned, beautifully balanced Quiz Header Dashboard */}
       <div
         style={{
@@ -299,7 +287,7 @@ const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </PageLayout>
   );
 };
 

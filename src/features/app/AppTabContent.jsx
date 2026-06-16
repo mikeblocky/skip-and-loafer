@@ -1,4 +1,5 @@
-import { Suspense, memo, useMemo } from 'react';
+import { Suspense, memo, useMemo, useState } from 'react';
+import { BookOpen, BarChart3, ImagePlus, PenLine, Settings, HelpCircle } from 'lucide-react';
 import PaperLoadingState from '../../components/shared/paper/PaperLoadingState';
 import useIdlePreload from './hooks/useIdlePreload';
 import {
@@ -18,6 +19,65 @@ import {
   TutorialPage,
   AnimePage,
 } from './appPageLoaders';
+
+const CHAPTERS_SUBTABS = [
+  { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', textColor: '#1d4ed8' },
+  { id: 'reading', label: 'Reading', icon: BarChart3, color: '#38c972', textColor: '#15803d' },
+];
+
+const COMMUNITY_SUBTABS = [
+  { id: 'fanGallery', label: 'Fan gallery', icon: ImagePlus, color: '#2563eb', textColor: '#1e40af' },
+  { id: 'sign', label: 'Sign', icon: PenLine, color: '#f97316', textColor: '#c2410c' },
+];
+
+const SETTINGS_SUBTABS = [
+  { id: 'settings', label: 'Settings', icon: Settings, color: '#818cf8', textColor: '#4338ca' },
+  { id: 'tutorial', label: 'Guide', icon: HelpCircle, color: '#06b6d4', textColor: '#0891b2' },
+];
+
+const SubTabBar = ({ tabs, activeTab, onTabChange }) => (
+  <div style={{
+    display: 'flex',
+    gap: '10px',
+    padding: '22px 22px 10px',
+    flexShrink: 0,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  }}>
+    {tabs.map(tab => {
+      const isActive = activeTab === tab.id;
+      const Icon = tab.icon;
+      return (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className="sub-tab-btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+            padding: '9px 20px',
+            background: isActive ? '#ffffff' : '#fdfaf8',
+            border: `2px solid ${isActive ? tab.color : '#cbd5e1'}`,
+            borderBottom: `5px solid ${isActive ? tab.textColor : '#94a3b8'}`,
+            borderRadius: '12px',
+            fontFamily: 'Sniglet, var(--font-main)',
+            fontSize: '0.94rem',
+            fontWeight: '400',
+            color: isActive ? tab.color : '#475569',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            boxShadow: isActive ? `0 4px 12px ${tab.color}1a` : 'none',
+            opacity: isActive ? 1 : 0.8,
+          }}
+        >
+          {Icon && <Icon size={15} strokeWidth={2.2} />}
+          <span>{tab.label}</span>
+        </button>
+      );
+    })}
+  </div>
+);
 
 const PAGE_SHELL_STYLE = {
   width: '100%',
@@ -176,6 +236,10 @@ const AppTabContent = ({
     [],
   );
 
+  const [chaptersSubTab, setChaptersSubTab] = useState('chapters');
+  const [communitySubTab, setCommunitySubTab] = useState('fanGallery');
+  const [settingsSubTab, setSettingsSubTab] = useState('settings');
+
   useIdlePreload(tabPreloaders, activePage !== 'home', {
     delayMs: activePage === 'home' ? 1100 : 520,
     staggerMs: isMobile ? 340 : 220,
@@ -197,23 +261,50 @@ const AppTabContent = ({
       );
       break;
     case 'chapters':
+      if (chaptersSubTab === 'reading') {
+        frameStyle = { ...sharedPageShellStyle, flexDirection: isMobile ? 'column' : 'row' };
+      }
       tabContent = (
-        <ChaptersPage
-          isMobile={isMobile}
-          uiLanguage={uiLanguage}
-          subtabShortcut={subtabShortcut}
-          onReadChapter={(ch) => setReaderChapter(ch)}
-          isFinished={isFinished}
-          trackExternalLink={trackExternalLink}
-          cancelExternalLink={cancelExternalLink}
-          markFinished={markFinished}
-          unmarkFinished={unmarkFinished}
-          getReadCount={getReadCount}
-          incrementReadCount={incrementReadCount}
-          getRemainingCooldown={getRemainingCooldown}
-          pendingLinks={pendingLinks}
-          pushNow={syncData?.pushNow}
-        />
+        <>
+          <SubTabBar tabs={CHAPTERS_SUBTABS} activeTab={chaptersSubTab} onTabChange={setChaptersSubTab} />
+          {chaptersSubTab === 'chapters' ? (
+            <ChaptersPage
+              isMobile={isMobile}
+              uiLanguage={uiLanguage}
+              subtabShortcut={subtabShortcut}
+              onReadChapter={(ch) => setReaderChapter(ch)}
+              isFinished={isFinished}
+              trackExternalLink={trackExternalLink}
+              cancelExternalLink={cancelExternalLink}
+              markFinished={markFinished}
+              unmarkFinished={unmarkFinished}
+              getReadCount={getReadCount}
+              incrementReadCount={incrementReadCount}
+              getRemainingCooldown={getRemainingCooldown}
+              pendingLinks={pendingLinks}
+              pushNow={syncData?.pushNow}
+            />
+          ) : (
+            <SyncPage
+              isMobile={isMobile}
+              uiLanguage={uiLanguage}
+              subtabShortcut={subtabShortcut}
+              finishedCount={finishedCount}
+              finished={finished}
+              readCounts={readCounts}
+              reloadFromStorage={reloadFromStorage}
+              onReadChapter={(ch) => setReaderChapter(ch)}
+              trackExternalLink={trackExternalLink}
+              cancelExternalLink={cancelExternalLink}
+              markFinished={markFinished}
+              unmarkFinished={unmarkFinished}
+              incrementReadCount={incrementReadCount}
+              getRemainingCooldown={getRemainingCooldown}
+              pendingLinks={pendingLinks}
+              syncData={syncData}
+            />
+          )}
+        </>
       );
       break;
     case 'gallery':
@@ -224,6 +315,18 @@ const AppTabContent = ({
       break;
     case 'fanGallery':
       tabContent = <FanGalleryPage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'community':
+      tabContent = (
+        <>
+          <SubTabBar tabs={COMMUNITY_SUBTABS} activeTab={communitySubTab} onTabChange={setCommunitySubTab} />
+          {communitySubTab === 'fanGallery' ? (
+            <FanGalleryPage isMobile={isMobile} uiLanguage={uiLanguage} />
+          ) : (
+            <SignPage isMobile={isMobile} uiLanguage={uiLanguage} />
+          )}
+        </>
+      );
       break;
     case 'blog':
       tabContent = (
@@ -283,18 +386,25 @@ const AppTabContent = ({
       break;
     case 'settings':
       tabContent = (
-        <SettingsPage
-          isMobile={isMobile}
-          uiLanguage={uiLanguage}
-          setUiLanguage={setUiLanguage}
-          accessibilityPrefs={accessibilityPrefs}
-          toggleAccessibilityPref={toggleAccessibilityPref}
-          setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}
-          shortcutStats={shortcutStats}
-          readerPrefs={readerPrefs}
-          setReaderPrefs={setReaderPrefs}
-          t={t}
-        />
+        <>
+          <SubTabBar tabs={SETTINGS_SUBTABS} activeTab={settingsSubTab} onTabChange={setSettingsSubTab} />
+          {settingsSubTab === 'settings' ? (
+            <SettingsPage
+              isMobile={isMobile}
+              uiLanguage={uiLanguage}
+              setUiLanguage={setUiLanguage}
+              accessibilityPrefs={accessibilityPrefs}
+              toggleAccessibilityPref={toggleAccessibilityPref}
+              setAccessibilityColorBlindMode={setAccessibilityColorBlindMode}
+              shortcutStats={shortcutStats}
+              readerPrefs={readerPrefs}
+              setReaderPrefs={setReaderPrefs}
+              t={t}
+            />
+          ) : (
+            <TutorialPage isMobile={isMobile} uiLanguage={uiLanguage} />
+          )}
+        </>
       );
       break;
     case 'anime':

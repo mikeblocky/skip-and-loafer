@@ -41,9 +41,10 @@ const filterPreloadersByLanguage = (loaders, uiLanguage) => (
 );
 
 const APP_TAB_PRELOADERS = {
-  home: [loadChaptersPage, loadGalleryPage, loadSignPage, loadFanGalleryPage],
-  chapters: [loadGalleryPage, loadSignPage, loadFanGalleryPage],
-  gallery: [loadSignPage, loadFanGalleryPage, loadBlogPage],
+  home: [loadChaptersPage, loadGalleryPage, loadFanGalleryPage, loadSignPage],
+  chapters: [loadGalleryPage, loadFanGalleryPage, loadSignPage],
+  gallery: [loadFanGalleryPage, loadSignPage, loadBlogPage],
+  community: [loadBlogPage, loadGalleryPage],
   sign: [loadFanGalleryPage, loadBlogPage],
   fanGallery: [loadBlogPage, loadWikiPage],
   blog: [loadWikiPage, loadSyncPage],

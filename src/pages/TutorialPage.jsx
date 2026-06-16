@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PageLayout from '../components/shared/paper/PageLayout';
 import {
   BookOpen,
   Trophy,
@@ -22,6 +23,8 @@ import {
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
 import { createPaperPanelStyle } from '../components/shared/paper/paperTheme';
+import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 
 const COMMUNITY_FONT_FAMILY = 'var(--font-paper)';
 
@@ -721,34 +724,31 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en' }) => {
   };
 
   return (
-    <div
-      className="hide-scrollbar"
-      style={{
-        width: '100%',
-        padding: isMobile ? '20px 14px 60px' : '32px 40px',
-        overflowX: 'hidden',
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        flex: 1,
-      }}
-    >
+    <PageLayout isMobile={isMobile}>
       {/* Intro Header Section */}
       <div style={{ display: 'grid', gap: '8px' }}>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: COMMUNITY_FONT_FAMILY,
-            color: '#0891b2',
-            fontSize: isMobile ? '1.8rem' : '2.2rem',
-            fontWeight: '400',
-            lineHeight: 1.1,
-          }}
-        >
-          {t.title}
-        </h1>
-        <p style={{ margin: 0, color: '#475569', fontSize: isMobile ? '0.98rem' : '1.1rem', lineHeight: 1.6 }}>
+        <PaperPageHeader
+          isMobile={isMobile}
+          center={(
+            <PaperHeadingBadge
+              isMobile={isMobile}
+              icon={HelpCircle}
+              title={t.title}
+              palette={{
+                borderColor: '#06b6d4',
+                bottomColor: '#0891b2',
+                shadow: '0 8px 18px rgba(6, 182, 212, 0.12)',
+              }}
+              titleColor="#06b6d4"
+              iconColor="#06b6d4"
+            />
+          )}
+          marginBottomMobile="0"
+          marginBottomDesktop="0"
+          paddingMobile="0 10px"
+          paddingDesktop="0"
+        />
+        <p style={{ margin: 0, color: '#475569', fontSize: isMobile ? '0.98rem' : '1.1rem', lineHeight: 1.6, textAlign: 'center' }}>
           {t.subtitle}
         </p>
       </div>
@@ -1087,7 +1087,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en' }) => {
           ))}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

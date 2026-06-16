@@ -83,3 +83,54 @@ export const PLAYFUL_ENTRANCE = (index) => ({
 // Number badge pop — for chapter numbers, volume badges
 export const BADGE_POP = { scale: [0.8, 1.15, 0.95, 1.05, 1] };
 export const BADGE_POP_TRANSITION = { duration: 0.5, ease: 'easeOut' };
+
+// ── Skip & Loafer Character Animations ──
+
+// Stamp press — rubber stamp pushed down onto paper
+export const STAMP_PRESS = { scale: 0.86, rotate: -1.5, y: 3 };
+export const STAMP_SPRING = { type: 'spring', stiffness: 700, damping: 14, mass: 0.35 };
+
+// Pencil lift hover — button tilts like a pen being picked up
+export const PENCIL_HOVER = { y: -4, rotate: 1.2, scale: 1.05 };
+export const PENCIL_HOVER_TRANSITION = { type: 'spring', stiffness: 380, damping: 18 };
+
+// Mitsumi bounce — earnest excited energy (her signature enthusiasm)
+export const MITSUMI_BOUNCE = {
+  y: [0, -12, -5, -9, -2, 0],
+  rotate: [0, -2, 1.5, -0.8, 0.4, 0],
+};
+export const MITSUMI_BOUNCE_TRANSITION = { duration: 0.75, ease: 'easeOut' };
+
+// Sousuke cool — understated, subtle cool lateral shift
+export const SOUSUKE_COOL = { x: 3, rotate: 1.2, scale: 1.03 };
+export const SOUSUKE_TRANSITION = { type: 'spring', stiffness: 260, damping: 22 };
+
+// Notebook wiggle — like a page being excited
+export const NOTEBOOK_WIGGLE = {
+  rotate: [0, -2.5, 3, -1.8, 1.2, -0.6, 0],
+  scale: [1, 1.02, 1.015, 1.02, 1.01, 1.005, 1],
+};
+export const NOTEBOOK_WIGGLE_TRANSITION = { duration: 0.7, ease: 'easeInOut' };
+
+// Sticker pop entrance — like peeling and placing a sticker
+export const STICKER_POP_INITIAL = { scale: 0.45, rotate: -14, opacity: 0 };
+export const STICKER_POP_ANIMATE = { scale: 1, rotate: 0, opacity: 1 };
+export const STICKER_POP_TRANSITION = { type: 'spring', stiffness: 450, damping: 14 };
+
+// Doodle star burst — decorative element that pops in
+export const DOODLE_POP = {
+  scale: [0, 1.5, 0.85, 1.2, 1],
+  rotate: [0, 25, -12, 6, 0],
+  opacity: [0, 1, 1, 1, 1],
+};
+export const DOODLE_POP_TRANSITION = { duration: 0.6, ease: 'easeOut' };
+
+// Page flip entrance — like opening a scrapbook
+export const PAGE_FLIP_INITIAL = { rotateY: -90, opacity: 0, scale: 0.92 };
+export const PAGE_FLIP_ANIMATE = { rotateY: 0, opacity: 1, scale: 1 };
+export const PAGE_FLIP_TRANSITION = { type: 'spring', stiffness: 220, damping: 22 };
+
+// Washi tape slide — decorative tape sliding in from the side
+export const WASHI_SLIDE_INITIAL = { x: -40, rotate: -6, opacity: 0 };
+export const WASHI_SLIDE_ANIMATE = { x: 0, rotate: -2, opacity: 1 };
+export const WASHI_SLIDE_TRANSITION = { type: 'spring', stiffness: 300, damping: 20 };

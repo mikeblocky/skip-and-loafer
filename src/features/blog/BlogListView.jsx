@@ -97,7 +97,7 @@ const BlogListView = ({
                 color: 'var(--themed-text-muted, #9a3412)',
                 fontSize: '0.88rem',
                 lineHeight: 1.3,
-                fontWeight: '700',
+                fontWeight: '400',
               }}
             >
               {formatDate(featuredBlog.date, locale)}
@@ -121,8 +121,8 @@ const BlogListView = ({
             style={{
               margin: 0,
               color: 'var(--themed-text-secondary, #7c5f3a)',
-              fontFamily: 'var(--font-main)',
-              fontWeight: '700',
+              fontFamily: 'var(--font-hand)',
+              fontWeight: '400',
               fontSize: isMobile ? `${0.92 * bodyFontScale}rem` : `${0.98 * bodyFontScale}rem`,
               lineHeight: readerPrefs.wideSpacing ? 1.72 : 1.55,
               maxWidth: '66ch',
@@ -147,7 +147,7 @@ const BlogListView = ({
                 fontFamily: 'var(--font-main)',
                 fontSize: '0.84rem',
                 lineHeight: 1,
-                fontWeight: '800',
+                fontWeight: '400',
               }}
             >
               <CalendarDays size={14} strokeWidth={2.8} />
@@ -168,7 +168,7 @@ const BlogListView = ({
                 fontFamily: 'var(--font-main)',
                 fontSize: '0.84rem',
                 lineHeight: 1,
-                fontWeight: '800',
+                fontWeight: '400',
               }}
             >
               <BookOpen size={14} strokeWidth={2.8} />
@@ -287,7 +287,7 @@ const BlogListView = ({
                         fontFamily: 'var(--font-main)',
                         fontSize: '0.8rem',
                         lineHeight: 1,
-                        fontWeight: '800',
+                        fontWeight: '400',
                       }}
                     >
                       <CalendarDays size={13} strokeWidth={2.8} />
@@ -308,7 +308,7 @@ const BlogListView = ({
                         fontFamily: 'var(--font-main)',
                         fontSize: '0.8rem',
                         lineHeight: 1,
-                        fontWeight: '800',
+                        fontWeight: '400',
                       }}
                     >
                       <BookOpen size={13} strokeWidth={2.8} />
@@ -320,8 +320,8 @@ const BlogListView = ({
                     style={{
                       margin: 0,
                       color: 'var(--themed-text-muted, #475569)',
-                      fontFamily: 'var(--font-main)',
-                      fontWeight: '700',
+                      fontFamily: 'var(--font-hand)',
+                      fontWeight: '400',
                       fontSize: isMobile ? `${0.82 * bodyFontScale}rem` : `${0.86 * bodyFontScale}rem`,
                       lineHeight: readerPrefs.wideSpacing ? 1.68 : 1.48,
                     }}

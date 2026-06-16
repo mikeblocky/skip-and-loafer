@@ -102,7 +102,7 @@ export const createBlogMarkdownComponents = ({
     <li style={{ marginBottom: '8px' }}>{children}</li>
   ),
   strong: ({ children }) => (
-    <strong style={{ color: readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 900, letterSpacing: '0.01em' }}>{children}</strong>
+    <strong style={{ color: readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 400, letterSpacing: '0.01em' }}>{children}</strong>
   ),
   a: ({ href, children }) => (
     <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: 400 }}>
@@ -111,11 +111,11 @@ export const createBlogMarkdownComponents = ({
   ),
   code: ({ inline, children }) => (
     inline ? (
-      <code style={{ background: readerTheme.codeBg, border: `2px solid ${readerTheme.codeBorder}`, borderRadius: '8px', padding: '2px 6px', color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
+      <code style={{ background: readerTheme.codeBg, border: `2px solid ${readerTheme.codeBorder}`, borderRadius: '8px', padding: '2px 6px', color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '400', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
         {children}
       </code>
     ) : (
-      <code style={{ color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '900', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.82 * bodyFontScale}rem`, lineHeight: listLineHeight }}>
+      <code style={{ color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '400', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.82 * bodyFontScale}rem`, lineHeight: listLineHeight }}>
         {children}
       </code>
     )

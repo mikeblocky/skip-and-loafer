@@ -19,8 +19,8 @@ const BirthdayHeader = ({ isMobile, title }) => (
         iconColor="#f59e0b"
       />
     )}
-    marginBottomMobile="32px"
-    marginBottomDesktop="56px"
+    marginBottomMobile="0"
+    marginBottomDesktop="0"
     gapMobile="16px"
     paddingMobile="0"
     paddingDesktop="0"

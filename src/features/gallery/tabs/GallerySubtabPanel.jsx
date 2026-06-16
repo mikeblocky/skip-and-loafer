@@ -68,7 +68,7 @@ const GallerySubtabPanel = ({
           <div 
             style={{ 
               display: 'grid',
-              gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(280px, 1fr))',
+              gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(210px, 1fr))',
               gap: isMobile ? '12px' : '20px',
               width: '100%',
               minWidth: 0,

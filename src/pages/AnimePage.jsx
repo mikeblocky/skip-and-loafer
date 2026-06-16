@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, AlertCircle } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, AlertCircle, Tv } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
+import PageLayout from '../components/shared/paper/PageLayout';
+import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 
 const EPISODE_1_VIDEO_SOURCES = [
   import.meta.env.VITE_ANIME_EPISODE_1_URL || 'https://media.githubusercontent.com/media/mikeblocky/skip-and-loafer/main/public/anime/episode1.mp4',
@@ -289,52 +292,33 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
 
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: isMobile ? '16px 12px 80px' : '32px 40px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: isMobile ? '14px' : '18px',
-        boxSizing: 'border-box',
-        flex: isMobile ? '0 0 auto' : 1,
-      }}
-    >
-      {/* Clean page header */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: '"Sniglet", "Coming Soon", cursive',
-            color: '#a855f7',
-            fontWeight: 'bold',
-            fontSize: '0.82rem',
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-          }}
-        >
-          {t.title}
-        </span>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: '"Sniglet", "Coming Soon", cursive',
-            fontSize: isMobile ? '1.4rem' : '2rem',
-            color: '#1e293b',
-          }}
-        >
-          {t.subtitle}
-        </h1>
-      </div>
+    <PageLayout isMobile={isMobile} gap={isMobile ? '14px' : '20px'}>
+      <PaperPageHeader
+        isMobile={isMobile}
+        center={
+          <PaperHeadingBadge
+            isMobile={isMobile}
+            icon={Tv}
+            title={t.subtitle}
+            palette={{
+              borderColor: '#a855f7',
+              bottomColor: '#7e22ce',
+              shadow: '0 8px 18px rgba(168, 85, 247, 0.1)',
+            }}
+            titleColor="#a855f7"
+            iconColor="#a855f7"
+          />
+        }
+        paddingMobile="0"
+        paddingDesktop="0"
+        marginBottomMobile="0"
+        marginBottomDesktop="0"
+      />
 
-      {/* Warning banner — clean rounded */}
+      {/* Content at comfortable reading width */}
+      <div style={{ width: '100%', maxWidth: '860px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: isMobile ? '14px' : '18px' }}>
+
+      {/* Warning banner */}
       <div
         style={{
           display: 'flex',
@@ -651,7 +635,8 @@ export const AnimePage = ({ isMobile, uiLanguage = 'en' }) => {
           cursor: pointer;
         }
       `}</style>
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

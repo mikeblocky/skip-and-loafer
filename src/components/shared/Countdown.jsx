@@ -117,7 +117,7 @@ const CalendarPad = ({ value, label, delay, palette, isMobile, largeText = false
                     style={{
                         fontSize: isMobile ? (largeText ? '1.75rem' : '1.5rem') : (largeText ? '3.72rem' : '3.4rem'),
                         fontFamily: 'Sniglet, var(--font-hand)',
-                        fontWeight: 'bold',
+                        fontWeight: '400',
                         color: palette.ink,
                         lineHeight: 1
                     }}

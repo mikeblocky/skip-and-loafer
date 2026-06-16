@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import PageLayout from '../components/shared/paper/PageLayout';
 import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap } from 'lucide-react';
 import { getAppLanguageOptions, APP_UI_TEXT } from '../config/appUiText';
 import {
@@ -7,6 +8,8 @@ import {
   createPaperPanelStyle,
   PAPER_FONT_FAMILY,
 } from '../components/shared/paper/paperTheme';
+import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 
 const PANEL_TITLE_STYLE = {
   display: 'flex',
@@ -145,6 +148,7 @@ const SettingsPage = ({
     { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals },
     { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors' },
     { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Comfortable dark mode' },
+    { key: 'hideStickers', label: 'Hide character stickers' },
   ];
 
   const readingOptions = accessibilityOptions.filter(o => ['largeText', 'largeControls', 'readableSpacing', 'underlineLinks'].includes(o.key));
@@ -283,15 +287,29 @@ const SettingsPage = ({
   };
 
   return (
-    <div style={{
-      width: '100%',
-      padding: isMobile ? '16px 14px 60px' : '24px 40px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '28px',
-      boxSizing: 'border-box',
-      fontFamily: 'var(--font-paper)',
-    }}>
+    <PageLayout isMobile={isMobile} style={{ fontFamily: 'var(--font-paper)' }}>
+
+      <PaperPageHeader
+        isMobile={isMobile}
+        center={(
+          <PaperHeadingBadge
+            isMobile={isMobile}
+            icon={Settings}
+            title="Settings"
+            palette={{
+              borderColor: '#818cf8',
+              bottomColor: '#4338ca',
+              shadow: '0 8px 18px rgba(129, 140, 248, 0.12)',
+            }}
+            titleColor="#818cf8"
+            iconColor="#818cf8"
+          />
+        )}
+        marginBottomMobile="0"
+        marginBottomDesktop="0"
+        paddingMobile="0 10px"
+        paddingDesktop="0"
+      />
 
       {/* Beautiful, Balanced Scrapbook Two-Column Grid Dashboard */}
       <div style={{
@@ -987,7 +1005,7 @@ const SettingsPage = ({
 
       </div>
 
-    </div>
+    </PageLayout>
   );
 };
 

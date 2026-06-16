@@ -19,8 +19,8 @@ const GalleryPageHeader = ({ isMobile, title }) => (
         iconColor="#8b5cf6"
       />
     )}
-    marginBottomMobile="20px"
-    marginBottomDesktop="32px"
+    marginBottomMobile="0"
+    marginBottomDesktop="0"
     gapMobile="16px"
     paddingMobile="0 10px"
     paddingDesktop="0"

@@ -177,7 +177,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
         <div
             style={{
                 width: '100%',
-                padding: isMobile ? '8px 12px 16px' : '28px 36px 20px',
+                padding: isMobile ? '20px 14px 72px' : '28px 40px',
                 minHeight: isMobile ? 'auto' : '620px',
                 display: 'flex',
                 flexDirection: 'column',

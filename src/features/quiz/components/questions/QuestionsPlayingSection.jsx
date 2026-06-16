@@ -61,7 +61,7 @@ const QuestionsPlayingSection = ({
     : { type: 'spring', stiffness: 500, damping: 12, mass: 1.2 };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, minHeight: 0, paddingBottom: isMobile ? '104px' : '40px', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: isMobile ? '104px' : '40px' }}>
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -224,12 +224,6 @@ const QuestionsPlayingSection = ({
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ type: 'spring', stiffness: 500, damping: 15 }}
             style={{
-              position: 'absolute',
-              bottom: isMobile ? '16px' : '10px',
-              left: 0,
-              width: '100%',
-              zIndex: 50,
-              margin: 0,
               fontFamily: 'var(--font-main)',
               fontWeight: '900',
               color: '#fff',

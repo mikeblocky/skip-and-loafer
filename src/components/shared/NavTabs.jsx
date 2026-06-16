@@ -1,24 +1,31 @@
 import { memo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Tv } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Users2 } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
 const DEFAULT_TABS = [
-    { id: 'home', label: 'Home', icon: Home, color: '#f45b93', textColor: '#be185d', desktopFlex: 1 },
-    { id: 'chapters', label: 'Chapters', icon: BookOpen, color: '#4d9cff', textColor: '#1d4ed8', desktopFlex: 1.18 },
-    { id: 'anime', label: 'Anime', mobileLabel: 'Anime', icon: Tv, color: '#e040fb', textColor: '#9c27b0', desktopFlex: 1 },
-    { id: 'gallery', label: 'Gallery', mobileLabel: 'Arts', icon: ImageIcon, color: '#7c4dff', textColor: '#6d28d9', desktopFlex: 1 },
-    { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan gallery', icon: ImagePlus, color: '#2563eb', textColor: '#1e40af', desktopFlex: 1.42 },
-    { id: 'sign', label: 'Sign', mobileLabel: 'Sign', icon: PenLine, color: '#f97316', textColor: '#c2410c', desktopFlex: 0.96 },
-    { id: 'blog', label: 'Blog', mobileLabel: 'Blog', icon: FileText, color: '#ff7a1a', textColor: '#b45309', desktopFlex: 1 },
-    { id: 'sync', label: 'Reading', mobileLabel: 'Reading', icon: BarChart3, color: '#38c972', textColor: '#15803d', desktopFlex: 1.16 },
-    { id: 'quiz', label: 'Quiz', mobileLabel: 'Quiz', icon: Trophy, color: '#ff5757', textColor: '#b91c1c', desktopFlex: 1 },
-    { id: 'birthdays', label: 'Birthdays', mobileLabel: 'Birthdays', icon: Cake, color: '#ffb11f', textColor: '#a16207', desktopFlex: 1.22 },
-    { id: 'mystery', label: 'Mystery', mobileLabel: 'Mystery', icon: Package, color: '#f472b6', textColor: '#be185d', desktopFlex: 1.12 },
-    { id: 'tutorial', label: 'Tutorial', mobileLabel: 'Guide', icon: HelpCircle, color: '#06b6d4', textColor: '#0891b2', desktopFlex: 1.05 },
-    { id: 'settings', label: 'Settings', mobileLabel: 'Settings', icon: Settings, color: '#818cf8', textColor: '#4338ca', desktopFlex: 1.1 },
+    { id: 'home',       label: 'Home',       icon: Home,      color: '#f45b93', textColor: '#be185d', group: 'main' },
+    { id: 'chapters',   label: 'Chapters',   icon: BookOpen,  color: '#4d9cff', textColor: '#1d4ed8', group: 'main' },
+    { id: 'gallery',    label: 'Gallery',    icon: ImageIcon, color: '#7c4dff', textColor: '#6d28d9', group: 'gallery' },
+    { id: 'fanGallery', label: 'Fan gallery', mobileLabel: 'Fan art', icon: ImagePlus, color: '#2563eb', textColor: '#1e40af', group: 'gallery' },
+    { id: 'sign',       label: 'Sign',       icon: PenLine,   color: '#f97316', textColor: '#c2410c', group: 'community' },
+    { id: 'community',  label: 'Community',  icon: Users2,    color: '#f97316', textColor: '#c2410c', group: 'gallery' },
+    { id: 'blog',       label: 'Blog',       icon: FileText,  color: '#ff7a1a', textColor: '#b45309', group: 'community' },
+    { id: 'sync',       label: 'Reading',    icon: BarChart3, color: '#38c972', textColor: '#15803d', group: 'community' },
+    { id: 'quiz',       label: 'Quiz',       icon: Trophy,    color: '#ff5757', textColor: '#b91c1c', group: 'activities' },
+    { id: 'mystery',    label: 'Mystery',    icon: Package,   color: '#f472b6', textColor: '#be185d', group: 'activities' },
+    { id: 'birthdays',  label: 'Birthdays',  icon: Cake,      color: '#ffb11f', textColor: '#a16207', group: 'activities' },
+    { id: 'tutorial',   label: 'Tutorial',   mobileLabel: 'Guide', icon: HelpCircle, color: '#06b6d4', textColor: '#0891b2', group: 'misc' },
+    { id: 'settings',   label: 'Settings',   icon: Settings,  color: '#818cf8', textColor: '#4338ca', group: 'misc' },
 ];
+
+const GROUP_LABELS = {
+    gallery:    'Gallery',
+    community:  'Community',
+    activities: 'Activities',
+    misc:       null, // just a divider
+};
 
 const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab', unreadCount = 0 }) => {
   const railRef = useRef(null);
@@ -54,9 +61,9 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
           bottom: 0,
           left: 0,
           right: 0,
-          background: 'rgba(255, 255, 255, 0.82)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(255, 255, 255, 0.94)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           borderTop: '1px solid rgba(15, 23, 42, 0.08)',
           boxShadow: '0 -8px 24px rgba(15, 23, 42, 0.06)',
           zIndex: 1000,
@@ -102,7 +109,9 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                   onClick={() => handleTabPress(tab.id)}
                   aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
                   aria-current={isActive ? 'page' : undefined}
-                  whileTap={{ scale: 0.94 }}
+                  whileHover={{ scale: 1.06, y: -2, rotate: 1 }}
+                  whileTap={{ scale: 0.88, rotate: -2, y: 2 }}
+                  transition={{ type: 'spring', stiffness: 550, damping: 14 }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -146,103 +155,105 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
     );
   }
 
-  // Elegant Desktop Vertical Solid Notebook Cover Sidebar — fills full height
+  // Notebook Bookmark Sidebar — tabs look like physical paper dividers
+  const items = [];
+  tabsToRender.forEach((tab) => {
+    const isActive = activePage === tab.id;
+    const Icon = tab.icon;
+    const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);
+    const iconSize = 17;
+    items.push(
+      <motion.button
+        key={tab.id}
+        data-tab-id={tab.id}
+        data-active={isActive ? 'true' : 'false'}
+        onClick={() => handleTabPress(tab.id)}
+        aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
+        aria-current={isActive ? 'page' : undefined}
+        className="nav-bookmark-btn"
+        whileHover={{ x: 4, scale: 1.03, rotate: 0.5, boxShadow: `0 6px 18px ${tab.color}50` }}
+        whileTap={{ scale: 0.91, x: 2, rotate: -1 }}
+        transition={{ type: 'spring', stiffness: 480, damping: 16 }}
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flex: '1 1 0px',
+          minHeight: 0,
+          padding: '0 10px 0 8px',
+          background: isActive ? tab.color : `${tab.color}22`,
+          border: 'none',
+          borderLeft: `5px solid ${tab.color}`,
+          borderBottom: isActive ? `3px solid ${tab.textColor}` : `2px solid ${tab.color}55`,
+          borderRadius: '10px 0 0 10px',
+          cursor: 'pointer',
+          fontFamily: 'Sniglet, var(--font-main)',
+          fontSize: '0.84rem',
+          lineHeight: 1.2,
+          fontWeight: isActive ? '700' : '600',
+          color: isActive ? '#ffffff' : tab.textColor,
+          boxShadow: isActive
+            ? `0 4px 14px ${tab.color}40`
+            : `0 1px 4px ${tab.color}18`,
+          width: 'calc(100% + 32px)',
+          textAlign: 'left',
+          overflow: 'visible',
+        }}
+      >
+        <motion.span
+          style={{ display: 'inline-flex', alignItems: 'center', color: isActive ? '#ffffff' : tab.color, flexShrink: 0 }}
+          animate={isActive ? { rotate: [0, -8, 6, -3, 0], scale: [1, 1.2, 1.05, 1.1, 1] } : {}}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          <Icon size={iconSize} strokeWidth={isActive ? 2.6 : 2.2} />
+        </motion.span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {label}
+        </span>
+        {isActive && (
+          <motion.span
+            initial={{ scale: 0, rotate: -20, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 14, delay: 0.05 }}
+            style={{
+              position: 'absolute',
+              right: -22,
+              top: '50%',
+              marginTop: -8,
+              fontSize: '13px',
+              pointerEvents: 'none',
+              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))',
+            }}
+          >
+            ✦
+          </motion.span>
+        )}
+      </motion.button>
+    );
+  });
+
   return (
     <div
       style={{
-        width: '232px',
+        width: '175px',
         flexShrink: 0,
         position: 'sticky',
-        top: '24px',
+        top: '16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '6px',
-        padding: '12px 14px',
+        gap: '5px',
+        padding: '10px 0 10px 16px',
         background: 'transparent',
         border: 'none',
         boxShadow: 'none',
         zIndex: 100,
         pointerEvents: 'auto',
-        minHeight: 'unset',
-        height: 'calc(100% - 24px)',
+        height: 'calc(100dvh - 154px)',
         overflow: 'visible',
       }}
     >
-      {tabsToRender.map((tab) => {
-        const isActive = activePage === tab.id;
-        const Icon = tab.icon;
-        const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);
-        const iconSize = 18;
-        return (
-          <motion.button
-            key={tab.id}
-            data-tab-id={tab.id}
-            onClick={() => handleTabPress(tab.id)}
-            aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
-            aria-current={isActive ? 'page' : undefined}
-            animate={{ x: isActive ? -18 : 0 }}
-            whileHover={{
-              x: isActive ? -22 : -8,
-              scale: 1.02,
-              opacity: 1,
-              background: isActive ? tab.color : `${tab.color}25`,
-              border: `3px solid ${tab.color}`,
-              borderRight: isActive ? 'none' : `3px solid ${tab.color}88`,
-              borderBottom: isActive ? `5px solid ${tab.textColor}` : `5px solid var(--themed-nav-border-bottom-hover, ${tab.textColor}88)`,
-              boxShadow: isActive 
-                ? `0 8px 24px ${tab.color}40, 0 0 16px ${tab.color}20`
-                : `0 6px 16px ${tab.color}18, 0 0 8px ${tab.color}0c`
-            }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            style={{
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              flex: '1 1 0px',
-              minHeight: 0,
-              padding: '6px 14px',
-              background: isActive ? tab.color : `${tab.color}15`,
-              border: `3px solid ${isActive ? tab.color : tab.color + '50'}`,
-              borderRight: isActive ? 'none' : `3px solid ${tab.color}40`,
-              borderBottom: isActive
-                ? `5px solid ${tab.textColor}`
-                : `5px solid var(--themed-nav-border-bottom, ${tab.textColor}40)`,
-              borderRadius: isActive ? '16px 0 0 16px' : '16px 6px 6px 16px',
-              cursor: 'pointer',
-              fontFamily: 'Sniglet, var(--font-main)',
-              fontSize: '0.94rem',
-              lineHeight: 1.2,
-              fontWeight: isActive ? '700' : '600',
-              color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
-              opacity: isActive ? 1 : 0.82,
-              boxShadow: isActive 
-                ? `0 6px 18px ${tab.color}30` 
-                : `0 2px 6px ${tab.color}0c`,
-              width: 'calc(100% + 48px)',
-              textAlign: 'left',
-              overflow: 'visible',
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: isActive ? '#ffffff' : `var(--themed-nav-text, ${tab.textColor})`,
-                flexShrink: 0,
-              }}
-            >
-              <Icon size={iconSize} strokeWidth={2.4} />
-            </span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {label}
-            </span>
-
-          </motion.button>
-        );
-      })}
+      {items}
     </div>
   );
 };
