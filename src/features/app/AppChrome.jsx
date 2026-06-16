@@ -100,6 +100,29 @@ const AppChrome = ({ app }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (app.uiLanguage === 'ja') {
+      let styleEl = document.getElementById('japanese-fonts-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'japanese-fonts-style';
+        styleEl.textContent = `
+          @font-face {
+            font-family: 'Keiji';
+            src: url('/Kei_Ji.woff2') format('woff2');
+            font-display: swap;
+          }
+          @font-face {
+            font-family: 'Keiji_P';
+            src: url('/Kei_Ji-P.woff2') format('woff2');
+            font-display: swap;
+          }
+        `;
+        document.head.appendChild(styleEl);
+      }
+    }
+  }, [app.uiLanguage]);
+
   return (
     <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
       <div className="app-surface-shell" style={shellViewportStyle}>
@@ -161,7 +184,7 @@ const AppChrome = ({ app }) => {
             accessibilityPrefs={app.accessibilityPrefs}
             isMobile={app.isMobile}
             activePage={app.activePage}
-            showCharacterStickers={false}
+            showCharacterStickers={!app.accessibilityPrefs.hideStickers}
             showCoverCards={false}
             handlePositionUpdate={app.handlePositionUpdate}
             stickerPositions={app.stickerPositions}
@@ -192,7 +215,7 @@ const AppChrome = ({ app }) => {
               overscrollBehaviorY: 'contain',
               padding: app.isMobile
                 ? 'env(safe-area-inset-top, 0px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0'
-                : '24px 18px',
+                : '16px 48px 10px',
               pointerEvents: 'auto',
             }}
             initial={{ opacity: 0, y: 10 }}
@@ -240,13 +263,13 @@ const AppChrome = ({ app }) => {
                 width: '100%',
                 maxWidth: app.isMobile
                   ? '100%'
-                  : (app.accessibilityPrefs.largeText ? '1380px' : '1320px'),
-                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 48px)',
-                height: app.isMobile ? 'auto' : 'calc(100dvh - 48px)',
+                  : (app.accessibilityPrefs.largeText ? '1240px' : '1140px'),
+                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 42px)',
+                height: app.isMobile ? 'auto' : 'calc(100dvh - 42px)',
                 display: 'flex',
                 flexDirection: app.isMobile ? 'column' : 'row',
                 alignItems: 'stretch',
-                gap: '0px',
+                gap: '10px',
                 pointerEvents: 'auto',
                 flex: '1 0 auto',
                 flexShrink: 0,

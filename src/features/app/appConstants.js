@@ -17,15 +17,12 @@ export const TAB_PAGES = [
   'chapters',
   ...(isAnimeTabActive() ? ['anime'] : []),
   'gallery',
-  'fanGallery',
-  'sign',
+  'community',
   'blog',
-  'sync',
   'quiz',
-  'birthdays',
   'mystery',
-  'tutorial',
-  'settings'
+  'birthdays',
+  'settings',
 ];
 export const DEFAULT_PAGE = TAB_PAGES[0];
 export const JAPANESE_HIDDEN_TAB_PAGES = ['gallery', 'blog'];

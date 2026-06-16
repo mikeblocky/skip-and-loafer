@@ -63,145 +63,166 @@ const SignNotesBoard = ({
   onTouchMove,
   onTouchEnd,
   onWheel,
-}) => (
-  <div
-    style={{
-      columns: isMobile ? 2 : 3,
-      columnGap: isMobile ? '10px' : '14px',
-      marginTop: isMobile ? '14px' : '20px',
-      minHeight: noteBoardMinHeight,
-      paddingBottom: '8px',
-      position: 'relative',
-      overflow: 'visible',
-      opacity: isResettingCanvas ? 0.26 : 1,
-      transform: isResettingCanvas ? 'translateY(8px) scale(0.992)' : 'translateY(0) scale(1)',
-      transition: 'opacity 180ms ease, transform 180ms ease',
-      pointerEvents: isResettingCanvas ? 'none' : 'auto',
-    }}
-    ref={notesBoardRef}
-  >
-    {!isLoading && entries.length === 0 && (
-      <CommunityEmptyState message={emptyMessage} />
-    )}
+}) => {
+  const colsCount = isMobile ? 2 : 3;
+  const columns = Array.from({ length: colsCount }, () => []);
+  entries.forEach((entry, idx) => {
+    columns[idx % colsCount].push({ entry, originalIndex: idx });
+  });
 
-    <AnimatePresence initial={false}>
-      {entries.map((entry, index) => {
-        const palette = NOTE_PALETTES[index % NOTE_PALETTES.length];
-        const stackLayout = getEntryStackLayout(entry, index);
-        const gesture = noteGestures[entry.id] || { scale: 1, rotate: 0 };
-        const cardDragConstraints = isMobile ? undefined : noteDragConstraints;
-        const washiColor = ['pink', 'blue', 'yellow'][index % 3];
-        const isLeft = index % 2 === 0;
-
-        return (
-          <motion.article
-            key={`${entry.id}-${canvasResetVersion}`}
-            data-no-tab-swipe="1"
-            drag
-            dragConstraints={cardDragConstraints}
-            dragElastic={isMobile ? 0.82 : 0.16}
-            dragMomentum={false}
-            onDragStart={() => onDragStart(entry.id)}
-            onDragEnd={() => onDragEnd(entry.id)}
-            whileDrag={{ scale: 1.015, rotate: 0 }}
-            initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.25, rotate: stackLayout.rotate - 0.45, scale: 0.985 }}
-            animate={{
-              opacity: 1,
-              y: stackLayout.offsetY,
-              x: isMobile ? stackLayout.offsetX * 0.18 : stackLayout.offsetX * 0.45,
-              rotate: isMobile ? stackLayout.rotate * 0.15 : stackLayout.rotate * 0.45,
-              scale: 1,
-            }}
-            exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            transition={{
-              layout: { duration: 0.26, ease: 'easeOut' },
-              opacity: { duration: 0.22, ease: 'easeOut' },
-              y: { duration: 0.22, ease: 'easeOut' },
-              scale: { duration: 0.22, ease: 'easeOut' },
-              delay: Math.min(index * 0.03, 0.18),
-            }}
+  return (
+    <div
+      style={{
+        display: entries.length === 0 ? 'block' : 'flex',
+        gap: isMobile ? '10px' : '14px',
+        marginTop: isMobile ? '14px' : '20px',
+        minHeight: noteBoardMinHeight,
+        paddingBottom: '8px',
+        position: 'relative',
+        overflow: 'visible',
+        opacity: isResettingCanvas ? 0.26 : 1,
+        transform: isResettingCanvas ? 'translateY(8px) scale(0.992)' : 'translateY(0) scale(1)',
+        transition: 'opacity 180ms ease, transform 180ms ease',
+        pointerEvents: isResettingCanvas ? 'none' : 'auto',
+        width: '100%',
+      }}
+      ref={notesBoardRef}
+    >
+      {!isLoading && entries.length === 0 ? (
+        <CommunityEmptyState message={emptyMessage} />
+      ) : (
+        columns.map((columnEntries, colIdx) => (
+          <div
+            key={colIdx}
             style={{
-              breakInside: 'avoid',
-              maxWidth: '100%',
-              marginBottom: isMobile ? '20px' : '26px',
-              position: 'relative',
-              zIndex: activeDraggedId === entry.id
-                ? 1000
-                : (stackOrderIndex[entry.id] || entries.length - index),
-              cursor: 'grab',
-              touchAction: 'none',
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              boxShadow: 'none',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: isMobile ? '20px' : '26px',
+              minWidth: 0,
             }}
           >
-            {/* Corner washi tape accent for the message note */}
-            <div
-              className={`washi-tape washi-tape--${washiColor}`}
-              style={{
-                top: '-6px',
-                left: isLeft ? '14px' : 'auto',
-                right: isLeft ? 'auto' : '14px',
-                transform: `rotate(${isLeft ? -12 : 12}deg)`,
-                width: '66px',
-                height: '18px',
-                zIndex: 10,
-              }}
-            />
+            <AnimatePresence initial={false}>
+              {columnEntries.map(({ entry, originalIndex }) => {
+                const palette = NOTE_PALETTES[originalIndex % NOTE_PALETTES.length];
+                const stackLayout = getEntryStackLayout(entry, originalIndex);
+                const gesture = noteGestures[entry.id] || { scale: 1, rotate: 0 };
+                const cardDragConstraints = isMobile ? undefined : noteDragConstraints;
+                const washiColor = ['pink', 'blue', 'yellow'][originalIndex % 3];
+                const isLeft = originalIndex % 2 === 0;
 
-            <div
-              className="sketchbook-border"
-              style={{
-                ...createPaperPanelStyle({
-                  background: palette.background, // Use card's background instead of hardcoded white
-                  borderColor: palette.border,
-                  bottomColor: palette.bottom,
-                  radius: '28px',
-                  shadow: `0 14px 26px ${palette.shadow || 'rgba(15, 23, 42, 0.1)'}`,
-                }),
-                padding: isMobile ? '14px 14px 12px' : '18px 20px 16px',
-                display: 'grid',
-                gap: isMobile ? '8px' : '10px',
-                transform: `translateZ(0) scale(${gesture.scale}) rotate(${gesture.rotate}deg)`,
-                transformOrigin: 'center center',
-                willChange: 'transform',
-                transition: 'transform 120ms ease-out',
-              }}
-              onTouchStart={(event) => onTouchStart(entry.id, event)}
-              onTouchMove={(event) => onTouchMove(entry.id, event)}
-              onTouchEnd={(event) => onTouchEnd(entry.id, event)}
-              onTouchCancel={(event) => onTouchEnd(entry.id, event)}
-              onWheel={(event) => onWheel(entry.id, event)}
-            >
-              <div style={{ display: 'grid', gap: '8px' }}>
-                <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: isMobile ? '0.95rem' : '1rem', color: palette.accent, lineHeight: 1, fontWeight: '400' }}>
-                  {entry.name}
-                </span>
-                <p style={{ margin: 0, color: 'var(--text-secondary, #334155)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.95rem' : '1rem' }}>
-                  {entry.message}
-                </p>
-              </div>
+                return (
+                  <motion.article
+                    key={`${entry.id}-${canvasResetVersion}`}
+                    data-no-tab-swipe="1"
+                    layout
+                    drag
+                    dragConstraints={cardDragConstraints}
+                    dragElastic={isMobile ? 0.82 : 0.16}
+                    dragMomentum={false}
+                    onDragStart={() => onDragStart(entry.id)}
+                    onDragEnd={() => onDragEnd(entry.id)}
+                    whileDrag={{ scale: 1.015, rotate: 0 }}
+                    initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.25, rotate: stackLayout.rotate - 0.45, scale: 0.985 }}
+                    animate={{
+                      opacity: 1,
+                      y: stackLayout.offsetY,
+                      x: isMobile ? stackLayout.offsetX * 0.18 : stackLayout.offsetX * 0.45,
+                      rotate: isMobile ? stackLayout.rotate * 0.15 : stackLayout.rotate * 0.45,
+                      scale: 1,
+                    }}
+                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                    transition={{
+                      layout: { duration: 0.26, ease: 'easeOut' },
+                      opacity: { duration: 0.22, ease: 'easeOut' },
+                      y: { duration: 0.22, ease: 'easeOut' },
+                      scale: { duration: 0.22, ease: 'easeOut' },
+                      delay: Math.min(originalIndex * 0.03, 0.18),
+                    }}
+                    style={{
+                      maxWidth: '100%',
+                      position: 'relative',
+                      zIndex: activeDraggedId === entry.id
+                        ? 1000
+                        : (stackOrderIndex[entry.id] || entries.length - originalIndex),
+                      cursor: 'grab',
+                      touchAction: 'none',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 0,
+                      boxShadow: 'none',
+                    }}
+                  >
+                    {/* Corner washi tape accent for the message note */}
+                    <div
+                      className={`washi-tape washi-tape--${washiColor}`}
+                      style={{
+                        top: '-6px',
+                        left: isLeft ? '14px' : 'auto',
+                        right: isLeft ? 'auto' : '14px',
+                        transform: `rotate(${isLeft ? -12 : 12}deg)`,
+                        width: '66px',
+                        height: '18px',
+                        zIndex: 10,
+                      }}
+                    />
 
-              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <span
-                  className="sketchbook-border"
-                  style={createCommunityTimestampStyle({
-                    borderColor: palette.border,
-                    bottomColor: palette.bottom,
-                    background: 'var(--surface-card, #ffffff)',
-                    color: palette.accent,
-                  })}
-                >
-                  {formatCommunityTimestamp(entry.createdAt, uiLanguage)}
-                </span>
-              </div>
-            </div>
-          </motion.article>
-        );
-      })}
-    </AnimatePresence>
-  </div>
-);
+                    <div
+                      className="sketchbook-border"
+                      style={{
+                        ...createPaperPanelStyle({
+                          background: palette.background, // Use card's background instead of hardcoded white
+                          borderColor: palette.border,
+                          bottomColor: palette.bottom,
+                          radius: '28px',
+                          shadow: `0 14px 26px ${palette.shadow || 'rgba(15, 23, 42, 0.1)'}`,
+                        }),
+                        padding: isMobile ? '14px 14px 12px' : '18px 20px 16px',
+                        display: 'grid',
+                        gap: isMobile ? '8px' : '10px',
+                        transform: `translateZ(0) scale(${gesture.scale}) rotate(${gesture.rotate}deg)`,
+                        transformOrigin: 'center center',
+                        willChange: 'transform',
+                        transition: 'transform 120ms ease-out',
+                      }}
+                      onTouchStart={(event) => onTouchStart(entry.id, event)}
+                      onTouchMove={(event) => onTouchMove(entry.id, event)}
+                      onTouchEnd={(event) => onTouchEnd(entry.id, event)}
+                      onTouchCancel={(event) => onTouchEnd(entry.id, event)}
+                      onWheel={(event) => onWheel(entry.id, event)}
+                    >
+                      <div style={{ display: 'grid', gap: '8px' }}>
+                        <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: isMobile ? '0.95rem' : '1rem', color: palette.accent, lineHeight: 1, fontWeight: '400' }}>
+                          {entry.name}
+                        </span>
+                        <p style={{ margin: 0, color: 'var(--text-secondary, #334155)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.95rem' : '1rem' }}>
+                          {entry.message}
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <span
+                          className="sketchbook-border"
+                          style={createCommunityTimestampStyle({
+                            borderColor: palette.border,
+                            bottomColor: palette.bottom,
+                            background: 'var(--surface-card, #ffffff)',
+                            color: palette.accent,
+                          })}
+                        >
+                          {formatCommunityTimestamp(entry.createdAt, uiLanguage)}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
 
 export default memo(SignNotesBoard);

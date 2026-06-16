@@ -68,184 +68,205 @@ const FanGalleryBoard = ({
   onTouchEnd,
   onWheel,
   onSelectEntry,
-}) => (
-  <div
-    style={{
-      columns: isMobile ? 2 : 3,
-      columnGap: isMobile ? '6px' : '20px',
-      marginTop: isMobile ? '12px' : '16px',
-      minHeight: galleryBoardMinHeight,
-      paddingBottom: '8px',
-      position: 'relative',
-      opacity: isResettingCanvas ? 0.22 : 1,
-      transform: isResettingCanvas ? 'translateY(8px) scale(0.992)' : 'translateY(0) scale(1)',
-      transition: 'opacity 180ms ease, transform 180ms ease',
-      pointerEvents: isResettingCanvas ? 'none' : 'auto',
-    }}
-    ref={galleryBoardRef}
-  >
-    {!isLoading && entries.length === 0 && (
-      <CommunityEmptyState message={emptyMessage} />
-    )}
+}) => {
+  const colsCount = isMobile ? 2 : 3;
+  const columns = Array.from({ length: colsCount }, () => []);
+  entries.forEach((entry, idx) => {
+    columns[idx % colsCount].push({ entry, originalIndex: idx });
+  });
 
-    <AnimatePresence initial={false}>
-      {entries.map((entry, index) => {
-        const palette = CARD_PALETTES[index % CARD_PALETTES.length];
-        const stackLayout = getEntryStackLayout(entry, index);
-        const origin = stackLayout.offsetX < 0 ? 'left top' : 'right top';
-        const gesture = galleryGestures[entry.id] || { scale: 1, rotate: 0 };
-        const cardDragConstraints = isMobile ? undefined : galleryDragConstraints;
-        const washiColor = ['pink', 'blue', 'yellow'][index % 3];
-
-        return (
-          <motion.article
-            key={`${entry.id}-${canvasResetVersion}`}
-            data-no-tab-swipe="1"
-            drag
-            dragConstraints={cardDragConstraints}
-            dragElastic={isMobile ? 0.82 : 0.16}
-            dragMomentum={false}
-            onDragStart={() => onDragStart(entry.id)}
-            onDragEnd={() => onDragEnd(entry.id)}
-            whileDrag={{ scale: 1.015, rotate: 0 }}
-            initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.24, rotate: stackLayout.rotate - 0.4, scale: 0.985 }}
-            animate={{ opacity: 1, y: stackLayout.offsetY, x: isMobile ? stackLayout.offsetX * 0.32 : stackLayout.offsetX * 0.42, rotate: isMobile ? stackLayout.rotate * 0.32 : stackLayout.rotate * 0.42, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            transition={{
-              layout: { duration: 0.26, ease: 'easeOut' },
-              opacity: { duration: 0.22, ease: 'easeOut' },
-              y: { duration: 0.22, ease: 'easeOut' },
-              scale: { duration: 0.22, ease: 'easeOut' },
-              delay: Math.min(index * 0.025, 0.18),
-            }}
+  return (
+    <div
+      style={{
+        display: entries.length === 0 ? 'block' : 'flex',
+        gap: isMobile ? '6px' : '20px',
+        marginTop: isMobile ? '12px' : '16px',
+        minHeight: galleryBoardMinHeight,
+        paddingBottom: '8px',
+        position: 'relative',
+        opacity: isResettingCanvas ? 0.22 : 1,
+        transform: isResettingCanvas ? 'translateY(8px) scale(0.992)' : 'translateY(0) scale(1)',
+        transition: 'opacity 180ms ease, transform 180ms ease',
+        pointerEvents: isResettingCanvas ? 'none' : 'auto',
+        width: '100%',
+      }}
+      ref={galleryBoardRef}
+    >
+      {!isLoading && entries.length === 0 ? (
+        <CommunityEmptyState message={emptyMessage} />
+      ) : (
+        columns.map((columnEntries, colIdx) => (
+          <div
+            key={colIdx}
             style={{
-              breakInside: 'avoid',
-              maxWidth: '100%',
-              marginBottom: isMobile ? '20px' : '28px',
-              position: 'relative',
-              zIndex: activeDraggedId === entry.id
-                ? 1000
-                : (stackOrderIndex[entry.id] || entries.length - index),
-              cursor: 'grab',
-              touchAction: 'none',
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              boxShadow: 'none',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: isMobile ? '20px' : '28px',
+              minWidth: 0,
             }}
           >
-            {/* Scrapbook polaroid washi tape holding the card */}
-            <div
-              className={`washi-tape washi-tape--${washiColor}`}
-              style={{
-                top: '-8px',
-                left: '50%',
-                transform: `translateX(-50%) rotate(${(index % 2 === 0 ? -4 : 4) + (stackLayout.rotate * 0.12)}deg)`,
-                width: '74px',
-                height: '18px',
-                zIndex: 10,
-              }}
-            />
+            <AnimatePresence initial={false}>
+              {columnEntries.map(({ entry, originalIndex }) => {
+                const palette = CARD_PALETTES[originalIndex % CARD_PALETTES.length];
+                const stackLayout = getEntryStackLayout(entry, originalIndex);
+                const origin = stackLayout.offsetX < 0 ? 'left top' : 'right top';
+                const gesture = galleryGestures[entry.id] || { scale: 1, rotate: 0 };
+                const cardDragConstraints = isMobile ? undefined : galleryDragConstraints;
+                const washiColor = ['pink', 'blue', 'yellow'][originalIndex % 3];
 
-            <div
-              className="sketchbook-border"
-              style={{
-                ...createPaperPanelStyle({
-                  background: palette.frame,
-                  borderColor: palette.border,
-                  bottomColor: palette.bottom,
-                  radius: '28px',
-                  shadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
-                }),
-                padding: isMobile ? '12px' : '16px',
-                display: 'grid',
-                gap: isMobile ? '10px' : '12px',
-                transformOrigin: 'center center',
-                transform: `translateZ(0) scale(${gesture.scale}) rotate(${gesture.rotate}deg)`,
-                willChange: 'transform',
-                transition: 'transform 120ms ease-out',
-              }}
-              onTouchStart={(event) => onTouchStart(entry.id, event)}
-              onTouchMove={(event) => onTouchMove(entry.id, event)}
-              onTouchEnd={(event) => onTouchEnd(entry.id, event)}
-              onTouchCancel={(event) => onTouchEnd(entry.id, event)}
-              onWheel={(event) => onWheel(entry.id, event)}
-            >
-              <button
-                className="app-tactile sketchbook-border"
-                type="button"
-                onClick={() => onSelectEntry(entry.id, entry.imageDataUrl)}
-                style={{
-                  border: 'none',
-                  background: 'var(--surface-card, #ffffff)',
-                  padding: 0,
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  width: '100%',
-                  maxWidth: '100%',
-                  boxShadow: 'inset 0 0 0 2px var(--surface-card, rgba(255,255,255,0.95))',
-                  transform: `rotate(${stackLayout.imageTilt * 0.4}deg)`,
-                  transformOrigin: origin,
-                }}
-              >
-                <img
-                  className="sketchbook-border"
-                  src={entry.imageDataUrl}
-                  alt={entry.description || entry.name || 'Gallery item'}
-                  loading="lazy"
-                  decoding="async"
-                  fetchPriority="low"
-                  style={{
-                    width: '100%',
-                    display: 'block',
-                    maxWidth: '100%',
-                    background: '#f8fafc',
-                    objectFit: 'cover',
-                    userSelect: 'none',
-                    WebkitUserDrag: 'none',
-                    pointerEvents: activeGalleryGestureId === entry.id ? 'none' : 'auto',
-                    transform: `rotate(${(isMobile ? stackLayout.imageTilt * 0.35 : stackLayout.imageTilt * 0.4) * -0.35}deg)`,
-                  }}
-                  draggable={false}
-                />
-              </button>
-
-              <div style={{ display: 'grid', gap: '6px' }}>
-                {(entry.name || entry.description) && (
-                  <div style={{ display: 'grid', gap: '4px' }}>
-                    {entry.name && (
-                      <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: palette.label, fontSize: isMobile ? '0.95rem' : '1.02rem', lineHeight: 1.2, fontWeight: '400' }}>
-                        {entry.name}
-                      </span>
-                    )}
-                    {entry.description && (
-                      <p style={{ margin: 0, color: 'var(--text-secondary, #475569)', lineHeight: 1.5, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.9rem' : '0.98rem' }}>
-                        {entry.description}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <span
-                    className="sketchbook-border"
-                    style={createCommunityTimestampStyle({
-                      borderColor: palette.border,
-                      bottomColor: palette.bottom,
-                      background: 'var(--surface-card, #ffffff)',
-                      color: palette.label,
-                    })}
+                return (
+                  <motion.article
+                    key={`${entry.id}-${canvasResetVersion}`}
+                    data-no-tab-swipe="1"
+                    layout
+                    drag
+                    dragConstraints={cardDragConstraints}
+                    dragElastic={isMobile ? 0.82 : 0.16}
+                    dragMomentum={false}
+                    onDragStart={() => onDragStart(entry.id)}
+                    onDragEnd={() => onDragEnd(entry.id)}
+                    whileDrag={{ scale: 1.015, rotate: 0 }}
+                    initial={{ opacity: 0, y: 18, x: stackLayout.offsetX * 0.24, rotate: stackLayout.rotate - 0.4, scale: 0.985 }}
+                    animate={{ opacity: 1, y: stackLayout.offsetY, x: isMobile ? stackLayout.offsetX * 0.32 : stackLayout.offsetX * 0.42, rotate: isMobile ? stackLayout.rotate * 0.32 : stackLayout.rotate * 0.42, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                    transition={{
+                      layout: { duration: 0.26, ease: 'easeOut' },
+                      opacity: { duration: 0.22, ease: 'easeOut' },
+                      y: { duration: 0.22, ease: 'easeOut' },
+                      scale: { duration: 0.22, ease: 'easeOut' },
+                      delay: Math.min(originalIndex * 0.025, 0.18),
+                    }}
+                    style={{
+                      maxWidth: '100%',
+                      position: 'relative',
+                      zIndex: activeDraggedId === entry.id
+                        ? 1000
+                        : (stackOrderIndex[entry.id] || entries.length - originalIndex),
+                      cursor: 'grab',
+                      touchAction: 'none',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 0,
+                      boxShadow: 'none',
+                    }}
                   >
-                    {formatCommunityTimestamp(entry.createdAt, uiLanguage)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.article>
-        );
-      })}
-    </AnimatePresence>
-  </div>
-);
+                    {/* Scrapbook polaroid washi tape holding the card */}
+                    <div
+                      className={`washi-tape washi-tape--${washiColor}`}
+                      style={{
+                        top: '-8px',
+                        left: '50%',
+                        transform: `translateX(-50%) rotate(${(originalIndex % 2 === 0 ? -4 : 4) + (stackLayout.rotate * 0.12)}deg)`,
+                        width: '74px',
+                        height: '18px',
+                        zIndex: 10,
+                      }}
+                    />
+
+                    <div
+                      className="sketchbook-border"
+                      style={{
+                        ...createPaperPanelStyle({
+                          background: palette.frame,
+                          borderColor: palette.border,
+                          bottomColor: palette.bottom,
+                          radius: '28px',
+                          shadow: `0 16px 28px ${palette.shadow}, 0 4px 10px rgba(15,23,42,0.09)`,
+                        }),
+                        padding: isMobile ? '12px' : '16px',
+                        display: 'grid',
+                        gap: isMobile ? '10px' : '12px',
+                        transformOrigin: 'center center',
+                        transform: `translateZ(0) scale(${gesture.scale}) rotate(${gesture.rotate}deg)`,
+                        willChange: 'transform',
+                        transition: 'transform 120ms ease-out',
+                      }}
+                      onTouchStart={(event) => onTouchStart(entry.id, event)}
+                      onTouchMove={(event) => onTouchMove(entry.id, event)}
+                      onTouchEnd={(event) => onTouchEnd(entry.id, event)}
+                      onTouchCancel={(event) => onTouchEnd(entry.id, event)}
+                      onWheel={(event) => onWheel(entry.id, event)}
+                    >
+                      <button
+                        className="app-tactile sketchbook-border"
+                        type="button"
+                        onClick={() => onSelectEntry(entry.id, entry.imageDataUrl)}
+                        style={{
+                          border: 'none',
+                          background: 'var(--surface-card, #ffffff)',
+                          padding: 0,
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          width: '100%',
+                          maxWidth: '100%',
+                          boxShadow: 'inset 0 0 0 2px var(--surface-card, rgba(255,255,255,0.95))',
+                          transform: `rotate(${stackLayout.imageTilt * 0.4}deg)`,
+                          transformOrigin: origin,
+                        }}
+                      >
+                        <img
+                          className="sketchbook-border"
+                          src={entry.imageDataUrl}
+                          alt={entry.description || entry.name || 'Gallery item'}
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
+                          style={{
+                            width: '100%',
+                            display: 'block',
+                            maxWidth: '100%',
+                            background: '#f8fafc',
+                            objectFit: 'cover',
+                            userSelect: 'none',
+                            WebkitUserDrag: 'none',
+                            pointerEvents: activeGalleryGestureId === entry.id ? 'none' : 'auto',
+                            transform: `rotate(${(isMobile ? stackLayout.imageTilt * 0.35 : stackLayout.imageTilt * 0.4) * -0.35}deg)`,
+                          }}
+                          draggable={false}
+                        />
+                      </button>
+
+                      <div style={{ display: 'grid', gap: '6px' }}>
+                        {(entry.name || entry.description) && (
+                          <div style={{ display: 'grid', gap: '4px' }}>
+                            {entry.name && (
+                              <span style={{ fontFamily: COMMUNITY_FONT_FAMILY, color: palette.label, fontSize: isMobile ? '0.95rem' : '1.02rem', lineHeight: 1.2, fontWeight: '400' }}>
+                                {entry.name}
+                              </span>
+                            )}
+                            {entry.description && (
+                              <p style={{ margin: 0, color: 'var(--text-secondary, #475569)', lineHeight: 1.5, whiteSpace: 'pre-wrap', fontSize: isMobile ? '0.9rem' : '0.98rem' }}>
+                                {entry.description}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                          <span
+                            className="sketchbook-border"
+                            style={createCommunityTimestampStyle({
+                              borderColor: palette.border,
+                              bottomColor: palette.bottom,
+                              background: 'var(--surface-card, #ffffff)',
+                              color: palette.label,
+                            })}
+                          >
+                            {formatCommunityTimestamp(entry.createdAt, uiLanguage)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
 
 export default memo(FanGalleryBoard);

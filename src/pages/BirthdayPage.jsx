@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import PageLayout from '../components/shared/paper/PageLayout';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import APP_UI_TEXT_GLOBAL from '../config/appUiText';
 import BirthdayBackgroundDecor from '../features/birthday/BirthdayBackgroundDecor';
@@ -37,17 +38,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
   const featuredBirthday = todayBirthday || nextBirthday;
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: isMobile ? '20px 14px 60px' : '32px 40px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'visible',
-        position: 'relative',
-        boxSizing: 'border-box',
-      }}
-    >
+    <PageLayout isMobile={isMobile} gap={isMobile ? '16px' : '24px'}>
       <BirthdayHeader isMobile={isMobile} title={t.title} />
 
       <BirthdayFeaturedHero
@@ -97,7 +88,7 @@ const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simpl
         reduceMotion={reduceMotion}
         simplifyVisuals={simplifyVisuals}
       />
-    </div>
+    </PageLayout>
   );
 };
 

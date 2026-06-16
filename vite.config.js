@@ -642,8 +642,7 @@ function manualChunks(id) {
   if (
     id.includes('/react/') ||
     id.includes('/react-dom/') ||
-    id.includes('/scheduler/') ||
-    id.includes('/preact/')
+    id.includes('/scheduler/')
   ) {
     return 'vendor-react';
   }
@@ -654,15 +653,6 @@ function manualChunks(id) {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), localSyncApiPlugin()],
-  resolve: {
-    alias: {
-      'react': 'preact/compat',
-      'react-dom/test-utils': 'preact/test-utils',
-      'react-dom': 'preact/compat',
-      'react/jsx-runtime': 'preact/jsx-runtime',
-    },
-    dedupe: ['preact', 'preact/compat', 'react', 'react-dom'],
-  },
   build: {
     modulePreload: {
       resolveDependencies: () => [],

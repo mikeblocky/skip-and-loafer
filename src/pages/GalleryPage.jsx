@@ -1,5 +1,6 @@
 /* VITE_CACHE_BUST_3 */
 import React, { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PageLayout from '../components/shared/paper/PageLayout';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { UI_TEXT, TAB_LABELS, TABS } from '../features/gallery/galleryConfig';
@@ -200,18 +201,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   });
 
   return (
-    <div
-      style={{
-        width: '100%',
-        padding: isMobile ? '16px 8px 10px 8px' : '28px 40px',
-        minHeight: isMobile ? 'auto' : '600px',
-        display: 'flex',
-        flexDirection: 'column',
-        overflowX: 'hidden',
-        overflowY: 'visible',
-        flex: 1,
-      }}
-    >
+    <PageLayout isMobile={isMobile} style={{ minHeight: isMobile ? 'auto' : '600px' }}>
       <GalleryPageHeader
         isMobile={isMobile}
         title={t.header}
@@ -300,7 +290,7 @@ const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
           );
         })}
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

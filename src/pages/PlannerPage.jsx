@@ -145,11 +145,11 @@ const QuoteCard = ({ quote, isMobile, readableSpacing = false }) => {
       <p
         style={{
           margin: 0,
-          fontFamily: 'var(--font-main)',
+          fontFamily: 'var(--font-hand)',
           color: quoteTextColor,
           fontSize: isMobile ? '0.98rem' : '1.05rem',
           lineHeight: readableSpacing ? 1.7 : 1.55,
-          fontWeight: 'bold',
+          fontWeight: '400',
         }}
       >
         "{quote.text}"
@@ -158,10 +158,10 @@ const QuoteCard = ({ quote, isMobile, readableSpacing = false }) => {
         style={{
           margin: 0,
           textAlign: 'right',
-          fontFamily: 'Sniglet, var(--font-main)',
+          fontFamily: 'var(--font-hand)',
           color: quoteAuthorColor,
           fontSize: isMobile ? '0.92rem' : '1rem',
-          fontWeight: 'bold',
+          fontWeight: '400',
         }}
       >
         — {quote.author}

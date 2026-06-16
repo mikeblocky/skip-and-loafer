@@ -34,23 +34,7 @@ const PushPin = ({ color = '#ef4444' }) => (
 );
 
 // Transparent Washi Tape Component
-const WashiTape = ({ rotate = '-4deg', color = 'rgba(244, 114, 182, 0.35)' }) => (
-  <div style={{
-    position: 'absolute',
-    top: '-16px',
-    left: '50%',
-    transform: 'translateX(-50%) rotate(' + rotate + ')',
-    width: '90px',
-    height: '24px',
-    background: color,
-    backdropFilter: 'blur(1px)',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.03), inset 0 0 4px rgba(255,255,255,0.2)',
-    zIndex: 20,
-    pointerEvents: 'none',
-    borderLeft: '3px dashed rgba(0,0,0,0.08)',
-    borderRight: '3px dashed rgba(0,0,0,0.08)',
-  }} />
-);
+const WashiTape = ({ rotate = '-4deg', color = 'rgba(244, 114, 182, 0.35)' }) => null;
 
 // Coffee Spilled Stain Ring
 const CoffeeStain = () => (

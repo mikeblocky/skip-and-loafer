@@ -11,6 +11,8 @@ import { getWikiEntryExtras } from '../features/wiki/wikiEnhancements';
 import { WIKI_UI_TEXT } from '../features/wiki/wikiText';
 import { useWikiHistoryNavigation } from '../features/wiki/useWikiHistoryNavigation';
 import { IS_PRODUCTION_SERVER, PRODUCTION_WIKI_VISIBLE_ENTRY_IDS } from '../config/runtimeFlags';
+import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
+import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 
 const ImageLightbox = lazy(() => import('../components/shared/ImageLightbox'));
 
@@ -973,36 +975,42 @@ const WikiRootView = ({
   onSelectEntry,
 }) => (
   <div style={{ display: 'grid', gap: isMobile ? '18px' : '22px' }}>
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr',
-        alignItems: 'center',
-        gap: isMobile ? '16px' : '18px',
-      }}
-    >
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-        <span style={statPillStyle('#93c5fd', '#2563eb', '#1d4ed8', isMobile)}>
-          {categories.length} {t.categoriesLabel.toLowerCase()}
-        </span>
-        <span style={statPillStyle('#fbbf24', '#f59e0b', '#b45309', isMobile)}>
-          {totalEntries} {t.entriesLabel.toLowerCase()}
-        </span>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={mainPillStyle(isMobile)}>
-          <BookOpen size={isMobile ? 28 : 24} strokeWidth={2.5} />
-          <span>{t.header}</span>
+    <PaperPageHeader
+      isMobile={isMobile}
+      leftSlot={(
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+          <span style={statPillStyle('#93c5fd', '#2563eb', '#1d4ed8', isMobile)}>
+            {categories.length} {t.categoriesLabel.toLowerCase()}
+          </span>
+          <span style={statPillStyle('#fbbf24', '#f59e0b', '#b45309', isMobile)}>
+            {totalEntries} {t.entriesLabel.toLowerCase()}
+          </span>
         </div>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end' }}>
+      )}
+      center={(
+        <PaperHeadingBadge
+          isMobile={isMobile}
+          icon={BookOpen}
+          title={t.header}
+          palette={{
+            borderColor: '#0ea5e9',
+            bottomColor: '#0284c7',
+            shadow: '0 8px 18px rgba(14, 165, 233, 0.12)',
+          }}
+          titleColor="#0284c7"
+          iconColor="#0284c7"
+        />
+      )}
+      rightSlot={(
         <span style={statPillStyle('#a7f3d0', '#34d399', '#047857', isMobile)}>
           {t.browseLabel}
         </span>
-      </div>
-    </div>
+      )}
+      paddingMobile="0"
+      paddingDesktop="0"
+      marginBottomMobile="0"
+      marginBottomDesktop="0"
+    />
 
     <motion.div
       initial={{ opacity: 0, y: 18, rotate: -0.5 }}

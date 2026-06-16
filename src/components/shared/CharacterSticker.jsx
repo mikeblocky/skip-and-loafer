@@ -1,308 +1,337 @@
-/* eslint-disable no-unused-vars, react-hooks/purity */
 import { memo, useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { Star, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useVelocity, useTransform, animate } from 'framer-motion';
+import { Star, Sparkles, Heart, Zap, Music } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
-import { BREATHE, BREATHE_TRANSITION } from './animationPresets';
 
-const GENTLE_DRAG_TRANSITION = {
-    bounceStiffness: 120,
-    bounceDamping: 26,
-    power: 0.08,
-    timeConstant: 220,
+const SIZE = 140;
+
+const IDLE_CLASS = {
+    Mitsumi: 'idle-mitsumi',
+    Sousuke: 'idle-sousuke',
+    Mika:    'idle-mika',
+    Makoto:  'idle-makoto',
+    Yuzuki:  'idle-yuzuki',
 };
 
-const CharacterSticker = ({ character, isMobile, allPositions, onPositionUpdate, index, sidePreference, sideRank = 0, sideCount = 1, interactive = true }) => {
+const computeEdgePos = (windowW, windowH, sidePreference, sideRank, sideCount) => {
+    const isLeft = sidePreference !== 'right';
+    const x = isLeft ? 0 : windowW - SIZE;
+    const maxY = windowH - SIZE;
+    const safeCount = Math.max(1, sideCount);
+    let y;
+    if (safeCount === 1) {
+        y = maxY * 0.25 + Math.random() * maxY * 0.5;
+    } else {
+        const slot = maxY / safeCount;
+        const base = sideRank * slot;
+        y = base + slot * 0.1 + Math.random() * slot * 0.8;
+        y = Math.min(maxY, Math.max(0, y));
+    }
+    return { x, y, rot: Math.random() * 22 - 11 };
+};
+
+// Pre-compute per-sticker random entrance params so they're stable across renders
+const makeEntryParams = (edgePos, windowW) => ({
+    startY:   -(SIZE + 60 + Math.random() * 280),
+    startX:   edgePos.x + (Math.random() - 0.5) * 160,
+    startRot: (Math.random() - 0.5) * 80,  // -40 to +40 degrees tumble
+    driftX:   (Math.random() - 0.5) * 60,  // sideways air-resistance drift
+});
+
+const CharacterSticker = ({
+    character, isMobile, allPositions, onPositionUpdate,
+    index, sidePreference, sideRank = 0, sideCount = 1,
+}) => {
     const [showEffect, setShowEffect] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [bursts, setBursts] = useState([]);
     const stickerRef = useRef(null);
-    const size = interactive ? (isMobile ? 100 : 150) : (isMobile ? 82 : 112);
-    const dragX = useMotionValue(0);
-    const dragRotate = useTransform(dragX, [-200, 0, 200], [-8, 0, 8]);
-    const isSideLayoutPage = true;
 
-    // Random position and rotation on each page load
-    const randomPos = useMemo(() => {
-        const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-        const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-         
-        return {
-            x: isMobile ? Math.random() * (w - 120) : Math.random() * (w - 200),
-            y: isMobile ? 50 + Math.random() * (h - 200) : 50 + Math.random() * (h - 250),
-            rot: Math.random() * 30 - 15 // -15 to +15 degrees
-        };
-    }, [isMobile]);
+    const windowW = typeof window !== 'undefined' ? window.innerWidth  : 1280;
+    const windowH = typeof window !== 'undefined' ? window.innerHeight : 800;
 
-    // Edge position for side-layout pages
-    const edgePos = useMemo(() => {
-        const w = typeof window !== 'undefined' ? window.innerWidth : 1000;
-        const h = typeof window !== 'undefined' ? window.innerHeight : 800;
-        const pad = isMobile ? -20 : -10;
+    const edgePos = useMemo(
+        () => computeEdgePos(windowW, windowH, sidePreference, sideRank, sideCount),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [windowW, windowH, sidePreference, sideRank, sideCount],
+    );
 
-        let x = 0, y = 0;
+    // Stable random entrance params (computed once per mount)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const entry = useMemo(() => makeEntryParams(edgePos, windowW), []);
 
-        if (isMobile) {
-            // Top, Right, Bottom, Left based on index
-            const side = index % 4;
-            // eslint-disable-next-line react-hooks/purity
-            if (side === 0) { x = Math.random() * (w - size); y = pad; } // Top
-            else if (side === 1) { x = w - size - pad; y = Math.random() * (h - size); } // Right
-            else if (side === 2) { x = Math.random() * (w - size); y = h - size - pad; } // Bottom
-            else { x = pad; y = Math.random() * (h - size); } // Left
-        } else {
-            // Use balanced side assignment from App; fallback to random if unavailable
-            const side = sidePreference === 'left' ? 0 : sidePreference === 'right' ? 1 : (Math.random() < 0.5 ? 0 : 1);
-            // eslint-disable-next-line react-hooks/purity
-            if (side === 0) { x = pad; } // Left
-            else { x = w - size - pad; } // Right
+    // Position motion values — start at random entry point
+    const x = useMotionValue(entry.startX);
+    const y = useMotionValue(entry.startY);
 
-            const maxY = Math.max(0, h - size);
-            const safeCount = Math.max(1, sideCount);
-            const minGap = size * 0.5; // allow at most 50% overlap
+    // Rotation: single source of truth.
+    // manualRotate handles entrance tumble → rest angle.
+    // velTilt adds real-time lean from horizontal drag velocity.
+    const manualRotate = useMotionValue(entry.startRot);
+    const xVel = useVelocity(x);
+    // Paper tilts up to ±18° based on how fast you're moving it sideways
+    const velTilt = useTransform(xVel, [-900, 0, 900], [-18, 0, 18]);
+    const totalRotate = useTransform([manualRotate, velTilt], ([r, v]) => r + v);
 
-            if (safeCount === 1) {
-                y = Math.random() * maxY;
-            } else {
-                const baseGap = maxY / (safeCount - 1);
-                const baseY = Math.min(maxY, Math.max(0, sideRank * baseGap));
-                const jitterRoom = Math.max(0, (baseGap - minGap) / 2);
-                const jitter = (Math.random() * 2 - 1) * jitterRoom;
-                y = Math.min(maxY, Math.max(0, baseY + jitter));
-            }
-        }
+    // Paper-fall entrance: random position + tumbling rotation → spring to edge
+    useEffect(() => {
+        const delay = 80 + index * 200;
+        const timer = setTimeout(() => {
+            // y falls into place with a slight overshoot (paper landing)
+            animate(y, edgePos.y, {
+                type: 'spring',
+                stiffness: 90,
+                damping: 14,
+                mass: 1.4,
+            });
+            // x drifts sideways as it falls, then snaps to edge
+            animate(x, edgePos.x, {
+                type: 'spring',
+                stiffness: 110,
+                damping: 18,
+                mass: 1.0,
+                delay: 0.04,
+            });
+            // rotation tumbles and wobbles to rest angle
+            animate(manualRotate, edgePos.rot, {
+                type: 'spring',
+                stiffness: 70,
+                damping: 11,
+                mass: 1.2,
+            });
+        }, delay);
+        return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        // eslint-disable-next-line react-hooks/purity
-        return { x, y, rot: Math.random() * 40 - 20 };
-    }, [isMobile, index, size, sidePreference, sideRank, sideCount]);
-
-    // Always keep stickers at the side lanes on desktop
-    const targetPos = edgePos;
+    const triggerBurst = useCallback(() => {
+        triggerHaptic('success');
+        const list = ['✨', '🌸', '⭐', '🎈', '💖', '🍀', '🌈', '🍭', '🐾'];
+        const words = ['YAY!', 'SKIP!', 'LOAFER!', 'Cute!', 'Hehe!', 'Oh!', 'Yay!'];
+        const newBursts = Array.from({ length: 6 }).map((_, i) => ({
+            id: Math.random(),
+            char: i === 0 ? words[Math.floor(Math.random() * words.length)] : list[Math.floor(Math.random() * list.length)],
+            dx: Math.random() * 90 - 45,
+            dy: Math.random() * 90 - 45,
+            angle: Math.random() * 360,
+            scale: Math.random() * 0.5 + 0.8,
+        }));
+        setBursts(prev => [...prev, ...newBursts]);
+        setTimeout(() => setBursts(prev => prev.filter(b => !newBursts.find(n => n.id === b.id))), 1100);
+    }, []);
 
     const checkProximity = useCallback(() => {
         if (!stickerRef.current) return;
         const rect = stickerRef.current.getBoundingClientRect();
-        const myX = rect.left + rect.width / 2;
-        const myY = rect.top + rect.height / 2;
+        const myX = rect.left + rect.width  / 2;
+        const myY = rect.top  + rect.height / 2;
 
-        // Update my position
         onPositionUpdate(character.id, { x: myX, y: myY });
 
-        // Check relationships
+        const dist = (id) => allPositions[id]
+            ? Math.hypot(myX - allPositions[id].x, myY - allPositions[id].y)
+            : Infinity;
+
+        const NEAR = 260;
         let effect = null;
 
-        // 1c + 2c = best friends (bidirectional)
-        if ((character.id === '1c' && allPositions['2c']) || (character.id === '2c' && allPositions['1c'])) {
-            const otherId = character.id === '1c' ? '2c' : '1c';
-            const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-            if (dist < 280) effect = 'bestfriend';
-        }
+        const allIds = ['1c', '2c', '3c', '4c', '5c'].filter(id => id !== character.id);
+        if (allIds.every(id => allPositions[id]) && allIds.every(id => dist(id) < 340))
+            effect = 'all_together';
 
-        // 1c or 2c near 3c, 4c, or 5c = group friendship (bidirectional)
-        if (character.id === '1c' || character.id === '2c') {
-            ['3c', '4c', '5c'].forEach(otherId => {
-                if (allPositions[otherId]) {
-                    const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-                    if (dist < 280) effect = 'group';
-                }
-            });
-        }
-        // 3c, 4c, 5c near 1c or 2c = group friendship (reverse)
-        if (['3c', '4c', '5c'].includes(character.id)) {
-            ['1c', '2c'].forEach(mainId => {
-                if (allPositions[mainId]) {
-                    const dist = Math.hypot(myX - allPositions[mainId].x, myY - allPositions[mainId].y);
-                    if (dist < 280) effect = 'group';
-                }
-            });
-        }
-
-        // 4c + 5c = mutual friendship (bidirectional)
-        if ((character.id === '4c' && allPositions['5c']) || (character.id === '5c' && allPositions['4c'])) {
-            const otherId = character.id === '4c' ? '5c' : '4c';
-            const dist = Math.hypot(myX - allPositions[otherId].x, myY - allPositions[otherId].y);
-            if (dist < 280) effect = 'friendship';
-        }
-
-        // 3c near 1c = mature/growth (Mika's personal journey)
-        if (character.id === '3c' && allPositions['1c']) {
-            const dist = Math.hypot(myX - allPositions['1c'].x, myY - allPositions['1c'].y);
-            if (dist < 280) effect = 'mature';
+        if (!effect && ((character.id === '1c' && dist('2c') < NEAR) || (character.id === '2c' && dist('1c') < NEAR)))
+            effect = 'bestfriend';
+        if (!effect && ((character.id === '2c' && dist('3c') < NEAR) || (character.id === '3c' && dist('2c') < NEAR)))
+            effect = 'rivals';
+        if (!effect && ((character.id === '1c' && dist('5c') < NEAR) || (character.id === '5c' && dist('1c') < NEAR)))
+            effect = 'support';
+        if (!effect && ((character.id === '3c' && dist('5c') < NEAR) || (character.id === '5c' && dist('3c') < NEAR)))
+            effect = 'girlpower';
+        if (!effect && character.id === '3c' && dist('1c') < NEAR)
+            effect = 'mature';
+        if (!effect && ((character.id === '4c' && dist('5c') < NEAR) || (character.id === '5c' && dist('4c') < NEAR)))
+            effect = 'friendship';
+        if (!effect) {
+            if (character.id === '1c' || character.id === '2c')
+                ['3c', '4c', '5c'].forEach(id => { if (!effect && dist(id) < NEAR) effect = 'group'; });
+            if (['3c', '4c', '5c'].includes(character.id))
+                ['1c', '2c'].forEach(id => { if (!effect && dist(id) < NEAR) effect = 'group'; });
         }
 
         setShowEffect(effect);
     }, [character.id, allPositions, onPositionUpdate]);
 
-    const [phase, setPhase] = useState('hidden');
-    useEffect(() => {
-        if (!interactive) {
-            setPhase('scattered');
-            return undefined;
-        }
-        const t1 = setTimeout(() => setPhase('center'), 50);
-        // They wait in the center for a funny moment, then scatter one by one.
-        // Keep haptics out of this mount-time animation so we don't hit browser gesture guards.
-        const t2 = setTimeout(() => {
-            setPhase('scattered');
-        }, 700 + index * 120);
-        return () => { clearTimeout(t1); clearTimeout(t2); };
-    }, [index, interactive]);
-
-    const centerX = (typeof window !== 'undefined' ? window.innerWidth : 1000) / 2 - size / 2;
-    const centerY = (typeof window !== 'undefined' ? window.innerHeight : 800) / 2 - size / 2;
-
-    const animState = {
-        hidden: { scale: 0, opacity: 0, x: centerX, y: centerY, rotate: 0 },
-        center: { 
-            scale: 1, 
-            opacity: 1, 
-            x: centerX + (index - 2) * (isMobile ? 65 : 100), 
-            y: centerY + (Math.random() * 20 - 10), 
-            rotate: (Math.random() * 20 - 10) 
-        },
-        scattered: { 
-            scale: 1, 
-            opacity: 1, 
-            x: targetPos.x, 
-            y: targetPos.y, 
-            rotate: targetPos.rot 
-        }
-    };
+    if (isMobile) return null;
 
     return (
-        <AnimatePresence>
-            {!isMobile && (
-                <motion.div
-                    ref={stickerRef}
-                    drag
-                    dragMomentum={false}
-                    dragElastic={0.04}
-                    dragTransition={GENTLE_DRAG_TRANSITION}
-                    onDragStart={() => {
-                        setIsDragging(true);
-                        triggerHaptic('press');
-                    }}
-                    onDrag={(e, info) => {
-                        dragX.set(info.velocity.x);
-                        checkProximity();
-                    }}
-                    onDragEnd={() => {
-                        setIsDragging(false);
-                        triggerHaptic('release');
-                        dragX.set(0);
-                        checkProximity();
-                    }}
-                    whileDrag={{
-                        scale: 1.04,
-                        zIndex: 9999,
-                        filter: 'drop-shadow(4px 8px 14px rgba(0,0,0,0.28))',
-                        transition: { duration: 0.12, ease: 'easeOut' },
-                    }}
-                    whileHover={{
-                        scale: 1.02,
-                        y: -2,
-                        filter: 'drop-shadow(3px 6px 12px rgba(0,0,0,0.24))',
-                        transition: { duration: 0.12, ease: 'easeOut' },
-                    }}
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0,
-                        width: size,
-                        zIndex: 1200,
-                        cursor: isDragging ? 'grabbing' : 'grab',
-                        filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.25))',
-                        rotate: dragRotate,
-                    }}
-                    initial="hidden"
-                    animate={phase}
-                    variants={animState}
-                    exit={{ scale: 0.96, opacity: 0, transition: { duration: 0.16, ease: 'easeOut' } }}
-                    transition={{
-                        duration: phase === 'scattered' ? 0.28 : 0.18,
-                        ease: 'easeOut',
-                    }}
-                >
+        <motion.div
+            ref={stickerRef}
+            drag
+            // Re-enable momentum: paper glides to a stop smoothly, doesn't snap
+            dragMomentum={true}
+            dragTransition={{
+                power: 0.18,          // moderate throw distance on release
+                timeConstant: 210,    // decay in ~210ms — paper sliding to rest
+                bounceStiffness: 220, // soft spring when hitting boundary
+                bounceDamping: 28,    // damps the boundary bounce quickly
+            }}
+            dragElastic={0.07}        // tiny squish at edges, like paper hitting a wall
+            dragConstraints={{ left: 0, top: 0, right: windowW - SIZE, bottom: windowH - SIZE }}
+            onDragStart={() => { setIsDragging(true); triggerHaptic('press'); }}
+            onDrag={checkProximity}
+            onDragEnd={() => {
+                setIsDragging(false);
+                triggerHaptic('release');
+                checkProximity();
+                // Snap manualRotate back to rest — paper settles after being released
+                animate(manualRotate, edgePos.rot, { type: 'spring', stiffness: 180, damping: 18 });
+            }}
+            onTap={triggerBurst}
+            // Hover: peeling a corner off the wall
+            whileHover={{ scale: 1.1, transition: { type: 'spring', stiffness: 360, damping: 22 } }}
+            // Drag: lifted off the surface, light and floating
+            whileDrag={{ scale: 1.2, transition: { type: 'spring', stiffness: 440, damping: 26 } }}
+            // Tap: quick squish like pressing the sticker down
+            whileTap={{ scale: 0.91, transition: { type: 'spring', stiffness: 700, damping: 20 } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.18, delay: (80 + index * 200) / 1000 }}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                x,
+                y,
+                rotate: totalRotate, // entrance tumble + velocity lean, all in one
+                width: SIZE,
+                zIndex: isDragging ? 9999 : 1200,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                filter: isDragging
+                    ? 'drop-shadow(8px 20px 28px rgba(0,0,0,0.36))'
+                    : 'drop-shadow(2px 6px 14px rgba(0,0,0,0.20))',
+                willChange: 'transform',
+                userSelect: 'none',
+                touchAction: 'none',
+            }}
+        >
+            {/* Idle float via CSS — pauses while dragging */}
+            <div
+                className={isDragging ? undefined : IDLE_CLASS[character.name]}
+                style={{ width: '100%' }}
+            >
+                <img
+                    src={character.src}
+                    alt={character.name}
+                    style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+                    draggable={false}
+                />
+            </div>
+
+            {/* Tap burst particles */}
+            <AnimatePresence>
+                {bursts.map(b => (
                     <motion.div
-                        animate={isDragging ? { scale: 1, y: 0, rotate: 0 } : undefined}
-                        transition={isDragging ? { type: 'spring', stiffness: 300, damping: 20 } : undefined}
-                        className={!isDragging ? `idle-${character.name.toLowerCase()}` : undefined}
-                        style={{ width: '100%', height: '100%', originX: 0.5, originY: 0.8 }}
+                        key={b.id}
+                        initial={{ opacity: 1, scale: 0.3, x: SIZE / 2 - 12, y: SIZE / 2 - 12, rotate: 0 }}
+                        animate={{ opacity: 0, scale: b.scale, x: SIZE / 2 - 12 + b.dx * 2.4, y: SIZE / 2 - 12 + b.dy * 2.4 - 40, rotate: b.angle }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+                        style={{
+                            position: 'absolute', pointerEvents: 'none',
+                            fontSize: b.char.length > 2 ? '0.95rem' : '1.35rem',
+                            fontFamily: 'var(--font-hand)', fontWeight: 'bold',
+                            color: '#e11d48',
+                            textShadow: '2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff',
+                            zIndex: 10000,
+                        }}
                     >
-                        <img
-                        src={character.src}
-                        alt={character.name}
-                        style={{ width: '100%', height: 'auto', pointerEvents: 'none' }}
-                        draggable="false"
-                    />
+                        {b.char}
                     </motion.div>
+                ))}
+            </AnimatePresence>
 
-                    {/* Relationship Effect */}
-                    <AnimatePresence>
-                        {/* Best Friends (1c + 2c) - Two Stars */}
-                        {showEffect === 'bestfriend' && (
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                style={{ position: 'absolute', top: '-35px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}
-                            >
-                                <motion.div animate={{ y: [0, -6, 0], rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 0.9 }}>
-                                    <Star size={28} fill="#ffe57f" color="#ffe57f" />
-                                </motion.div>
-                                <motion.div animate={{ y: [0, -6, 0], rotate: [0, -10, 10, 0] }} transition={{ repeat: Infinity, duration: 0.9, delay: 0.15 }}>
-                                    <Star size={28} fill="#97d5eb" color="#97d5eb" />
-                                </motion.div>
+            {/* Relationship proximity effects */}
+            <AnimatePresence>
+                {showEffect === 'all_together' && (
+                    <motion.div key="all_together" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-46px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '3px' }}>
+                        {['#ffe57f','#ff9ec6','#97d5eb','#97eba9','#c4b5fd'].map((color, i) => (
+                            <motion.div key={i} animate={{ y: [0, -8, 0], rotate: [0, 18, -18, 0], scale: [1, 1.35, 1] }} transition={{ repeat: Infinity, duration: 0.72, delay: i * 0.1 }}>
+                                <Star size={20} fill={color} color={color} />
                             </motion.div>
-                        )}
-
-                        {/* Group Friendship (1c with 3c/4c/5c) */}
-                        {showEffect === 'group' && (
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                style={{ position: 'absolute', top: '-35px', left: '50%', transform: 'translateX(-50%)' }}
-                            >
-                                <motion.div animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.25, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}>
-                                    <Sparkles size={36} color="#ff9ec6" fill="#ff9ec6" />
-                                </motion.div>
-                            </motion.div>
-                        )}
-
-                        {showEffect === 'friendship' && (
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
-                            >
-                                <motion.div
-                                    animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
-                                    transition={{ repeat: Infinity, duration: 1 }}
-                                >
-                                    <Sparkles size={32} color="#ffe57f" fill="#ffe57f" />
-                                </motion.div>
-                            </motion.div>
-                        )}
-
-                        {showEffect === 'mature' && (
-                            <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)' }}
-                            >
-                                <motion.div
-                                    animate={{ y: [0, -5, 0], rotate: [0, 5, -5, 0] }}
-                                    transition={{ repeat: Infinity, duration: 1.5 }}
-                                >
-                                    <Star size={28} fill="#97eba9" color="#97eba9" />
-                                </motion.div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                        ))}
+                    </motion.div>
+                )}
+                {showEffect === 'bestfriend' && (
+                    <motion.div key="bestfriend" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}>
+                        <motion.div animate={{ y: [0, -6, 0], rotate: [0, 14, -14, 0] }} transition={{ repeat: Infinity, duration: 0.88 }}>
+                            <Star size={26} fill="#ffe57f" color="#ffe57f" />
+                        </motion.div>
+                        <motion.div animate={{ y: [0, -6, 0], rotate: [0, -14, 14, 0] }} transition={{ repeat: Infinity, duration: 0.88, delay: 0.16 }}>
+                            <Star size={26} fill="#97d5eb" color="#97d5eb" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'rivals' && (
+                    <motion.div key="rivals" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '3px' }}>
+                        <motion.div animate={{ y: [0, -9, 0], scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.52 }}>
+                            <Zap size={24} fill="#fbbf24" color="#fbbf24" />
+                        </motion.div>
+                        <motion.div animate={{ y: [0, -9, 0], scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 0.52, delay: 0.17 }}>
+                            <Zap size={24} fill="#f472b6" color="#f472b6" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'support' && (
+                    <motion.div key="support" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}>
+                        <motion.div animate={{ y: [0, -5, 0], scale: [1, 1.22, 1] }} transition={{ repeat: Infinity, duration: 1.05 }}>
+                            <Heart size={22} fill="#f9a8d4" color="#f9a8d4" />
+                        </motion.div>
+                        <motion.div animate={{ y: [0, -5, 0], scale: [1, 1.22, 1] }} transition={{ repeat: Infinity, duration: 1.05, delay: 0.24 }}>
+                            <Heart size={22} fill="#fb923c" color="#fb923c" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'girlpower' && (
+                    <motion.div key="girlpower" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '4px' }}>
+                        <motion.div animate={{ y: [0, -4, 0], rotate: [-12, 12, -12] }} transition={{ repeat: Infinity, duration: 1.15 }}>
+                            <Music size={22} fill="#c4b5fd" color="#c4b5fd" />
+                        </motion.div>
+                        <motion.div animate={{ y: [0, -4, 0], rotate: [12, -12, 12] }} transition={{ repeat: Infinity, duration: 1.15, delay: 0.22 }}>
+                            <Music size={22} fill="#86efac" color="#86efac" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'group' && (
+                    <motion.div key="group" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <motion.div animate={{ rotate: [0, 18, -18, 0], scale: [1, 1.28, 1] }} transition={{ repeat: Infinity, duration: 0.78 }}>
+                            <Sparkles size={32} color="#ff9ec6" fill="#ff9ec6" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'friendship' && (
+                    <motion.div key="friendship" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <motion.div animate={{ rotate: [0, 16, -16, 0], scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }}>
+                            <Sparkles size={28} color="#ffe57f" fill="#ffe57f" />
+                        </motion.div>
+                    </motion.div>
+                )}
+                {showEffect === 'mature' && (
+                    <motion.div key="mature" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                        style={{ position: 'absolute', top: '-36px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <motion.div animate={{ y: [0, -5, 0], rotate: [0, 7, -7, 0] }} transition={{ repeat: Infinity, duration: 1.45 }}>
+                            <Star size={26} fill="#97eba9" color="#97eba9" />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 
