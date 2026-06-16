@@ -1,21 +1,10 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Keiji';
-  src: url('/Kei_Ji.woff2') format('woff2');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Keiji_P';
-  src: url('/Kei_Ji-P.woff2') format('woff2');
-  font-display: swap;
-}
-
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  font-synthesis: none; /* Sniglet has one weight — never synthesize bold/italic */
 }
 
 :root {
@@ -30,7 +19,7 @@
   --surface-card: #ffffff;
   --surface-panel: #fffefc;
   --surface-elevated: rgba(255, 255, 255, 0.96);
-  --surface-shell: #fdfaf8;
+  --surface-shell: #fdfcfa;
   --surface-border: #cbd5e1;
   --surface-border-strong: #94a3b8;
   --text-primary: #1e293b;
@@ -43,31 +32,21 @@
   --shadow-floating: 0 14px 34px rgba(15, 23, 42, 0.12);
   --shadow-modal: 8px 8px 0 rgba(15, 23, 42, 0.08), 0 20px 60px rgba(15, 23, 42, 0.15);
   --transition-tactile: transform 180ms ease-out, box-shadow 180ms ease-out, background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
-  --paper-lines: repeating-linear-gradient(transparent, transparent 31px, rgba(186, 172, 230, 0.28) 31px, rgba(186, 172, 230, 0.28) 32px);
-  --shell-background-image:
-    radial-gradient(circle at top left, rgba(255, 158, 198, 0.18), transparent 35%),
-    radial-gradient(circle at top right, rgba(143, 211, 255, 0.22), transparent 35%),
-    radial-gradient(circle at bottom left, rgba(255, 229, 127, 0.15), transparent 40%),
-    radial-gradient(circle at bottom right, rgba(151, 235, 169, 0.15), transparent 40%),
-    linear-gradient(135deg, #fefaf8 0%, #fff4f8 25%, #f1f7ff 50%, #fffef2 75%, #fcf4ff 100%),
-    var(--paper-lines);
-  --planner-shell-background-image:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.97) 100%),
-    repeating-linear-gradient(180deg, transparent 0, transparent 31px, rgba(186, 172, 230, 0.24) 31px, rgba(186, 172, 230, 0.24) 32px);
-  --planner-page-background-image:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.99) 100%),
-    var(--paper-lines);
+  --paper-lines: repeating-linear-gradient(transparent, transparent 31px, rgba(160, 208, 235, 0.15) 31px, rgba(160, 208, 235, 0.15) 32px);
+  --shell-background-image: var(--paper-lines);
+  --planner-shell-background-image: var(--paper-lines);
+  --planner-page-background-image: var(--paper-lines);
 
   /* Emotional warmth */
   --warm-glow: rgba(255, 158, 198, 0.15);
   --warm-glow-strong: rgba(255, 158, 198, 0.3);
   --love-shadow: 0 4px 20px rgba(255, 158, 198, 0.2);
 
-  --font-main: 'Coming Soon', cursive;
+  --font-main: 'Sniglet', sans-serif;
   --font-hand: 'Coming Soon', cursive;
   --font-paper: 'Sniglet', 'Coming Soon', cursive;
   --font-japanese: 'Keiji_P', 'Keiji', cursive;
-  --base-font-size: 16px;
+  --base-font-size: 14.5px;
 
   /* Scrapbook Note Palettes */
   --note-bg: #fef9c3;
@@ -283,6 +262,7 @@ html[data-a11y-dark-mode='1'] {
   --love-shadow: none;
 
   --paper-lines: none;
+  --paper-margin: none;
   --shell-background-image: none;
   --planner-shell-background-image: none;
   --planner-page-background-image: none;
@@ -727,7 +707,7 @@ body {
   font-family: var(--font-main);
   background-color: var(--surface-shell);
   background-image: var(--shell-background-image);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 32px;
+  background-size: 100% 32px;
   color: #4a5568;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
@@ -735,6 +715,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  font-size: 14px;
 }
 
 html[lang='ja'] {
@@ -841,6 +822,7 @@ html[lang='ja'] .mystery-ui[data-mystery-language='en'] * {
    Scrapbook UI Elements
  ─────────────────────────────────── */
 .washi-tape {
+  display: none !important;
   position: absolute;
   width: 104px;
   height: 24px;
@@ -895,41 +877,38 @@ html {
    (CSS prevents Framer Motion React re-render flashing)
  ─────────────────────────────────── */
 @keyframes idleMitsumi {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  25% { transform: translateY(-6px) scale(1.03) rotate(1.5deg); }
-  75% { transform: translateY(-3px) scale(1.015) rotate(-1deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25%       { transform: translateY(-7px) rotate(4deg) scale(1.04); }
+  50%       { transform: translateY(0) rotate(-3deg) scale(0.97); }
+  75%       { transform: translateY(-3px) rotate(2deg) scale(1.02); }
 }
-.idle-mitsumi { animation: idleMitsumi 3s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
-.idle-mitsumi:hover { animation-play-state: paused; }
+.idle-mitsumi { animation: idleMitsumi 3.5s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
 
 @keyframes idleSousuke {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-2px) scale(1.01) rotate(0.5deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50%       { transform: translateY(-5px) rotate(-2.5deg) scale(1.02); }
 }
-.idle-sousuke { animation: idleSousuke 5s ease-in-out infinite; }
-.idle-sousuke:hover { animation-play-state: paused; }
+.idle-sousuke { animation: idleSousuke 4.8s ease-in-out infinite; }
 
 @keyframes idleMika {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  25% { transform: translateY(-4px) scale(1.02) rotate(3deg); }
-  75% { transform: translateY(-2px) scale(1.01) rotate(-2deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  30%       { transform: translateY(-6px) rotate(3deg) scale(1.03); }
+  65%       { transform: translateY(0) rotate(-3deg) scale(0.98); }
 }
-.idle-mika { animation: idleMika 3.5s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
-.idle-mika:hover { animation-play-state: paused; }
+.idle-mika { animation: idleMika 4s cubic-bezier(0.25, 0.8, 0.25, 1) infinite; }
 
 @keyframes idleMakoto {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-2px) scale(1.008) rotate(0.3deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  45%       { transform: translateY(-4px) rotate(-2deg) scale(0.97); }
+  75%       { transform: translateY(1px) rotate(1.5deg) scale(1.02); }
 }
-.idle-makoto { animation: idleMakoto 4.5s ease-in-out infinite; }
-.idle-makoto:hover { animation-play-state: paused; }
+.idle-makoto { animation: idleMakoto 4.2s ease-in-out infinite; }
 
 @keyframes idleYuzuki {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-3px) scale(1.02) rotate(-1.5deg); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-6px) rotate(3deg) scale(1.01); }
 }
-.idle-yuzuki { animation: idleYuzuki 4s cubic-bezier(0.42, 0, 0.58, 1) infinite; }
-.idle-yuzuki:hover { animation-play-state: paused; }
+.idle-yuzuki { animation: idleYuzuki 4.5s ease-in-out infinite; }
 
 /* ──────────────────────────────────
    Sketchbook Aesthetics & Interactions
@@ -959,13 +938,38 @@ html {
 
 .app-surface-shell {
   background-image: var(--shell-background-image);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 32px;
+  background-size: 100% 32px;
+  position: relative;
+}
+
+.app-surface-shell::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 36px;
+  bottom: 0;
+  width: 2px;
+  background-color: rgba(239, 68, 68, 0.22);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.app-surface-shell::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 40px;
+  bottom: 0;
+  width: 1px;
+  background-color: rgba(239, 68, 68, 0.12);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .app-surface-paper {
   background-image: var(--planner-page-background-image);
-  background-size: 100% 100%, 100% 32px;
-  background-repeat: no-repeat, repeat;
+  background-size: 100% 32px;
+  background-repeat: repeat;
 }
 
 #root {
@@ -1071,14 +1075,58 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   padding-bottom: 16px !important;
 }
 
+/* Nav bookmark sidebar tabs — CSS replaces Framer Motion spring physics */
+.nav-bookmark-btn {
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.12s ease,
+              color 0.12s ease,
+              box-shadow 0.12s ease;
+}
+.nav-bookmark-btn[data-active="true"] {
+  transform: translateX(-14px);
+}
+.nav-bookmark-btn:hover:not([data-active="true"]) {
+  transform: translateX(-8px);
+}
+.nav-bookmark-btn[data-active="true"]:hover {
+  transform: translateX(-16px);
+}
+.nav-bookmark-btn:active:not([data-active="true"]) {
+  transform: translateX(-6px);
+  opacity: 0.9;
+}
+.nav-bookmark-btn[data-active="true"]:active {
+  transform: translateX(-14px);
+  opacity: 0.9;
+}
+
+/* Sub-tab page buttons — CSS replaces Framer Motion */
+.sub-tab-btn {
+  will-change: transform;
+  transition: transform 0.15s ease,
+              box-shadow 0.15s ease,
+              background 0.15s ease,
+              color 0.15s ease,
+              border-color 0.15s ease,
+              opacity 0.15s ease;
+}
+.sub-tab-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+.sub-tab-btn:active {
+  transform: scale(0.94);
+  opacity: 0.9;
+}
+
 /* Planner Container */
 .planner-container {
   display: flex;
   flex-direction: row;
   background-color: var(--paper-white);
   background-image: var(--planner-shell-background-image);
-  background-size: 100% 100%, 100% 32px;
-  background-repeat: no-repeat, repeat;
+  background-size: 100% 32px;
+  background-repeat: repeat;
   position: relative;
   z-index: 10;
   box-shadow:
@@ -1086,16 +1134,11 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
     0 0 0 1px rgba(15, 23, 42, 0.03),
     0 0 40px var(--warm-glow);
   border-radius: 12px;
-  /* Removed overflow: hidden to allow content growth */
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .planner-container:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 28px 65px -12px rgba(15, 23, 42, 0.16),
-    0 0 0 1px rgba(15, 23, 42, 0.03),
-    0 0 60px var(--warm-glow-strong);
+  transform: translateY(-2px);
 }
 
 /* Lined Paper for pages */
@@ -1103,8 +1146,8 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   flex: 1;
   background-color: var(--paper-white);
   background-image: var(--planner-page-background-image);
-  background-size: 100% 100%, 100% 32px;
-  background-repeat: no-repeat, repeat;
+  background-size: 100% 32px;
+  background-repeat: repeat;
   background-attachment: local;
   position: relative;
   min-height: 100%;
@@ -1121,8 +1164,10 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
 .spiral-binding-center {
   width: 50px;
   flex-shrink: 0;
-  background: radial-gradient(circle at center, #cbd5e0 40%, transparent 42%);
-  background-size: 100% 40px;
+  background:
+    radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
+    linear-gradient(to bottom, transparent 45%, #d1d5db 45%, #9ca3af 55%, transparent 55%);
+  background-size: 100% 40px, 8px 40px;
   background-repeat: repeat-y;
   background-position: center top;
 }
@@ -1174,9 +1219,12 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   .spiral-binding-center {
     width: 100%;
     height: 30px;
-    background: radial-gradient(circle at center, #cbd5e0 40%, transparent 42%);
-    background-size: 40px 100%;
+    background:
+      radial-gradient(circle at center, #cbd5e0 40%, transparent 42%),
+      linear-gradient(to right, transparent 45%, #d1d5db 45%, #9ca3af 55%, transparent 55%);
+    background-size: 40px 100%, 40px 8px;
     background-repeat: repeat-x;
+    background-position: center;
   }
 
   html[data-a11y-large-text='1'] .planner-page [data-planner-title='1'] {
@@ -1218,6 +1266,7 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   filter: blur(130px) saturate(1.2);
   transform: translateZ(0);
   backface-visibility: hidden;
+  display: none;
 }
 
 /* GPU acceleration for draggable elements */
@@ -2479,6 +2528,158 @@ html[data-a11y-dark-mode='1'] .quiz-setup-review-banner span {
 /* Hide colorful morphing shapes in Dark Mode */
 html[data-a11y-dark-mode='1'] .morphing-shape {
   display: none !important;
+}
+
+/* ══════════════════════════════════════════════════
+   Skip & Loafer — Paper, Notebook & Character Animations
+   ══════════════════════════════════════════════════ */
+
+/* Stamp press feedback — rubber stamp pushed onto paper */
+@keyframes stampPress {
+  0%   { transform: scale(1) rotate(0deg) translateY(0); }
+  28%  { transform: scale(0.87) rotate(-1.8deg) translateY(4px); filter: brightness(0.96); }
+  58%  { transform: scale(1.07) rotate(0.6deg) translateY(-3px); }
+  100% { transform: scale(1) rotate(0deg) translateY(0); }
+}
+
+/* Notebook page flip — scrapbook opening */
+@keyframes pageFlipIn {
+  0%   { transform: perspective(600px) rotateY(-90deg) scale(0.92); opacity: 0; }
+  60%  { transform: perspective(600px) rotateY(6deg) scale(1.01); opacity: 1; }
+  100% { transform: perspective(600px) rotateY(0deg) scale(1); opacity: 1; }
+}
+
+/* Sticker slap — peeling & placing a sticker */
+@keyframes stickerPop {
+  0%   { transform: scale(0.45) rotate(-14deg); opacity: 0; }
+  55%  { transform: scale(1.18) rotate(3deg); opacity: 1; }
+  75%  { transform: scale(0.93) rotate(-1.5deg); }
+  90%  { transform: scale(1.05) rotate(0.5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Mitsumi energy bounce — her signature excited jump */
+@keyframes mitsumiBounce {
+  0%   { transform: translateY(0) rotate(0deg); }
+  18%  { transform: translateY(-13px) rotate(-2.5deg); }
+  36%  { transform: translateY(-6px) rotate(1.8deg); }
+  54%  { transform: translateY(-10px) rotate(-1.2deg); }
+  72%  { transform: translateY(-3px) rotate(0.6deg); }
+  86%  { transform: translateY(-5px) rotate(-0.4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Pencil sketch doodle in — lines drawing themselves */
+@keyframes doodleWrite {
+  from { clip-path: inset(0 100% 0 0); opacity: 0.7; }
+  to   { clip-path: inset(0 0% 0 0); opacity: 1; }
+}
+
+/* Washi tape slide-on */
+@keyframes washiSlide {
+  0%   { transform: translateX(-36px) rotate(-4deg); opacity: 0; }
+  60%  { transform: translateX(4px) rotate(-1.5deg); opacity: 1; }
+  100% { transform: translateX(0) rotate(-2deg); opacity: 1; }
+}
+
+/* Floating doodle rising up and fading */
+@keyframes doodleFloat {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  40%  { transform: translateY(-18px) rotate(18deg) scale(1.15); opacity: 0.85; }
+  100% { transform: translateY(-42px) rotate(35deg) scale(0.7); opacity: 0; }
+}
+
+/* Paper ripple on press */
+@keyframes paperRipple {
+  0%   { transform: scale(0.94); box-shadow: 0 0 0 0 var(--warm-glow-strong); }
+  55%  { transform: scale(1.01); box-shadow: 0 0 0 14px rgba(255, 158, 198, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 158, 198, 0); }
+}
+
+/* Pencil wiggle — slight sketch wobble on interactive elements */
+@keyframes pencilWiggle {
+  0%, 100% { transform: rotate(-0.6deg) scale(1); }
+  25%  { transform: rotate(1deg) scale(1.012); }
+  75%  { transform: rotate(-0.4deg) scale(0.992); }
+}
+
+/* Star doodle spin-in */
+@keyframes starSpin {
+  0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
+  70%  { transform: scale(1.3) rotate(15deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Notebook wiggle — page being enthusiastic */
+@keyframes notebookWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-2.5deg) scale(1.02); }
+  35%  { transform: rotate(3deg) scale(1.015); }
+  55%  { transform: rotate(-1.8deg) scale(1.02); }
+  75%  { transform: rotate(1.2deg) scale(1.01); }
+  90%  { transform: rotate(-0.6deg) scale(1); }
+}
+
+/* ── Utility classes ── */
+
+/* Sticker pop entrance */
+.sticker-pop {
+  animation: stickerPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Washi tape decoration */
+.washi-tape-anim {
+  animation: washiSlide 0.45s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+/* Paper button — adds sketch feel and rough press */
+.paper-btn {
+  transform-origin: center bottom;
+  transition: var(--transition-tactile);
+}
+.paper-btn:active {
+  animation: stampPress 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* Doodle corner star decoration */
+.doodle-corner-star {
+  position: absolute;
+  font-size: 13px;
+  pointer-events: none;
+  animation: pencilWiggle 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+.doodle-corner-star--pink  { color: var(--pop-pink); top: -8px; right: -6px; }
+.doodle-corner-star--blue  { color: var(--pop-blue); top: -8px; left: -6px; }
+.doodle-corner-star--green { color: var(--pop-green); bottom: -8px; right: -6px; }
+
+/* Mitsumi bounce animation class */
+.mitsumi-bounce {
+  animation: mitsumiBounce 0.75s ease-out both;
+}
+
+/* Notebook wiggle animation class */
+.notebook-wiggle {
+  animation: notebookWiggle 0.7s ease-in-out both;
+}
+
+/* ── Dark mode: keep animations but reduce intensity ── */
+html[data-a11y-dark-mode='1'] .doodle-corner-star {
+  opacity: 0.5;
+}
+
+/* ── Reduce-motion: kill all these ── */
+@media (prefers-reduced-motion: reduce) {
+  .sticker-pop,
+  .washi-tape-anim,
+  .paper-btn:active,
+  .mitsumi-bounce,
+  .notebook-wiggle {
+    animation: none !important;
+  }
+  .doodle-corner-star {
+    animation: none !important;
+  }
 }
 
 
