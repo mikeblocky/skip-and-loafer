@@ -249,7 +249,7 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
         boxShadow: 'none',
         zIndex: 100,
         pointerEvents: 'auto',
-        height: 'calc(100dvh - 42px)',
+        height: 'calc(100dvh - 154px)',
         overflow: 'visible',
       }}
     >

@@ -7,6 +7,11 @@
   font-synthesis: none; /* Sniglet has one weight — never synthesize bold/italic */
 }
 
+/* Force Sniglet to always render at regular weight — 800 variant not loaded */
+body, body * {
+  font-weight: 400 !important;
+}
+
 :root {
   /* 4-Color Palette */
   --pop-pink: #ff9ec6;
@@ -46,7 +51,7 @@
   --font-hand: 'Coming Soon', cursive;
   --font-paper: 'Sniglet', 'Coming Soon', cursive;
   --font-japanese: 'Keiji_P', 'Keiji', cursive;
-  --base-font-size: 14.5px;
+  --base-font-size: 16.5px;
 
   /* Scrapbook Note Palettes */
   --note-bg: #fef9c3;

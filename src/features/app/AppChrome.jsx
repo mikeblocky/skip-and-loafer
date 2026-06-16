@@ -214,8 +214,8 @@ const AppChrome = ({ app }) => {
               WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'contain',
               padding: app.isMobile
-                ? 'env(safe-area-inset-top, 0px) 0 calc(env(safe-area-inset-bottom, 0px) + 72px) 0'
-                : '16px 48px 10px',
+                ? 'calc(env(safe-area-inset-top, 0px) + 20px) 0 calc(env(safe-area-inset-bottom, 0px) + 96px) 0'
+                : '56px 48px 56px',
               pointerEvents: 'auto',
             }}
             initial={{ opacity: 0, y: 10 }}
@@ -263,9 +263,9 @@ const AppChrome = ({ app }) => {
                 width: '100%',
                 maxWidth: app.isMobile
                   ? '100%'
-                  : (app.accessibilityPrefs.largeText ? '1240px' : '1140px'),
-                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 42px)',
-                height: app.isMobile ? 'auto' : 'calc(100dvh - 42px)',
+                  : (app.accessibilityPrefs.largeText ? '1420px' : '1300px'),
+                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
+                height: app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
                 display: 'flex',
                 flexDirection: app.isMobile ? 'column' : 'row',
                 alignItems: 'stretch',
