@@ -25,6 +25,7 @@ const BlogDetailView = ({
   paragraphLineHeight,
   readerPrefs,
   readScrollRef,
+  scrollToTop,
   renderedMarkdownChunks,
   markdownChunksLength,
   visibleChunkCount,
@@ -103,11 +104,7 @@ const BlogDetailView = ({
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  if (readScrollRef.current) {
-                    readScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-                  }
-                }}
+                onClick={scrollToTop}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

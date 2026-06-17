@@ -52,7 +52,7 @@ const CommunityPageHero = ({
       <div
         style={{
           ...createCommunityCounterStyle({
-            borderColor: 'var(--themed-card-border, ' + counterColors.borderColor + ')',
+            borderColor: counterColors.borderColor,
             bottomColor: 'var(--themed-card-inactive-border, ' + counterColors.bottomColor + ')',
             background: 'var(--surface-card, #ffffff)',
             color: 'var(--themed-text-secondary, ' + counterColors.color + ')',
@@ -66,7 +66,7 @@ const CommunityPageHero = ({
         onClick={onAction}
         icon={ActionIcon}
         palette={{
-          borderColor: 'var(--themed-card-border, ' + actionColors.borderColor + ')',
+          borderColor: actionColors.borderColor,
           bottomColor: 'var(--themed-card-inactive-border, ' + actionColors.bottomColor + ')',
           background: 'var(--surface-card, #ffffff)',
           color: 'var(--keycap-color, ' + actionColors.color + ')',

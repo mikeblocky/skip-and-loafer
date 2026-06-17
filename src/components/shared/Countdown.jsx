@@ -25,28 +25,28 @@ const COUNTDOWN_PALETTES = [
     {
         header: '#f9a8d4', // Pink
         ink: '#db2777',
-        shell: '#ffffff',
+        shell: 'var(--surface-card, #ffffff)',
         border: '#db2777',
         label: '#9d174d',
     },
     {
         header: '#86efac', // Green
         ink: '#166534',
-        shell: '#ffffff',
+        shell: 'var(--surface-card, #ffffff)',
         border: '#166534',
         label: '#14532d',
     },
     {
         header: '#93c5fd', // Blue
         ink: '#1d4ed8',
-        shell: '#ffffff',
+        shell: 'var(--surface-card, #ffffff)',
         border: '#1d4ed8',
         label: '#1e40af',
     },
     {
         header: '#fde047', // Yellow
         ink: '#a16207',
-        shell: '#ffffff',
+        shell: 'var(--surface-card, #ffffff)',
         border: '#a16207',
         label: '#713f12',
     },

@@ -512,17 +512,6 @@ const MangaReader = ({ chapter, pages, onClose, onNextChapter, onPrevChapter, is
                 zoom={zoom}
             />
 
-            {/* ═══ PROGRESS BAR ═══ */}
-            <MangaReaderProgressBar
-                showNav={showNav}
-                isMobile={isMobile}
-                mode={mode}
-                rtl={rtl}
-                page={page}
-                total={total}
-                imgRefs={imgRefs}
-                setPage={setPage}
-            />
 
             {/* ═══ END POPUP ═══ */}
             <MangaReaderEndPopup

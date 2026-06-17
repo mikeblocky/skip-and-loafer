@@ -58,8 +58,8 @@ const BlogListView = ({
         className="sketchbook-border"
         style={{
           background: 'var(--themed-card-bg, #fff7ed)',
-          border: '3.5px solid var(--themed-card-border, #fdba74)',
-          borderBottom: '10px solid var(--themed-card-border, #f97316)',
+          border: '3.5px solid #fdba74',
+          borderBottom: '10px solid #f97316',
           borderRadius: '30px',
           padding: isMobile ? '20px 18px' : '26px 28px',
           display: 'grid',
@@ -226,8 +226,8 @@ const BlogListView = ({
                 className="sketchbook-border"
                 style={{
                   background: 'var(--themed-card-bg, #ffffff)',
-                  border: `3px solid var(--themed-card-border, ${note.border})`,
-                  borderBottom: `9px solid var(--themed-card-border, ${note.border})`,
+                  border: `3px solid ${note.border}`,
+                  borderBottom: `9px solid ${note.border}`,
                   borderRadius: '26px',
                   padding: isMobile ? '18px 16px' : '20px 22px',
                   boxShadow: '0 12px 24px rgba(15, 23, 42, 0.06)',
@@ -342,8 +342,8 @@ const BlogListView = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    border: `3px solid var(--themed-card-border, ${note.border})`,
-                    borderBottom: `7px solid var(--themed-card-border, ${note.border})`,
+                    border: `3px solid ${note.border}`,
+                    borderBottom: `7px solid ${note.border}`,
                     background: `var(--themed-card-bg, ${note.bg})`,
                     borderRadius: '18px',
                     color: `var(--themed-text-secondary, ${note.accent})`,

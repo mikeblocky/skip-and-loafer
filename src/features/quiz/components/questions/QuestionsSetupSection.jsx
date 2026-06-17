@@ -345,11 +345,8 @@ const QuestionsSetupSection = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING_SOFT, delay: 0.22 }}
         style={{
-          background: '#fff1f2',
-          border: '2.5px solid #fda4af',
-          borderBottom: '6px solid #ef4444',
-          borderRadius: '20px',
-          padding: isMobile ? '12px 14px' : '14px 18px',
+          ...cardBase('var(--surface-card, #fffbeb)', '#fbbf24'),
+          borderBottom: '6px solid #d97706',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1fr) auto',
           gap: '12px',
@@ -358,23 +355,20 @@ const QuestionsSetupSection = ({
           overflow: 'visible',
         }}
       >
-        {/* notebook left margin red line */}
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: '40px', width: '2px', background: 'rgba(252,165,165,0.5)', borderRadius: '2px', pointerEvents: 'none' }} />
+        <div className="washi-tape washi-tape--yellow" style={{ top: '-13px', left: '36px', transform: 'rotate(1deg)', width: '72px', height: '20px', zIndex: 6 }} />
 
-        <div style={{ paddingLeft: '16px', display: 'grid', gap: '10px' }}>
-          <span style={{ fontFamily: 'var(--font-hand)', color: '#9f1239', fontSize: '0.92rem', lineHeight: 1 }}>
-            {t.reviewBeforeStarting || 'Review before starting'}
-          </span>
+        <div style={{ display: 'grid', gap: '10px' }}>
+          <StepHeader
+            num="✓" label={toUiLabelCase(t.reviewBeforeStarting || 'Review before starting')}
+            color="#f59e0b" done={isComplete} locked={false}
+          />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-            {/* Name chip */}
             <ReviewChip color={hasName ? '#3b82f6' : '#94a3b8'} done={hasName}>
               {hasName ? playerName.trim() : (t.namePlaceholder || 'Name')}
             </ReviewChip>
-            {/* Difficulty chip */}
             <ReviewChip color={selectedDiffOption?.color || '#94a3b8'} done={!!selectedDiffOption}>
               {selectedDiffOption ? toUiLabelCase(getDifficultyLabel(selectedDiffOption.key, t)) : (t.setupDifficultyTitle || 'Difficulty')}
             </ReviewChip>
-            {/* Count chip */}
             <ReviewChip color={selectedSetOption ? getQuestionSetChipColor(questionSet) : '#94a3b8'} done={!!selectedSetOption}>
               {selectedSetOption
                 ? `${selectedSetOption.label}${isJapanese ? '' : ' '}${t.questionsSuffix || 'questions'}`
@@ -385,40 +379,35 @@ const QuestionsSetupSection = ({
 
         {/* Start button */}
         <motion.button
-          whileHover={isStartDisabled ? undefined : {
-            scale: 1.06, rotate: -2, y: -3,
-            transition: SPRING_POP,
-          }}
-          whileTap={isStartDisabled ? undefined : {
-            scale: 0.92, rotate: 1,
-            transition: SPRING_POP,
-          }}
+          whileHover={isStartDisabled ? undefined : { scale: 1.06, rotate: -2, y: -3, transition: SPRING_POP }}
+          whileTap={isStartDisabled ? undefined : { scale: 0.92, rotate: 1, transition: SPRING_POP }}
           animate={isComplete ? {
-            boxShadow: ['0 10px 28px rgba(239,68,68,0.3)', '0 14px 36px rgba(239,68,68,0.5)', '0 10px 28px rgba(239,68,68,0.3)'],
+            boxShadow: ['0 10px 28px rgba(245,158,11,0.3)', '0 14px 36px rgba(245,158,11,0.5)', '0 10px 28px rgba(245,158,11,0.3)'],
           } : {}}
           transition={isComplete ? { repeat: Infinity, duration: 1.8 } : {}}
           onClick={handleStart}
           disabled={isStartDisabled}
+          className="quiz-start-btn"
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             minWidth: isMobile ? '100%' : '200px',
-            border: '2.5px solid #b91c1c',
-            borderBottom: '6px solid #7f1d1d',
+            border: `2.5px solid ${isStartDisabled ? '#e2e8f0' : '#d97706'}`,
+            borderBottom: `6px solid ${isStartDisabled ? '#cbd5e1' : '#92400e'}`,
             borderRadius: '16px',
             padding: isMobile ? '12px 20px' : '14px 22px',
-            background: isStartDisabled ? '#fca5a5' : '#ef4444',
-            color: '#ffffff',
+            background: isStartDisabled ? '#f1f5f9' : '#f59e0b',
+            color: isStartDisabled ? '#94a3b8' : '#ffffff',
             fontFamily: 'Sniglet, var(--font-main)', fontWeight: '400',
             fontSize: isMobile ? '1.1rem' : '1.18rem', lineHeight: 1,
             cursor: isStartDisabled ? 'not-allowed' : 'pointer',
-            opacity: isStartDisabled ? 0.65 : 1,
+            opacity: isStartDisabled ? 0.7 : 1,
             outline: 'none',
-            transition: 'background 0.2s, opacity 0.2s',
+            transition: 'background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s',
           }}
         >
           {isComplete
             ? <Sparkles size={20} strokeWidth={2.4} fill="rgba(255,255,255,0.6)" color="#fff" />
-            : <Play size={20} strokeWidth={2.8} fill="#ffffff" />
+            : <Play size={20} strokeWidth={2.8} fill={isStartDisabled ? '#94a3b8' : '#ffffff'} />
           }
           {toUiLabelCase(t.start || 'Start quiz')}
         </motion.button>

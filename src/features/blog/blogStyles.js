@@ -64,8 +64,8 @@ export const getSortButtonStyle = (isMobile) => ({
 export const getReaderControlButtonStyle = ({ active, isMobile }) => ({
   border: `2.5px solid ${active ? '#60a5fa' : '#cbd5e1'}`,
   borderBottom: `${active ? (isMobile ? '6px' : '7px') : (isMobile ? '4px' : '5px')} solid ${active ? '#2563eb' : '#94a3b8'}`,
-  background: active ? '#eff6ff' : '#ffffff',
-  color: active ? '#1d4ed8' : '#475569',
+  background: active ? 'var(--surface-card, #eff6ff)' : 'var(--surface-card, #ffffff)',
+  color: active ? 'var(--text-primary, #1d4ed8)' : 'var(--text-muted, #475569)',
   borderRadius: isMobile ? '16px' : '18px',
   padding: isMobile ? '8px' : '10px 14px',
   fontFamily: 'Sniglet, var(--font-main)',

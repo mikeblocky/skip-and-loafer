@@ -187,7 +187,7 @@ export const YesNoQuestion = React.memo(function YesNoQuestion({
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '10px' : '16px', width: '100%', justifyContent: 'center' }}>
         <QuizActionButton
           isMobile={isMobile}
-          palette={{ background: '#ecfdf5', borderColor: '#10b981', bottomColor: '#059669', color: '#064e3b', shadow: '0 8px 0 rgba(16, 185, 129, 0.1)' }}
+          palette={{ background: 'var(--surface-card, #ecfdf5)', borderColor: '#10b981', bottomColor: '#059669', color: 'var(--text-primary, #064e3b)', shadow: '0 8px 0 rgba(16, 185, 129, 0.1)' }}
           onClick={() => {
             triggerHaptic('success');
             onApplyModifiers(question.yesModifiers, `${question.text} ・ ${formatQuizBinaryLabel(uiLanguage, true)}`, 'yesno', {
@@ -205,7 +205,7 @@ export const YesNoQuestion = React.memo(function YesNoQuestion({
         </QuizActionButton>
         <QuizActionButton
           isMobile={isMobile}
-          palette={{ background: '#fff1f2', borderColor: '#f43f5e', bottomColor: '#e11d48', color: '#881337', shadow: '0 8px 0 rgba(244, 63, 94, 0.1)' }}
+          palette={{ background: 'var(--surface-card, #fff1f2)', borderColor: '#f43f5e', bottomColor: '#e11d48', color: 'var(--text-primary, #881337)', shadow: '0 8px 0 rgba(244, 63, 94, 0.1)' }}
           onClick={() => {
             triggerHaptic('success');
             onApplyModifiers(question.noModifiers, `${question.text} ・ ${formatQuizBinaryLabel(uiLanguage, false)}`, 'yesno', {

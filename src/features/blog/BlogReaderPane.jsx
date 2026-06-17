@@ -242,21 +242,13 @@ const BlogReaderPane = ({
           paragraphLineHeight={paragraphLineHeight}
           readerPrefs={readerPrefs}
           readScrollRef={readScrollRef}
+          scrollToTop={scrollActivePaneToTop}
           renderedMarkdownChunks={renderedMarkdownChunks}
           markdownChunksLength={markdownChunks.length}
           visibleChunkCount={visibleChunkCount}
           loadMoreRef={loadMoreRef}
         />
       </Suspense>
-
-      {selectedBlog && createPortal(
-        <div style={PROGRESS_TRACK_STYLE}>
-          <motion.div
-            style={{ ...PROGRESS_FILL_STYLE, scaleX: progressSpring }}
-          />
-        </div>,
-        document.body,
-      )}
 
       {showBackToTop && createPortal(
         <>
