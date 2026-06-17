@@ -17,7 +17,7 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
     >
       <QuizPanel
         palette={{
-          background: isCalibration ? '#fefce8' : '#fff7ed',
+          background: 'var(--surface-card, #fff7ed)',
           borderColor: isCalibration ? '#fde047' : '#fdba74',
           bottomColor: isCalibration ? '#eab308' : '#f97316',
           shadow: '0 10px 25px rgba(0,0,0,0.1)',
@@ -34,14 +34,14 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
           </h3>
         </div>
 
-        <div style={{ color: isCalibration ? '#713f12' : '#7c2d12', fontSize: '1rem', lineHeight: 1.5, background: 'rgba(255,255,255,0.5)', padding: '12px', borderRadius: '8px', border: `1px dashed ${isCalibration ? '#facc15' : '#fdba74'}` }}>
+        <div style={{ color: isCalibration ? '#713f12' : '#7c2d12', fontSize: '1rem', lineHeight: 1.5, background: 'var(--surface-panel, rgba(255,255,255,0.5))', padding: '12px', borderRadius: '8px', border: `1px dashed ${isCalibration ? '#facc15' : '#fdba74'}` }}>
           {integrityCheckpoint.message}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '0 4px', flexWrap: 'wrap' }}>
           <QuizChip
             palette={{
-              background: '#ffffff',
+              background: 'var(--surface-card, #ffffff)',
               borderColor: isCalibration ? '#facc15' : '#fdba74',
               bottomColor: isCalibration ? '#eab308' : '#f97316',
               color: '#9a3412',
@@ -53,7 +53,7 @@ const QuizIntegrityCheckpoint = ({ isMobile, integrityCheckpoint, t, onResume })
           {integrityCheckpoint.reliability != null && (
             <QuizChip
               palette={{
-                background: '#ffffff',
+                background: 'var(--surface-card, #ffffff)',
                 borderColor: isCalibration ? '#facc15' : '#fdba74',
                 bottomColor: isCalibration ? '#eab308' : '#f97316',
                 color: '#9a3412',

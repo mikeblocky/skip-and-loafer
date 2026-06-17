@@ -6,13 +6,13 @@ import { instructionStyle } from './interactive/utils';
 
 export const QUIZ_PANEL_PALETTES = {
   prompt: {
-    background: '#ffffff',
+    background: 'var(--surface-card, #ffffff)',
     borderColor: '#bfdbfe',
     bottomColor: '#93c5fd',
     shadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
   },
   neutral: {
-    background: '#ffffff',
+    background: 'var(--surface-card, #ffffff)',
     borderColor: '#cbd5e1',
     bottomColor: '#94a3b8',
     shadow: '0 10px 24px rgba(15, 23, 42, 0.08)',
@@ -63,17 +63,17 @@ export const QUIZ_BUTTON_PALETTES = {
     shadow: '0 10px 24px rgba(15, 23, 42, 0.22)',
   },
   whiteSlate: {
-    background: '#ffffff',
+    background: 'var(--surface-card, #ffffff)',
     borderColor: '#94a3b8',
     bottomColor: '#64748b',
-    color: '#334155',
+    color: 'var(--text-primary, #334155)',
     shadow: '0 8px 20px rgba(100, 116, 139, 0.16)',
   },
   softBlue: {
-    background: '#eff6ff',
+    background: 'var(--surface-card, #eff6ff)',
     borderColor: '#93c5fd',
     bottomColor: '#2563eb',
-    color: '#1e40af',
+    color: 'var(--text-primary, #1e40af)',
     shadow: '0 6px 16px rgba(37, 99, 235, 0.12)',
   },
 };
@@ -202,10 +202,10 @@ export const QuizStageFrame = ({
   >
     <QuizChip
       palette={{
-        background: '#eff6ff',
+        background: 'var(--surface-card, #eff6ff)',
         borderColor: '#bfdbfe',
         bottomColor: '#93c5fd',
-        color: '#1d4ed8',
+        color: 'var(--text-primary, #1d4ed8)',
       }}
       style={{
         alignSelf: 'flex-start',
@@ -230,7 +230,7 @@ export const QuizStageFrame = ({
         style={{
           fontFamily: 'var(--font-hand)',
           fontSize: isMobile ? '1.5rem' : '1.9rem',
-          color: '#1e293b',
+          color: 'var(--text-primary, #1e293b)',
           textAlign: 'left',
           width: '100%',
           margin: 0,

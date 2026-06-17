@@ -68,7 +68,7 @@ export const QuestionMetricCard = ({
   >
     <span
       style={{
-        color: palette.labelColor || '#64748b',
+        color: palette.labelColor || 'var(--text-muted, #64748b)',
         fontFamily: 'Sniglet, var(--font-main)',
         fontSize: '0.84rem',
         lineHeight: 1,
@@ -80,7 +80,7 @@ export const QuestionMetricCard = ({
     </span>
     <span
       style={{
-        color: palette.valueColor || '#334155',
+        color: palette.valueColor || 'var(--text-primary, #334155)',
         fontFamily: 'var(--font-main)',
         fontSize: '0.92rem',
         lineHeight: 1.2,
@@ -106,7 +106,7 @@ export const QuestionSelectionSlots = ({
         key={`slot-${slot}`}
         className="sketchbook-border"
         style={{
-          background: '#f8fafc',
+          background: 'var(--surface-card, #f8fafc)',
           border: '3px solid #cbd5e1',
           borderBottom: '7px solid #94a3b8',
           borderRadius: '18px',
@@ -118,7 +118,7 @@ export const QuestionSelectionSlots = ({
       >
         <span
           style={{
-            color: '#64748b',
+            color: 'var(--text-muted, #64748b)',
             fontFamily: 'Sniglet, var(--font-main)',
             fontSize: '0.84rem',
             lineHeight: 1,
@@ -129,7 +129,7 @@ export const QuestionSelectionSlots = ({
         </span>
         <span
           style={{
-            color: '#334155',
+            color: 'var(--text-primary, #334155)',
             fontFamily: 'var(--font-main)',
             fontSize: '0.86rem',
             lineHeight: 1.2,

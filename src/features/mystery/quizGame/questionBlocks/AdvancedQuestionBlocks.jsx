@@ -116,7 +116,7 @@ export const RhythmQuestion = React.memo(function RhythmQuestion({
       <QuizActionButton
         isMobile={isMobile}
         onClick={tapRhythm}
-        palette={{ background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#1e293b', shadow: '0 8px 20px rgba(15, 23, 42, 0.08)' }}
+        palette={{ background: 'var(--surface-card, #f8fafc)', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: 'var(--text-primary, #1e293b)', shadow: '0 8px 20px rgba(15, 23, 42, 0.08)' }}
         whileHover={{ scale: 1.03, y: -2 }}
         whileTap={{ scale: 0.96, y: 6 }}
         style={{
@@ -181,7 +181,7 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#1d4ed8', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
               {getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel || 'A')}
             </span>
-            <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: '#ffffff', border: '2px solid #93c5fd', color: '#1d4ed8', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
+            <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: 'var(--surface-card, #ffffff)', border: '2px solid #93c5fd', color: '#1d4ed8', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffLeft}
             </span>
           </div>
@@ -198,7 +198,7 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#be185d', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
               {getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel || 'B')}
             </span>
-            <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: '#ffffff', border: '2px solid #f9a8d4', color: '#be185d', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
+            <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: 'var(--surface-card, #ffffff)', border: '2px solid #f9a8d4', color: '#be185d', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffRight}
             </span>
           </div>
@@ -301,10 +301,10 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
             }}
             aria-pressed={selected}
             palette={{
-              background: selected ? '#eff6ff' : '#ffffff',
+              background: 'var(--surface-card, #ffffff)',
               borderColor: selected ? '#3b82f6' : '#cbd5e1',
               bottomColor: selected ? '#2563eb' : '#94a3b8',
-              color: selected ? '#1e40af' : '#1e293b',
+              color: 'var(--text-primary, #1e293b)',
               shadow: selected ? '0 6px 0 rgba(37, 99, 235, 0.1)' : '0 4px 0 rgba(0,0,0,0.02)',
             }}
             whileHover={{ scale: 1.02, x: isMobile ? 0 : 8, y: -2 }}
@@ -328,10 +328,10 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
         {[1, 2, 3].map((level) => {
           const active = confidenceSelection.level === level;
           const palette = level === 1
-            ? { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#fef2f2', activeBorderColor: '#fca5a5', activeBottomColor: '#ef4444', activeColor: '#7f1d1d' }
+            ? { background: 'var(--surface-card, #f8fafc)', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: 'var(--text-primary, #475569)', activeBackground: 'var(--surface-card, #fef2f2)', activeBorderColor: '#fca5a5', activeBottomColor: '#ef4444', activeColor: 'var(--text-primary, #7f1d1d)' }
             : level === 2
-              ? { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#fffbeb', activeBorderColor: '#fcd34d', activeBottomColor: '#f59e0b', activeColor: '#92400e' }
-              : { background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#475569', activeBackground: '#ecfeff', activeBorderColor: '#67e8f9', activeBottomColor: '#06b6d4', activeColor: '#155e75' };
+              ? { background: 'var(--surface-card, #f8fafc)', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: 'var(--text-primary, #475569)', activeBackground: 'var(--surface-card, #fffbeb)', activeBorderColor: '#fcd34d', activeBottomColor: '#f59e0b', activeColor: 'var(--text-primary, #92400e)' }
+              : { background: 'var(--surface-card, #f8fafc)', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: 'var(--text-primary, #475569)', activeBackground: 'var(--surface-card, #ecfeff)', activeBorderColor: '#67e8f9', activeBottomColor: '#06b6d4', activeColor: 'var(--text-primary, #155e75)' };
 
           const label = ({
             1: toMysteryLabelCase(t.quiz.intense.subtly),

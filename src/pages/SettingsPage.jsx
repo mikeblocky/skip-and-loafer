@@ -375,7 +375,7 @@ const SettingsPage = ({
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
                         {option.label}
                       </span>
                     </div>
@@ -387,7 +387,7 @@ const SettingsPage = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: val ? '#3b82f6' : '#fff',
+                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
                       borderColor: val ? '#2563eb' : '#cbd5e1',
                       flexShrink: 0,
                     }}>
@@ -450,7 +450,7 @@ const SettingsPage = ({
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
                         {option.label}
                       </span>
                     </div>
@@ -462,7 +462,7 @@ const SettingsPage = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: val ? '#3b82f6' : '#fff',
+                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
                       borderColor: val ? '#2563eb' : '#cbd5e1',
                       flexShrink: 0,
                     }}>
@@ -525,7 +525,7 @@ const SettingsPage = ({
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: '#334155', fontWeight: '400' }}>
+                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
                         {option.label}
                       </span>
                     </div>
@@ -537,7 +537,7 @@ const SettingsPage = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: val ? '#3b82f6' : '#fff',
+                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
                       borderColor: val ? '#2563eb' : '#cbd5e1',
                       flexShrink: 0,
                     }}>
@@ -613,7 +613,7 @@ const SettingsPage = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: '#fff',
+                      background: 'var(--surface-card, #fff)',
                       borderColor: selected ? '#3b82f6' : '#cbd5e1',
                       flexShrink: 0,
                     }}>
@@ -706,7 +706,7 @@ const SettingsPage = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: isActive ? '#3b82f6' : '#fff',
+                        background: isActive ? '#3b82f6' : 'var(--surface-card, #fff)',
                         borderColor: isActive ? '#2563eb' : '#cbd5e1',
                         flexShrink: 0,
                       }}>
@@ -848,7 +848,7 @@ const SettingsPage = ({
                   alignSelf: 'flex-start',
                   border: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '3px solid #fff' : '3px solid #000') : '2px solid #bfdbfe',
                   borderBottom: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '5px solid #fff' : '5px solid #000') : '4px solid #60a5fa',
-                  background: '#fff',
+                  background: 'var(--surface-card, #fff)',
                   color: '#1d4ed8',
                   borderRadius: accessibilityPrefs.largeControls ? '12px' : '9px',
                   padding: accessibilityPrefs.largeControls ? '9px 16px' : '7px 12px',

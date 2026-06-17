@@ -5,6 +5,7 @@ import { toMysteryLabelCase } from './ui';
 
 export const QuizStageShell = ({ isMobile, children }) => (
   <div
+    className="quiz-stage-shell"
     style={{
       flex: 1,
       display: 'flex',
@@ -41,14 +42,14 @@ export const QuizIntroCard = ({
   actionLabel,
   onStart,
   panelPalette = {
-    background: '#f8fbff',
+    background: 'var(--surface-card, #f8fbff)',
     borderColor: '#bfdbfe',
     bottomColor: '#93c5fd',
     shadow: '0 12px 32px rgba(59, 130, 246, 0.1)',
   },
   iconColor = '#3b82f6',
   titleColor = '#1e40af',
-  descriptionBackground = '#eff6ff',
+  descriptionBackground = 'var(--surface-panel, #eff6ff)',
   descriptionBorderColor = '#bfdbfe',
   actionPalette = QUIZ_BUTTON_PALETTES.blue,
   maxWidthMobile = '380px',
@@ -90,7 +91,7 @@ export const QuizIntroCard = ({
       <p
         style={{
           fontSize: isMobile ? descriptionFontSizeMobile : descriptionFontSizeDesktop,
-          color: '#1e293b',
+          color: 'var(--text-primary, #1e293b)',
           marginBottom: note ? '12px' : '28px',
           lineHeight: 1.5,
           background: descriptionBackground,

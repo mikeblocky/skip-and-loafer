@@ -20,7 +20,7 @@ const ACTION_ROW_STYLE = {
 };
 
 const SLOT_CARD_STYLE = {
-  background: '#f8fafc',
+  background: 'var(--surface-card, #f8fafc)',
   border: '3px solid #cbd5e1',
   borderBottom: '7px solid #94a3b8',
   borderRadius: '18px',
@@ -100,10 +100,10 @@ export const MultiQuestion = React.memo(function MultiQuestion({
             isMobile={isMobile}
             aria-pressed={selected}
             palette={{
-              background: selected ? '#eff6ff' : '#ffffff',
+              background: 'var(--surface-card, #ffffff)',
               borderColor: selected ? '#3b82f6' : '#cbd5e1',
               bottomColor: selected ? '#2563eb' : '#94a3b8',
-              color: selected ? '#1e40af' : '#334155',
+              color: 'var(--text-primary, #334155)',
               shadow: selected ? '0 4px 12px rgba(37, 99, 235, 0.1)' : '0 4px 0 rgba(0,0,0,0.02)',
             }}
             whileHover={{ scale: 1.02, x: isMobile ? 0 : 6, y: -2 }}
@@ -146,10 +146,10 @@ export const RankQuestion = React.memo(function RankQuestion({
         const rankPosition = rankSelection.indexOf(index);
         const selected = rankPosition !== -1;
         const palette = rankPosition === 0
-          ? { bg: '#ecfdf5', border: '#34d399', shadow: '#059669', badgeBg: '#d1fae5', badgeBorder: '#10b981', badgeText: '#065f46' }
+          ? { bg: 'var(--surface-card, #ecfdf5)', border: '#34d399', shadow: '#059669', badgeBg: 'var(--surface-panel, #d1fae5)', badgeBorder: '#10b981', badgeText: 'var(--text-primary, #065f46)' }
           : rankPosition === 1
-            ? { bg: '#fff7ed', border: '#fb923c', shadow: '#ea580c', badgeBg: '#ffedd5', badgeBorder: '#f97316', badgeText: '#9a3412' }
-            : { bg: '#ffffff', border: '#cbd5e1', shadow: '#94a3b8', badgeBg: '#f8fafc', badgeBorder: '#cbd5e1', badgeText: '#94a3b8' };
+            ? { bg: 'var(--surface-card, #fff7ed)', border: '#fb923c', shadow: '#ea580c', badgeBg: 'var(--surface-panel, #ffedd5)', badgeBorder: '#f97316', badgeText: 'var(--text-primary, #9a3412)' }
+            : { bg: 'var(--surface-card, #ffffff)', border: '#cbd5e1', shadow: '#94a3b8', badgeBg: 'var(--surface-card, #f8fafc)', badgeBorder: '#cbd5e1', badgeText: 'var(--text-muted, #94a3b8)' };
 
         return (
           <QuizActionButton
@@ -204,7 +204,7 @@ export const IpsativeQuestion = React.memo(function IpsativeQuestion({
         return (
           <QuizPanel
             key={index}
-            palette={{ background: '#ffffff', borderColor: isMost ? '#10b981' : isLeast ? '#f43f5e' : '#cbd5e1', bottomColor: isMost ? '#059669' : isLeast ? '#e11d48' : '#94a3b8', shadow: '0 6px 0 rgba(0,0,0,0.02)' }}
+            palette={{ background: 'var(--surface-card, #ffffff)', borderColor: isMost ? '#10b981' : isLeast ? '#f43f5e' : '#cbd5e1', bottomColor: isMost ? '#059669' : isLeast ? '#e11d48' : '#94a3b8', shadow: '0 6px 0 rgba(0,0,0,0.02)' }}
             style={{ padding: isMobile ? '14px 16px' : '18px 20px', gap: '14px' }}
           >
             <div style={{ color: '#1e293b', fontSize: '1.05rem', lineHeight: 1.35, fontWeight: '700' }}>
@@ -219,7 +219,7 @@ export const IpsativeQuestion = React.memo(function IpsativeQuestion({
                   setIpsativeMost((previous) => (previous === index ? null : index));
                   if (ipsativeLeast === index) setIpsativeLeast(null);
                 }}
-                palette={{ background: isMost ? '#ecfdf5' : '#f8fafc', borderColor: isMost ? '#10b981' : '#cbd5e1', bottomColor: isMost ? '#059669' : '#94a3b8', color: isMost ? '#065f46' : '#64748b', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
+                palette={{ background: 'var(--surface-card, #f8fafc)', borderColor: isMost ? '#10b981' : '#cbd5e1', bottomColor: isMost ? '#059669' : '#94a3b8', color: 'var(--text-primary, #64748b)', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
                 style={{ flex: 1, padding: '10px 12px', borderRadius: '16px', fontSize: '0.95rem' }}
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.9, y: 8 }}
@@ -234,7 +234,7 @@ export const IpsativeQuestion = React.memo(function IpsativeQuestion({
                   setIpsativeLeast((previous) => (previous === index ? null : index));
                   if (ipsativeMost === index) setIpsativeMost(null);
                 }}
-                palette={{ background: isLeast ? '#fff1f2' : '#f8fafc', borderColor: isLeast ? '#f43f5e' : '#cbd5e1', bottomColor: isLeast ? '#e11d48' : '#94a3b8', color: isLeast ? '#9d174d' : '#64748b', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
+                palette={{ background: 'var(--surface-card, #f8fafc)', borderColor: isLeast ? '#f43f5e' : '#cbd5e1', bottomColor: isLeast ? '#e11d48' : '#94a3b8', color: 'var(--text-primary, #64748b)', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
                 style={{ flex: 1, padding: '10px 12px', borderRadius: '16px', fontSize: '0.95rem' }}
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.9, y: 8 }}
@@ -312,7 +312,7 @@ export const AllocationQuestion = React.memo(function AllocationQuestion({
                 isMobile={isMobile}
                 disabled={points <= 0}
                 onClick={() => onAdjustAllocation(question, index, -1)}
-                palette={{ background: '#f8fafc', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: '#64748b', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
+                palette={{ background: 'var(--surface-card, #f8fafc)', borderColor: '#cbd5e1', bottomColor: '#94a3b8', color: 'var(--text-primary, #64748b)', shadow: '0 4px 10px rgba(15, 23, 42, 0.05)' }}
                 style={{ width: '36px', height: '36px', padding: 0, borderRadius: '12px', fontSize: '1.2rem' }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9, y: 4 }}
@@ -337,7 +337,7 @@ export const AllocationQuestion = React.memo(function AllocationQuestion({
           </QuizPanel>
         );
       })}
-      <QuizChip palette={{ background: '#ffffff', borderColor: '#bfdbfe', bottomColor: '#93c5fd', color: '#1e40af' }} style={{ alignSelf: 'center', padding: '8px 14px', fontSize: '0.92rem' }}>
+      <QuizChip palette={{ background: 'var(--surface-card, #ffffff)', borderColor: '#bfdbfe', bottomColor: '#93c5fd', color: 'var(--text-primary, #1e40af)' }} style={{ alignSelf: 'center', padding: '8px 14px', fontSize: '0.92rem' }}>
         {toMysteryLabelCase(t.quiz.pointsUsed)}: {totalAllocated} / {allocationBudget}
       </QuizChip>
       <QuizInstruction isMobile={isMobile}>{getQuestionInstruction(question)}</QuizInstruction>
@@ -371,7 +371,7 @@ export const DriftQuestion = React.memo(function DriftQuestion({
               key={index}
               isMobile={isMobile}
               aria-pressed={selected}
-              palette={{ background: selected ? '#ecfeff' : '#ffffff', borderColor: selected ? '#06b6d4' : '#cbd5e1', bottomColor: selected ? '#0891b2' : '#94a3b8', color: selected ? '#155e75' : '#1e293b', shadow: selected ? '0 8px 18px rgba(6, 182, 212, 0.18)' : '0 4px 0 rgba(0,0,0,0.02)' }}
+              palette={{ background: 'var(--surface-card, #ffffff)', borderColor: selected ? '#06b6d4' : '#cbd5e1', bottomColor: selected ? '#0891b2' : '#94a3b8', color: 'var(--text-primary, #1e293b)', shadow: selected ? '0 8px 18px rgba(6, 182, 212, 0.18)' : '0 4px 0 rgba(0,0,0,0.02)' }}
               whileHover={{ scale: 1.02, x: isMobile ? 0 : 8, y: -2 }}
               whileTap={{ scale: 0.95, y: 8 }}
               onClick={() => {
@@ -380,7 +380,7 @@ export const DriftQuestion = React.memo(function DriftQuestion({
               }}
               style={{ width: '100%', padding: isMobile ? '14px 16px' : '16px 20px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px', alignItems: 'center', textAlign: 'left', whiteSpace: 'normal', height: 'auto' }}
             >
-              <span aria-hidden="true" style={{ ...selectionBadgeStyle, width: '30px', minWidth: '30px', border: `3px solid ${selected ? '#06b6d4' : '#cbd5e1'}`, background: selected ? '#cffafe' : '#f8fafc', color: selected ? '#155e75' : '#94a3b8' }}>
+              <span aria-hidden="true" style={{ ...selectionBadgeStyle, width: '30px', minWidth: '30px', border: `3px solid ${selected ? '#06b6d4' : '#cbd5e1'}`, background: 'var(--surface-card, #f8fafc)', color: selected ? '#67e8f9' : 'var(--text-muted, #94a3b8)' }}>
                 {selected ? order + 1 : ''}
               </span>
               <span style={{ fontSize: '1.02rem' }}>{getLocalizedQuizOption(t, question.id, index, option.text)}</span>

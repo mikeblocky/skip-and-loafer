@@ -65,10 +65,10 @@ export const getChapterRowStyle = (theme, index, finished, isMobile) => ({
   padding: isMobile ? '16px 14px' : '18px 20px',
   background: `var(--themed-card-bg, ${theme.surface})`,
   borderRadius: '20px',
-  border: `2.5px solid var(--themed-card-border, ${theme.border})`,
-  borderBottom: finished ? `4.5px solid var(--themed-card-border, ${theme.border})` : `6px solid var(--themed-card-border, ${theme.border})`,
-  boxShadow: finished 
-    ? `0 4px 12px ${theme.shadow}` 
+  border: `2.5px solid ${theme.border}`,
+  borderBottom: finished ? `4.5px solid ${theme.border}` : `6px solid ${theme.border}`,
+  boxShadow: finished
+    ? `0 4px 12px ${theme.shadow}`
     : `0 6px 18px ${theme.shadow}`,
   width: '100%',
   transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -83,9 +83,9 @@ export const getVolumeCardStyle = (theme, isMobile) => ({
   borderRadius: '16px',
   overflow: 'visible',
   background: `var(--themed-card-bg, ${theme.surface})`,
-  border: `2.5px solid var(--themed-card-border, ${theme.border})`,
-  borderRight: `4.5px solid var(--themed-card-border, ${theme.border})`, // Adds 'spine' depth
-  borderBottom: `6px solid var(--themed-card-border, ${theme.border})`, // Adds 'shelf' depth
+  border: `2.5px solid ${theme.border}`,
+  borderRight: `4.5px solid ${theme.border}`,
+  borderBottom: `6px solid ${theme.border}`,
   boxShadow: `0 8px 24px ${theme.shadow}`,
   display: 'flex',
   alignItems: 'center',
@@ -97,9 +97,9 @@ export const getNavButtonStyle = (theme, disabled, isMobile) => ({
   width: isMobile ? '44px' : '40px',
   height: isMobile ? '44px' : '40px',
   borderRadius: '12px',
-  border: `2.5px solid ${disabled ? 'var(--themed-card-inactive-border, #e2e8f0)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
+  border: `2.5px solid ${disabled ? 'var(--themed-card-inactive-border, #e2e8f0)' : theme.border}`,
   background: disabled ? 'var(--themed-button-disabled-bg, #f8fafc)' : `var(--themed-card-bg, ${theme.surface})`,
-  borderBottom: disabled ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid var(--themed-card-border, ${theme.border})`,
+  borderBottom: disabled ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid ${theme.border}`,
   color: disabled ? 'var(--themed-text-muted, #94a3b8)' : 'var(--themed-badge-text, ' + theme.accent + ')',
   display: 'flex',
   alignItems: 'center',
@@ -112,9 +112,9 @@ export const getVolSelectorButtonStyle = (theme, isActive, isMobile) => ({
   minWidth: isMobile ? '42px' : '38px',
   height: isMobile ? '52px' : '48px',
   borderRadius: '12px',
-  border: `2.5px solid ${isActive ? 'var(--themed-card-border, ' + theme.border + ')' : 'var(--themed-card-inactive-border, #cbd5e1)'}`,
+  border: `2.5px solid ${isActive ? theme.border : 'var(--themed-card-inactive-border, #cbd5e1)'}`,
   background: isActive ? `var(--themed-card-bg, ${theme.surface})` : 'var(--themed-card-inactive-bg, #fff)',
-  borderBottom: isActive ? `4.5px solid var(--themed-card-border, ${theme.border})` : '3px solid var(--themed-card-inactive-border, #94a3b8)',
+  borderBottom: isActive ? `4.5px solid ${theme.border}` : '3px solid var(--themed-card-inactive-border, #94a3b8)',
   color: isActive ? 'var(--themed-badge-text, ' + theme.accent + ')' : 'var(--themed-text-muted, #64748b)',
   display: 'flex',
   flexDirection: 'column',

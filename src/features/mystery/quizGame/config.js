@@ -134,17 +134,17 @@ export const RELIABILITY_RECOVERY_BANK = [
 export const DOT_COLORS = ['#f87171', '#fb923c', '#fcd34d', '#4ade80', '#60a5fa'];
 
 export const CHOICE_COLORS = [
-  { bg: '#f8fafc', border: '#cbd5e1', text: '#334155', shadow: '#94a3b8' },
-  { bg: '#f5f3ff', border: '#c4b5fd', text: '#5b21b6', shadow: '#8b5cf6' },
-  { bg: '#f0f9ff', border: '#7dd3fc', text: '#0c4a6e', shadow: '#0ea5e9' },
-  { bg: '#f0fdf4', border: '#86efac', text: '#14532d', shadow: '#22c55e' },
+  { bg: 'var(--surface-card, #f8fafc)', border: '#cbd5e1', text: 'var(--text-primary, #334155)', shadow: '#94a3b8' },
+  { bg: 'var(--surface-card, #f5f3ff)', border: '#c4b5fd', text: 'var(--text-primary, #5b21b6)', shadow: '#8b5cf6' },
+  { bg: 'var(--surface-card, #f0f9ff)', border: '#7dd3fc', text: 'var(--text-primary, #0c4a6e)', shadow: '#0ea5e9' },
+  { bg: 'var(--surface-card, #f0fdf4)', border: '#86efac', text: 'var(--text-primary, #14532d)', shadow: '#22c55e' },
 ];
 
 export const STANCE_PALETTES = [
-  { bg: '#fff1f2', border: '#fda4af', bottom: '#e11d48', text: '#9f1239' },
-  { bg: '#fff7ed', border: '#fdba74', bottom: '#ea580c', text: '#9a3412' },
-  { bg: '#eff6ff', border: '#93c5fd', bottom: '#2563eb', text: '#1d4ed8' },
-  { bg: '#ecfdf5', border: '#86efac', bottom: '#16a34a', text: '#166534' },
+  { bg: 'var(--surface-card, #fff1f2)', border: '#fda4af', bottom: '#e11d48', text: '#9f1239' },
+  { bg: 'var(--surface-card, #fff7ed)', border: '#fdba74', bottom: '#ea580c', text: '#9a3412' },
+  { bg: 'var(--surface-card, #eff6ff)', border: '#93c5fd', bottom: '#2563eb', text: '#1d4ed8' },
+  { bg: 'var(--surface-card, #ecfdf5)', border: '#86efac', bottom: '#16a34a', text: '#166534' },
 ];
 
 export const createEmptyAxes = () => ({

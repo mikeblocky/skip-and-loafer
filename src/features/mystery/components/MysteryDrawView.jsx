@@ -114,11 +114,11 @@ const MysteryDrawView = ({ isMobile, t, pulledCharacter, isOpening, onDraw, onDr
             } : {}}
             transition={{ duration: isOpening ? 2.2 : 0.2, ease: 'steps(8, end)' }}
             style={{
-              background: '#fefce8',
+              background: 'var(--surface-card, #fefce8)',
               border: '2px solid #eab30880',
               borderBottom: '4.5px solid #eab308',
               borderRadius: '255px 15px 225px 15px/15px 225px 15px 255px',
-              color: '#ca8a04',
+              color: 'var(--text-primary, #ca8a04)',
               width: isMobile ? '160px' : '200px',
               height: isMobile ? '160px' : '200px',
               display: 'flex',

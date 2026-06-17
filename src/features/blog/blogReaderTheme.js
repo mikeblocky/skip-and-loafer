@@ -36,18 +36,18 @@ export const getReaderTheme = (theme) => {
   }
 
   return {
-    panelBg: '#ffffff',
+    panelBg: 'var(--surface-card, #ffffff)',
     panelBorder: '#bfdbfe',
-    contentBg: '#ffffff',
-    heading: '#1e3a8a',
-    text: '#334155',
-    subtle: '#64748b',
+    contentBg: 'var(--surface-card, #ffffff)',
+    heading: 'var(--text-primary, #1e3a8a)',
+    text: 'var(--text-primary, #334155)',
+    subtle: 'var(--text-muted, #64748b)',
     divider: '#dbeafe',
-    codeBg: '#f8fbff',
+    codeBg: 'var(--surface-panel, #f8fbff)',
     codeBorder: '#dbeafe',
-    quoteBg: '#eff6ff',
+    quoteBg: 'var(--surface-panel, #eff6ff)',
     quoteBorder: '#60a5fa',
-    quoteText: '#1e3a8a',
+    quoteText: 'var(--text-primary, #1e3a8a)',
     link: '#2563eb',
   };
 };

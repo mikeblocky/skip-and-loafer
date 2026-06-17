@@ -263,6 +263,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
         transition: { type: 'spring', stiffness: 450, damping: 15 } 
       }}
       whileTap={{ scale: 0.98, y: 0.5 }}
+      className="chapter-row"
       style={getChapterRowStyle(theme, index, finished, isMobile)}
     >
       <CelebrationHearts show={celebrating} />
@@ -284,8 +285,8 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          border: `2px solid var(--themed-card-border, ${tier.border || theme.border})`,
-          borderBottom: `4px solid var(--themed-card-border, ${tier.border || theme.border})`,
+          border: `2px solid ${tier.border || theme.border}`,
+          borderBottom: `4px solid ${tier.border || theme.border}`,
           boxShadow: `0 4px 12px ${theme.shadow}`,
         }}
       >
@@ -305,8 +306,8 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       alignItems: 'center', 
       justifyContent: 'center', 
       flexShrink: 0, 
-      border: `2.5px solid var(--themed-card-border, ${theme.border})`,
-      borderBottom: `4.5px solid var(--themed-card-border, ${theme.border})`,
+      border: `2.5px solid ${theme.border}`,
+      borderBottom: `4.5px solid ${theme.border}`,
       boxShadow: `0 3px 0 rgba(0,0,0,0.1)`,
     }}>
       <span style={{ fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? '1rem' : '1.15rem', fontWeight: '400', color: `var(--themed-badge-text, ${theme.accent})` }}>{chapterBadge}</span>
@@ -385,8 +386,8 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             borderRadius: '12px',
             fontFamily: 'var(--font-main)',
             fontWeight: '400',
-            border: `2px solid ${cooldown > 0 ? 'var(--themed-card-inactive-border, #cbd5e1)' : 'var(--themed-card-border, ' + theme.border + ')'}`,
-            borderBottom: cooldown > 0 ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid var(--themed-card-border, ${theme.border})`,
+            border: `2px solid ${cooldown > 0 ? 'var(--themed-card-inactive-border, #cbd5e1)' : theme.border}`,
+            borderBottom: cooldown > 0 ? '2.5px solid var(--themed-card-inactive-border, #cbd5e1)' : `4.5px solid ${theme.border}`,
             cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
             boxShadow: cooldown > 0 ? 'none' : `0 4px 12px ${theme.shadow}`,
             opacity: cooldown > 0 ? 0.7 : 1,
@@ -412,8 +413,8 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             borderRadius: '12px', 
             fontFamily: 'var(--font-main)', 
             fontWeight: '400', 
-            border: '2px solid var(--themed-card-border, #065f46)', 
-            borderBottom: '4.5px solid var(--themed-card-border, #064e3b)',
+            border: '2px solid #065f46',
+            borderBottom: '4.5px solid #064e3b',
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(5, 150, 105, 0.1)'
           }}
@@ -463,7 +464,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
             borderRadius: '12px',
             background: noteText ? notePalette.background : 'var(--themed-card-inactive-bg, var(--surface-card))',
             color: noteText ? notePalette.accent : 'var(--themed-badge-text, ' + theme.accent + ')',
-            border: `2px solid ${noteText ? notePalette.bottom : 'var(--themed-card-border, ' + theme.border + ')'}`,
+            border: `2px solid ${noteText ? notePalette.bottom : theme.border}`,
             borderBottom: noteText ? `4px solid ${notePalette.bottom}` : `4.5px solid ${theme.border}`,
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -481,7 +482,7 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              border: '1.5px solid #fff',
+              border: '1.5px solid var(--surface-card, #fff)',
             }} />
           )}
         </motion.button>
