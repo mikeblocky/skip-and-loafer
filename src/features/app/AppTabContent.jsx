@@ -277,10 +277,18 @@ const AppTabContent = ({
         <SyncPage
           isMobile={isMobile}
           uiLanguage={uiLanguage}
+          subtabShortcut={subtabShortcut}
           finishedCount={finishedCount}
           finished={finished}
           readCounts={readCounts}
           reloadFromStorage={reloadFromStorage}
+          onReadChapter={(ch) => setReaderChapter(ch)}
+          trackExternalLink={trackExternalLink}
+          cancelExternalLink={cancelExternalLink}
+          unmarkFinished={unmarkFinished}
+          incrementReadCount={incrementReadCount}
+          getRemainingCooldown={getRemainingCooldown}
+          pendingLinks={pendingLinks}
           syncData={syncData}
           outerSwitcher={chaptersDropdown}
         />
