@@ -1,65 +1,67 @@
-import {
-  addSignature,
-  applyCors,
-  clampText,
-  connectRedis,
-  createEntityId,
-  createTimestamp,
-  listSignatures,
-  sendJson,
-} from '../../src/server/communityStore.js';
+import { query } from '../../src/server/postgres.js';
 
-function normalizeSignatureEntry(rawEntry) {
+function clampText(value, max) {
+  return String(value || '').trim().slice(0, max);
+}
+
+function createEntityId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function rowToEntry(row) {
   return {
-    id: String(rawEntry?.id || ''),
-    name: clampText(rawEntry?.name, 48),
-    message: clampText(rawEntry?.message, 280),
-    type: rawEntry?.type === 'pride' ? 'pride' : 'sign',
-    createdAt: String(rawEntry?.createdAt || createTimestamp()),
+    id: row.id,
+    name: row.name,
+    message: row.message,
+    type: row.type,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
   };
 }
 
 export default async function handler(req, res) {
-  applyCors(res, 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!['GET', 'POST'].includes(req.method)) return sendJson(res, 405, { error: 'Method not allowed' });
+  if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
 
-  let client;
   try {
-    client = await connectRedis();
-
     if (req.method === 'GET') {
-      const signatures = (await listSignatures(client)).map(normalizeSignatureEntry).filter((entry) => entry.id && entry.message);
-      return sendJson(res, 200, { signatures });
+      const result = await query(
+        `SELECT id, name, message, type, created_at
+         FROM signatures
+         ORDER BY created_at DESC
+         LIMIT 80`,
+      );
+      return res.status(200).json({ signatures: result.rows.map(rowToEntry) });
     }
 
     const name = clampText(req.body?.name, 48);
     const message = clampText(req.body?.message, 280);
     const type = req.body?.type === 'pride' ? 'pride' : 'sign';
 
-    if (!name) {
-      return sendJson(res, 400, { error: 'Name is required' });
-    }
+    if (!name) return res.status(400).json({ error: 'Name is required' });
+    if (!message) return res.status(400).json({ error: 'Message is required' });
 
-    if (!message) {
-      return sendJson(res, 400, { error: 'Message is required' });
-    }
+    const id = createEntityId(type === 'pride' ? 'pride' : 'sign');
 
-    const entry = normalizeSignatureEntry({
-      id: createEntityId(type === 'pride' ? 'pride' : 'sign'),
-      name,
-      message,
-      type,
-      createdAt: createTimestamp(),
-    });
+    await query(
+      `INSERT INTO signatures (id, name, message, type) VALUES ($1, $2, $3, $4)`,
+      [id, name, message, type],
+    );
 
-    const signatures = await addSignature(client, entry);
-    return sendJson(res, 200, { entry, signatures });
+    const result = await query(
+      `SELECT id, name, message, type, created_at
+       FROM signatures
+       ORDER BY created_at DESC
+       LIMIT 80`,
+    );
+    const signatures = result.rows.map(rowToEntry);
+    return res.status(200).json({ entry: signatures.find((s) => s.id === id) || null, signatures });
   } catch (error) {
     console.error('community/signatures error:', error);
-    return sendJson(res, 500, { error: error.message || 'Internal server error' });
-  } finally {
-    if (client) await client.disconnect().catch(() => {});
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

@@ -69,6 +69,23 @@ async function runSchemaMigrations() {
       value text NOT NULL,
       updated_at timestamptz NOT NULL DEFAULT now()
     )`,
+    `CREATE TABLE IF NOT EXISTS signatures (
+      id text PRIMARY KEY,
+      name text NOT NULL,
+      message text NOT NULL,
+      type text NOT NULL DEFAULT 'sign',
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS fan_gallery (
+      id text PRIMARY KEY,
+      name text NOT NULL,
+      description text NOT NULL DEFAULT '',
+      image_data_url text NOT NULL,
+      mime_type text NOT NULL DEFAULT '',
+      width integer,
+      height integer,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`,
     `CREATE INDEX IF NOT EXISTS sync_entries_expires_at_idx ON sync_entries (expires_at)`,
     `CREATE INDEX IF NOT EXISTS quiz_results_played_at_idx ON quiz_results (played_at DESC)`,
     `CREATE INDEX IF NOT EXISTS quiz_leaderboard_score_idx ON quiz_leaderboard (best_score DESC, played ASC, name ASC)`,

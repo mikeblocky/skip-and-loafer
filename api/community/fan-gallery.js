@@ -1,23 +1,6 @@
-import {
-  addFanGalleryEntry,
-  applyCors,
-  clampText,
-  connectRedis,
-  createEntityId,
-  createTimestamp,
-  listFanGalleryEntries,
-  sendJson,
-} from '../../src/server/communityStore.js';
+import { query } from '../../src/server/postgres.js';
 
-const MAX_IMAGE_DATA_URL_LENGTH = 8000000;
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '12mb',
-    },
-  },
-};
+const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
 
 function sanitizeImageDataUrl(value) {
   const normalized = String(value || '').trim();
@@ -27,71 +10,80 @@ function sanitizeImageDataUrl(value) {
 }
 
 function normalizePositiveInt(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return null;
-  return Math.round(number);
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n);
 }
 
-function normalizeFanGalleryEntry(rawEntry) {
-  const imageDataUrl = sanitizeImageDataUrl(rawEntry?.imageDataUrl);
+function clampText(value, max) {
+  return String(value || '').trim().slice(0, max);
+}
+
+function createEntityId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function rowToEntry(row) {
   return {
-    id: String(rawEntry?.id || ''),
-    name: clampText(rawEntry?.name, 60),
-    description: clampText(rawEntry?.description, 240),
-    imageDataUrl,
-    mimeType: clampText(rawEntry?.mimeType, 24),
-    width: normalizePositiveInt(rawEntry?.width),
-    height: normalizePositiveInt(rawEntry?.height),
-    createdAt: String(rawEntry?.createdAt || createTimestamp()),
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    imageDataUrl: row.image_data_url,
+    mimeType: row.mime_type,
+    width: row.width,
+    height: row.height,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
   };
 }
 
 export default async function handler(req, res) {
-  applyCors(res, 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!['GET', 'POST'].includes(req.method)) return sendJson(res, 405, { error: 'Method not allowed' });
+  if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
 
-  let client;
   try {
-    client = await connectRedis();
-
     if (req.method === 'GET') {
-      const entries = (await listFanGalleryEntries(client))
-        .map(normalizeFanGalleryEntry)
-        .filter((entry) => entry.id && entry.imageDataUrl);
-      return sendJson(res, 200, { entries });
+      const result = await query(
+        `SELECT id, name, description, image_data_url, mime_type, width, height, created_at
+         FROM fan_gallery
+         ORDER BY created_at DESC
+         LIMIT 20`,
+      );
+      return res.status(200).json({ entries: result.rows.map(rowToEntry) });
     }
 
     const imageDataUrl = sanitizeImageDataUrl(req.body?.imageDataUrl);
+    if (!imageDataUrl) {
+      return res.status(400).json({ error: 'A valid image upload is required' });
+    }
+
+    const id = createEntityId('fan');
     const name = clampText(req.body?.name, 60);
     const description = clampText(req.body?.description, 240);
     const mimeType = clampText(req.body?.mimeType, 24);
     const width = normalizePositiveInt(req.body?.width);
     const height = normalizePositiveInt(req.body?.height);
 
-    if (!imageDataUrl) {
-      return sendJson(res, 400, { error: 'A sanitized image upload is required' });
-    }
+    await query(
+      `INSERT INTO fan_gallery (id, name, description, image_data_url, mime_type, width, height)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [id, name, description, imageDataUrl, mimeType, width, height],
+    );
 
-    const entry = normalizeFanGalleryEntry({
-      id: createEntityId('fan'),
-      name,
-      description,
-      imageDataUrl,
-      mimeType,
-      width,
-      height,
-      createdAt: createTimestamp(),
-    });
-
-    const entries = await addFanGalleryEntry(client, entry);
-    return sendJson(res, 200, { entry, entries });
+    const result = await query(
+      `SELECT id, name, description, image_data_url, mime_type, width, height, created_at
+       FROM fan_gallery
+       ORDER BY created_at DESC
+       LIMIT 20`,
+    );
+    const entries = result.rows.map(rowToEntry);
+    return res.status(200).json({ entry: entries.find((e) => e.id === id) || null, entries });
   } catch (error) {
     console.error('community/fan-gallery error:', error);
-    return sendJson(res, 500, { error: error.message || 'Internal server error' });
-  } finally {
-    if (client) await client.disconnect().catch(() => {});
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
-

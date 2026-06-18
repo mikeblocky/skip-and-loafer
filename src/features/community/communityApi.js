@@ -7,6 +7,9 @@ import {
 
 const COMMUNITY_CACHE_TTL_MS = 30_000;
 
+function fingerprintSignature(e) { return `${String(e.name || '').trim()}|${String(e.message || '').trim()}`; }
+function fingerprintGallery(e) { return `${String(e.name || '').trim()}|${String(e.description || '').trim()}`; }
+
 function createCachedCollectionResource(loadEntries, storageKey) {
   let cache = null;
   let request = null;
@@ -20,6 +23,21 @@ function createCachedCollectionResource(loadEntries, storageKey) {
         localStorage.setItem(storageKey, JSON.stringify(cache));
       } catch {}
     }
+
+    // Remove pending items whose content now exists in the server response
+    const pendingKey =
+      storageKey === 'skip_signatures_cache' ? 'skip_pending_signatures' :
+      storageKey === 'skip_fangallery_cache' ? 'skip_pending_gallery' : null;
+    const fingerprint = storageKey === 'skip_signatures_cache' ? fingerprintSignature : fingerprintGallery;
+    if (pendingKey) {
+      try {
+        const serverFingerprints = new Set(cache.map(fingerprint));
+        const pending = JSON.parse(localStorage.getItem(pendingKey) || '[]');
+        const stillPending = pending.filter((e) => !serverFingerprints.has(fingerprint(e)));
+        localStorage.setItem(pendingKey, JSON.stringify(stillPending));
+      } catch {}
+    }
+
     return cache;
   };
 
@@ -36,13 +54,17 @@ function createCachedCollectionResource(loadEntries, storageKey) {
 
     if (storageKey === 'skip_signatures_cache') {
       try {
+        const serverFingerprints = new Set(currentCache.map(fingerprintSignature));
         const pending = JSON.parse(localStorage.getItem('skip_pending_signatures') || '[]');
-        return [...pending, ...currentCache];
+        const uniquePending = pending.filter((e) => !serverFingerprints.has(fingerprintSignature(e)));
+        return [...uniquePending, ...currentCache];
       } catch {}
     } else if (storageKey === 'skip_fangallery_cache') {
       try {
+        const serverFingerprints = new Set(currentCache.map(fingerprintGallery));
         const pending = JSON.parse(localStorage.getItem('skip_pending_gallery') || '[]');
-        return [...pending, ...currentCache];
+        const uniquePending = pending.filter((e) => !serverFingerprints.has(fingerprintGallery(e)));
+        return [...uniquePending, ...currentCache];
       } catch {}
     }
 
