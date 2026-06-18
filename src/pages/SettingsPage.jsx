@@ -228,7 +228,10 @@ const SettingsPage = ({
       if (event.data?.type === 'SKIP_OFFLINE_CACHE_PROGRESS') {
         setOfflineStatus((previous) => ({
           ...previous,
-          cached: Number(event.data.cached || previous.cached || 0),
+          cached: Math.min(
+            Number(event.data.cached || previous.cached || 0),
+            Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
+          ),
           processed: Number(event.data.processed || previous.processed || 0),
           total: Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
           preparing: true,
@@ -249,10 +252,11 @@ const SettingsPage = ({
       }
 
       if (event.data?.type !== 'SKIP_OFFLINE_CACHE_COMPLETE') return;
+      const completedTotal = Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length);
       setOfflineStatus({
-        cached: Number(event.data.cached || 0),
-        processed: Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length),
-        total: Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length),
+        cached: Math.min(Number(event.data.cached || 0), completedTotal),
+        processed: completedTotal,
+        total: completedTotal,
         preparing: false,
       });
       refreshStorageStatus();
@@ -383,6 +387,7 @@ const SettingsPage = ({
     0,
     Math.min(100, Math.round((offlineStatus.cached / Math.max(1, offlineStatus.total)) * 100)),
   );
+  const displayedOfflineCached = Math.min(offlineStatus.cached, offlineStatus.total);
 
   const appLanguageOptions = getLanguageOptions();
   const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
@@ -1368,7 +1373,7 @@ const SettingsPage = ({
                     : 'You are offline. Cached pages and images will still open when they have been prepared.'}
                 </p>
                 <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
-                  Cached files: {offlineStatus.cached} / {offlineStatus.total}
+                  Cached files: {displayedOfflineCached} / {offlineStatus.total}
                   {storageEstimate ? ` · Storage used: ${formatBytes(storageEstimate.usage)}` : ''}
                 </div>
                 <div
@@ -1398,7 +1403,7 @@ const SettingsPage = ({
                 </div>
                 <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.76rem', color: '#92400e', lineHeight: 1.35 }}>
                   {offlineStatus.preparing
-                    ? `Cached ${offlineStatus.cached} of ${offlineStatus.total} files (${offlineProgress}%).`
+                    ? `Cached ${displayedOfflineCached} of ${offlineStatus.total} files (${offlineProgress}%).`
                     : offlineProgress >= 100
                       ? 'Offline library prepared.'
                       : 'Progress appears here while the offline library is being prepared.'}

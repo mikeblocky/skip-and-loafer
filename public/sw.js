@@ -1,5 +1,5 @@
 // Bump this when the shell assets change to force old SW out.
-const SHELL_VERSION = 'v4';
+const SHELL_VERSION = 'v5';
 const SHELL_CACHE = `skip-shell-${SHELL_VERSION}`;
 const FONT_CACHE = `skip-fonts-${SHELL_VERSION}`;
 const OFFLINE_CACHE = `skip-offline-${SHELL_VERSION}`;
@@ -112,7 +112,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL_CACHE)
       .then((cache) => cache.addAll(SHELL_ASSETS))
-      .then(() => cacheBuildAssets())
       .then(() => self.skipWaiting()),
   );
 });
@@ -155,6 +154,7 @@ self.addEventListener('message', (event) => {
   };
   backgroundCachePromise = backgroundCachePromise
     .catch(() => {})
+    .then(() => cacheBuildAssets())
     .then(() => cacheOfflineAssets(assets, postProgress))
     .then((status) => {
       if (event.source && status) {
