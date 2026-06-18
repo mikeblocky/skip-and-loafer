@@ -1,8 +1,10 @@
-import { memo, useEffect, useRef, useCallback, useState } from 'react';
+import { memo, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Users2 } from 'lucide-react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Users2, Camera } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
+
+void motion;
 
 const DEFAULT_TABS = [
     { id: 'home',       label: 'Home',       icon: Home,      color: '#f45b93', textColor: '#be185d', group: 'main' },
@@ -15,6 +17,7 @@ const DEFAULT_TABS = [
     { id: 'sync',       label: 'Reading',    icon: BarChart3, color: '#38c972', textColor: '#15803d', group: 'community' },
     { id: 'quiz',       label: 'Quiz',       icon: Trophy,    color: '#ff5757', textColor: '#b91c1c', group: 'activities' },
     { id: 'mystery',    label: 'Mystery',    icon: Package,   color: '#f472b6', textColor: '#be185d', group: 'activities' },
+    { id: 'stickerCam', label: 'Sticker Cam TEMP', mobileLabel: 'Cam', icon: Camera, color: '#06b6d4', textColor: '#0891b2', group: 'activities' },
     { id: 'birthdays',  label: 'Birthdays',  icon: Cake,      color: '#ffb11f', textColor: '#a16207', group: 'activities' },
     { id: 'tutorial',   label: 'Tutorial',   mobileLabel: 'Guide', icon: HelpCircle, color: '#06b6d4', textColor: '#0891b2', group: 'misc' },
     { id: 'settings',   label: 'Settings',   icon: Settings,  color: '#818cf8', textColor: '#4338ca', group: 'misc' },
@@ -27,9 +30,8 @@ const GROUP_LABELS = {
     misc:       null, // just a divider
 };
 
-const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab', unreadCount = 0 }) => {
+const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
   const railRef = useRef(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const tabsToRender = Array.isArray(tabs) && tabs.length > 0
     ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
     : DEFAULT_TABS;
@@ -37,7 +39,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
   const handleTabPress = useCallback((tabId) => {
     triggerHaptic('selection');
     onPageChange(tabId);
-    setIsMobileMenuOpen(false);
   }, [onPageChange]);
 
   useEffect(() => {

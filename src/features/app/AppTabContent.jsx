@@ -18,6 +18,7 @@ import {
   SettingsPage,
   TutorialPage,
   AnimePage,
+  StickerCamPage,
 } from './appPageLoaders';
 
 const CHAPTERS_SUBTABS = [
@@ -229,7 +230,6 @@ const AppTabContent = ({
   const fallbackLabel = useMemo(() => getFallbackLabel(activePage, isMobile, uiLanguage), [activePage, isMobile, uiLanguage]);
   const isLargeText = !!accessibilityPrefs?.largeText;
   const hasReadableSpacing = !!accessibilityPrefs?.readableSpacing;
-  const homeDesktopMinHeight = isLargeText ? '590px' : (hasReadableSpacing ? '560px' : '530px');
   const homeDesktopPadding = isLargeText || hasReadableSpacing ? '28px 10px 14px' : '24px 8px 12px';
   const sharedPageShellStyle = useMemo(
     () => ({ ...PAGE_SHELL_STYLE, display: 'flex', flexDirection: 'column' }),
@@ -409,6 +409,9 @@ const AppTabContent = ({
       break;
     case 'anime':
       tabContent = <AnimePage isMobile={isMobile} uiLanguage={uiLanguage} />;
+      break;
+    case 'stickerCam':
+      tabContent = <StickerCamPage isMobile={isMobile} />;
       break;
     default:
       tabContent = (

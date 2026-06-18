@@ -10,7 +10,7 @@ export const toMysteryLabelCase = (value = '') => {
   const lowerCased = text.toLocaleLowerCase();
 
   return lowerCased.replace(
-    /^([\s"'“”‘’¿¡([{<]*)(\p{L})/u,
+    /^([\s"'([{<]*)(\p{L})/u,
     (_, prefix, firstLetter) => `${prefix}${firstLetter.toLocaleUpperCase()}`,
   );
 };
