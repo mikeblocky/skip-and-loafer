@@ -109,6 +109,18 @@ const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
 const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
 
 const getSavedInstallPrompt = () => window.__skipInstallPromptEvent || null;
+const OFFLINE_PUBLIC_ASSET_PATHS = new Set(OFFLINE_PUBLIC_ASSETS);
+
+const getOfflinePublicAssetPath = (request) => {
+  try {
+    const pathname = new URL(request.url).pathname;
+    if (OFFLINE_PUBLIC_ASSET_PATHS.has(pathname)) return pathname;
+    const decodedPathname = decodeURIComponent(pathname);
+    return OFFLINE_PUBLIC_ASSET_PATHS.has(decodedPathname) ? decodedPathname : null;
+  } catch {
+    return null;
+  }
+};
 
 const SettingsPage = ({
   isMobile,
@@ -193,13 +205,16 @@ const SettingsPage = ({
         if ('caches' in window) {
           const cacheNames = await caches.keys();
           const offlineCacheNames = cacheNames.filter((name) => name.startsWith('skip-offline-'));
-          const cacheCounts = await Promise.all(
+          const cachedAssets = new Set();
+          const cachedPathLists = await Promise.all(
             offlineCacheNames.map(async (cacheName) => {
               const cache = await caches.open(cacheName);
-              return (await cache.keys()).length;
+              const requests = await cache.keys();
+              return requests.map(getOfflinePublicAssetPath).filter(Boolean);
             }),
           );
-          const cached = cacheCounts.reduce((sum, count) => sum + count, 0);
+          cachedPathLists.flat().forEach((path) => cachedAssets.add(path));
+          const cached = Math.min(cachedAssets.size, OFFLINE_PUBLIC_ASSETS.length);
           setOfflineStatus((previous) => ({ ...previous, cached }));
         }
       } catch {
