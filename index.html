@@ -40,8 +40,16 @@
   <meta name="twitter:image:alt" content="Skip and Loafer manga cover art featuring Mitsumi and Shima" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@100..800&family=Sniglet:wght@400&display=swap"
-    rel="stylesheet">
+  <!-- Non-blocking font load: media=print loads without blocking render,
+       onload switches to all so fonts apply once downloaded. -->
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@100..800&family=Sniglet:wght@400&display=swap">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@100..800&family=Sniglet:wght@400&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@100..800&family=Sniglet:wght@400&display=swap" rel="stylesheet">
+  </noscript>
 
 </head>
 

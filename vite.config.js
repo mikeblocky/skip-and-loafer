@@ -654,9 +654,9 @@ function manualChunks(id) {
 export default defineConfig({
   plugins: [react(), localSyncApiPlugin()],
   build: {
-    modulePreload: {
-      resolveDependencies: () => [],
-    },
+    // Let Vite inject <link rel="modulepreload"> for all chunks so the
+    // browser fetches them in parallel instead of in a waterfall.
+    modulePreload: true,
     rollupOptions: {
       output: {
         manualChunks,
