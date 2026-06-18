@@ -15,3 +15,27 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 # skip-and-loafer
+
+## Netlify Postgres
+
+Set `NETLIFY_DATABASE_URL` in Netlify environment variables to the read/write Postgres connection string. The API also accepts `DATABASE_URL` or `POSTGRES_URL` for local development.
+
+Run `node test-postgres.js` to smoke-test the configured database connection.
+
+### Redis migration
+
+Set both source and destination URLs before running the one-off migration:
+
+```sh
+REDIS_URL="redis://..." NETLIFY_DATABASE_URL="postgresql://..." npm run migrate:redis-to-postgres
+```
+
+The migration copies:
+
+- `sync:*` keys into `sync_entries`
+- `reads:global` counts into `read_counts`
+- `quiz:results` into `quiz_results`
+- `quiz:leaderboard` into `quiz_leaderboard`
+- community and chat key-value data into `app_kv`
+
+The script is idempotent: reruns upsert existing rows instead of creating duplicates.

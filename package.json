@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:webkit": "playwright test --project=webkit",
     "test:webkit:ui": "playwright test --project=webkit --ui",
-    "test:webkit:headed": "playwright test --project=webkit --headed"
+    "test:webkit:headed": "playwright test --project=webkit --headed",
+    "migrate:redis-to-postgres": "node scripts/migrate-redis-to-postgres.js"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
@@ -25,9 +26,9 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "redis": "^5.11.0",
     "rehype-raw": "^7.0.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "pg": "^8.21.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -44,6 +45,7 @@
     "sharp": "^0.35.1",
     "tailwindcss": "^4.1.18",
     "vite": "^7.3.2",
-    "wawoff2": "^2.0.1"
+    "wawoff2": "^2.0.1",
+    "redis": "^6.0.0"
   }
 }

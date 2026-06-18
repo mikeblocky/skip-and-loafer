@@ -1,12 +1,9 @@
-/* global process */
 /**
  * POST /api/reads/increment
  *
  * Increment the global read count for a specific chapter.
  */
-import { createClient } from 'redis';
-
-const PREFIX = 'reads:';
+import { query } from '../../src/server/postgres.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,26 +13,28 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    let client;
     try {
-        client = createClient({ url: process.env.REDIS_URL });
-        client.on('error', err => console.error('Redis Client Error', err));
-        await client.connect();
-
         const { chapter } = req.body || {};
 
         if (chapter === undefined || chapter === null) {
-            await client.disconnect();
             return res.status(400).json({ error: 'Missing chapter number' });
         }
 
-        const newCount = await client.hIncrBy(`${PREFIX}global`, String(chapter), 1);
-        await client.disconnect();
+        const result = await query(
+            `
+                INSERT INTO read_counts (chapter, count)
+                VALUES ($1, 1)
+                ON CONFLICT (chapter)
+                DO UPDATE SET count = read_counts.count + 1
+                RETURNING count
+            `,
+            [String(chapter)],
+        );
+        const newCount = result.rows[0].count;
 
         return res.status(200).json({ chapter, count: newCount });
     } catch (err) {
         console.error('reads/increment error:', err);
-        if (client) await client.disconnect().catch(() => { });
         return res.status(500).json({ error: 'Internal server error' });
     }
 }

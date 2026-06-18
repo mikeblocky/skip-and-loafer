@@ -1,22 +1,19 @@
-/* global process */
 /**
  * GET  /api/quiz/results
  * POST /api/quiz/results
  *
  * Global quiz results history (latest attempts across users).
  */
-import { createClient } from 'redis';
+import { query } from '../../src/server/postgres.js';
 
-const PREFIX = 'quiz:';
-const RESULTS_KEY = `${PREFIX}results`;
 const normalizeName = (name) => {
   const trimmed = String(name || 'Player').trim().slice(0, 24);
   return trimmed || 'Player';
 };
 
-const parseResult = (rawItem) => {
+const normalizeResult = (rawItem) => {
   try {
-    const parsed = JSON.parse(rawItem);
+    const parsed = rawItem || {};
     return {
       id: String(parsed.id || `${parsed.playedAt || Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
       name: normalizeName(parsed.name),
@@ -40,20 +37,24 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
 
-  let client;
   try {
-    client = createClient({ url: process.env.REDIS_URL });
-    client.on('error', (error) => console.error('Redis Client Error', error));
-    await client.connect();
-
     if (req.method === 'GET') {
-      const rawItems = await client.lRange(RESULTS_KEY, 0, -1);
-      const results = rawItems
-        .map(parseResult)
-        .filter(Boolean)
-        .sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0));
-
-      await client.disconnect();
+      const result = await query(
+        `
+          SELECT
+            id,
+            name,
+            score,
+            total,
+            difficulty_mode AS "difficultyMode",
+            question_set AS "questionSet",
+            played_at AS "playedAt"
+          FROM quiz_results
+          ORDER BY played_at DESC
+          LIMIT 250
+        `,
+      );
+      const results = result.rows.map(normalizeResult).filter(Boolean);
       return res.status(200).json({ results });
     }
 
@@ -68,28 +69,56 @@ export default async function handler(req, res) {
     };
 
     if (!Number.isFinite(payload.score) || payload.score < 0) {
-      await client.disconnect();
       return res.status(400).json({ error: 'Invalid score' });
     }
 
     if (!Number.isFinite(payload.total) || payload.total <= 0) {
-      await client.disconnect();
       return res.status(400).json({ error: 'Invalid total' });
     }
 
-    await client.lPush(RESULTS_KEY, JSON.stringify(payload));
+    await query(
+      `
+        INSERT INTO quiz_results (id, name, score, total, difficulty_mode, question_set, played_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (id)
+        DO UPDATE SET
+          name = EXCLUDED.name,
+          score = EXCLUDED.score,
+          total = EXCLUDED.total,
+          difficulty_mode = EXCLUDED.difficulty_mode,
+          question_set = EXCLUDED.question_set,
+          played_at = EXCLUDED.played_at
+      `,
+      [
+        payload.id,
+        payload.name,
+        payload.score,
+        payload.total,
+        payload.difficultyMode,
+        payload.questionSet,
+        payload.playedAt,
+      ],
+    );
 
-    const rawItems = await client.lRange(RESULTS_KEY, 0, -1);
-    const results = rawItems
-      .map(parseResult)
-      .filter(Boolean)
-      .sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0));
-
-    await client.disconnect();
+    const result = await query(
+      `
+        SELECT
+          id,
+          name,
+          score,
+          total,
+          difficulty_mode AS "difficultyMode",
+          question_set AS "questionSet",
+          played_at AS "playedAt"
+        FROM quiz_results
+        ORDER BY played_at DESC
+        LIMIT 250
+      `,
+    );
+    const results = result.rows.map(normalizeResult).filter(Boolean);
     return res.status(200).json({ results });
   } catch (error) {
     console.error('quiz/results error:', error);
-    if (client) await client.disconnect().catch(() => {});
     return res.status(500).json({ error: 'Internal server error' });
   }
 }

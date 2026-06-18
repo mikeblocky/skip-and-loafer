@@ -1,4 +1,5 @@
-import { createClient } from 'redis';
+/* global process */
+import { PostgresKeyValueClient } from './postgres.js';
 
 const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_PREFIX = 'chat:room:';
@@ -18,6 +19,7 @@ class MemoryClient {
   async exists(key) { return this.storage.has(key) ? 1 : 0; }
   async watch() { return 'OK'; }
   async unwatch() { return 'OK'; }
+  async disconnect() { return this; }
   multi() {
     const queue = [];
     return {
@@ -35,18 +37,17 @@ class MemoryClient {
 const memoryClient = new MemoryClient();
 
 export function createRedisClient() {
-  const isDev = process.env.NODE_ENV === 'development' || !process.env.REDIS_URL;
+  const databaseUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const isDev = process.env.NODE_ENV === 'development' || !databaseUrl;
   
   if (isDev) {
-    if (!process.env.REDIS_URL) {
+    if (!databaseUrl) {
       console.log('--- Chat Store: Using Local Memory Mode (Dev) ---');
     }
     return memoryClient;
   }
 
-  const client = createClient({ url: process.env.REDIS_URL });
-  client.on('error', (err) => console.error('Redis Client Error', err));
-  return client;
+  return new PostgresKeyValueClient();
 }
 
 export function roomKey(roomId) {

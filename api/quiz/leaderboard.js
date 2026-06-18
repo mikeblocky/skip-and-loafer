@@ -1,14 +1,10 @@
-/* global process */
 /**
  * GET  /api/quiz/leaderboard
  * POST /api/quiz/leaderboard
  *
  * Global quiz leaderboard (best score + play count per player).
  */
-import { createClient } from 'redis';
-
-const PREFIX = 'quiz:';
-const LEADERBOARD_KEY = `${PREFIX}leaderboard`;
+import { query } from '../../src/server/postgres.js';
 
 const normalizeName = (name) => {
   const trimmed = String(name || 'Player').trim().slice(0, 24);
@@ -30,25 +26,13 @@ const sortEntries = (entries) => {
   });
 };
 
-const parseLeaderboard = (rawMap) => {
-  const entries = Object.entries(rawMap || {}).map(([name, rawValue]) => {
-    try {
-      const parsed = JSON.parse(rawValue);
-      return {
-        name,
-        bestScore: normalizeScoreToHundred(parsed.bestScore),
-        played: Number(parsed.played) || 0,
-        updatedAt: Number(parsed.updatedAt) || Date.now(),
-      };
-    } catch {
-      return {
-        name,
-        bestScore: 0,
-        played: 0,
-        updatedAt: Date.now(),
-      };
-    }
-  });
+const parseLeaderboard = (rows) => {
+  const entries = (rows || []).map((row) => ({
+    name: normalizeName(row.name),
+    bestScore: normalizeScoreToHundred(row.bestScore),
+    played: Number(row.played) || 0,
+    updatedAt: Number(row.updatedAt) || Date.now(),
+  }));
 
   return sortEntries(entries).slice(0, 100);
 };
@@ -62,43 +46,51 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!['GET', 'POST'].includes(req.method)) return res.status(405).json({ error: 'Method not allowed' });
 
-  let client;
   try {
-    client = createClient({ url: process.env.REDIS_URL });
-    client.on('error', (error) => console.error('Redis Client Error', error));
-    await client.connect();
-
     if (req.method === 'GET') {
-      const rawMap = await client.hGetAll(LEADERBOARD_KEY);
-      await client.disconnect();
-      return res.status(200).json({ leaderboard: parseLeaderboard(rawMap) });
+      const result = await query(
+        `
+          SELECT name, best_score AS "bestScore", played, updated_at AS "updatedAt"
+          FROM quiz_leaderboard
+          ORDER BY best_score DESC, played ASC, name ASC
+          LIMIT 100
+        `,
+      );
+      return res.status(200).json({ leaderboard: parseLeaderboard(result.rows) });
     }
 
     const name = normalizeName(req.body?.name);
     const score = Number(req.body?.score);
 
     if (!Number.isFinite(score) || score < 0) {
-      await client.disconnect();
       return res.status(400).json({ error: 'Invalid score' });
     }
 
-    const existingRaw = await client.hGet(LEADERBOARD_KEY, name);
-    const existing = existingRaw ? JSON.parse(existingRaw) : null;
+    await query(
+      `
+        INSERT INTO quiz_leaderboard (name, best_score, played, updated_at)
+        VALUES ($1, $2, 1, $3)
+        ON CONFLICT (name)
+        DO UPDATE SET
+          best_score = GREATEST(quiz_leaderboard.best_score, EXCLUDED.best_score),
+          played = quiz_leaderboard.played + 1,
+          updated_at = EXCLUDED.updated_at
+      `,
+      [name, normalizeScoreToHundred(score), Date.now()],
+    );
 
-    const updated = {
-      bestScore: Math.max(normalizeScoreToHundred(existing?.bestScore), normalizeScoreToHundred(score)),
-      played: (Number(existing?.played) || 0) + 1,
-      updatedAt: Date.now(),
-    };
+    const result = await query(
+      `
+        SELECT name, best_score AS "bestScore", played, updated_at AS "updatedAt"
+        FROM quiz_leaderboard
+        ORDER BY best_score DESC, played ASC, name ASC
+        LIMIT 100
+      `,
+    );
 
-    await client.hSet(LEADERBOARD_KEY, name, JSON.stringify(updated));
-    const rawMap = await client.hGetAll(LEADERBOARD_KEY);
-    await client.disconnect();
-
-    return res.status(200).json({ leaderboard: parseLeaderboard(rawMap) });
+    return res.status(200).json({ leaderboard: parseLeaderboard(result.rows) });
   } catch (error) {
     console.error('quiz/leaderboard error:', error);
-    if (client) await client.disconnect().catch(() => {});
     return res.status(500).json({ error: 'Internal server error' });
   }
 }

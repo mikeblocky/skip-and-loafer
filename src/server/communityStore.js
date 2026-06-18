@@ -1,4 +1,5 @@
-import { createClient } from 'redis';
+/* global process */
+import { PostgresKeyValueClient } from './postgres.js';
 
 const SIGNATURES_KEY = 'community:signatures';
 const FAN_GALLERY_KEY = 'community:fan-gallery';
@@ -38,13 +39,13 @@ class MemoryClient {
 const memoryClient = new MemoryClient();
 
 export function createRedisClient() {
-  if (process.env.NODE_ENV === 'development' || !process.env.REDIS_URL) {
+  const databaseUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+  if (process.env.NODE_ENV === 'development' || !databaseUrl) {
     return memoryClient;
   }
 
-  const client = createClient({ url: process.env.REDIS_URL });
-  client.on('error', (error) => console.error('Redis Client Error', error));
-  return client;
+  return new PostgresKeyValueClient();
 }
 
 export async function connectRedis() {
@@ -114,5 +115,3 @@ export async function addFanGalleryEntry(client, entry) {
   await writeList(client, FAN_GALLERY_KEY, next);
   return next;
 }
-
-
