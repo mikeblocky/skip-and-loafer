@@ -27,9 +27,13 @@ function getPool() {
     pool = new Pool({
       connectionString: getDatabaseUrl(),
       ssl: { rejectUnauthorized: false },
+      // Serverless-friendly settings: one connection per function instance,
+      // short idle timeout so PgBouncer slots aren't held open.
+      max: 1,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 5_000,
     });
   }
-
   return pool;
 }
 
@@ -37,65 +41,83 @@ async function rawQuery(text, params = []) {
   return getPool().query(text, params);
 }
 
-async function runSchemaMigrations() {
-  const statements = [
-    `CREATE TABLE IF NOT EXISTS sync_entries (
-      key text PRIMARY KEY,
-      payload jsonb NOT NULL,
-      expires_at timestamptz NOT NULL,
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )`,
-    `CREATE TABLE IF NOT EXISTS read_counts (
-      chapter text PRIMARY KEY,
-      count integer NOT NULL DEFAULT 0
-    )`,
-    `CREATE TABLE IF NOT EXISTS quiz_results (
-      id text PRIMARY KEY,
-      name text NOT NULL,
-      score integer NOT NULL,
-      total integer NOT NULL,
-      difficulty_mode text NOT NULL,
-      question_set text NOT NULL,
-      played_at bigint NOT NULL
-    )`,
-    `CREATE TABLE IF NOT EXISTS quiz_leaderboard (
-      name text PRIMARY KEY,
-      best_score integer NOT NULL,
-      played integer NOT NULL,
-      updated_at bigint NOT NULL
-    )`,
-    `CREATE TABLE IF NOT EXISTS app_kv (
-      key text PRIMARY KEY,
-      value text NOT NULL,
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )`,
-    `CREATE TABLE IF NOT EXISTS signatures (
-      id text PRIMARY KEY,
-      name text NOT NULL,
-      message text NOT NULL,
-      type text NOT NULL DEFAULT 'sign',
-      created_at timestamptz NOT NULL DEFAULT now()
-    )`,
-    `CREATE TABLE IF NOT EXISTS fan_gallery (
-      id text PRIMARY KEY,
-      name text NOT NULL,
-      description text NOT NULL DEFAULT '',
-      image_data_url text NOT NULL,
-      image_hash text NOT NULL DEFAULT '',
-      mime_type text NOT NULL DEFAULT '',
-      width integer,
-      height integer,
-      created_at timestamptz NOT NULL DEFAULT now()
-    )`,
-    `ALTER TABLE fan_gallery ADD COLUMN IF NOT EXISTS image_hash text NOT NULL DEFAULT ''`,
-    `CREATE UNIQUE INDEX IF NOT EXISTS fan_gallery_image_hash_idx ON fan_gallery (image_hash) WHERE image_hash <> ''`,
-    `CREATE INDEX IF NOT EXISTS sync_entries_expires_at_idx ON sync_entries (expires_at)`,
-    `CREATE INDEX IF NOT EXISTS quiz_results_played_at_idx ON quiz_results (played_at DESC)`,
-    `CREATE INDEX IF NOT EXISTS quiz_leaderboard_score_idx ON quiz_leaderboard (best_score DESC, played ASC, name ASC)`,
-  ];
+// Full DDL — only executed when the schema does not yet exist.
+const CREATE_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS sync_entries (
+    key text PRIMARY KEY,
+    payload jsonb NOT NULL,
+    expires_at timestamptz NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS read_counts (
+    chapter text PRIMARY KEY,
+    count integer NOT NULL DEFAULT 0
+  )`,
+  `CREATE TABLE IF NOT EXISTS quiz_results (
+    id text PRIMARY KEY,
+    name text NOT NULL,
+    score integer NOT NULL,
+    total integer NOT NULL,
+    difficulty_mode text NOT NULL,
+    question_set text NOT NULL,
+    played_at bigint NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS quiz_leaderboard (
+    name text PRIMARY KEY,
+    best_score integer NOT NULL,
+    played integer NOT NULL,
+    updated_at bigint NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS app_kv (
+    key text PRIMARY KEY,
+    value text NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS signatures (
+    id text PRIMARY KEY,
+    name text NOT NULL,
+    message text NOT NULL,
+    type text NOT NULL DEFAULT 'sign',
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE TABLE IF NOT EXISTS fan_gallery (
+    id text PRIMARY KEY,
+    name text NOT NULL,
+    description text NOT NULL DEFAULT '',
+    image_data_url text NOT NULL,
+    image_hash text NOT NULL DEFAULT '',
+    mime_type text NOT NULL DEFAULT '',
+    width integer,
+    height integer,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS sync_entries_expires_at_idx ON sync_entries (expires_at)`,
+  `CREATE INDEX IF NOT EXISTS quiz_results_played_at_idx ON quiz_results (played_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS quiz_leaderboard_score_idx ON quiz_leaderboard (best_score DESC, played ASC, name ASC)`,
+];
 
-  for (const sql of statements) {
-    await rawQuery(sql);
+// Incremental migrations — always run, must be idempotent and fast.
+const MIGRATIONS = [
+  `ALTER TABLE fan_gallery ADD COLUMN IF NOT EXISTS image_hash text NOT NULL DEFAULT ''`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS fan_gallery_image_hash_idx ON fan_gallery (image_hash) WHERE image_hash <> ''`,
+];
+
+async function runSchemaMigrations() {
+  // One fast round-trip to check if the base schema already exists.
+  const probe = await rawQuery(
+    `SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'quiz_leaderboard' LIMIT 1`,
+  );
+
+  if (probe.rowCount === 0) {
+    // First-time setup: create all tables and indexes.
+    for (const sql of CREATE_STATEMENTS) {
+      await rawQuery(sql);
+    }
+  }
+
+  // Always apply incremental migrations (idempotent — safe to re-run).
+  for (const sql of MIGRATIONS) {
+    await rawQuery(sql).catch(() => {});
   }
 }
 
@@ -106,7 +128,6 @@ export async function ensureSchema() {
       throw error;
     });
   }
-
   await schemaReady;
 }
 
@@ -132,12 +153,10 @@ export class PostgresKeyValueClient {
 
   async set(key, value) {
     await query(
-      `
-        INSERT INTO app_kv (key, value, updated_at)
-        VALUES ($1, $2, now())
-        ON CONFLICT (key)
-        DO UPDATE SET value = EXCLUDED.value, updated_at = now()
-      `,
+      `INSERT INTO app_kv (key, value, updated_at)
+       VALUES ($1, $2, now())
+       ON CONFLICT (key)
+       DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
       [key, value],
     );
     return 'OK';
@@ -153,35 +172,20 @@ export class PostgresKeyValueClient {
     return result.rowCount > 0 ? 1 : 0;
   }
 
-  async watch() {
-    return 'OK';
-  }
-
-  async unwatch() {
-    return 'OK';
-  }
+  async watch() { return 'OK'; }
+  async unwatch() { return 'OK'; }
 
   multi() {
     const operations = [];
     return {
-      set: (key, value) => {
-        operations.push(() => this.set(key, value));
-        return this;
-      },
-      del: (key) => {
-        operations.push(() => this.del(key));
-        return this;
-      },
+      set: (key, value) => { operations.push(() => this.set(key, value)); return this; },
+      del: (key) => { operations.push(() => this.del(key)); return this; },
       exec: async () => {
-        for (const operation of operations) {
-          await operation();
-        }
+        for (const op of operations) await op();
         return ['OK'];
       },
     };
   }
 
-  on() {
-    return this;
-  }
+  on() { return this; }
 }
