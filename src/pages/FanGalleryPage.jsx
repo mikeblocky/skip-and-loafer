@@ -272,6 +272,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const galleryBoardRef = useRef(null);
+  const isSubmittingRef = useRef(false);
   const [activeDraggedId, setActiveDraggedId] = useState(null);
   const lastDragEndedAtRef = useRef(0);
   const [stackOrder, setStackOrder] = useState([]);
@@ -430,6 +431,8 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
       return;
     }
 
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -450,6 +453,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }

@@ -1,3 +1,5 @@
+/* global Buffer */
+import { createHash } from 'crypto';
 import { query } from '../../src/server/postgres.js';
 
 const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
@@ -68,10 +70,13 @@ export default async function handler(req, res) {
     const width = normalizePositiveInt(req.body?.width);
     const height = normalizePositiveInt(req.body?.height);
 
+    const imageHash = createHash('sha256').update(imageDataUrl).digest('hex').slice(0, 32);
+
     await query(
-      `INSERT INTO fan_gallery (id, name, description, image_data_url, mime_type, width, height)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [id, name, description, imageDataUrl, mimeType, width, height],
+      `INSERT INTO fan_gallery (id, name, description, image_data_url, image_hash, mime_type, width, height)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (image_hash) DO NOTHING`,
+      [id, name, description, imageDataUrl, imageHash, mimeType, width, height],
     );
 
     const result = await query(

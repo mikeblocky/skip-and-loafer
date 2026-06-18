@@ -1,6 +1,14 @@
 const PENDING_READS_KEY = 'skip_pending_reads';
-const PENDING_SIGS_KEY = 'skip_pending_signatures';
-const PENDING_GALLERY_KEY = 'skip_pending_gallery';
+const PENDING_SIGS_KEY = 'skip_pending_signatures_v2';
+const PENDING_GALLERY_KEY = 'skip_pending_gallery_v2';
+
+// Clear stale pre-v2 queues so they never get re-submitted
+try {
+  localStorage.removeItem('skip_pending_signatures');
+  localStorage.removeItem('skip_pending_gallery');
+  localStorage.removeItem('skip_signatures_cache');
+  localStorage.removeItem('skip_fangallery_cache');
+} catch {};
 
 const getQueue = (key) => {
   try {
