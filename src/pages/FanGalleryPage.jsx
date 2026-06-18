@@ -7,7 +7,7 @@ import {
   createFanGalleryEntry,
   fetchFanGalleryEntries,
   getCachedFanGalleryEntries,
-} from '../features/community/communityApi';
+} from '../features/community/fanGalleryApi';
 import CommunityPageHero from '../features/community/CommunityPageHero';
 import CommunityModal from '../features/community/CommunityModal';
 import CommunityStatusBanner from '../features/community/CommunityStatusBanner';

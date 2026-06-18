@@ -6,7 +6,7 @@ import {
   createSignature,
   fetchSignatures,
   getCachedSignatures,
-} from '../features/community/communityApi';
+} from '../features/community/signaturesApi';
 import CommunityPageHero from '../features/community/CommunityPageHero';
 import CommunityModal from '../features/community/CommunityModal';
 import CommunityStatusBanner from '../features/community/CommunityStatusBanner';
