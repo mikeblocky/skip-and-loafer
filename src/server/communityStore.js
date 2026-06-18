@@ -39,9 +39,7 @@ class MemoryClient {
 const memoryClient = new MemoryClient();
 
 export function createRedisClient() {
-  const databaseUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL;
-
-  if (process.env.NODE_ENV === 'development' || !databaseUrl) {
+  if (process.env.NODE_ENV === 'development') {
     return memoryClient;
   }
 

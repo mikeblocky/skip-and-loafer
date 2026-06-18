@@ -1,15 +1,26 @@
 /* global Buffer */
+import syncCreate from '../../api/sync/create.js';
+import syncClaim from '../../api/sync/claim.js';
+import readsIncrement from '../../api/reads/increment.js';
+import readsTop from '../../api/reads/top.js';
+import quizResults from '../../api/quiz/results.js';
+import quizLeaderboard from '../../api/quiz/leaderboard.js';
+import communitySignatures from '../../api/community/signatures.js';
+import communityFanGallery from '../../api/community/fan-gallery.js';
+import chatRooms from '../../api/chat/rooms.js';
+import chatRoom from '../../api/chat/rooms/[roomId].js';
+
 const ROUTES = [
-  { pattern: /^\/?sync\/create\/?$/, loader: () => import('../../api/sync/create.js') },
-  { pattern: /^\/?sync\/claim\/?$/, loader: () => import('../../api/sync/claim.js') },
-  { pattern: /^\/?reads\/increment\/?$/, loader: () => import('../../api/reads/increment.js') },
-  { pattern: /^\/?reads\/top\/?$/, loader: () => import('../../api/reads/top.js') },
-  { pattern: /^\/?quiz\/results\/?$/, loader: () => import('../../api/quiz/results.js') },
-  { pattern: /^\/?quiz\/leaderboard\/?$/, loader: () => import('../../api/quiz/leaderboard.js') },
-  { pattern: /^\/?community\/signatures\/?$/, loader: () => import('../../api/community/signatures.js') },
-  { pattern: /^\/?community\/fan-gallery\/?$/, loader: () => import('../../api/community/fan-gallery.js') },
-  { pattern: /^\/?chat\/rooms\/?$/, loader: () => import('../../api/chat/rooms.js') },
-  { pattern: /^\/?chat\/rooms\/[^/]+\/?$/, loader: () => import('../../api/chat/rooms/[roomId].js') },
+  { pattern: /^\/?sync\/create\/?$/, handler: syncCreate },
+  { pattern: /^\/?sync\/claim\/?$/, handler: syncClaim },
+  { pattern: /^\/?reads\/increment\/?$/, handler: readsIncrement },
+  { pattern: /^\/?reads\/top\/?$/, handler: readsTop },
+  { pattern: /^\/?quiz\/results\/?$/, handler: quizResults },
+  { pattern: /^\/?quiz\/leaderboard\/?$/, handler: quizLeaderboard },
+  { pattern: /^\/?community\/signatures\/?$/, handler: communitySignatures },
+  { pattern: /^\/?community\/fan-gallery\/?$/, handler: communityFanGallery },
+  { pattern: /^\/?chat\/rooms\/?$/, handler: chatRooms },
+  { pattern: /^\/?chat\/rooms\/[^/]+\/?$/, handler: chatRoom },
 ];
 
 function parseBody(event) {
@@ -87,23 +98,31 @@ function createRequest(event, routePath) {
 }
 
 export async function handler(event) {
-  const routePath = event.path
-    .replace(/^\/\.netlify\/functions\/api\/?/, '')
-    .replace(/^\/api\/?/, '');
+  try {
+    const routePath = event.path
+      .replace(/^\/\.netlify\/functions\/api\/?/, '')
+      .replace(/^\/api\/?/, '');
 
-  const route = ROUTES.find((candidate) => candidate.pattern.test(routePath));
-  if (!route) {
+    const route = ROUTES.find((candidate) => candidate.pattern.test(routePath));
+    if (!route) {
+      return {
+        statusCode: 404,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'API route not found' }),
+      };
+    }
+
+    const adapter = createResponseAdapter();
+    const req = createRequest(event, routePath);
+
+    await route.handler(req, adapter.res);
+    return adapter.toNetlifyResponse();
+  } catch (error) {
+    console.error('netlify api adapter error:', error);
     return {
-      statusCode: 404,
+      statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'API route not found' }),
+      body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
-
-  const module = await route.loader();
-  const adapter = createResponseAdapter();
-  const req = createRequest(event, routePath);
-
-  await module.default(req, adapter.res);
-  return adapter.toNetlifyResponse();
 }
