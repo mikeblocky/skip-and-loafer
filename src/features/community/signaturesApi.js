@@ -2,8 +2,8 @@ import { listDevSignatures, addDevSignature } from './communityDevStore';
 import { createCachedResource, parseResponse, shouldUseDevFallback } from './communityCache';
 
 const resource = createCachedResource({
-  cacheKey: 'skip_signatures_cache',
-  pendingKey: 'skip_pending_signatures',
+  cacheKey: 'skip_signatures_v2',
+  pendingKey: 'skip_pending_signatures_v2',
   fingerprint: (e) => `${String(e.name || '').trim()}|${String(e.message || '').trim()}`,
   loadEntries: async () => {
     const response = await fetch('/api/community/signatures', {

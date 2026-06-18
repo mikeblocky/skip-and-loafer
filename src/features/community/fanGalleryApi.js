@@ -2,8 +2,8 @@ import { listDevFanGalleryEntries, addDevFanGalleryEntry } from './communityDevS
 import { createCachedResource, parseResponse, shouldUseDevFallback } from './communityCache';
 
 const resource = createCachedResource({
-  cacheKey: 'skip_fangallery_cache',
-  pendingKey: 'skip_pending_gallery',
+  cacheKey: 'skip_fangallery_v2',
+  pendingKey: 'skip_pending_gallery_v2',
   fingerprint: (e) => `${String(e.name || '').trim()}|${String(e.description || '').trim()}`,
   loadEntries: async () => {
     const response = await fetch('/api/community/fan-gallery', {
