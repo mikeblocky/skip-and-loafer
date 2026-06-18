@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
 import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
 import {
@@ -136,6 +136,7 @@ const SettingsPage = ({
     preparing: false,
   });
   const [storageEstimate, setStorageEstimate] = useState(null);
+  const [isClearingOfflineCache, setIsClearingOfflineCache] = useState(false);
   const [keepPreparingOffline, setKeepPreparingOffline] = useState(() => {
     try {
       return localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1';
@@ -217,6 +218,18 @@ const SettingsPage = ({
           total: Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
           preparing: true,
         }));
+        return;
+      }
+
+      if (event.data?.type === 'SKIP_OFFLINE_CACHE_CLEARED') {
+        setIsClearingOfflineCache(false);
+        setOfflineStatus((previous) => ({
+          ...previous,
+          cached: 0,
+          processed: 0,
+          preparing: false,
+        }));
+        refreshStorageStatus();
         return;
       }
 
@@ -304,6 +317,41 @@ const SettingsPage = ({
     }
   };
 
+  const handleClearOfflineCache = async () => {
+    setIsClearingOfflineCache(true);
+    setKeepPreparingOffline(false);
+    try {
+      localStorage.removeItem(OFFLINE_LIBRARY_ENABLED_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+
+    const registration = await navigator.serviceWorker?.ready.catch(() => null);
+    const worker = registration?.active || navigator.serviceWorker?.controller;
+
+    if (worker) {
+      worker.postMessage({ type: 'SKIP_CLEAR_OFFLINE_CACHE' });
+      return;
+    }
+
+    try {
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.filter((name) => name.startsWith('skip-offline-')).map((name) => caches.delete(name)));
+      }
+    } catch {
+      // Ignore cache API failures.
+    }
+
+    setOfflineStatus((previous) => ({
+      ...previous,
+      cached: 0,
+      processed: 0,
+      preparing: false,
+    }));
+    setIsClearingOfflineCache(false);
+  };
+
   const formatBytes = (value) => {
     if (!Number.isFinite(value) || value <= 0) return '0 MB';
     const units = ['B', 'KB', 'MB', 'GB'];
@@ -318,7 +366,7 @@ const SettingsPage = ({
 
   const offlineProgress = Math.max(
     0,
-    Math.min(100, Math.round(((offlineStatus.processed || offlineStatus.cached || 0) / Math.max(1, offlineStatus.total)) * 100)),
+    Math.min(100, Math.round((offlineStatus.cached / Math.max(1, offlineStatus.total)) * 100)),
   );
 
   const appLanguageOptions = getLanguageOptions();
@@ -1335,7 +1383,7 @@ const SettingsPage = ({
                 </div>
                 <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.76rem', color: '#92400e', lineHeight: 1.35 }}>
                   {offlineStatus.preparing
-                    ? `Preparing ${offlineStatus.processed} of ${offlineStatus.total} files (${offlineProgress}%).`
+                    ? `Cached ${offlineStatus.cached} of ${offlineStatus.total} files (${offlineProgress}%).`
                     : offlineProgress >= 100
                       ? 'Offline library prepared.'
                       : 'Progress appears here while the offline library is being prepared.'}
@@ -1393,6 +1441,30 @@ const SettingsPage = ({
                 >
                   <RefreshCw size={16} strokeWidth={2.5} />
                   {offlineStatus.preparing ? 'Preparing...' : 'Prepare offline library'}
+                </motion.button>
+                <motion.button
+                  onClick={handleClearOfflineCache}
+                  disabled={isClearingOfflineCache}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#ef4444', bottomColor: '#b91c1c', background: '#fff1f2', color: '#b91c1c', radius: '14px', padding: '10px 16px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.86rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: isClearingOfflineCache ? 'default' : 'pointer',
+                    border: 'none',
+                    opacity: isClearingOfflineCache ? 0.62 : 1,
+                  }}
+                >
+                  <Trash2 size={15} strokeWidth={2.5} />
+                  {isClearingOfflineCache ? 'Deleting offline cache...' : 'Delete offline cache and stop using it'}
                 </motion.button>
               </div>
             </div>

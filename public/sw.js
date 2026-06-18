@@ -131,6 +131,19 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_CLEAR_OFFLINE_CACHE') {
+    event.waitUntil(
+      caches.delete(OFFLINE_CACHE).then(() => {
+        if (event.source) {
+          event.source.postMessage({
+            type: 'SKIP_OFFLINE_CACHE_CLEARED',
+          });
+        }
+      }),
+    );
+    return;
+  }
+
   if (event.data?.type !== 'SKIP_CACHE_OFFLINE_ASSETS') return;
   const assets = Array.isArray(event.data.assets) ? event.data.assets : [];
   const postProgress = (status) => {
