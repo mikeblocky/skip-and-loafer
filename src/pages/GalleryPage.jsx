@@ -1,4 +1,3 @@
-/* VITE_CACHE_BUST_3 */
 import React, { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PageLayout from '../components/shared/paper/PageLayout';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -12,7 +11,7 @@ import GalleryThumb from '../features/gallery/GalleryThumb';
 import { useSubtabShortcutNavigation } from '../hooks/shared/useSubtabShortcutNavigation';
 import usePageTitle from '../hooks/shared/usePageTitle';
 import useIdlePreload from '../features/app/hooks/useIdlePreload';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import { loadGalleryTabImages, preloadGalleryTabImages } from '../features/gallery/galleryTabDataLoader';
 
 const loadImageLightbox = () => import('../components/shared/ImageLightbox');
@@ -63,7 +62,7 @@ const GALLERY_TAB_PRELOADERS = Object.fromEntries(
 
 const GalleryPage = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
   const tabLabels = TAB_LABELS[uiLanguage] || TAB_LABELS.en;
 
   usePageTitle(tGlobal.tabs?.gallery?.label || 'Gallery');

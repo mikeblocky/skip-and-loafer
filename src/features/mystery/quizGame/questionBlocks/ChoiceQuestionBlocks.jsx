@@ -3,7 +3,6 @@ import { triggerHaptic } from '../../../../utils/haptics';
 import DotSlider from '../DotSlider';
 import { CHOICE_COLORS } from '../config';
 import { QuizActionButton, QuizInstruction, QUIZ_BUTTON_PALETTES } from '../QuizPrimitives';
-import { getLocalizedQuizOption, getLocalizedQuizText } from '../quizCopy';
 import { formatQuizBinaryLabel } from '../jpHelpers';
 import { toMysteryLabelCase } from '../ui';
 
@@ -43,8 +42,8 @@ export const SliderQuestion = React.memo(function SliderQuestion({
         isMobile={isMobile}
         value={sliderValue}
         onChange={setSliderValue}
-        leftLabel={getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel)}
-        rightLabel={getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel)}
+        leftLabel={question.leftLabel}
+        rightLabel={question.rightLabel}
       />
       <QuizInstruction isMobile={isMobile} style={{ marginTop: isMobile ? '-10px' : '-6px' }}>
         {getQuestionInstruction(question)}
@@ -92,7 +91,7 @@ export const ChoiceQuestion = React.memo(function ChoiceQuestion({
             }}
             style={optionButtonStyle(isMobile)}
           >
-            {getLocalizedQuizOption(t, question.id, index, option.text)}
+            {option.text}
           </QuizActionButton>
         );
       })}
@@ -142,7 +141,7 @@ export const GuessQuestion = React.memo(function GuessQuestion({
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.95, y: 6 }}
         >
-          {getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel)}
+          {question.leftLabel}
         </QuizActionButton>
         <QuizActionButton
           isMobile={isMobile}
@@ -166,7 +165,7 @@ export const GuessQuestion = React.memo(function GuessQuestion({
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.95, y: 6 }}
         >
-          {getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel)}
+          {question.rightLabel}
         </QuizActionButton>
       </div>
       <QuizInstruction isMobile={isMobile}>{getQuestionInstruction(question)}</QuizInstruction>
@@ -250,7 +249,7 @@ export const DuelQuestion = React.memo(function DuelQuestion({
           whileTap={{ scale: 0.92, y: 10 }}
           style={{ flex: 1, ...optionButtonStyle(isMobile), padding: isMobile ? '16px 18px' : '20px 24px', fontSize: '1.05rem' }}
         >
-          {getLocalizedQuizText(t, question.id, 'left', question.left.text)}
+          {question.left.text}
         </QuizActionButton>
         <QuizActionButton
           isMobile={isMobile}
@@ -263,7 +262,7 @@ export const DuelQuestion = React.memo(function DuelQuestion({
           whileTap={{ scale: 0.92, y: 10 }}
           style={{ flex: 1, ...optionButtonStyle(isMobile), padding: isMobile ? '16px 18px' : '20px 24px', fontSize: '1.05rem' }}
         >
-          {getLocalizedQuizText(t, question.id, 'right', question.right.text)}
+          {question.right.text}
         </QuizActionButton>
       </div>
       <QuizInstruction isMobile={isMobile}>{getQuestionInstruction(question)}</QuizInstruction>
@@ -316,7 +315,7 @@ export const GridQuestion = React.memo(function GridQuestion({
                     height: 'auto',
                   }}
                 >
-                  {getLocalizedQuizOption(t, question.id, index, option.text)}
+                  {option.text}
                 </QuizActionButton>
               );
             })}

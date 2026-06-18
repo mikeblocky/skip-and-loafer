@@ -1,4 +1,3 @@
-/* VITE_CACHE_BUST_2 */
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ImageOff } from 'lucide-react';

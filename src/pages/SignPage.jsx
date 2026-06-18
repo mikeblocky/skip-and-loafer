@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PenLine, Heart } from 'lucide-react';
+import { PenLine } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import {
   createSignature,
   fetchSignatures,
@@ -30,7 +30,7 @@ const PAGE_COPY = {
     title: 'Fan messages',
     badge: 'Guestbook messages',
     subtitle: 'Short messages from visitors, readers, and anyone passing through this place.',
-    button: 'Write a message',
+    button: 'Write',
     modalTitle: 'Write your message',
     nameLabel: 'Name',
     namePlaceholder: 'How should people remember you?',
@@ -193,9 +193,9 @@ function getCopy(uiLanguage) {
   return PAGE_COPY[uiLanguage] || PAGE_COPY.en;
 }
 
-export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
+export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
   const copy = getCopy(uiLanguage);
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.sign?.label || 'Sign');
   const {
@@ -221,9 +221,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
   const [noteGestures, setNoteGestures] = useState({});
   const [canvasResetVersion, setCanvasResetVersion] = useState(0);
   const [isResettingCanvas, setIsResettingCanvas] = useState(false);
-  const [activeTab, setActiveTab] = useState('sign');
-
-  const isJune = useMemo(() => new Date().getMonth() === 5, []);
+  const activeTab = 'sign';
 
   const filteredEntries = useMemo(() => {
     if (activeTab === 'pride') return entries.filter(e => e.type === 'pride');
@@ -373,32 +371,9 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
     }
   }
 
-  const isPride = activeTab === 'pride';
+  const isPride = false;
 
-  const heroConfig = isPride ? {
-    title: 'Pride notes!',
-    icon: Heart,
-    titleColors: {
-      borderColor: '#db2777',
-      bottomColor: '#be185d',
-      shadow: '0 8px 18px rgba(219, 39, 119, 0.12)',
-    },
-    counterColors: {
-      borderColor: '#f9a8d4',
-      bottomColor: '#ec4899',
-      color: '#be185d',
-    },
-    actionLabel: 'Send a Pride note',
-    actionIcon: Heart,
-    actionColors: {
-      borderColor: '#f9a8d4',
-      bottomColor: '#ec4899',
-      color: '#be185d',
-    },
-    modalTitle: 'Send a Pride note ❤️‍🔥',
-    modalAccent: '#ec4899',
-    modalAccentBottom: '#db2777',
-  } : {
+  const heroConfig = {
     title: copy.title,
     icon: PenLine,
     titleColors: {
@@ -434,68 +409,6 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
       }}
     >
       <div style={{ display: 'grid', gap: isMobile ? '16px' : '18px' }}>
-
-        {/* Tab Switcher */}
-        {isJune && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
-            marginBottom: isMobile ? '-6px' : '-4px',
-          }}>
-            <button
-              onClick={() => setActiveTab('sign')}
-              className="sketchbook-border"
-              style={{
-                padding: '7px 18px',
-                borderRadius: '999px',
-                border: activeTab === 'sign' ? '2.5px solid #f97316' : '2px solid #e2e8f0',
-                borderBottomWidth: activeTab === 'sign' ? '5px' : '4px',
-                borderBottomColor: activeTab === 'sign' ? '#ea580c' : '#cbd5e1',
-                background: activeTab === 'sign' ? '#fff7ed' : '#ffffff',
-                color: activeTab === 'sign' ? '#c2410c' : '#64748b',
-                fontFamily: 'Sniglet, var(--font-main)',
-                fontSize: '0.88rem',
-                fontWeight: '400',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <PenLine size={14} strokeWidth={2.5} />
-              Fan messages
-            </button>
-            <button
-              onClick={() => setActiveTab('pride')}
-              className="sketchbook-border"
-              style={{
-                padding: '7px 18px',
-                borderRadius: '999px',
-                border: activeTab === 'pride' ? '2.5px solid #ec4899' : '2px solid #e2e8f0',
-                borderBottomWidth: activeTab === 'pride' ? '5px' : '4px',
-                borderBottomColor: activeTab === 'pride' ? '#db2777' : '#cbd5e1',
-                background: activeTab === 'pride'
-                  ? 'linear-gradient(135deg, #fce7f3 0%, #fef3c7 50%, #dbeafe 100%)'
-                  : '#ffffff',
-                color: activeTab === 'pride' ? '#be185d' : '#64748b',
-                fontFamily: 'Sniglet, var(--font-main)',
-                fontSize: '0.88rem',
-                fontWeight: '400',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Heart size={14} strokeWidth={2.5} fill={activeTab === 'pride' ? '#ec4899' : 'none'} />
-              Pride notes!
-            </button>
-          </div>
-        )}
-
         <CommunityPageHero
           isMobile={isMobile}
           title={heroConfig.title}
@@ -510,6 +423,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en' }) => {
           onAction={() => setIsComposerOpen(true)}
           resetLabel={copy.resetCanvas}
           onReset={resetCanvas}
+          outerSwitcher={outerSwitcher}
         />
 
         <CommunityStatusBanner tone="error" message={errorMessage} />

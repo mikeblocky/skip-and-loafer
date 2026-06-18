@@ -1,351 +1,149 @@
-/**
- * Sticker Cam — Hand-tracking sticker booth
- *
- * INTERACTION
- *   One-hand pinch over a sticker → grab & drag (drag-lerp + release inertia)
- *   Two-hand pinch simultaneously   → scale + rotate
- *   Hold pinch in empty space       → dwell progress → spawn sticker
- *
- * RENDERING
- *   Two stacked <canvas> elements in natural video space; CSS scaleX(-1) mirrors
- *   both so the user sees a selfie view.  Stickers are drawn with ctx.scale(-1,1)
- *   to counter-mirror the CSS flip — so text/art faces the right way.
- *
- * BACKGROUND EFFECTS
- *   MediaPipe ImageSegmenter loaded on demand when a segmentation-backed mode is
- *   selected.  bgMode is kept in a ref updated by a separate useEffect so the
- *   render-loop closure always reads the current value without restarting.
- */
-
-import { useState, useRef, useCallback, useEffect, memo } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Camera, CameraOff, Sticker, FlipHorizontal, Aperture, Pause, SlidersHorizontal } from 'lucide-react';
 import {
-  Camera, CameraOff, Sticker, Download, Trash2, X,
-  Eye, EyeOff, Layers, Magnet, Pause, Play, VideoOff,
-} from 'lucide-react';
-import stickersGalleryPaths from '../features/gallery/data/stickersGallery';
-import { CHARACTER_DATA } from '../data/characters';
-
-// ── MediaPipe CDN ─────────────────────────────────────────────────────────────
-const WASM_CDN   = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
-const HAND_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-const SEG_MODEL  = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite';
-
-// ── Pinch hysteresis ──────────────────────────────────────────────────────────
-const PINCH_ON  = 0.050;
-const PINCH_OFF = 0.085;
-
-// ── Smoothing constants ───────────────────────────────────────────────────────
-const LM_ALPHA        = 0.38;   // EMA for landmark jitter reduction
-const DRAG_LERP       = 0.30;   // lerp α for smooth sticker following
-const INERTIA_FRICTION = 0.85;
-const INERTIA_MIN      = 0.4;   // px/frame below which inertia stops
-const DWELL_FRAMES       = 50;  // frames of held pinch in empty space → spawn sticker
-const DWELL_MOVE_MAX     = 32;  // px — if pinch moves farther, reset dwell
-const TWO_HAND_DEBOUNCE  = 10;  // both hands must pinch this many frames before scale activates
-
-// ── Segmentation canvas size (fed to model) ───────────────────────────────────
-const SEG_W = 640, SEG_H = 360;
-
-// ── Skeleton connections ──────────────────────────────────────────────────────
-const CONNECTIONS = [
-  [0,1],[1,2],[2,3],[3,4],
-  [0,5],[5,6],[6,7],[7,8],
-  [0,9],[9,10],[10,11],[11,12],
-  [0,13],[13,14],[14,15],[15,16],
-  [0,17],[17,18],[18,19],[19,20],
-  [5,9],[9,13],[13,17],
-];
-
-// ── Background modes ──────────────────────────────────────────────────────────
-const BG_MODES = [
-  { id: 'none',       label: '🎥 Normal',      needsSeg: false },
-  { id: 'blur',       label: '🌫️ Blur BG',     needsSeg: true  },
-  { id: 'black',      label: '⬛ Black',        needsSeg: true  },
-  { id: 'white',      label: '⬜ White',        needsSeg: true  },
-  { id: 'gradient',   label: '🌈 Gradient',     needsSeg: true  },
-  { id: 'notebook',   label: '📓 Notebook',     needsSeg: true  },
-  { id: 'hidePerson', label: '👻 Vanish',       needsSeg: true  },
-  { id: 'hideFace',   label: '🙈 Hide Face',    needsSeg: true  },
-];
-
-// ── Character sticker sources (in picker, cycled by dwell gesture) ────────────
-const CHARACTER_SRCS = CHARACTER_DATA.map(c => c.src);
-
-// ── MediaPipe normalised → canvas pixels (object-fit:cover crop) ──────────────
-function lmPx(lm, cw, ch, vw, vh) {
-  const vAR = vw / vh, cAR = cw / ch;
-  if (cAR >= vAR) {
-    const s = cw / vw, sh = vh * s, cy = (sh - ch) / 2;
-    return { x: lm.x * cw, y: lm.y * sh - cy };
-  }
-  const s = ch / vh, sw = vw * s, cx = (sw - cw) / 2;
-  return { x: lm.x * sw - cx, y: lm.y * ch };
-}
-
-// ── Find sticker id closest to a point (within grab radius) ──────────────────
-function hitTest(live, px, py) {
-  let bestId = null, bestD = Infinity;
-  for (const s of live) {
-    const d = Math.hypot(px - s.x, py - s.y);
-    if (d < Math.max(s.w, s.h) * 0.58 && d < bestD) { bestD = d; bestId = s.id; }
-  }
-  return bestId;
-}
-
-// ── EMA landmark smoother ─────────────────────────────────────────────────────
-function smoothLandmarks(smoothMap, handIdx, raw) {
-  const prev = smoothMap[handIdx];
-  if (!prev) { smoothMap[handIdx] = raw.map(l => ({ ...l })); return smoothMap[handIdx]; }
-  smoothMap[handIdx] = raw.map((l, i) => ({
-    x: prev[i].x * (1 - LM_ALPHA) + l.x * LM_ALPHA,
-    y: prev[i].y * (1 - LM_ALPHA) + l.y * LM_ALPHA,
-    z: prev[i].z * (1 - LM_ALPHA) + l.z * LM_ALPHA,
-  }));
-  return smoothMap[handIdx];
-}
-
-// ── Notebook background pattern ───────────────────────────────────────────────
-function drawNotebook(ctx, cw, ch) {
-  ctx.fillStyle = '#fafaf2';
-  ctx.fillRect(0, 0, cw, ch);
-  // Red margin line
-  ctx.strokeStyle = 'rgba(255,150,150,0.75)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(72, 0); ctx.lineTo(72, ch); ctx.stroke();
-  // Blue ruled lines
-  ctx.strokeStyle = 'rgba(170,205,240,0.85)';
-  ctx.lineWidth = 1;
-  for (let y = 30; y < ch; y += 28) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
-  }
-}
-
-// ── Background compositing (needs segmentation mask) ──────────────────────────
-function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv, bgCv) {
-  const fgCtx = fgCv.getContext('2d');
-  const bgCtx = bgCv.getContext('2d');
-
-  // hidePerson: skip person compositing — just draw background without the person
-  if (mode === 'hidePerson') {
-    dctx.clearRect(0, 0, cw, ch);
-    bgCtx.filter = 'blur(22px)';
-    bgCtx.drawImage(video, 0, 0, cw, ch);
-    bgCtx.filter = 'none';
-    dctx.drawImage(bgCv, 0, 0);
-    return;
-  }
-
-  // Build alpha mask: person = opaque, bg = transparent
-  const maskImg = new ImageData(maskW, maskH);
-  const md = maskImg.data;
-  for (let i = 0; i < catMask.length; i++) {
-    const cat = catMask[i];
-    const isPerson = cat > 0;
-    const isFace   = cat === 3;
-    const alpha = (mode === 'hideFace' ? (isPerson && !isFace) : isPerson) ? 255 : 0;
-    md[i * 4] = md[i * 4 + 1] = md[i * 4 + 2] = 255;
-    md[i * 4 + 3] = alpha;
-  }
-
-  // Foreground: person pixels only
-  fgCtx.clearRect(0, 0, cw, ch);
-  fgCtx.drawImage(video, 0, 0, cw, ch);
-  const maskCv = new OffscreenCanvas(maskW, maskH);
-  maskCv.getContext('2d').putImageData(maskImg, 0, 0);
-  fgCtx.globalCompositeOperation = 'destination-in';
-  fgCtx.drawImage(maskCv, 0, 0, cw, ch);
-  fgCtx.globalCompositeOperation = 'source-over';
-
-  // Background
-  bgCtx.clearRect(0, 0, cw, ch);
-  if (mode === 'blur') {
-    bgCtx.filter = 'blur(18px)';
-    bgCtx.drawImage(video, 0, 0, cw, ch);
-    bgCtx.filter = 'none';
-  } else if (mode === 'black') {
-    bgCtx.fillStyle = '#000'; bgCtx.fillRect(0, 0, cw, ch);
-  } else if (mode === 'white') {
-    bgCtx.fillStyle = '#fff'; bgCtx.fillRect(0, 0, cw, ch);
-  } else if (mode === 'gradient') {
-    const g = bgCtx.createLinearGradient(0, 0, cw, ch);
-    g.addColorStop(0, '#1e1b4b'); g.addColorStop(0.5, '#7c3aed'); g.addColorStop(1, '#f472b6');
-    bgCtx.fillStyle = g; bgCtx.fillRect(0, 0, cw, ch);
-  } else if (mode === 'notebook') {
-    drawNotebook(bgCtx, cw, ch);
-  } else if (mode === 'hideFace') {
-    bgCtx.drawImage(video, 0, 0, cw, ch);
-  }
-
-  // Composite: bg first, then person on top
-  dctx.clearRect(0, 0, cw, ch);
-  dctx.drawImage(bgCv, 0, 0);
-  dctx.drawImage(fgCv, 0, 0);
-
-  // Pixelate face for hideFace mode
-  if (mode === 'hideFace') {
-    let minX = maskW, minY = maskH, maxX = 0, maxY = 0, found = false;
-    for (let y = 0; y < maskH; y++) {
-      for (let x = 0; x < maskW; x++) {
-        if (catMask[y * maskW + x] === 3) {
-          if (x < minX) minX = x; if (x > maxX) maxX = x;
-          if (y < minY) minY = y; if (y > maxY) maxY = y;
-          found = true;
-        }
-      }
-    }
-    if (found) {
-      const sx = cw / maskW, sy = ch / maskH, pad = 18;
-      const fx = Math.max(0, minX * sx - pad), fy = Math.max(0, minY * sy - pad);
-      const fw = Math.min(cw - fx, (maxX - minX) * sx + pad * 2);
-      const fh = Math.min(ch - fy, (maxY - minY) * sy + pad * 2);
-      const TILE = 15;
-      const tiny = new OffscreenCanvas(Math.max(1, Math.ceil(fw / TILE)), Math.max(1, Math.ceil(fh / TILE)));
-      tiny.getContext('2d').drawImage(video, fx, fy, fw, fh, 0, 0, tiny.width, tiny.height);
-      dctx.imageSmoothingEnabled = false;
-      dctx.drawImage(tiny, 0, 0, tiny.width, tiny.height, fx, fy, fw, fh);
-      dctx.imageSmoothingEnabled = true;
-    }
-  }
-}
-
-// ── StickerPicker ─────────────────────────────────────────────────────────────
-const StickerPicker = memo(({ onSelect, onClose }) => {
-  const allPaths = [...CHARACTER_SRCS, ...stickersGalleryPaths];
-  return (
-    <div style={{
-      position:'absolute', bottom:0, left:0, right:0, zIndex:300,
-      background:'rgba(8,8,20,0.97)', backdropFilter:'blur(14px)',
-      borderTop:'2px solid rgba(255,255,255,0.08)',
-      display:'flex', flexDirection:'column', maxHeight:'48%',
-    }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px 4px', flexShrink:0 }}>
-        <span style={{ color:'#c4b5fd', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.9rem' }}>
-          Pick a sticker — or pinch &amp; hold in empty space to spawn
-        </span>
-        <button onClick={onClose} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.5)', cursor:'pointer', padding:4, lineHeight:1 }}>
-          <X size={20} />
-        </button>
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(66px,1fr))', gap:6, padding:'4px 10px 16px', overflowY:'auto' }}>
-        {allPaths.map(src => (
-          <button key={src} onClick={() => onSelect(src)}
-            style={{ background:'rgba(255,255,255,0.05)', border:'1.5px solid rgba(255,255,255,0.08)', borderRadius:10, padding:5, cursor:'pointer', aspectRatio:'1', display:'flex', alignItems:'center', justifyContent:'center', transition:'background 0.12s,transform 0.1s' }}
-            onMouseEnter={e => { e.currentTarget.style.background='rgba(196,181,253,0.2)'; e.currentTarget.style.transform='scale(1.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.05)'; e.currentTarget.style.transform=''; }}
-          >
-            <img src={src} alt="" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-});
-
-// ── BgPicker ──────────────────────────────────────────────────────────────────
-const BgPicker = memo(({ current, onChange, onClose }) => (
-  <div style={{
-    position:'absolute', bottom:0, left:0, right:0, zIndex:300,
-    background:'rgba(8,8,20,0.97)', backdropFilter:'blur(14px)',
-    borderTop:'2px solid rgba(255,255,255,0.08)',
-    padding:'12px 14px 18px', display:'flex', flexDirection:'column', gap:10,
-  }}>
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-      <span style={{ color:'#6ee7b7', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.9rem' }}>Background</span>
-      <button onClick={onClose} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.5)', cursor:'pointer', padding:4 }}><X size={18} /></button>
-    </div>
-    <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-      {BG_MODES.map(m => (
-        <button key={m.id} onClick={() => { onChange(m.id); onClose(); }}
-          style={{
-            padding:'8px 14px', borderRadius:12,
-            background: current === m.id ? 'rgba(110,231,183,0.2)' : 'rgba(255,255,255,0.06)',
-            border: `1.5px solid ${current === m.id ? '#6ee7b7' : 'rgba(255,255,255,0.1)'}`,
-            borderBottom: `4px solid ${current === m.id ? '#34d399' : 'rgba(255,255,255,0.08)'}`,
-            color: current === m.id ? '#6ee7b7' : 'rgba(255,255,255,0.7)',
-            fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.85rem', cursor:'pointer',
-            transition:'background 0.12s',
-          }}
-        >{m.label}</button>
-      ))}
-    </div>
-  </div>
-));
+  BG_MODES, CONNECTIONS, DRAG_LERP, DWELL_FRAMES, DWELL_MOVE_MAX,
+  FACE_ANCHORS, FACE_MODEL, GESTURE_HOLD, GESTURE_LABELS, HAND_MODEL,
+  INERTIA_FRICTION, INERTIA_MIN, MAX_TRACKED_HANDS, PHYS_ANG_DAMPEN,
+  PHYS_DAMPEN, PINCH_OFF, PINCH_ON, REPULSION_FORCE, REPULSION_RADIUS,
+  SEG_H, SEG_MODEL, SEG_W, TWO_HAND_DEBOUNCE, WASM_CDN, ALL_STICKER_SRCS,
+} from '../features/stickerCam/stickerCamConstants';
+import { OneEuroFilter } from '../features/stickerCam/trackingFilters';
+import {
+  applyBackground, classifyGesture, downloadCanvas, drawNotebook, hitTest, lmPx,
+} from '../features/stickerCam/stickerCamUtils';
+import { BgPicker, ControlPanel, FaceAnchorPicker, StickerPicker } from '../features/stickerCam/StickerCamPanels';
+import SnapEditView from '../features/stickerCam/SnapEditView';
+import { gestureHint, primaryBtn, toolbar } from '../features/stickerCam/stickerCamStyles';
+import { StatusChip, ToolBtn } from '../features/stickerCam/stickerCamUi';
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function StickerCamPage() {
-  const [stream,       setStream]       = useState(null);
-  const [camError,     setCamError]     = useState(null);
-  const [handStatus,   setHandStatus]   = useState('idle');
-  const [segStatus,    setSegStatus]    = useState('idle');
-  const [bgMode,       setBgMode]       = useState('none');
-  const [stickerCount,    setStickerCount]    = useState(0);
-  const [panel,           setPanel]           = useState(null);   // null|'stickers'|'bg'
-  const [showSkeleton,    setShowSkeleton]    = useState(true);
-  const [trackingPaused,  setTrackingPaused]  = useState(false);
-  const [hideCam,         setHideCam]         = useState(false);
+  const [stream,         setStream]         = useState(null);
+  const [camError,       setCamError]       = useState(null);
+  const [facingMode,     setFacingMode]     = useState('user');
+  const [handStatus,     setHandStatus]     = useState('idle');
+  const [segStatus,      setSegStatus]      = useState('idle');
+  const [faceStatus,     setFaceStatus]     = useState('idle');
+  const [bgMode,         setBgMode]         = useState('none');
+  const [stickerCount,   setStickerCount]   = useState(0);
+  const [panel,          setPanel]          = useState(null);
+  const [showSkeleton,   setShowSkeleton]   = useState(true);
+  const [showFaceMesh,   setShowFaceMesh]   = useState(false);
+  const [trackingPaused, setTrackingPaused] = useState(false);
+  const [hideCam,        setHideCam]        = useState(false);
+  const [snapUrl,        setSnapUrl]        = useState(null);
+  const [snapStickers,   setSnapStickers]   = useState([]);
+  const [snapPanel,      setSnapPanel]      = useState(null);
+  const [snapFlash,      setSnapFlash]      = useState(false);
+  const [faceAnchorPick, setFaceAnchorPick] = useState(null); // {name, lmIdx} waiting for sticker pick
 
   // DOM refs
-  const videoRef      = useRef(null);
-  const displayCvRef  = useRef(null);
-  const handCvRef     = useRef(null);
-  const segCvRef      = useRef(null);
-  const containerRef  = useRef(null);
-  const hintElRef     = useRef(null);
-  const rafRef        = useRef(null);
+  const videoRef     = useRef(null);
+  const displayCvRef = useRef(null);
+  const handCvRef    = useRef(null);
+  const segCvRef     = useRef(null);
+  const containerRef = useRef(null);
+  const hintElRef    = useRef(null);
+  const rafRef       = useRef(null);
 
   // Model refs
   const landmarkerRef = useRef(null);
   const segmenterRef  = useRef(null);
+  const faceLmRef     = useRef(null);
 
-  // ── Refs that the rAF loop reads — kept in sync by their own useEffects ──────
-  // These MUST be declared before the render-loop useEffect.
+  // rAF-synced refs
   const bgModeRef        = useRef('none');
   const showSkeletonRef  = useRef(true);
+  const showFaceMeshRef  = useRef(false);
   const pausedRef        = useRef(false);
   const hideCamRef       = useRef(false);
+  const facingModeRef    = useRef('user');
 
-  useEffect(() => { bgModeRef.current       = bgMode;          }, [bgMode]);
-  useEffect(() => { showSkeletonRef.current = showSkeleton;    }, [showSkeleton]);
-  useEffect(() => { pausedRef.current       = trackingPaused;  }, [trackingPaused]);
-  useEffect(() => { hideCamRef.current      = hideCam;         }, [hideCam]);
+  useEffect(() => { bgModeRef.current       = bgMode;         }, [bgMode]);
+  useEffect(() => { showSkeletonRef.current = showSkeleton;   }, [showSkeleton]);
+  useEffect(() => { showFaceMeshRef.current = showFaceMesh;   }, [showFaceMesh]);
+  useEffect(() => { pausedRef.current       = trackingPaused; }, [trackingPaused]);
+  useEffect(() => { hideCamRef.current      = hideCam;        }, [hideCam]);
+  useEffect(() => { facingModeRef.current   = facingMode;     }, [facingMode]);
 
-  // ── Live sticker state (mutated in rAF loop, never synced back from React) ───
-  const liveRef       = useRef([]);
-  const imgCache      = useRef({});
-  const nextIdRef     = useRef(1);
-  const dwellSrcIdx   = useRef(0);  // which character to spawn next via dwell
+  // Live sticker state (mutated in rAF loop — no React state)
+  const liveRef     = useRef([]);
+  const imgCache    = useRef({});
+  const nextIdRef   = useRef(1);
+
+  // One Euro Filter per hand/landmark
+  const oefRef = useRef({});
 
   // Interaction refs
-  const smoothLmMap   = useRef({});
-  const pinchActive   = useRef([false, false]);
-  const grabRef       = useRef(null);   // { id, offX, offY }
-  const twoRef        = useRef(null);   // { id, initDist, initAngle, initW, initH, initR }
-  const inertiaRef    = useRef(null);   // { id, vx, vy }
-  const prevPinch     = useRef([null, null]);
-  const pinchVel      = useRef([{ x: 0, y: 0 }, { x: 0, y: 0 }]);
+  const pinchActive   = useRef(Array.from({ length: MAX_TRACKED_HANDS }, () => false));
+  const grabRef       = useRef(null);
+  const twoRef        = useRef(null);
+  const inertiaRef    = useRef(null);
+  const prevPinch     = useRef(Array.from({ length: MAX_TRACKED_HANDS }, () => null));
+  const pinchVel      = useRef(Array.from({ length: MAX_TRACKED_HANDS }, () => ({ x: 0, y: 0 })));
   const targetPos     = useRef(null);
-  const dwellRef        = useRef(null);   // { x, y, frames } — dwell-to-spawn state
-  const gatherRef       = useRef(null);   // { frames } — gather-stickers-to-view animation
-  const twoHandFrames   = useRef(0);      // debounce counter before two-hand scale activates
+  const dwellRef      = useRef(null);
+  const gatherRef     = useRef(null);
+  const twoHandFrames = useRef(0);
+  const fgCvRef       = useRef(null);
+  const bgCvRef       = useRef(null);
+  const smoothedLmRef = useRef({});      // stores last smoothed landmarks per hand
 
-  // Background compositing canvases (lazily sized)
-  const fgCvRef = useRef(null);
-  const bgCvRef = useRef(null);
+  // Gesture state machine
+  const gestStateRef = useRef({
+    gesture:     Array.from({ length: MAX_TRACKED_HANDS }, () => 'idle'),
+    holdFrames:  Array.from({ length: MAX_TRACKED_HANDS }, () => 0),
+    cooldown:    Array.from({ length: MAX_TRACKED_HANDS }, () => 0),
+    lastFired:   Array.from({ length: MAX_TRACKED_HANDS }, () => 'idle'),
+  });
+
+  // Face landmarks (last seen)
+  const faceLmsRef = useRef(null);
+
+  // External snap trigger ref (gesture peace fires it)
+  const takeSnapRef = useRef(null);
+
+  // Mouse/touch drag on live canvas stickers
+  const livePtrsRef  = useRef({});
+  const liveDragRef  = useRef(null);
+  const livePinchRef = useRef(null);
+
+  // ── OEF helpers ──────────────────────────────────────────────────────────
+  const getOEF = useCallback((handIdx, lmIdx) => {
+    const map = oefRef.current;
+    if (!map[handIdx]) map[handIdx] = {};
+    if (!map[handIdx][lmIdx]) map[handIdx][lmIdx] = {
+      x: new OneEuroFilter(30, 1.5, 0.07, 1.0),
+      y: new OneEuroFilter(30, 1.5, 0.07, 1.0),
+      z: new OneEuroFilter(30, 1.0, 0.03, 1.0),
+    };
+    return map[handIdx][lmIdx];
+  }, []);
+
+  const smoothLandmarksOEF = useCallback((handIdx, raw, ts) => {
+    return raw.map((l, i) => {
+      const f = getOEF(handIdx, i);
+      return { x: f.x.filter(l.x, ts), y: f.y.filter(l.y, ts), z: f.z.filter(l.z, ts) };
+    });
+  }, [getOEF]);
 
   // ── Camera ────────────────────────────────────────────────────────────────
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (facing) => {
+    const mode = facing ?? facingModeRef.current;
     try {
       if (stream) stream.getTracks().forEach(t => t.stop());
       const s = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode: mode, width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
       setStream(s); setCamError(null);
+      if (facing) setFacingMode(facing);
     } catch (e) {
       setCamError(e.name === 'NotAllowedError'
         ? 'Camera permission denied. Allow access and try again.'
         : 'Camera error: ' + e.message);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream]);
 
   const stopCamera = useCallback(() => {
@@ -353,20 +151,24 @@ export default function StickerCamPage() {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
   }, [stream]);
 
+  const flipCamera = useCallback(() => {
+    startCamera(facingModeRef.current === 'user' ? 'environment' : 'user');
+  }, [startCamera]);
+
   useEffect(() => {
     if (stream && videoRef.current) videoRef.current.srcObject = stream;
   }, [stream]);
 
-  // Cleanup on unmount
   useEffect(() => () => {
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (landmarkerRef.current) landmarkerRef.current.close();
     if (segmenterRef.current) segmenterRef.current.close();
+    if (faceLmRef.current) faceLmRef.current.close();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Load hand tracker ──────────────────────────────────────────────────────
+  // ── Load models ────────────────────────────────────────────────────────────
   const loadHands = useCallback(async () => {
     if (landmarkerRef.current || handStatus === 'loading') return;
     setHandStatus('loading');
@@ -375,13 +177,12 @@ export default function StickerCamPage() {
       const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
       landmarkerRef.current = await HandLandmarker.createFromOptions(vis, {
         baseOptions: { modelAssetPath: HAND_MODEL, delegate: 'GPU' },
-        runningMode: 'VIDEO', numHands: 2,
+        runningMode: 'VIDEO', numHands: MAX_TRACKED_HANDS, minHandDetectionConfidence: 0.72, minHandPresenceConfidence: 0.72, minTrackingConfidence: 0.78,
       });
       setHandStatus('ready');
     } catch { setHandStatus('error'); }
   }, [handStatus]);
 
-  // ── Load segmenter (on demand) ─────────────────────────────────────────────
   const loadSegmenter = useCallback(async () => {
     if (segmenterRef.current || segStatus === 'loading') return;
     setSegStatus('loading');
@@ -390,13 +191,27 @@ export default function StickerCamPage() {
       const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
       segmenterRef.current = await ImageSegmenter.createFromOptions(vis, {
         baseOptions: { modelAssetPath: SEG_MODEL, delegate: 'GPU' },
-        runningMode: 'VIDEO',
-        outputCategoryMask: true,
-        outputConfidenceMasks: false,
+        runningMode: 'VIDEO', outputCategoryMask: true, outputConfidenceMasks: false,
       });
       setSegStatus('ready');
     } catch { setSegStatus('error'); }
   }, [segStatus]);
+
+  const loadFace = useCallback(async () => {
+    if (faceLmRef.current || faceStatus === 'loading') return;
+    setFaceStatus('loading');
+    try {
+      const { FaceLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
+      const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
+      faceLmRef.current = await FaceLandmarker.createFromOptions(vis, {
+        baseOptions: { modelAssetPath: FACE_MODEL, delegate: 'GPU' },
+        runningMode: 'VIDEO', numFaces: 1, outputFaceBlendshapes: false,
+        outputFacialTransformationMatrixes: false,
+      });
+      setFaceStatus('ready');
+      setShowFaceMesh(true);
+    } catch { setFaceStatus('error'); }
+  }, [faceStatus]);
 
   useEffect(() => {
     const m = BG_MODES.find(b => b.id === bgMode);
@@ -408,7 +223,122 @@ export default function StickerCamPage() {
     loadHands();
   }, [startCamera, loadHands]);
 
-  // ── Render + interaction loop ──────────────────────────────────────────────
+  // ── Snap photo ────────────────────────────────────────────────────────────
+  const takeSnap = useCallback(async () => {
+    if (!stream) return;
+    setSnapFlash(true);
+    setTimeout(() => setSnapFlash(false), 320);
+
+    const track = stream.getVideoTracks()[0];
+    let url;
+    try {
+      if ('ImageCapture' in window) {
+        const ic   = new ImageCapture(track);
+        const blob = await ic.takePhoto({ fillLightMode: 'off' });
+        url = URL.createObjectURL(blob);
+      } else throw new Error('no ImageCapture');
+    } catch {
+      const dcv = displayCvRef.current;
+      if (!dcv) return;
+      const out = document.createElement('canvas');
+      out.width = dcv.width; out.height = dcv.height;
+      const ctx = out.getContext('2d');
+      ctx.drawImage(dcv, 0, 0);
+      url = out.toDataURL('image/jpeg', 0.95);
+    }
+    setSnapUrl(url);
+    setSnapStickers([]);
+    setSnapPanel(null);
+  }, [stream]);
+
+  // Store stable ref so rAF gesture handler can call it
+  useEffect(() => { takeSnapRef.current = takeSnap; }, [takeSnap]);
+
+  // ── toCvCoords ────────────────────────────────────────────────────────────
+  const toCvCoords = useCallback((clientX, clientY) => {
+    const cont = containerRef.current;
+    const dcv  = displayCvRef.current;
+    if (!cont || !dcv) return { x: 0, y: 0 };
+    const rect = cont.getBoundingClientRect();
+    let cx = (clientX - rect.left) / rect.width  * dcv.width;
+    let cy = (clientY - rect.top)  / rect.height * dcv.height;
+    return { x: cx, y: cy };
+  }, []);
+
+  // ── Mouse/touch drag on live canvas stickers ──────────────────────────────
+  const handleLivePointerDown = useCallback((e) => {
+    if (panel) return;
+    if (pausedRef.current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const pos = toCvCoords(e.clientX, e.clientY);
+    livePtrsRef.current[e.pointerId] = pos;
+    const count = Object.keys(livePtrsRef.current).length;
+    const live = liveRef.current;
+
+    if (count === 1) {
+      const sid = hitTest(live, pos.x, pos.y);
+      if (sid != null) {
+        const s = live.find(st => st.id === sid);
+        liveDragRef.current = { id: sid, offX: pos.x - s.x, offY: pos.y - s.y };
+        inertiaRef.current  = null;
+        grabRef.current     = null;
+      } else {
+        liveDragRef.current = null;
+      }
+    } else if (count === 2) {
+      const pts = Object.values(livePtrsRef.current);
+      const [p1, p2] = pts;
+      const dist  = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+      const sid   = liveDragRef.current?.id;
+      const s     = sid ? live.find(st => st.id === sid) : null;
+      if (s) {
+        livePinchRef.current = { id: s.id, initDist: dist, initAngle: angle, initW: s.w || 120, initH: s.h || 120, initR: s.rotation };
+        liveDragRef.current  = null;
+      }
+    }
+  }, [panel, toCvCoords]);
+
+  const handleLivePointerMove = useCallback((e) => {
+    if (!liveDragRef.current && !livePinchRef.current) return;
+    const pos = toCvCoords(e.clientX, e.clientY);
+    livePtrsRef.current[e.pointerId] = pos;
+    const live = liveRef.current;
+
+    if (liveDragRef.current) {
+      const { id, offX, offY } = liveDragRef.current;
+      const idx = live.findIndex(s => s.id === id);
+      if (idx >= 0) live[idx] = { ...live[idx], x: pos.x - offX, y: pos.y - offY, vx: 0, vy: 0 };
+    }
+
+    if (livePinchRef.current) {
+      const pts = Object.values(livePtrsRef.current);
+      if (pts.length >= 2) {
+        const [p1, p2] = pts;
+        const dist  = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        const { id, initDist, initAngle, initW, initH, initR } = livePinchRef.current;
+        const scale = dist / initDist;
+        const idx   = live.findIndex(s => s.id === id);
+        if (idx >= 0) live[idx] = {
+          ...live[idx],
+          w: Math.max(40, initW * scale), h: Math.max(40, initH * scale),
+          rotation: initR + (angle - initAngle),
+          x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2, vx: 0, vy: 0,
+        };
+      }
+    }
+  }, [toCvCoords]);
+
+  const handleLivePointerUp = useCallback((e) => {
+    delete livePtrsRef.current[e.pointerId];
+    if (Object.keys(livePtrsRef.current).length === 0) {
+      liveDragRef.current  = null;
+      livePinchRef.current = null;
+    }
+  }, []);
+
+  // ── rAF render + tracking loop ─────────────────────────────────────────────
   useEffect(() => {
     if (!stream) return;
 
@@ -422,8 +352,9 @@ export default function StickerCamPage() {
         rafRef.current = requestAnimationFrame(loop); return;
       }
 
-      const cw = cont.clientWidth  || 640;
-      const ch = cont.clientHeight || 480;
+      const dpr = window.devicePixelRatio || 1;
+      const cw  = Math.round((cont.clientWidth  || 640) * dpr);
+      const ch  = Math.round((cont.clientHeight || 480) * dpr);
       if (dcv.width !== cw || dcv.height !== ch) {
         dcv.width = cw; dcv.height = ch;
         if (hcv) { hcv.width = cw; hcv.height = ch; }
@@ -433,34 +364,29 @@ export default function StickerCamPage() {
       const vw = video.videoWidth  || 640;
       const vh = video.videoHeight || 480;
       const dctx = dcv.getContext('2d');
-      const ts   = performance.now();
+      dctx.imageSmoothingEnabled = true;
+      dctx.imageSmoothingQuality = 'high';
+      const ts = performance.now();
 
-      // ── Ensure compositing canvases are sized ──────────────────────────────
       if (!fgCvRef.current || fgCvRef.current.width !== cw) {
         fgCvRef.current = new OffscreenCanvas(cw, ch);
         bgCvRef.current = new OffscreenCanvas(cw, ch);
       }
 
-      // ── Background / video frame ───────────────────────────────────────────
-      const mode = bgModeRef.current;   // always current — updated by useEffect
+      const mode = bgModeRef.current;
       const seg  = segmenterRef.current;
 
+      // ── Draw video / background ─────────────────────────────────────────
       if (hideCamRef.current) {
-        // Hidden-cam: draw a plain background — no video drawn, but hand tracking still runs
         dctx.clearRect(0, 0, cw, ch);
-        if (mode === 'black') {
-          dctx.fillStyle = '#1a1a2e'; dctx.fillRect(0, 0, cw, ch);
-        } else if (mode === 'white') {
-          dctx.fillStyle = '#ffffff'; dctx.fillRect(0, 0, cw, ch);
-        } else if (mode === 'gradient') {
+        if (mode === 'black') { dctx.fillStyle = '#1a1a2e'; dctx.fillRect(0, 0, cw, ch); }
+        else if (mode === 'white') { dctx.fillStyle = '#ffffff'; dctx.fillRect(0, 0, cw, ch); }
+        else if (mode === 'gradient') {
           const g = dctx.createLinearGradient(0, 0, cw, ch);
           g.addColorStop(0, '#1e1b4b'); g.addColorStop(0.5, '#7c3aed'); g.addColorStop(1, '#f472b6');
           dctx.fillStyle = g; dctx.fillRect(0, 0, cw, ch);
-        } else if (mode === 'notebook') {
-          drawNotebook(dctx, cw, ch);
-        } else {
-          dctx.fillStyle = '#fafaf2'; dctx.fillRect(0, 0, cw, ch);
-        }
+        } else if (mode === 'notebook') { drawNotebook(dctx, cw, ch); }
+        else { dctx.fillStyle = '#fafaf2'; dctx.fillRect(0, 0, cw, ch); }
       } else if (mode !== 'none' && seg && segCv) {
         segCv.getContext('2d').drawImage(video, 0, 0, SEG_W, SEG_H);
         try {
@@ -468,171 +394,254 @@ export default function StickerCamPage() {
           const cat = res.categoryMask?.getAsUint8Array();
           const mw  = res.categoryMask?.width  ?? SEG_W;
           const mh  = res.categoryMask?.height ?? SEG_H;
-          if (cat) {
-            applyBackground(dctx, video, cat, mw, mh, cw, ch, mode, fgCvRef.current, bgCvRef.current);
-          } else {
-            dctx.drawImage(video, 0, 0, cw, ch);
-          }
+          if (cat) applyBackground(dctx, video, cat, mw, mh, cw, ch, mode, fgCvRef.current, bgCvRef.current);
+          else dctx.drawImage(video, 0, 0, cw, ch);
         } catch { dctx.drawImage(video, 0, 0, cw, ch); }
       } else {
         dctx.drawImage(video, 0, 0, cw, ch);
       }
 
-      // ── Draw stickers ──────────────────────────────────────────────────────
+      // ── Gather animation ────────────────────────────────────────────────
       const live = liveRef.current;
-      const grabId = grabRef.current?.id ?? null;
-
-      // Gather animation: ease off-screen/edge stickers back into view
       if (gatherRef.current) {
         gatherRef.current.frames++;
         for (let i = 0; i < live.length; i++) {
           const s = live[i];
-          const hw = (s.w || 70) / 2, hh = (s.h || 70) / 2;
-          const pad = 24;
+          const hw = (s.w || 70) / 2, hh = (s.h || 70) / 2, pad = 24;
           const tx = Math.max(hw + pad, Math.min(cw - hw - pad, s.x));
           const ty = Math.max(hh + pad, Math.min(ch - hh - pad, s.y));
-          live[i] = { ...live[i], x: s.x + (tx - s.x) * 0.14, y: s.y + (ty - s.y) * 0.14 };
+          live[i] = { ...live[i], x: s.x + (tx - s.x) * 0.14, y: s.y + (ty - s.y) * 0.14, vx: 0, vy: 0 };
         }
         if (gatherRef.current.frames >= 50) gatherRef.current = null;
       }
 
+      // ── Face tracking ───────────────────────────────────────────────────
+      const faceLandmarker = faceLmRef.current;
+      if (faceLandmarker) {
+        try {
+          const faceRes = faceLandmarker.detectForVideo(video, ts);
+          const fLms = faceRes?.faceLandmarks?.[0];
+          faceLmsRef.current = fLms ?? null;
+        } catch { faceLmsRef.current = null; }
+      }
+
+      // ── Update face-anchored sticker positions ──────────────────────────
+      const faceLms = faceLmsRef.current;
+      if (faceLms && live.length > 0) {
+        for (let i = 0; i < live.length; i++) {
+          const s = live[i];
+          if (!s.faceAnchor) continue;
+          const lm = faceLms[s.faceAnchor.lmIdx];
+          if (!lm) continue;
+          const p = lmPx(lm, cw, ch, vw, vh);
+          live[i] = { ...live[i], x: p.x + s.faceAnchor.offX, y: p.y + s.faceAnchor.offY, vx: 0, vy: 0 };
+        }
+      }
+
+      // ── Sticker physics (velocity + angular velocity) ───────────────────
+      const mouseDragId = liveDragRef.current?.id ?? null;
+      const handGrabId  = grabRef.current?.id ?? null;
+      for (let i = 0; i < live.length; i++) {
+        const s = live[i];
+        if (s.faceAnchor) continue;
+        if (s.id === mouseDragId || s.id === handGrabId) continue;
+        const vx = (s.vx ?? 0) * PHYS_DAMPEN;
+        const vy = (s.vy ?? 0) * PHYS_DAMPEN;
+        const av = (s.angularVel ?? 0) * PHYS_ANG_DAMPEN;
+        if (Math.abs(vx) < 0.05 && Math.abs(vy) < 0.05 && Math.abs(av) < 0.05) continue;
+        let nx = s.x + vx, ny = s.y + vy, nr = s.rotation + av * (180 / Math.PI);
+        const hw = (s.w || 70) / 2, hh = (s.h || 70) / 2;
+        let bounced = false;
+        if (nx - hw < 0)  { nx = hw;  live[i] = { ...live[i], vx: Math.abs(vx) * 0.6 }; bounced = true; }
+        if (nx + hw > cw) { nx = cw - hw; live[i] = { ...live[i], vx: -Math.abs(vx) * 0.6 }; bounced = true; }
+        if (ny - hh < 0)  { ny = hh;  live[i] = { ...live[i], vy: Math.abs(vy) * 0.6 }; bounced = true; }
+        if (ny + hh > ch) { ny = ch - hh; live[i] = { ...live[i], vy: -Math.abs(vy) * 0.6 }; bounced = true; }
+        live[i] = { ...live[i], x: nx, y: ny, rotation: nr, vx: bounced ? live[i].vx : vx, vy: bounced ? live[i].vy : vy, angularVel: av };
+      }
+
+      // ── Draw live stickers ──────────────────────────────────────────────
+      const grabId = grabRef.current?.id ?? liveDragRef.current?.id ?? null;
       for (const s of live) {
         let img = imgCache.current[s.src];
         if (!img) { img = new Image(); img.src = s.src; imgCache.current[s.src] = img; }
-        // Fix sticker to natural aspect ratio on first loaded frame (spawned with w=0)
         if (s.w === 0 && img.complete && img.naturalWidth > 0) {
-          const MAX = 140;
+          const MAX = 140 * dpr;
           const ar  = img.naturalWidth / img.naturalHeight;
           const w = ar >= 1 ? MAX : MAX * ar;
           const h = ar >= 1 ? MAX / ar : MAX;
-          const sIdx = live.findIndex(ss => ss.id === s.id);
-          if (sIdx >= 0) live[sIdx] = { ...live[sIdx], w, h };
-          continue; // skip draw this frame; next frame it'll have correct dimensions
+          const idx = live.findIndex(ss => ss.id === s.id);
+          if (idx >= 0) live[idx] = { ...live[idx], w, h };
+          continue;
         }
         if (img.complete && img.naturalWidth > 0 && s.w > 0) {
           const grabbed = s.id === grabId;
           dctx.save();
           dctx.translate(s.x, s.y);
           dctx.rotate(s.rotation * Math.PI / 180);
-          // Counter-mirror so the sticker appears un-flipped in CSS scaleX(-1) view
-          dctx.scale(-1, 1);
-          dctx.shadowColor = 'rgba(0,0,0,0.35)';
-          dctx.shadowBlur  = grabbed ? 14 : 8;
+          dctx.shadowColor = 'rgba(0,0,0,0.38)';
+          dctx.shadowBlur  = grabbed ? 18 : 10;
           dctx.drawImage(img, -s.w / 2, -s.h / 2, s.w, s.h);
           dctx.shadowBlur = 0;
           if (grabbed) {
-            dctx.strokeStyle = 'rgba(251,191,36,0.85)';
-            dctx.lineWidth = 3; dctx.setLineDash([6, 4]);
+            dctx.strokeStyle = 'rgba(251,191,36,0.9)';
+            dctx.lineWidth = 3 * dpr; dctx.setLineDash([6 * dpr, 4 * dpr]);
             dctx.strokeRect(-s.w / 2, -s.h / 2, s.w, s.h);
+            dctx.setLineDash([]);
+          }
+          if (s.faceAnchor) {
+            dctx.strokeStyle = 'rgba(249,168,212,0.7)';
+            dctx.lineWidth = 2 * dpr; dctx.setLineDash([4 * dpr, 4 * dpr]);
+            dctx.strokeRect(-s.w / 2 - 4, -s.h / 2 - 4, s.w + 8, s.h + 8);
             dctx.setLineDash([]);
           }
           dctx.restore();
         }
       }
 
-      // ── Inertia ────────────────────────────────────────────────────────────
+      // ── Inertia ─────────────────────────────────────────────────────────
       const ix = inertiaRef.current;
       if (ix) {
         const ixIdx = live.findIndex(s => s.id === ix.id);
         if (ixIdx >= 0) {
           live[ixIdx] = { ...live[ixIdx], x: live[ixIdx].x + ix.vx, y: live[ixIdx].y + ix.vy };
           ix.vx *= INERTIA_FRICTION; ix.vy *= INERTIA_FRICTION;
-          if (Math.abs(ix.vx) < INERTIA_MIN && Math.abs(ix.vy) < INERTIA_MIN) {
-            inertiaRef.current = null;
-          }
-        } else {
-          inertiaRef.current = null;
-        }
+          if (Math.abs(ix.vx) < INERTIA_MIN && Math.abs(ix.vy) < INERTIA_MIN) inertiaRef.current = null;
+        } else { inertiaRef.current = null; }
       }
 
-      // ── Hand tracking ──────────────────────────────────────────────────────
+      // ── Hand tracking ────────────────────────────────────────────────────
       const landmarker = landmarkerRef.current;
       const hctx = hcv?.getContext('2d');
       if (hcv && hctx) hctx.clearRect(0, 0, cw, ch);
 
       const pinchPoints = [];
       let hintText = '';
+      const gst = gestStateRef.current;
+
+      // ── Draw face mesh (optional) ────────────────────────────────────────
+      if (hcv && hctx && showFaceMeshRef.current && faceLms) {
+        hctx.save();
+        hctx.strokeStyle = 'rgba(249,168,212,0.35)';
+        hctx.lineWidth = 1 * dpr;
+        // Draw a simplified subset of face mesh edges (lips, eyes, outline)
+        const FACE_EDGES = [[10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,378],[378,400],[400,377],[377,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172],[172,58],[58,132],[132,93],[93,234],[234,127],[127,162],[162,21],[21,54],[54,103],[103,67],[67,109],[109,10]];
+        for (const [a, b] of FACE_EDGES) {
+          const pa = lmPx(faceLms[a], cw, ch, vw, vh), pb = lmPx(faceLms[b], cw, ch, vw, vh);
+          hctx.beginPath(); hctx.moveTo(pa.x, pa.y); hctx.lineTo(pb.x, pb.y); hctx.stroke();
+        }
+        // Highlight anchor points
+        for (const [, lmIdx] of Object.entries(FACE_ANCHORS)) {
+          const p = lmPx(faceLms[lmIdx], cw, ch, vw, vh);
+          hctx.beginPath(); hctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
+          hctx.fillStyle = 'rgba(249,168,212,0.8)'; hctx.fill();
+        }
+        hctx.restore();
+      }
 
       if (landmarker) {
         let handRes;
-        try { handRes = landmarker.detectForVideo(video, ts); } catch { /* skip frame */ }
+        try { handRes = landmarker.detectForVideo(video, ts); } catch { /* skip */ }
         const hands = handRes?.landmarks ?? [];
 
-        for (let i = 0; i < Math.min(hands.length, 2); i++) {
+        // Detect gestures per hand (outside paused check so we always classify)
+        const gestures = [];
+        for (let i = 0; i < Math.min(hands.length, MAX_TRACKED_HANDS); i++) {
           const raw = hands[i];
-          const lm  = smoothLandmarks(smoothLmMap.current, i, raw);
+          const lm  = smoothLandmarksOEF(i, raw, ts);
+          smoothedLmRef.current[i] = lm;
+          gestures.push(classifyGesture(lm));
+        }
 
-          const tp    = lmPx(lm[4],  cw, ch, vw, vh);
-          const ip    = lmPx(lm[8],  cw, ch, vw, vh);
-          const ndist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
-
+        for (let i = 0; i < Math.min(hands.length, MAX_TRACKED_HANDS); i++) {
+          const lm  = smoothedLmRef.current[i];
+          const tp  = lmPx(lm[4], cw, ch, vw, vh);
+          const ip  = lmPx(lm[8], cw, ch, vw, vh);
+          const nd  = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
           const was = pinchActive.current[i] ?? false;
-          const now = was ? ndist < PINCH_OFF : ndist < PINCH_ON;
+          const now = was ? nd < PINCH_OFF : nd < PINCH_ON;
           pinchActive.current[i] = now;
-
-          const px = (tp.x + ip.x) / 2;
-          const py = (tp.y + ip.y) / 2;
+          const px = (tp.x + ip.x) / 2, py = (tp.y + ip.y) / 2;
           if (now) pinchPoints.push({ x: px, y: py, handIdx: i });
 
-          // Velocity tracking for release inertia
-          const pv = pinchVel.current[i];
+          const pv = pinchVel.current[i] || (pinchVel.current[i] = { x: 0, y: 0 });
           const pp = prevPinch.current[i];
-          if (now && pp) {
-            pv.x = pv.x * 0.5 + (px - pp.x) * 0.5;
-            pv.y = pv.y * 0.5 + (py - pp.y) * 0.5;
-          } else if (!now) { pv.x = 0; pv.y = 0; }
+          if (now && pp) { pv.x = pv.x * 0.5 + (px - pp.x) * 0.5; pv.y = pv.y * 0.5 + (py - pp.y) * 0.5; }
+          else if (!now) { pv.x = 0; pv.y = 0; }
           prevPinch.current[i] = now ? { x: px, y: py } : null;
 
-          // Draw skeleton
           if (hcv && hctx && showSkeletonRef.current) {
             const col = now ? 'rgba(251,191,36,0.88)' : 'rgba(255,255,255,0.55)';
-            hctx.strokeStyle = col; hctx.lineWidth = 2.5; hctx.lineCap = 'round';
+            hctx.strokeStyle = col; hctx.lineWidth = 2.5 * dpr; hctx.lineCap = 'round';
             for (const [a, b] of CONNECTIONS) {
-              const pa = lmPx(lm[a], cw, ch, vw, vh);
-              const pb = lmPx(lm[b], cw, ch, vw, vh);
+              const pa = lmPx(lm[a], cw, ch, vw, vh), pb = lmPx(lm[b], cw, ch, vw, vh);
               hctx.beginPath(); hctx.moveTo(pa.x, pa.y); hctx.lineTo(pb.x, pb.y); hctx.stroke();
             }
             for (let j = 0; j < lm.length; j++) {
-              const p = lmPx(lm[j], cw, ch, vw, vh);
-              const key = j === 4 || j === 8;
-              hctx.beginPath(); hctx.arc(p.x, p.y, key ? 6.5 : 3.5, 0, Math.PI * 2);
+              const p = lmPx(lm[j], cw, ch, vw, vh), key = j === 4 || j === 8;
+              hctx.beginPath(); hctx.arc(p.x, p.y, (key ? 6.5 : 3.5) * dpr, 0, Math.PI * 2);
               hctx.fillStyle = key ? (now ? '#fbbf24' : '#e2e8f0') : 'rgba(255,255,255,0.6)';
               hctx.fill();
             }
           }
-
-          // Pinch ring glow
           if (hcv && hctx && now) {
-            hctx.beginPath(); hctx.arc(px, py, 22, 0, Math.PI * 2);
+            hctx.beginPath(); hctx.arc(px, py, 22 * dpr, 0, Math.PI * 2);
             hctx.fillStyle = 'rgba(251,191,36,0.15)'; hctx.fill();
-            hctx.strokeStyle = '#fbbf24'; hctx.lineWidth = 2.5; hctx.stroke();
+            hctx.strokeStyle = '#fbbf24'; hctx.lineWidth = 2.5 * dpr; hctx.stroke();
+          }
+
+          // ── Gesture HUD badge ─────────────────────────────────────────────
+          if (hcv && hctx && !pausedRef.current) {
+            const g = gestures[i] ?? 'idle';
+            if (g !== 'idle' && g !== 'other') {
+              const wristP = lmPx(lm[0], cw, ch, vw, vh);
+              const badgeX = wristP.x, badgeY = wristP.y + 36 * dpr;
+              const label  = GESTURE_LABELS[g] ?? '';
+              const hold   = gst.holdFrames[i];
+              const thresh = GESTURE_HOLD[g] ?? 0;
+              hctx.save();
+              // Badge background
+              hctx.font = `bold ${13 * dpr}px sans-serif`;
+              const tw = hctx.measureText(label).width;
+              const bw = tw + 16 * dpr, bh = 20 * dpr;
+              hctx.fillStyle = 'rgba(0,0,0,0.65)';
+              hctx.beginPath();
+              hctx.roundRect(badgeX - bw / 2, badgeY - bh / 2, bw, bh, 6 * dpr);
+              hctx.fill();
+              hctx.fillStyle = '#ffffff';
+              hctx.textAlign = 'center'; hctx.textBaseline = 'middle';
+              hctx.fillText(label, badgeX, badgeY);
+              // Hold progress ring
+              if (thresh > 0 && hold > 0) {
+                const prog = Math.min(1, hold / thresh);
+                const ring_r = 28 * dpr;
+                hctx.beginPath();
+                hctx.arc(wristP.x, wristP.y - 8 * dpr, ring_r, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2);
+                hctx.strokeStyle = prog >= 1 ? '#34d399' : '#a78bfa';
+                hctx.lineWidth = 3.5 * dpr; hctx.stroke();
+              }
+              hctx.restore();
+            }
           }
         }
 
-        // Clear smoothed state for hands that disappeared
-        for (let i = hands.length; i < 2; i++) {
-          pinchActive.current[i] = false;
-          prevPinch.current[i]   = null;
-          smoothLmMap.current[i] = undefined;
+        for (let i = hands.length; i < MAX_TRACKED_HANDS; i++) {
+          pinchActive.current[i] = false; prevPinch.current[i] = null;
+          smoothedLmRef.current[i] = undefined;
+          oefRef.current[i] = {};
         }
 
-        // ── Hover highlight: glow the sticker nearest to any open-hand index tip ─
+        // Hover glow
         if (!pausedRef.current && !grabRef.current && hctx) {
-          for (let i = 0; i < Math.min(hands.length, 2); i++) {
-            if (!pinchActive.current[i] && smoothLmMap.current[i]) {
-              const tip = lmPx(smoothLmMap.current[i][8], cw, ch, vw, vh);
+          for (let i = 0; i < Math.min(hands.length, MAX_TRACKED_HANDS); i++) {
+            if (!pinchActive.current[i] && smoothedLmRef.current[i]) {
+              const tip = lmPx(smoothedLmRef.current[i][8], cw, ch, vw, vh);
               const sid = hitTest(live, tip.x, tip.y);
               if (sid !== null) {
                 const hs = live.find(s => s.id === sid);
                 if (hs) {
-                  const r = Math.max(hs.w || 70, hs.h || 70) * 0.56;
-                  hctx.beginPath();
-                  hctx.arc(hs.x, hs.y, r, 0, Math.PI * 2);
-                  hctx.strokeStyle = 'rgba(196,181,253,0.75)';
-                  hctx.lineWidth = 2.5;
-                  hctx.setLineDash([6, 4]);
-                  hctx.stroke();
-                  hctx.setLineDash([]);
+                  hctx.beginPath(); hctx.arc(hs.x, hs.y, Math.max(hs.w || 70, hs.h || 70) * 0.56, 0, Math.PI * 2);
+                  hctx.strokeStyle = 'rgba(196,181,253,0.75)'; hctx.lineWidth = 2.5 * dpr;
+                  hctx.setLineDash([6 * dpr, 4 * dpr]); hctx.stroke(); hctx.setLineDash([]);
                   hintText = '👆 Open — pinch to grab';
                 }
                 break;
@@ -641,23 +650,151 @@ export default function StickerCamPage() {
           }
         }
 
-        // ── Sticker interaction ──────────────────────────────────────────────
+        // Pointing acts like a soft lab-style magnetic cursor for fine placement.
+        if (!pausedRef.current && !grabRef.current) {
+          for (let i = 0; i < Math.min(hands.length, MAX_TRACKED_HANDS); i++) {
+            if ((gestures[i] ?? 'idle') !== 'point' || !smoothedLmRef.current[i]) continue;
+            const tip = lmPx(smoothedLmRef.current[i][8], cw, ch, vw, vh);
+            let bestIdx = -1, bestD = Infinity;
+            for (let si = 0; si < live.length; si++) {
+              if (live[si].faceAnchor) continue;
+              const d = Math.hypot(live[si].x - tip.x, live[si].y - tip.y);
+              if (d < bestD) { bestD = d; bestIdx = si; }
+            }
+            if (bestIdx >= 0 && bestD < 280 * dpr) {
+              const s = live[bestIdx];
+              live[bestIdx] = {
+                ...s,
+                vx: (tip.x - s.x) * 0.035,
+                vy: (tip.y - s.y) * 0.035,
+                angularVel: (s.angularVel ?? 0) * 0.65,
+              };
+              hintText = '☝️ Point magnet';
+            }
+          }
+        }
+
+        // ── Gesture state machine ───────────────────────────────────────────
+        if (!pausedRef.current) {
+          for (let i = 0; i < Math.min(hands.length, MAX_TRACKED_HANDS); i++) {
+            const g = gestures[i] ?? 'idle';
+            if (gst.cooldown[i] > 0) { gst.cooldown[i]--; gst.gesture[i] = g; continue; }
+
+            if (g === gst.gesture[i]) {
+              gst.holdFrames[i]++;
+            } else {
+              gst.gesture[i] = g; gst.holdFrames[i] = 0;
+            }
+
+            const thresh = GESTURE_HOLD[g] ?? 0;
+            if (thresh > 0 && gst.holdFrames[i] >= thresh && gst.lastFired[i] !== g) {
+              gst.lastFired[i] = g;
+              gst.cooldown[i] = 40; // 40-frame cooldown after fire
+
+              const lm = smoothedLmRef.current[i];
+              const palmP = lm ? lmPx(lm[9], cw, ch, vw, vh) : null;
+
+              if (g === 'peace') {
+                // Peace → snap photo
+                if (takeSnapRef.current) takeSnapRef.current();
+
+              } else if (g === 'fist') {
+                // Fist → delete nearest sticker to palm
+                if (palmP && live.length > 0) {
+                  let bestIdx = -1, bestD = Infinity;
+                  for (let si = 0; si < live.length; si++) {
+                    const d = Math.hypot(live[si].x - palmP.x, live[si].y - palmP.y);
+                    if (d < bestD) { bestD = d; bestIdx = si; }
+                  }
+                  if (bestIdx >= 0 && bestD < 200 * dpr) {
+                    liveRef.current = live.filter((_, idx) => idx !== bestIdx);
+                    setStickerCount(c => Math.max(0, c - 1));
+                    grabRef.current = null;
+                  }
+                }
+
+              } else if (g === 'open') {
+                // Open palm → repulsion pulse
+                if (palmP) {
+                  for (let si = 0; si < live.length; si++) {
+                    if (live[si].faceAnchor) continue;
+                    const dx = live[si].x - palmP.x, dy = live[si].y - palmP.y;
+                    const dist = Math.hypot(dx, dy) || 1;
+                    if (dist < REPULSION_RADIUS * dpr) {
+                      const force = (1 - dist / (REPULSION_RADIUS * dpr)) * REPULSION_FORCE;
+                      live[si] = { ...live[si], vx: (dx / dist) * force, vy: (dy / dist) * force };
+                    }
+                  }
+                }
+
+              } else if (g === 'thumbup') {
+                // Thumbs up → clone nearest sticker
+                if (palmP && live.length > 0) {
+                  let nearest = null, bestD = Infinity;
+                  for (const s of live) {
+                    const d = Math.hypot(s.x - palmP.x, s.y - palmP.y);
+                    if (d < bestD) { bestD = d; nearest = s; }
+                  }
+                  if (nearest && bestD < 250 * dpr) {
+                    const id = nextIdRef.current++;
+                    liveRef.current = [...liveRef.current, {
+                      ...nearest, id,
+                      x: nearest.x + 60 * dpr, y: nearest.y - 40 * dpr,
+                      rotation: nearest.rotation + (Math.random() - 0.5) * 30,
+                      vx: (Math.random() - 0.5) * 8, vy: -6,
+                      faceAnchor: undefined,
+                    }];
+                    setStickerCount(c => c + 1);
+                  }
+                }
+
+              } else if (g === 'rock') {
+                // Rock → spin stickers in range
+                if (palmP) {
+                  for (let si = 0; si < live.length; si++) {
+                    if (live[si].faceAnchor) continue;
+                    const d = Math.hypot(live[si].x - palmP.x, live[si].y - palmP.y);
+                    if (d < 250 * dpr) {
+                      live[si] = { ...live[si], angularVel: (Math.random() > 0.5 ? 1 : -1) * (0.1 + Math.random() * 0.15) };
+                    }
+                  }
+                }
+
+              } else if (g === 'shaka') {
+                // Shaka → bounce all stickers
+                for (let si = 0; si < live.length; si++) {
+                  if (live[si].faceAnchor) continue;
+                  live[si] = {
+                    ...live[si],
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: -(8 + Math.random() * 10),
+                    angularVel: (Math.random() - 0.5) * 0.2,
+                  };
+                }
+              }
+            } else if (g !== gst.gesture[i]) {
+              gst.lastFired[i] = 'idle';
+            }
+          }
+          for (let i = hands.length; i < MAX_TRACKED_HANDS; i++) {
+            gst.gesture[i] = 'idle'; gst.holdFrames[i] = 0; gst.cooldown[i] = 0; gst.lastFired[i] = 'idle';
+          }
+        }
+
+        // ── Hand sticker interaction ──────────────────────────────────────────
         if (pausedRef.current) {
-          // Paused: drop any grab silently, block all new interaction
           if (grabRef.current) { grabRef.current = null; targetPos.current = null; inertiaRef.current = null; }
           dwellRef.current = null;
-          hintText = '⏸ Paused — tap Resume to interact';
+          hintText = '⏸ Paused';
 
         } else if (pinchPoints.length === 2) {
-          // Two-hand: scale + rotate (with debounce to prevent accidental activation)
           twoHandFrames.current++;
           const p1 = pinchPoints[0], p2 = pinchPoints[1];
           const dist  = Math.hypot(p2.x - p1.x, p2.y - p1.y);
           const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-          const mx    = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+          const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
 
           if (twoHandFrames.current < TWO_HAND_DEBOUNCE) {
-            // Debouncing — hold single-grab if active
             if (grabRef.current) {
               const { id, offX, offY } = grabRef.current;
               const pp = pinchPoints[0];
@@ -670,17 +807,14 @@ export default function StickerCamPage() {
                 live[sIdx] = { ...live[sIdx], x: targetPos.current.x, y: targetPos.current.y };
               }
             }
-            hintText = grabRef.current ? '✊ Grabbing…' : '👀 Ready to scale…';
           } else {
-            // Two-hand mode active
             if (!twoRef.current) {
               const sid = grabRef.current?.id ?? hitTest(live, mx, my);
               if (sid != null) {
                 const s = live.find(s => s.id === sid);
                 if (s) {
                   twoRef.current = { id: sid, initDist: dist, initAngle: angle, initW: s.w || 140, initH: s.h || 140, initR: s.rotation };
-                  grabRef.current = { id: sid, offX: 0, offY: 0 };
-                  inertiaRef.current = null;
+                  grabRef.current = { id: sid, offX: 0, offY: 0 }; inertiaRef.current = null;
                 }
               }
             }
@@ -697,52 +831,38 @@ export default function StickerCamPage() {
           dwellRef.current = null;
 
         } else if (pinchPoints.length === 1) {
-          twoHandFrames.current = 0;
-          twoRef.current = null;
+          twoHandFrames.current = 0; twoRef.current = null;
           const pp = pinchPoints[0];
-
           if (!grabRef.current) {
             const sid = hitTest(live, pp.x, pp.y);
             if (sid != null) {
-              // Grab existing sticker
               const s = live.find(s => s.id === sid);
               if (s) {
                 grabRef.current = { id: sid, offX: pp.x - s.x, offY: pp.y - s.y };
-                targetPos.current = { x: s.x, y: s.y };
-                inertiaRef.current = null;
-                dwellRef.current = null;
+                targetPos.current = { x: s.x, y: s.y }; inertiaRef.current = null; dwellRef.current = null;
               }
             } else {
-              // Empty space — dwell to spawn
               if (!dwellRef.current) {
                 dwellRef.current = { x: pp.x, y: pp.y, frames: 0 };
               } else {
                 const moved = Math.hypot(pp.x - dwellRef.current.x, pp.y - dwellRef.current.y);
-                if (moved > DWELL_MOVE_MAX) {
-                  dwellRef.current = { x: pp.x, y: pp.y, frames: 0 };
-                } else {
+                if (moved > DWELL_MOVE_MAX) dwellRef.current = { x: pp.x, y: pp.y, frames: 0 };
+                else {
                   dwellRef.current.frames++;
-                  // Draw progress ring + plus icon on hand canvas
                   if (hcv && hctx) {
                     const prog = dwellRef.current.frames / DWELL_FRAMES;
                     const { x: dx, y: dy } = dwellRef.current;
-                    hctx.beginPath();
-                    hctx.arc(dx, dy, 28, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2);
-                    hctx.strokeStyle = '#a78bfa'; hctx.lineWidth = 4; hctx.stroke();
-                    hctx.beginPath(); hctx.arc(dx, dy, 30, 0, Math.PI * 2);
-                    hctx.strokeStyle = 'rgba(167,139,250,0.25)'; hctx.lineWidth = 1.5; hctx.stroke();
+                    hctx.beginPath(); hctx.arc(dx, dy, 28 * dpr, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2);
+                    hctx.strokeStyle = '#a78bfa'; hctx.lineWidth = 4 * dpr; hctx.stroke();
                     hctx.fillStyle = prog > 0.6 ? '#a78bfa' : 'rgba(167,139,250,0.7)';
-                    hctx.font = 'bold 22px sans-serif';
+                    hctx.font = `bold ${22 * dpr}px sans-serif`;
                     hctx.textAlign = 'center'; hctx.textBaseline = 'middle';
                     hctx.fillText('+', dx, dy);
                   }
-
                   if (dwellRef.current.frames >= DWELL_FRAMES) {
-                    // Spawn sticker!
-                    const src = CHARACTER_SRCS[dwellSrcIdx.current % CHARACTER_SRCS.length];
-                    dwellSrcIdx.current++;
-                    const id = nextIdRef.current++;
-                    const newS = { id, src, x: dwellRef.current.x, y: dwellRef.current.y, w: 0, h: 0, rotation: (Math.random() - 0.5) * 16 };
+                    const src = ALL_STICKER_SRCS[Math.floor(Math.random() * ALL_STICKER_SRCS.length)];
+                    const id  = nextIdRef.current++;
+                    const newS = { id, src, x: dwellRef.current.x, y: dwellRef.current.y, w: 0, h: 0, rotation: (Math.random() - 0.5) * 30, vx: 0, vy: 0, angularVel: 0 };
                     liveRef.current = [...live, newS];
                     setStickerCount(c => c + 1);
                     grabRef.current = { id, offX: 0, offY: 0 };
@@ -751,12 +871,11 @@ export default function StickerCamPage() {
                   }
                 }
               }
-              hintText = dwellRef.current
-                ? (dwellRef.current.frames > 10 ? '✨ Hold to spawn sticker…' : '✋ Pinch over sticker to grab')
+              hintText = dwellRef.current && dwellRef.current.frames > 10
+                ? '✨ Hold to spawn random sticker…'
                 : '✋ Pinch over sticker to grab';
             }
           } else {
-            // Currently grabbing — drag
             dwellRef.current = null;
             const { id, offX, offY } = grabRef.current;
             const sIdx = live.findIndex(s => s.id === id);
@@ -767,36 +886,29 @@ export default function StickerCamPage() {
               targetPos.current.y += (ty - targetPos.current.y) * DRAG_LERP;
               live[sIdx] = { ...live[sIdx], x: targetPos.current.x, y: targetPos.current.y };
             }
-            hintText = '✊ Grabbing — drag to move';
+            hintText = '✊ Grabbing';
           }
 
         } else {
-          // No pinch → release with inertia
           twoHandFrames.current = 0;
           if (grabRef.current) {
             const { id } = grabRef.current;
-            const vel = pinchVel.current[0];
+            const vel  = pinchVel.current[0] || { x: 0, y: 0 };
             const sIdx = live.findIndex(s => s.id === id);
-            if (sIdx >= 0 && (Math.abs(vel.x) > INERTIA_MIN || Math.abs(vel.y) > INERTIA_MIN)) {
+            if (sIdx >= 0 && (Math.abs(vel.x) > INERTIA_MIN || Math.abs(vel.y) > INERTIA_MIN))
               inertiaRef.current = { id, vx: vel.x * 2.2, vy: vel.y * 2.2 };
-            }
           }
-          grabRef.current   = null;
-          twoRef.current    = null;
-          targetPos.current = null;
-          dwellRef.current  = null;
-          if (!hintText) hintText = hands.length > 0 ? '✋ Open — pinch over a sticker to grab' : '';
+          grabRef.current = null; twoRef.current = null;
+          targetPos.current = null; dwellRef.current = null;
+          if (!hintText && hands.length > 0) hintText = '✋ Pinch over sticker to grab';
         }
 
         if (hands.length === 0) hintText = '';
       }
 
-      // Update hint via direct DOM mutation to avoid rAF→React state→re-render cycle
-      if (hintElRef.current) {
-        if (hintElRef.current.textContent !== hintText) {
-          hintElRef.current.textContent = hintText;
-          hintElRef.current.style.opacity = hintText ? '1' : '0';
-        }
+      if (hintElRef.current && hintElRef.current.textContent !== hintText) {
+        hintElRef.current.textContent = hintText;
+        hintElRef.current.style.opacity = hintText ? '1' : '0';
       }
 
       rafRef.current = requestAnimationFrame(loop);
@@ -804,89 +916,109 @@ export default function StickerCamPage() {
 
     rafRef.current = requestAnimationFrame(loop);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  // Only restart the loop when the stream changes (bgMode, showSkeleton use refs)
-  }, [stream]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream, smoothLandmarksOEF]);
 
-  // ── Sticker management ─────────────────────────────────────────────────────
-  const addSticker = useCallback(src => {
-    const cv = displayCvRef.current;
-    const cx = cv ? cv.width  / 2 + (Math.random() - 0.5) * 140 : 320;
-    const cy = cv ? cv.height / 2 + (Math.random() - 0.5) * 100 : 240;
-    const id = nextIdRef.current++;
-    const newS = { id, src, x: cx, y: cy, w: 0, h: 0, rotation: (Math.random() - 0.5) * 18 };
-    liveRef.current = [...liveRef.current, newS];
+  // ── Live sticker management ────────────────────────────────────────────────
+  const addSticker = useCallback((src) => {
+    const dcv = displayCvRef.current;
+    const dpr = window.devicePixelRatio || 1;
+    if (faceAnchorPick) {
+      // Place face-anchored sticker
+      const { lmIdx } = faceAnchorPick;
+      const faceLms = faceLmsRef.current;
+      const id = nextIdRef.current++;
+      const video = videoRef.current;
+      const cw = dcv?.width ?? 640, ch = dcv?.height ?? 480;
+      const vw = video?.videoWidth ?? 640, vh = video?.videoHeight ?? 480;
+      let startX = cw / 2, startY = ch / 2;
+      if (faceLms?.[lmIdx]) {
+        const p = lmPx(faceLms[lmIdx], cw, ch, vw, vh);
+        startX = p.x; startY = p.y;
+      }
+      liveRef.current = [...liveRef.current, {
+        id, src, x: startX, y: startY, w: 0, h: 0, rotation: 0, vx: 0, vy: 0, angularVel: 0,
+        faceAnchor: { lmIdx, offX: 0, offY: 0 },
+      }];
+      setStickerCount(c => c + 1);
+      setFaceAnchorPick(null);
+      setPanel(null);
+      return;
+    }
+    const cx  = dcv ? dcv.width  / 2 + (Math.random() - 0.5) * 140 * dpr : 320;
+    const cy  = dcv ? dcv.height / 2 + (Math.random() - 0.5) * 100 * dpr : 240;
+    const id  = nextIdRef.current++;
+    liveRef.current = [...liveRef.current, { id, src, x: cx, y: cy, w: 0, h: 0, rotation: (Math.random() - 0.5) * 22, vx: 0, vy: 0, angularVel: 0 }];
     setStickerCount(c => c + 1);
     setPanel(null);
-  }, []);
+  }, [faceAnchorPick]);
 
   const clearStickers = useCallback(() => {
-    liveRef.current = [];
-    setStickerCount(0);
+    liveRef.current = []; setStickerCount(0);
     grabRef.current = null; twoRef.current = null; inertiaRef.current = null;
+    liveDragRef.current = null; livePinchRef.current = null;
   }, []);
 
-  const gatherStickers = useCallback(() => {
-    gatherRef.current = { frames: 0 };
-  }, []);
+  const gatherStickers = useCallback(() => { gatherRef.current = { frames: 0 }; }, []);
 
-  // ── Save canvas as PNG ─────────────────────────────────────────────────────
   const savePhoto = useCallback(() => {
-    const dcv = displayCvRef.current;
-    if (!dcv) return;
+    const dcv = displayCvRef.current; if (!dcv) return;
     const out = document.createElement('canvas');
     out.width = dcv.width; out.height = dcv.height;
     const ctx = out.getContext('2d');
-    ctx.save(); ctx.scale(-1, 1); ctx.drawImage(dcv, -out.width, 0); ctx.restore();
-    const a = document.createElement('a');
-    a.href = out.toDataURL('image/png'); a.download = 'sticker-snap.png'; a.click();
+    ctx.drawImage(dcv, 0, 0);
+    downloadCanvas(out, 'sticker-live.png');
   }, []);
+
+  // ── Face anchor picking ────────────────────────────────────────────────────
+  const startFaceAnchorPick = useCallback((name, lmIdx) => {
+    setFaceAnchorPick({ name, lmIdx });
+    setPanel('stickers');
+  }, []);
+
+  // ── Snap mode ─────────────────────────────────────────────────────────────
+  if (snapUrl) {
+    return (
+      <SnapEditView
+        snapUrl={snapUrl}
+        onBack={() => setSnapUrl(null)}
+        stickers={snapStickers}
+        setStickers={setSnapStickers}
+        panel={snapPanel}
+        setPanel={setSnapPanel}
+      />
+    );
+  }
 
   const hasCamera = !!stream;
   const bgLabel   = BG_MODES.find(b => b.id === bgMode)?.label ?? '🎥 Normal';
+  const isFront   = facingMode === 'user';
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:'#06060f', position:'relative', overflow:'hidden' }}>
-      <div style={{
-        position:'absolute',
-        top:12,
-        left:12,
-        zIndex:220,
-        display:'flex',
-        alignItems:'center',
-        gap:8,
-        padding:'6px 12px',
-        borderRadius:14,
-        background:'rgba(6,182,212,0.16)',
-        border:'1.5px solid rgba(103,232,249,0.44)',
-        borderBottom:'4px solid rgba(8,145,178,0.55)',
-        color:'#a5f3fc',
-        fontFamily:'Sniglet, var(--font-hand)',
-        fontSize:'0.82rem',
-        pointerEvents:'none',
-        boxShadow:'0 8px 22px rgba(0,0,0,0.18)',
-      }}>
-        <Camera size={15} />
-        Sticker Cam TEMP
-      </div>
-
-      {/* Canvas area */}
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:'#06060f', overflow:'hidden' }}>
       <div ref={containerRef} style={{ position:'relative', flex:1, overflow:'hidden' }}>
 
         <video ref={videoRef} autoPlay playsInline muted
           style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1 }} />
-
         <canvas ref={segCvRef} width={SEG_W} height={SEG_H}
           style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1 }} />
 
-        {/* Display canvas — CSS mirror for selfie view */}
         <canvas ref={displayCvRef}
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', transform:'scaleX(-1)' }} />
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} />
 
-        {/* Hand overlay canvas — CSS mirror to match display */}
         <canvas ref={handCvRef}
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', transform:'scaleX(-1)', pointerEvents:'none' }} />
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }} />
 
-        {/* No-camera placeholder */}
+        {hasCamera && (
+          <div
+            style={{ position:'absolute', inset:0, zIndex:50, cursor:'crosshair', touchAction:'none' }}
+            onPointerDown={handleLivePointerDown}
+            onPointerMove={handleLivePointerMove}
+            onPointerUp={handleLivePointerUp}
+            onPointerCancel={handleLivePointerUp}
+          />
+        )}
+
         {!hasCamera && (
           <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20 }}>
             <div style={{ width:88, height:88, borderRadius:'50%', background:'rgba(255,255,255,0.04)', border:'2px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -894,29 +1026,29 @@ export default function StickerCamPage() {
             </div>
             {camError
               ? <p style={{ color:'#fca5a5', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.9rem', textAlign:'center', maxWidth:280, margin:0 }}>{camError}</p>
-              : <p style={{ color:'rgba(255,255,255,0.28)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.95rem', margin:0 }}>Tap to start camera &amp; hand tracking</p>
+              : <p style={{ color:'rgba(255,255,255,0.28)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.95rem', margin:0 }}>Tap to start camera & hand tracking</p>
             }
-            <button onClick={startAll} style={primaryBtn}>
-              <Camera size={17} /> Start Camera + Hand Tracking
-            </button>
+            <button onClick={startAll} style={primaryBtn}><Camera size={17} /> Start Camera + Hand Tracking</button>
           </div>
         )}
 
-        {/* Hint badge — updated directly via DOM ref to avoid rAF→React re-render */}
         {hasCamera && (
           <div ref={hintElRef}
             style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', background:'rgba(0,0,0,0.62)', backdropFilter:'blur(6px)', border:'1px solid rgba(251,191,36,0.4)', borderRadius:20, padding:'5px 16px', color:'#fde68a', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.82rem', pointerEvents:'none', whiteSpace:'nowrap', zIndex:200, opacity:0, transition:'opacity 0.2s' }} />
         )}
 
-        {/* Status chips */}
         {hasCamera && (
           <div style={{ position:'absolute', top:12, right:12, display:'flex', flexDirection:'column', gap:5, alignItems:'flex-end', zIndex:200, pointerEvents:'none' }}>
             <StatusChip label={`Hands: ${handStatus}`} color={handStatus==='ready'?'#34d399':handStatus==='loading'?'#fbbf24':'#94a3b8'} />
             {bgMode !== 'none' && <StatusChip label={`Seg: ${segStatus}`} color={segStatus==='ready'?'#34d399':segStatus==='loading'?'#fbbf24':'#94a3b8'} />}
+            {faceStatus !== 'idle' && <StatusChip label={`Face: ${faceStatus}`} color={faceStatus==='ready'?'#f9a8d4':faceStatus==='loading'?'#fbbf24':'#94a3b8'} />}
           </div>
         )}
 
-        {/* Pause overlay */}
+        {snapFlash && (
+          <div style={{ position:'absolute', inset:0, background:'white', zIndex:400, animation:'snapFlashAnim 0.32s ease-out forwards', pointerEvents:'none' }} />
+        )}
+
         {trackingPaused && hasCamera && (
           <div onClick={() => setTrackingPaused(false)} style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.28)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:150, cursor:'pointer' }}>
             <div style={{ background:'rgba(0,0,0,0.65)', backdropFilter:'blur(8px)', border:'1.5px solid rgba(251,191,36,0.4)', borderRadius:20, padding:'10px 22px', color:'#fde68a', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.95rem', display:'flex', alignItems:'center', gap:8 }}>
@@ -925,81 +1057,83 @@ export default function StickerCamPage() {
           </div>
         )}
 
-        {/* Panels */}
-        {panel === 'stickers' && <StickerPicker onSelect={addSticker} onClose={() => setPanel(null)} />}
-        {panel === 'bg'       && <BgPicker current={bgMode} onChange={setBgMode} onClose={() => setPanel(null)} />}
+        {faceAnchorPick && (
+          <div style={{ position:'absolute', top:12, left:'50%', transform:'translateX(-50%)', background:'rgba(249,168,212,0.15)', backdropFilter:'blur(8px)', border:'1.5px solid rgba(249,168,212,0.5)', borderRadius:20, padding:'6px 18px', color:'#f9a8d4', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.82rem', zIndex:200, pointerEvents:'none', whiteSpace:'nowrap' }}>
+            📌 Now pick a sticker to anchor to {faceAnchorPick.name}
+          </div>
+        )}
+
+        {panel === 'stickers' && (
+          <StickerPicker
+            onSelect={addSticker}
+            onClose={() => { setPanel(null); setFaceAnchorPick(null); }}
+            hint={faceAnchorPick ? `Picking sticker for face anchor: ${faceAnchorPick.name}` : 'Pick a sticker — or pinch & hold in empty space to spawn'}
+          />
+        )}
+        {panel === 'bg' && <BgPicker current={bgMode} onChange={setBgMode} onClose={() => setPanel(null)} />}
+        {panel === 'face' && (
+          <FaceAnchorPicker
+            onSelect={startFaceAnchorPick}
+            onClose={() => setPanel(null)}
+          />
+        )}
+        {panel === 'controls' && (
+          <ControlPanel
+            hasCamera={hasCamera}
+            bgLabel={bgLabel}
+            onBg={() => setPanel('bg')}
+            faceStatus={faceStatus}
+            onFace={faceStatus === 'idle' ? loadFace : () => setPanel('face')}
+            showFaceMesh={showFaceMesh}
+            onToggleMesh={() => setShowFaceMesh(v => !v)}
+            trackingPaused={trackingPaused}
+            onTogglePause={() => setTrackingPaused(v => !v)}
+            hideCam={hideCam}
+            onToggleHideCam={() => setHideCam(v => !v)}
+            showSkeleton={showSkeleton}
+            onToggleSkeleton={() => setShowSkeleton(v => !v)}
+            stickerCount={stickerCount}
+            onGather={gatherStickers}
+            onClear={clearStickers}
+            onSave={savePhoto}
+            onClose={() => setPanel(null)}
+          />
+        )}
       </div>
 
-      {/* Toolbar */}
       <div style={toolbar}>
         {!hasCamera
           ? <ToolBtn color="#4d9cff" onClick={startAll}><Camera size={16} /> Start</ToolBtn>
           : <ToolBtn color="#f87171" onClick={stopCamera}><CameraOff size={16} /> Stop</ToolBtn>
         }
-
+        {hasCamera && (
+          <ToolBtn color="#22d3ee" onClick={flipCamera}>
+            <FlipHorizontal size={16} /> {isFront ? 'Rear' : 'Selfie'}
+          </ToolBtn>
+        )}
+        {hasCamera && (
+          <ToolBtn color="#f472b6" onClick={takeSnap}>
+            <Aperture size={17} /> Snap!
+          </ToolBtn>
+        )}
         <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p==='stickers'?null:'stickers')}>
-          <Sticker size={16} /> Stickers{stickerCount>0?` (${stickerCount})`:''}
+          <Sticker size={16} /> Stickers{stickerCount > 0 ? ` (${stickerCount})` : ''}
         </ToolBtn>
-
-        <ToolBtn color="#6ee7b7" onClick={() => setPanel(p => p==='bg'?null:'bg')}>
-          <Layers size={16} /> {bgLabel}
+        <ToolBtn color="#c4b5fd" onClick={() => setPanel(p => p==='controls'?null:'controls')}>
+          <SlidersHorizontal size={16} /> More
         </ToolBtn>
-
-        {hasCamera && (
-          <ToolBtn color={trackingPaused?'#fbbf24':'#94a3b8'} onClick={() => setTrackingPaused(v => !v)}>
-            {trackingPaused ? <Play size={16} /> : <Pause size={16} />} {trackingPaused ? 'Resume' : 'Pause'}
-          </ToolBtn>
-        )}
-
-        {hasCamera && (
-          <ToolBtn color={hideCam?'#f472b6':'#64748b'} onClick={() => setHideCam(v => !v)}>
-            <VideoOff size={16} /> {hideCam ? 'Show Cam' : 'Hide Cam'}
-          </ToolBtn>
-        )}
-
-        <ToolBtn color={showSkeleton?'#38bdf8':'#475569'} onClick={() => setShowSkeleton(v => !v)}>
-          {showSkeleton ? <Eye size={16} /> : <EyeOff size={16} />} Skeleton
-        </ToolBtn>
-
-        {stickerCount > 0 && (<>
-          <ToolBtn color="#a78bfa" onClick={gatherStickers}><Magnet size={15} /> Gather</ToolBtn>
-          <ToolBtn color="#f97316" onClick={clearStickers}><Trash2 size={15} /> Clear</ToolBtn>
-        </>)}
-
-        {hasCamera && (
-          <ToolBtn color="#fbbf24" onClick={savePhoto}><Download size={16} /> Save</ToolBtn>
-        )}
       </div>
 
-      {/* Gesture guide */}
       {hasCamera && handStatus === 'ready' && !trackingPaused && (
         <div style={gestureHint}>
-          ✊ Pinch sticker → drag &nbsp;·&nbsp; 🤌 Hold both hands pinched → resize/rotate &nbsp;·&nbsp; ⏳ Hold pinch in empty space → spawn
+          🖱️ Drag sticker &nbsp;·&nbsp; ✊ Pinch grab &nbsp;·&nbsp; ✌️ Peace→Snap &nbsp;·&nbsp; ✊ Fist→Delete &nbsp;·&nbsp; 🖐 Palm→Repulse &nbsp;·&nbsp; 👍 Clone &nbsp;·&nbsp; 🤘 Spin &nbsp;·&nbsp; 🤙 Bounce all
         </div>
       )}
+
+      <style>{`
+        @keyframes snapFlashAnim { from { opacity:1; } to { opacity:0; } }
+      `}</style>
     </div>
   );
 }
 
-// ── Tiny UI components ────────────────────────────────────────────────────────
-const StatusChip = ({ label, color }) => (
-  <div style={{ background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', border:`1px solid ${color}44`, borderRadius:10, padding:'3px 10px', display:'flex', alignItems:'center', gap:6 }}>
-    <span style={{ width:7, height:7, borderRadius:'50%', background:color, flexShrink:0, boxShadow:`0 0 5px ${color}` }} />
-    <span style={{ color, fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.75rem' }}>{label}</span>
-  </div>
-);
-
-function ToolBtn({ color, onClick, children }) {
-  return (
-    <button onClick={onClick}
-      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 13px', background:`${color}1a`, border:`1.5px solid ${color}44`, borderBottom:`4px solid ${color}66`, borderRadius:12, color, fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.86rem', cursor:'pointer', whiteSpace:'nowrap', transition:'background 0.12s, transform 0.1s' }}
-      onMouseEnter={e => { e.currentTarget.style.background=`${color}2e`; e.currentTarget.style.transform='translateY(-1px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background=`${color}1a`; e.currentTarget.style.transform=''; }}
-    >{children}</button>
-  );
-}
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const primaryBtn  = { display:'flex', alignItems:'center', gap:8, padding:'11px 24px', background:'#4d9cff', border:'none', borderBottom:'4px solid #1d4ed8', borderRadius:14, color:'white', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.95rem', cursor:'pointer', boxShadow:'0 4px 18px rgba(77,156,255,0.35)' };
-const toolbar     = { display:'flex', gap:7, padding:'9px 12px', background:'rgba(6,6,15,0.97)', borderTop:'1px solid rgba(255,255,255,0.06)', flexWrap:'wrap', justifyContent:'center', flexShrink:0 };
-const gestureHint = { textAlign:'center', padding:'5px 16px 9px', color:'rgba(255,255,255,0.28)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.75rem', background:'rgba(6,6,15,0.97)', flexShrink:0 };

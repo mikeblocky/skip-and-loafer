@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap } from 'lucide-react';
-import { getAppLanguageOptions, APP_UI_TEXT } from '../config/appUiText';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle } from 'lucide-react';
+import { getLanguageOptions, UI } from '../i18n/ui';
 import {
   createPaperChipStyle,
   createPaperPanelStyle,
@@ -115,10 +115,38 @@ const SettingsPage = ({
   readerPrefs,
   setReaderPrefs,
   t,
+  outerSwitcher,
 }) => {
-  const fallbackText = APP_UI_TEXT.en;
-  
-  const appLanguageOptions = getAppLanguageOptions();
+  const fallbackText = UI.en;
+
+  const installPromptRef = useRef(null);
+  const [canInstall, setCanInstall] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+    const handler = (e) => {
+      e.preventDefault();
+      installPromptRef.current = e;
+      setCanInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => { setIsInstalled(true); setCanInstall(false); });
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPromptRef.current) return;
+    installPromptRef.current.prompt();
+    const { outcome } = await installPromptRef.current.userChoice;
+    if (outcome === 'accepted') { setIsInstalled(true); setCanInstall(false); }
+    installPromptRef.current = null;
+  };
+
+  const appLanguageOptions = getLanguageOptions();
   const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
 
   const colorBlindOptions = [
@@ -291,20 +319,22 @@ const SettingsPage = ({
 
       <PaperPageHeader
         isMobile={isMobile}
-        center={(
-          <PaperHeadingBadge
-            isMobile={isMobile}
-            icon={Settings}
-            title="Settings"
-            palette={{
-              borderColor: '#818cf8',
-              bottomColor: '#4338ca',
-              shadow: '0 8px 18px rgba(129, 140, 248, 0.12)',
-            }}
-            titleColor="#818cf8"
-            iconColor="#818cf8"
-          />
-        )}
+        center={
+          outerSwitcher ?? (
+            <PaperHeadingBadge
+              isMobile={isMobile}
+              icon={Settings}
+              title="Settings"
+              palette={{
+                borderColor: '#818cf8',
+                bottomColor: '#4338ca',
+                shadow: '0 8px 18px rgba(129, 140, 248, 0.12)',
+              }}
+              titleColor="#818cf8"
+              iconColor="#818cf8"
+            />
+          )
+        }
         marginBottomMobile="0"
         marginBottomDesktop="0"
         paddingMobile="0 10px"
@@ -1002,6 +1032,66 @@ const SettingsPage = ({
           </div>
 
         </div>
+
+        {/* Install App Card (shows when PWA install is available) */}
+        {(canInstall || isInstalled) && (
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #7c3aed',
+              borderBottom: '8px solid #6d28d9',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.06)',
+            }}
+          >
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#ddd6fe', '#7c3aed', '#f5f3ff', '#6d28d9')}>
+                {isInstalled ? <CheckCircle size={18} strokeWidth={2.4} /> : <Download size={18} strokeWidth={2.4} />}
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>
+                {isInstalled ? 'Installed as App' : 'Install as App'}
+              </span>
+            </div>
+            {isInstalled ? (
+              <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                Skip and Loafer is installed on your device. Open it from your home screen or app launcher.
+              </p>
+            ) : (
+              <>
+                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  Add Skip and Loafer to your home screen for a full app experience — offline support, no browser UI.
+                </p>
+                <motion.button
+                  onClick={handleInstall}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#7c3aed', bottomColor: '#6d28d9', background: '#7c3aed', color: '#fff', radius: '14px', padding: '12px 20px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.92rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    border: 'none',
+                  }}
+                >
+                  <Download size={16} strokeWidth={2.5} />
+                  Install App
+                </motion.button>
+              </>
+            )}
+          </div>
+        )}
 
       </div>
 

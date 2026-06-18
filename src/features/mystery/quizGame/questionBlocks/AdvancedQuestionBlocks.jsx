@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { triggerHaptic } from '../../../../utils/haptics';
 import { STANCE_PALETTES } from '../config';
 import { QuizActionButton, QuizPanel, QUIZ_BUTTON_PALETTES } from '../QuizPrimitives';
-import { getLocalizedQuizOption, getLocalizedQuizText } from '../quizCopy';
 import { toMysteryLabelCase } from '../ui';
 import {
   QuestionContinueAction,
@@ -179,14 +178,14 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#1d4ed8', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
-              {getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel || 'A')}
+              {question.leftLabel || 'A'}
             </span>
             <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: 'var(--surface-card, #ffffff)', border: '2px solid #93c5fd', color: '#1d4ed8', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffLeft}
             </span>
           </div>
           <div style={{ color: '#1e3a8a', fontSize: '1rem', lineHeight: 1.35, fontWeight: '700' }}>
-            {getLocalizedQuizText(t, question.id, 'left', question.left.text)}
+            {question.left.text}
           </div>
         </QuizPanel>
 
@@ -196,14 +195,14 @@ export const TradeoffQuestion = React.memo(function TradeoffQuestion({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
             <span style={{ fontFamily: 'Sniglet, var(--font-main)', color: '#be185d', fontSize: '1rem', lineHeight: 1, fontWeight: '400' }}>
-              {getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel || 'B')}
+              {question.rightLabel || 'B'}
             </span>
             <span style={{ minWidth: '28px', padding: '6px 8px', borderRadius: '999px', background: 'var(--surface-card, #ffffff)', border: '2px solid #f9a8d4', color: '#be185d', fontFamily: 'Sniglet, var(--font-main)', fontSize: '0.92rem', lineHeight: 1, fontWeight: '400', textAlign: 'center' }}>
               {tradeoffRight}
             </span>
           </div>
           <div style={{ color: '#9d174d', fontSize: '1rem', lineHeight: 1.35, fontWeight: '700' }}>
-            {getLocalizedQuizText(t, question.id, 'right', question.right.text)}
+            {question.right.text}
           </div>
         </QuizPanel>
       </div>
@@ -319,7 +318,7 @@ export const ConfidenceChoiceQuestion = React.memo(function ConfidenceChoiceQues
               lineHeight: 1.35,
             }}
           >
-            {getLocalizedQuizOption(t, question.id, index, option.text)}
+            {option.text}
           </QuizActionButton>
         );
       })}
@@ -390,7 +389,7 @@ export const StanceQuestion = React.memo(function StanceQuestion({
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '8px' }}>
         {(question.labels || [t.quiz.btns.false, t.quiz.intense.subtly, t.quiz.intense.moderately, t.quiz.btns.true]).map((label, index) => {
-          const displayLabel = getLocalizedQuizOption(t, question.id, index, label);
+          const displayLabel = label;
           const palette = STANCE_PALETTES[index] || STANCE_PALETTES[0];
           const active = stanceSelection === index;
 

@@ -75,7 +75,6 @@ export const useReadProgress = () => {
 
         // Prevent counting the exact same chapter again within 1 minute
         if (now - lastMarked < 60000) {
-            console.log(`Debounced read progress for chapter ${chapterNumber}`);
             return;
         }
         lastMarkedRef.current[chapterNumber] = now;
@@ -106,7 +105,6 @@ export const useReadProgress = () => {
                 enqueueReadIncrement(chapterNumber);
             });
         } else {
-            console.log('Offline: Queued chapter read increment');
             enqueueReadIncrement(chapterNumber);
         }
     }, []);
@@ -140,7 +138,6 @@ export const useReadProgress = () => {
                 enqueueReadIncrement(chapterNumber);
             });
         } else {
-            console.log('Offline: Queued chapter read increment');
             enqueueReadIncrement(chapterNumber);
         }
     }, []);
@@ -226,8 +223,7 @@ export const useReadProgress = () => {
                                 enqueueReadIncrement(chNum);
                             });
                         } else {
-                            console.log('Offline: Queued chapter read increment');
-                            enqueueReadIncrement(chNum);
+                                            enqueueReadIncrement(chNum);
                         }
 
                         delete clicks[ch];

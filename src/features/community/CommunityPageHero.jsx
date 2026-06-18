@@ -18,8 +18,9 @@ const CommunityPageHero = ({
   onAction,
   resetLabel,
   onReset,
+  outerSwitcher,
 }) => {
-  const center = (
+  const center = outerSwitcher ?? (
     <PaperHeadingBadge
       isMobile={isMobile}
       icon={Icon}
@@ -69,7 +70,7 @@ const CommunityPageHero = ({
           borderColor: actionColors.borderColor,
           bottomColor: 'var(--themed-card-inactive-border, ' + actionColors.bottomColor + ')',
           background: 'var(--surface-card, #ffffff)',
-          color: 'var(--keycap-color, ' + actionColors.color + ')',
+          color: actionColors.color,
         }}
       >
         {actionLabel}

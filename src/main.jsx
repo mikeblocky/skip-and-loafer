@@ -72,7 +72,10 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('[Service Worker] Registered successfully:', reg.scope))
-      .catch((err) => console.error('[Service Worker] Registration failed:', err));
+      .catch((err) => {
+        if (import.meta.env.DEV) {
+          console.error('[Service Worker] Registration failed:', err);
+        }
+      });
   });
 }

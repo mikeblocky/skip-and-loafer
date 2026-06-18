@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MODE } from './constants';
-import { getMangaReaderText } from './mangaReaderText';
+import { getMangaReaderText } from '../../i18n/mangaReader';
 import MangaReaderControlBar from './MangaReaderControlBar';
 import MangaReaderEndPopup from './MangaReaderEndPopup';
 import MangaReaderProgressBar from './MangaReaderProgressBar';

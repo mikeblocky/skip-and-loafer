@@ -4,8 +4,7 @@ import { Sparkles, Camera, Clipboard, PawPrint, Map as MapIcon, Star } from 'luc
 import { triggerHaptic } from '../../utils/haptics';
 import usePageTitle from '../../hooks/shared/usePageTitle';
 import useIdlePreload from '../app/hooks/useIdlePreload';
-import { FALLBACK_COLORS } from '../chat/chatPalette';
-import getAnimalQuizCopy from './animalQuiz/copy';
+import { FALLBACK_COLORS } from './mysteryPalette';
 import MysteryDrawView from './components/MysteryDrawView';
 import MysteryHeader from './components/MysteryHeader';
 import MysteryMenu from './components/MysteryMenu';
@@ -42,7 +41,11 @@ const MysteryExperience = ({ isMobile, darkMode = false }) => {
 
   usePageTitle('Mystery');
 
-  const animalQuizCopy = getAnimalQuizCopy(MYSTERY_LANGUAGE, t);
+  // Only menu strings needed here — full copy.js loads with AnimalQuizGame on demand
+  const animalQuizCopy = {
+    menuTitle: 'Which animal are you?',
+    menuDescription: 'A deeper instinct quiz for Satonosuke, Oshio, or Omiso.',
+  };
   const [view, setView] = useState('menu');
   const mysteryPreloaders = useMemo(() => [loadQuizGame, loadAnimalQuizGame, loadRatingGame, loadRelationshipMap], []);
   
@@ -303,7 +306,7 @@ const MysteryExperience = ({ isMobile, darkMode = false }) => {
                   )}
 
                   {view === 'animalQuiz' && (
-                    <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={animalQuizCopy.calculating || loadingAnimalQuizLabel} />}>
+                    <Suspense fallback={<MysterySubviewFallback isMobile={isMobile} label={loadingAnimalQuizLabel} />}>
                       <AnimalQuizGame
                         isMobile={isMobile}
                         portraitData={PORTRAIT_DATA}

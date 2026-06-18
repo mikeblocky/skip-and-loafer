@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// ── Local dev API plugin (simulates Vercel serverless functions) ──
+// ── Local dev API plugin (simulates the deployed Cloudflare API) ──
 function localSyncApiPlugin() {
   const store = new Map();
   const globalReadsStore = new Map();
@@ -587,6 +587,27 @@ function localSyncApiPlugin() {
 }
 
 function manualChunks(id) {
+  // Vendor rules first — must take priority over all page-specific rules
+  // so React/motion/icons are never duplicated into lazy page chunks.
+  if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
+    return 'vendor-react';
+  }
+  if (id.includes('/framer-motion/')) return 'vendor-motion';
+  if (id.includes('/lucide-react/')) return 'vendor-icons';
+  if (id.includes('@mediapipe')) return 'vendor-mediapipe';
+  if (
+    id.includes('/react-markdown/') ||
+    id.includes('/remark-gfm/') ||
+    id.includes('/rehype-raw/') ||
+    id.includes('/mdast-') ||
+    id.includes('/micromark') ||
+    id.includes('/unified/') ||
+    id.includes('/remark-') ||
+    id.includes('/rehype-')
+  ) {
+    return 'vendor-markdown';
+  }
+
   if (id.includes('/src/components/shared/ImageLightbox')) {
     return 'lightbox';
   }
@@ -628,43 +649,29 @@ function manualChunks(id) {
     return 'chat';
   }
 
-  if (id.includes('/src/features/mystery/') || id.includes('/src/pages/MysteryPage')) {
+  // Mystery shell (menu, header, draw, hooks) — sub-games are lazy and get auto-chunks
+  if (
+    id.includes('/src/pages/MysteryPage') ||
+    id.includes('/src/features/mystery/MysteryExperience') ||
+    id.includes('/src/features/mystery/components/') ||
+    id.includes('/src/features/mystery/hooks/') ||
+    id.includes('/src/features/mystery/mysteryData') ||
+    id.includes('/src/features/mystery/mysteryLocaleLoader')
+  ) {
     return 'mystery';
+  }
+
+  // Regular quiz data — shared by quiz page and mystery QuizGame
+  if (id.includes('/src/data/quizData') || id.includes('/src/data/quizQuestionBankLoader')) {
+    return 'quiz-data';
+  }
+  // Animal quiz data — only needed by mystery AnimalQuizGame (large, separate)
+  if (id.includes('/src/data/animalQuizData') || id.includes('/src/data/animalQuizQuestions')) {
+    return 'animal-quiz-data';
   }
 
   if (id.includes('/src/features/birthday/') || id.includes('/src/pages/BirthdayPage')) {
     return 'birthday';
-  }
-
-  if (!id.includes('node_modules')) return undefined;
-
-  if (
-    id.includes('/react-markdown/') ||
-    id.includes('/remark-gfm/') ||
-    id.includes('/rehype-raw/') ||
-    id.includes('/mdast-') ||
-    id.includes('/micromark') ||
-    id.includes('/unified/') ||
-    id.includes('/remark-') ||
-    id.includes('/rehype-')
-  ) {
-    return 'vendor-markdown';
-  }
-
-  if (id.includes('/framer-motion/')) {
-    return 'vendor-motion';
-  }
-
-  if (id.includes('/lucide-react/')) {
-    return 'vendor-icons';
-  }
-
-  if (
-    id.includes('/react/') ||
-    id.includes('/react-dom/') ||
-    id.includes('/scheduler/')
-  ) {
-    return 'vendor-react';
   }
 
   return undefined;

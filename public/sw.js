@@ -38,12 +38,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Pass through: API calls, Netlify internals, non-GET
+  // Pass through: API calls and non-GET requests.
   if (
     request.method !== 'GET' ||
-    url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/_netlify/') ||
-    url.pathname.startsWith('/.netlify/')
+    url.pathname.startsWith('/api/')
   ) {
     return;
   }

@@ -23,6 +23,7 @@ const isReducedMotionEnabled = () => {
 
 let hasUserGesture = false;
 let gestureListenersBound = false;
+let lastGestureAt = 0;
 let lastHapticAt = 0;
 let lastHapticSource = 'manual';
 let lastHapticType = null;
@@ -31,6 +32,7 @@ const SOFT_HAPTIC_TYPES = new Set(['tap', 'selection', 'light', 'medium', 'press
 
 const markUserGesture = () => {
   hasUserGesture = true;
+  lastGestureAt = Date.now();
 };
 
 const bindGestureListeners = () => {
@@ -53,10 +55,12 @@ export const triggerHaptic = (type = 'light', options = {}) => {
   bindGestureListeners();
   if (!hasUserGesture) return false;
   if ((navigator.maxTouchPoints || 0) < 1) return false;
+  if (navigator.userActivation && !navigator.userActivation.isActive) return false;
 
   const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
     ? performance.now()
     : Date.now();
+  if (!navigator.userActivation && Date.now() - lastGestureAt > 1000) return false;
   const source = options.source || 'manual';
 
   if (source === 'manual' && lastHapticSource === 'auto' && now - lastHapticAt < 160 && SOFT_HAPTIC_TYPES.has(type)) {

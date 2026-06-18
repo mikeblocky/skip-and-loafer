@@ -1,0 +1,29 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "skip-and-loafer",
+	"main": "worker/index.js",
+	"compatibility_date": "2026-06-18",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "skip-and-loafer",
+			"database_id": "1d262585-35f6-4c6b-b5da-e66f800aeff3",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA_BUCKET",
+			"bucket_name": "skip-and-loafer-media"
+		},
+		{
+			"binding": "FAN_GALLERY_BUCKET",
+			"bucket_name": "skip-and-loafer-fan-gallery"
+		}
+	]
+}

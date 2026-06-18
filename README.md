@@ -1,41 +1,51 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 # skip-and-loafer
 
-## Netlify Postgres
+React/Vite fan site with Cloudflare Workers, D1, and R2-backed community APIs.
 
-Set `NETLIFY_DATABASE_URL` in Netlify environment variables to the read/write Postgres connection string. The API also accepts `DATABASE_URL` or `POSTGRES_URL` for local development.
-
-Run `node test-postgres.js` to smoke-test the configured database connection.
-
-### Redis migration
-
-Set both source and destination URLs before running the one-off migration:
+## Development
 
 ```sh
-REDIS_URL="redis://..." NETLIFY_DATABASE_URL="postgresql://..." npm run migrate:redis-to-postgres
+npm install
+npm run dev
 ```
 
-The migration copies:
+## Build
 
-- `sync:*` keys into `sync_entries`
-- `reads:global` counts into `read_counts`
-- `quiz:results` into `quiz_results`
-- `quiz:leaderboard` into `quiz_leaderboard`
-- community and chat key-value data into `app_kv`
+```sh
+npm run build
+```
 
-The script is idempotent: reruns upsert existing rows instead of creating duplicates.
+## Cloudflare
+
+Create the Cloudflare resources once:
+
+```sh
+npx wrangler d1 create skip-and-loafer
+npx wrangler r2 bucket create skip-and-loafer-media
+npx wrangler r2 bucket create skip-and-loafer-fan-gallery
+```
+
+Copy the D1 `database_id` into `wrangler.jsonc`, then apply the schema:
+
+```sh
+npm run db:migrate:remote
+```
+
+Upload the large episode video to R2 because Workers Static Assets have a 25 MiB per-file limit:
+
+```sh
+npx wrangler r2 object put skip-and-loafer-media/anime/episode1.mp4 --file public/anime/episode1.mp4
+```
+
+Run the Cloudflare Worker locally:
+
+```sh
+npm run db:migrate:local
+npm run cloudflare:dev
+```
+
+Deploy:
+
+```sh
+npm run cloudflare:deploy
+```

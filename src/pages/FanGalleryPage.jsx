@@ -2,7 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, Upload } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import {
   createFanGalleryEntry,
   fetchFanGalleryEntries,
@@ -247,9 +247,9 @@ function getCopy(uiLanguage) {
   return PAGE_COPY[uiLanguage] || PAGE_COPY.en;
 }
 
-export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
+export const FanGalleryPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
   const copy = getCopy(uiLanguage);
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.fanGallery?.label || 'Fan gallery');
   const {
@@ -483,20 +483,21 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
           countValue={entries.length}
           countLabel={copy.itemsCountLabel}
           counterColors={{
-            borderColor: '#93c5fd',
+            borderColor: '#2563eb',
             bottomColor: '#2563eb',
             color: '#1d4ed8',
           }}
           actionLabel={copy.button}
           actionIcon={Upload}
           actionColors={{
-            borderColor: '#93c5fd',
+            borderColor: '#2563eb',
             bottomColor: '#2563eb',
             color: '#1d4ed8',
           }}
           onAction={() => setIsComposerOpen(true)}
           resetLabel={copy.resetCanvas}
           onReset={resetCanvas}
+          outerSwitcher={outerSwitcher}
         />
 
         <CommunityStatusBanner tone="error" message={errorMessage} />

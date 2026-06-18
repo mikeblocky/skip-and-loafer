@@ -77,7 +77,6 @@ export const flushPendingRequests = async () => {
     // 1. Flush Pending Reads
     const reads = getQueue(PENDING_READS_KEY);
     if (reads.length > 0) {
-      console.log(`Replaying ${reads.length} offline chapter read increments...`);
       const remainingReads = [];
       for (const chapter of reads) {
         try {
@@ -98,7 +97,6 @@ export const flushPendingRequests = async () => {
     // 2. Flush Pending Signatures
     const sigs = getQueue(PENDING_SIGS_KEY);
     if (sigs.length > 0) {
-      console.log(`Replaying ${sigs.length} offline guestbook signatures...`);
       const remainingSigs = [];
       let updatedSignatures = null;
       for (const sig of sigs) {
@@ -132,7 +130,6 @@ export const flushPendingRequests = async () => {
     // 3. Flush Pending Fan Drawings
     const gallery = getQueue(PENDING_GALLERY_KEY);
     if (gallery.length > 0) {
-      console.log(`Replaying ${gallery.length} offline fan drawings...`);
       const remainingGallery = [];
       let updatedGallery = null;
       for (const entry of gallery) {

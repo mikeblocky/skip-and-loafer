@@ -10,7 +10,6 @@ import QuizStageFallback from './quizGame/QuizStageFallback';
 import {
   buildHumanQuestionSet,
   computeHumanLiveQuality,
-  localizeQuizQuestion,
   pickMostInformativeHumanQuestion,
 } from './quizGame/humanQuizUtils';
 import {
@@ -154,21 +153,17 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t, uiLanguage = 'en'
   const integrityPromptCountRef = useRef(0);
   const lastIntegrityPromptStepRef = useRef(0);
   const recoveryRoundRef = useRef(0);
-  const localizedQuestionBank = React.useMemo(
-    () => QUESTION_BANK.map((question) => localizeQuizQuestion(question, t)),
-    [t]
-  );
-  const localizedQuestionLookup = React.useMemo(
-    () => new Map(localizedQuestionBank.map((question) => [question.id, question])),
-    [localizedQuestionBank]
+  const questionLookup = React.useMemo(
+    () => new Map(QUESTION_BANK.map((question) => [question.id, question])),
+    []
   );
   const quizStagePreloaders = useMemo(
     () => [loadQuizIntegrityCheckpoint, loadQuizLoadingState, loadQuizQuestionStep, loadQuizResultView],
     [],
   );
   const questions = React.useMemo(
-    () => questionIds.map((id) => localizedQuestionLookup.get(id)).filter(Boolean),
-    [questionIds, localizedQuestionLookup]
+    () => questionIds.map((id) => questionLookup.get(id)).filter(Boolean),
+    [questionIds, questionLookup]
   );
 
   useIdlePreload(quizStagePreloaders, currentStep <= 1, {
@@ -191,7 +186,7 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t, uiLanguage = 'en'
     }
     
     // Use stratified sampling for broad type coverage, then adaptively reorder at runtime.
-    const sampled = buildHumanQuestionSet({ localizedQuestionBank, count: 35 });
+    const sampled = buildHumanQuestionSet({ questionBank: QUESTION_BANK, count: 35 });
     setQuestionIds(sampled.map((question) => question.id));
     
     setCurrentStep(1);
