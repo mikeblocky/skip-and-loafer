@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import Countdown from '../components/shared/Countdown';
 import ReleaseNote from '../components/shared/ReleaseNote';
 import { CHARACTER_COLORS } from '../data/characters';
@@ -235,7 +235,7 @@ const DateBadge = ({ dateLabel, timezoneLabel, isMobile }) => (
 const PlannerPage = ({ isMobile, uiLanguage = 'en', largeText = false, readableSpacing = false }) => {
   const randomQuote = useMemo(() => QUOTES[Math.floor(Math.random() * QUOTES.length)], []);
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
   const locale = LOCALE_BY_UI_LANGUAGE[uiLanguage] || 'en-US';
 
   usePageTitle(tGlobal.tabs?.home?.label || 'Home');

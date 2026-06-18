@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import PageLayout from '../components/shared/paper/PageLayout';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import BirthdayBackgroundDecor from '../features/birthday/BirthdayBackgroundDecor';
 import BirthdayFeaturedHero from '../features/birthday/BirthdayFeaturedHero';
 import BirthdayFooter from '../features/birthday/BirthdayFooter';
 import BirthdayHeader from '../features/birthday/BirthdayHeader';
 import BirthdayMonthCard from '../features/birthday/BirthdayMonthCard';
-import { getBirthdayLocale, getBirthdayText } from '../features/birthday/birthdayCopy';
+import { getBirthdayLocale, getBirthdayText } from '../i18n/birthday';
 import { BIRTHDAYS } from '../features/birthday/birthdayData';
 import {
   buildBirthdayMonthLabels,
@@ -18,7 +18,7 @@ import {
 
 const BirthdayPage = ({ isMobile, uiLanguage = 'en', reduceMotion = false, simplifyVisuals = false, darkMode = false }) => {
   const t = getBirthdayText(uiLanguage);
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.birthdays?.label || 'Birthdays');
 

@@ -21,7 +21,7 @@ import {
   Medal,
 } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import { createPaperPanelStyle } from '../components/shared/paper/paperTheme';
 import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
@@ -277,14 +277,14 @@ const SECTION_COPY = {
   },
 };
 
-export const TutorialPage = ({ isMobile, uiLanguage = 'en' }) => {
+export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
   const [activeTab, setActiveTab] = useState('home');
   const [copiedSync, setCopiedSync] = useState(false);
   const [mangaChecked, setMangaChecked] = useState([true, false]);
   const [mangaReads, setMangaReads] = useState([3, 0]);
 
   const t = SECTION_COPY[uiLanguage] || SECTION_COPY.en;
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.tutorial?.label || 'Tutorial');
 
@@ -729,20 +729,22 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en' }) => {
       <div style={{ display: 'grid', gap: '8px' }}>
         <PaperPageHeader
           isMobile={isMobile}
-          center={(
-            <PaperHeadingBadge
-              isMobile={isMobile}
-              icon={HelpCircle}
-              title={t.title}
-              palette={{
-                borderColor: '#06b6d4',
-                bottomColor: '#0891b2',
-                shadow: '0 8px 18px rgba(6, 182, 212, 0.12)',
-              }}
-              titleColor="#06b6d4"
-              iconColor="#06b6d4"
-            />
-          )}
+          center={
+            outerSwitcher ?? (
+              <PaperHeadingBadge
+                isMobile={isMobile}
+                icon={HelpCircle}
+                title={t.title}
+                palette={{
+                  borderColor: '#06b6d4',
+                  bottomColor: '#0891b2',
+                  shadow: '0 8px 18px rgba(6, 182, 212, 0.12)',
+                }}
+                titleColor="#06b6d4"
+                iconColor="#06b6d4"
+              />
+            )
+          }
           marginBottomMobile="0"
           marginBottomDesktop="0"
           paddingMobile="0 10px"

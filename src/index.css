@@ -872,13 +872,6 @@ html[data-a11y-dark-mode='1'] a[style*="background:white"] {
   background-color: var(--surface-elevated) !important;
 }
 
-/* ── BookOpening overlay ── */
-html[data-a11y-dark-mode='1'] [style*="background: '#fdfaf8'"],
-html[data-a11y-dark-mode='1'] [style*="background: '#f3f4f6'"] {
-  background-color: var(--surface-card) !important;
-  background-image: none !important;
-}
-
 /* Force standard dark inputs, textareas, and selectors */
 html[data-a11y-dark-mode='1'] input,
 html[data-a11y-dark-mode='1'] textarea,
@@ -933,8 +926,7 @@ html[lang='ja'] body {
 html[lang='ja'] .mystery-ui,
 html[lang='ja'] .mystery-ui *,
 html[lang='ja'] [style*="Sniglet"],
-html[lang='ja'] [style*="Coming Soon"],
-html[lang='ja'] [style*="CHAT_FONT_FAMILY"] {
+html[lang='ja'] [style*="Coming Soon"] {
   font-family: var(--font-japanese) !important;
 }
 
@@ -950,8 +942,7 @@ html[lang='ja'] [style*="CHAT_FONT_FAMILY"] {
 .mystery-ui,
 .mystery-ui *,
 [style*="Sniglet"],
-[style*="Coming Soon"],
-[style*="CHAT_FONT_FAMILY"] {
+[style*="Coming Soon"] {
   font-family: var(--font-paper) !important;
   font-weight: 400 !important;
 }
@@ -960,33 +951,6 @@ html[lang='ja'] .mystery-ui[data-mystery-language='en'],
 html[lang='ja'] .mystery-ui[data-mystery-language='en'] * {
   font-family: var(--font-paper) !important;
 }
-
-.volume-selector-button {
-  font-family: 'Coming Soon', cursive !important;
-  font-weight: 700 !important;
-}
-
-/* Emotional celebration hearts */
-@keyframes heartFloat {
-  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
-  30% { opacity: 1; transform: translateY(-20px) scale(1.15) rotate(-12deg); }
-  60% { opacity: 0.7; transform: translateY(-45px) scale(0.9) rotate(8deg); }
-  100% { opacity: 0; transform: translateY(-70px) scale(0.5) rotate(-5deg); }
-}
-
-@keyframes sparkleFloat {
-  0% { opacity: 1; transform: translateY(0) scale(0.8) rotate(0deg); }
-  50% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(180deg); }
-  100% { opacity: 0; transform: translateY(-55px) scale(0.3) rotate(360deg); }
-}
-
-.heart-float {
-  animation: heartFloat 1.2s ease-out forwards;
-  pointer-events: none;
-  position: absolute;
-  z-index: 100;
-}
-
 
 .volume-selector-button {
   font-family: 'Coming Soon', cursive !important;
@@ -1237,6 +1201,52 @@ html[data-a11y-large-text='1'] {
   --base-font-size: 18px;
 }
 
+/* Reduce motion: collapse all CSS animations/transitions */
+html[data-a11y-reduce-motion='1'] *,
+html[data-a11y-reduce-motion='1'] *::before,
+html[data-a11y-reduce-motion='1'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* App shell animations (replace framer-motion) */
+@keyframes shellFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes offlineSlideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-120%); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes scrollBtnFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes mitsumiSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.app-shell-fadein {
+  animation: shellFadeIn 0.18s ease-out both;
+}
+.app-content-fadein {
+  animation: contentFadeIn 0.16s ease-out both;
+}
+.offline-banner-visible {
+  animation: offlineSlideDown 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.scroll-top-fadein {
+  animation: scrollBtnFadeUp 0.2s ease-out both;
+}
+.mitsumi-replay-banner {
+  animation: mitsumiSlideIn 0.35s ease-out both;
+}
+
 html[data-a11y-large-controls='1'] button,
 html[data-a11y-large-controls='1'] a,
 html[data-a11y-large-controls='1'] [role="button"],
@@ -1277,30 +1287,61 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   padding-bottom: 16px !important;
 }
 
-/* Nav bookmark sidebar tabs — CSS replaces Framer Motion spring physics */
+/* Nav bookmark sidebar tabs */
 .nav-bookmark-btn {
   will-change: transform;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
               background 0.12s ease,
               color 0.12s ease,
               box-shadow 0.12s ease;
 }
-.nav-bookmark-btn[data-active="true"] {
-  transform: translateX(-14px);
-}
 .nav-bookmark-btn:hover:not([data-active="true"]) {
-  transform: translateX(-8px);
+  transform: translateX(4px) scale(1.03) rotate(0.5deg);
 }
 .nav-bookmark-btn[data-active="true"]:hover {
-  transform: translateX(-16px);
+  transform: translateX(4px) scale(1.03);
 }
 .nav-bookmark-btn:active:not([data-active="true"]) {
-  transform: translateX(-6px);
+  transform: translateX(2px) scale(0.91) rotate(-1deg);
   opacity: 0.9;
 }
 .nav-bookmark-btn[data-active="true"]:active {
-  transform: translateX(-14px);
+  transform: translateX(2px) scale(0.91);
   opacity: 0.9;
+}
+
+/* Nav bookmark icon bounce on activation */
+.nav-bookmark-btn[data-active="true"] .nav-tab-icon {
+  animation: iconBounce 0.5s ease-out both;
+}
+@keyframes iconBounce {
+  0%   { transform: rotate(0)   scale(1); }
+  20%  { transform: rotate(-8deg) scale(1.2); }
+  50%  { transform: rotate(6deg)  scale(1.05); }
+  75%  { transform: rotate(-3deg) scale(1.1); }
+  100% { transform: rotate(0)   scale(1); }
+}
+
+/* Active star indicator pop-in */
+.nav-active-star {
+  animation: starPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes starPop {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);  opacity: 1; }
+}
+
+/* Mobile nav tab buttons */
+.nav-mobile-btn {
+  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.15s ease;
+}
+.nav-mobile-btn:hover {
+  transform: scale(1.06) translateY(-2px) rotate(1deg);
+}
+.nav-mobile-btn:active {
+  transform: scale(0.88) rotate(-2deg) translateY(2px);
 }
 
 /* Sub-tab page buttons — CSS replaces Framer Motion */
@@ -1319,6 +1360,28 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
 .sub-tab-btn:active {
   transform: scale(0.94);
   opacity: 0.9;
+}
+
+/* Dropdown Heading Badge — trigger button */
+.dropdown-heading-badge-trigger {
+  will-change: transform;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.15s ease;
+}
+.dropdown-heading-badge-trigger:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+.dropdown-heading-badge-trigger:active {
+  transform: scale(0.96) translateY(1px);
+}
+
+/* Dropdown option buttons */
+.dropdown-heading-badge-option {
+  will-change: background, color;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.dropdown-heading-badge-option:hover {
+  background: var(--surface-card-hover, rgba(0,0,0,0.04)) !important;
 }
 
 /* Planner Container */

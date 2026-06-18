@@ -31,14 +31,14 @@ import { ListRow, MiniChapterRow, TabSelector } from '../features/sync/syncShare
 import { useSubtabShortcutNavigation } from '../hooks/shared/useSubtabShortcutNavigation';
 import { toUiLabelCase } from '../utils/textCase';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 import { triggerHaptic } from '../utils/haptics';
 
-const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData }) => {
+const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount = 0, finished = new Set(), readCounts = {}, reloadFromStorage, onReadChapter, trackExternalLink, cancelExternalLink, unmarkFinished, incrementReadCount, getRemainingCooldown, pendingLinks, syncData, outerSwitcher }) => {
     const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-    const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+    const tGlobal = getUI(uiLanguage);
 
     usePageTitle(tGlobal.tabs?.sync?.label || 'Reading');
 
@@ -191,7 +191,7 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
             {/* Standardized Paper Header */}
             <PaperPageHeader
                 isMobile={isMobile}
-                center={(
+                center={outerSwitcher ?? (
                     <PaperHeadingBadge
                         isMobile={isMobile}
                         icon={Globe}
@@ -203,8 +203,6 @@ const SyncPage = ({ isMobile, uiLanguage = 'en', subtabShortcut, finishedCount =
                         }}
                         titleColor="#3b82f6"
                         iconColor="#3b82f6"
-                        initial={{ scale: 0.98, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
                     />
                 )}
                 gapMobile="14px"

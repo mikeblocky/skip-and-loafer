@@ -13,7 +13,7 @@ export const loadQuizPage = () => import('../../pages/QuizPage');
 export const loadMysteryPage = () => import('../../pages/MysteryPage');
 export const loadTutorialPage = () => import('../../pages/TutorialPage');
 export const loadSettingsPage = () => import('../../pages/SettingsPage');
-export const loadAnimePage = () => import('../../pages/AnimePage');
+export const loadStickerCamPage = () => import('../../pages/StickerCamPage');
 
 
 export const PlannerPage = lazy(loadPlannerPage);
@@ -29,7 +29,7 @@ export const QuizPage = lazy(loadQuizPage);
 export const MysteryPage = lazy(loadMysteryPage);
 export const TutorialPage = lazy(loadTutorialPage);
 export const SettingsPage = lazy(loadSettingsPage);
-export const AnimePage = lazy(loadAnimePage);
+export const StickerCamPage = lazy(loadStickerCamPage);
 
 
 const JAPANESE_HIDDEN_PRELOADERS = new Set([loadGalleryPage, loadBlogPage]);
@@ -45,21 +45,13 @@ const APP_TAB_PRELOADERS = {
   chapters: [loadGalleryPage, loadFanGalleryPage, loadSignPage],
   gallery: [loadFanGalleryPage, loadSignPage, loadBlogPage],
   community: [loadBlogPage, loadGalleryPage],
-  sign: [loadFanGalleryPage, loadBlogPage],
-  fanGallery: [loadBlogPage, loadWikiPage],
   blog: [loadWikiPage, loadSyncPage],
   wiki: [loadSyncPage, loadQuizPage],
-  sync: [loadQuizPage, loadBirthdayPage],
   quiz: [loadMysteryPage, loadBirthdayPage],
-  birthdays: [loadMysteryPage, loadHomePageSafe],
+  birthdays: [loadMysteryPage, loadPlannerPage],
   mystery: [loadBlogPage, loadSyncPage],
-  tutorial: [loadSettingsPage, loadPlannerPage],
   settings: [loadPlannerPage, loadChaptersPage],
-  anime: [loadGalleryPage, loadSignPage, loadFanGalleryPage],
+  stickerCam: [loadGalleryPage],
 };
-
-function loadHomePageSafe() {
-  return loadPlannerPage();
-}
 
 export const getAppTabPreloaders = (activePage, uiLanguage = 'en') => filterPreloadersByLanguage(APP_TAB_PRELOADERS[activePage] || [], uiLanguage);

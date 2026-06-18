@@ -430,14 +430,14 @@ export const WIKI_SECTIONS = [
           {
             title: 'International footprint',
             paragraphs: [
-              'The infobox in overview.txt lists multiple international publishers, including Seven Seas in English-language territories and additional publishers across Latin America, Europe, Korea, Taiwan, Hong Kong, and Thailand.',
+              'The infobox in the compiled notes lists multiple international publishers, including Seven Seas in English-language territories and additional publishers across Latin America, Europe, Korea, Taiwan, Hong Kong, and Thailand.',
               'That breadth turns the manga page into more than a publication log. It shows how the title moved from a strong domestic serial to a work with stable international reach.',
             ],
             subsections: [
               {
                 title: 'Where to see the full release table',
                 paragraphs: [
-                  'For the volume-by-volume dates and ISBN entries pulled from the bibliography block in overview.txt, open the Manga Releases page in this same category.',
+                  'For the volume-by-volume dates and ISBN entries pulled from the bibliography block in the compiled notes, open the Manga Releases page in this same category.',
                 ],
               },
             ],
@@ -452,7 +452,7 @@ export const WIKI_SECTIONS = [
         id: 'manga-releases',
         title: 'Manga Releases',
         shortTitle: 'Manga releases',
-        description: 'Volume-by-volume release dates and ISBN data taken from the bibliography listing in overview.txt.',
+        description: 'Volume-by-volume release dates and ISBN data taken from the bibliography listing in the compiled notes.',
         image: '/opengraph-image.jpg',
         searchAliases: ['isbn', 'manga releases', 'volumes', 'book list', '書誌情報'],
         infobox: {
@@ -462,12 +462,12 @@ export const WIKI_SECTIONS = [
           facts: [
             { label: 'Coverage', value: 'Volume 1 through volume 12, plus the volume 10 support edition' },
             { label: 'Date range', value: 'January 23, 2019 to August 22, 2025' },
-            { label: 'Primary source', value: 'overview.txt bibliography block' },
+            { label: 'Primary source', value: 'compiled bibliography notes' },
             { label: 'Special note', value: 'Volume 10 has a Noto Peninsula Earthquake support edition with its own ISBN' },
           ],
         },
         lead:
-          'This page turns the bibliography block in overview.txt into a cleaner reference page. It is for checking which volume released when and which ISBN is attached to each listed edition.',
+          'This page turns the bibliography block in the compiled notes into a cleaner reference page. It is for checking which volume released when and which ISBN is attached to each listed edition.',
         sections: [
           {
             title: 'Collected volume list',
@@ -603,7 +603,7 @@ export const WIKI_SECTIONS = [
             { label: 'Episode count', value: '12 episodes' },
             { label: 'Broadcast span', value: 'April 4, 2023 to June 20, 2023' },
             { label: 'Reference focus', value: 'Titles, scripts, boards, direction, animation credits, and first-air dates' },
-            { label: 'Source section', value: 'overview.txt "各話リスト"' },
+            { label: 'Source section', value: 'compiled episode-list notes' },
           ],
         },
         lead:
@@ -669,12 +669,12 @@ export const WIKI_SECTIONS = [
           ],
         },
         lead:
-          'This page turns the staff-heavy parts of overview.txt into a more direct production reference. It is for checking who handled the main creative roles, who sat on the production side, and how the anime’s music credits were structured.',
+          'This page turns the staff-heavy parts of the compiled notes into a more direct production reference. It is for checking who handled the main creative roles, who sat on the production side, and how the anime’s music credits were structured.',
         sections: [
           {
             title: 'Main staff',
             paragraphs: [
-              'The anime staff list in overview.txt is extensive enough to justify a dedicated page. The adaptation has clear named leads across direction, design, art, sound, editing, and music, which helps explain the consistency of its tone and presentation.',
+              'The anime staff list in the compiled notes is extensive enough to justify a dedicated page. The adaptation has clear named leads across direction, design, art, sound, editing, and music, which helps explain the consistency of its tone and presentation.',
             ],
             tables: [
               {
@@ -864,7 +864,7 @@ export const WIKI_SECTIONS = [
             { label: 'Hometown model', value: 'Mitsumi’s fictional hometown draws on Suzu and Takojima in Ishikawa' },
             { label: 'School reference', value: 'The anime ending credits acknowledge Tokyo Metropolitan Nishi High School for research cooperation' },
             { label: 'Regional tie', value: 'The series remains publicly linked to Noto and Ishikawa in later support efforts' },
-            { label: 'Source section', value: 'overview.txt "舞台・モデル"' },
+            { label: 'Source section', value: 'compiled setting notes' },
           ],
         },
         lead:

@@ -1,8 +1,7 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
-import { SpeedInsights } from '@vercel/speed-insights/react'
-import { Analytics } from '@vercel/analytics/react'
 import './index.css'
+import { OFFLINE_PUBLIC_ASSETS } from './data/offlineAssets.js'
 
 const App = lazy(() => import('./App.jsx'))
 const MitsumiBirthday = lazy(() => import('./MitsumiBirthday.jsx'))
@@ -10,6 +9,19 @@ const MakotoBirthday = lazy(() => import('./MakotoBirthday.jsx'))
 const RetiredPage = lazy(() => import('./RetiredPage.jsx'))
 
 const MITSUMI_FIRST_VISIT_KEY = 'skip_mitsumi_first_visit';
+const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
+const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
+
+window.__skipInstallPromptEvent = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  window.__skipInstallPromptEvent = event;
+  window.dispatchEvent(new CustomEvent(INSTALL_PROMPT_READY_EVENT));
+});
+
+window.addEventListener('appinstalled', () => {
+  window.__skipInstallPromptEvent = null;
+});
 
 const getTodayKey = () => {
   const now = new Date();
@@ -67,12 +79,6 @@ createRoot(document.getElementById('root')).render(
     <Suspense fallback={null}>
       {getRootComponent()}
     </Suspense>
-    {import.meta.env.PROD && (
-      <>
-        <SpeedInsights />
-        <Analytics />
-      </>
-    )}
   </StrictMode>,
 )
 
@@ -80,7 +86,46 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('[Service Worker] Registered successfully:', reg.scope))
-      .catch((err) => console.error('[Service Worker] Registration failed:', err));
+      .then((registration) => {
+        const sendOfflineAssetList = () => {
+          const worker = registration.active || registration.waiting || registration.installing || navigator.serviceWorker.controller;
+          if (!worker) return;
+          worker.postMessage({
+            type: 'SKIP_CACHE_OFFLINE_ASSETS',
+            assets: OFFLINE_PUBLIC_ASSETS,
+          });
+        };
+        const sendOfflineAssetListIfEnabled = () => {
+          try {
+            if (localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1') {
+              sendOfflineAssetList();
+            }
+          } catch {
+            // Storage can be unavailable in private browsing; manual Settings action still works.
+          }
+        };
+
+        if (!registration.active) {
+          registration.addEventListener('updatefound', () => {
+            registration.installing?.addEventListener('statechange', () => {
+              if (registration.active) sendOfflineAssetListIfEnabled();
+            });
+          });
+        }
+
+        navigator.serviceWorker.ready.then(sendOfflineAssetListIfEnabled).catch(() => {});
+        navigator.serviceWorker.addEventListener('controllerchange', sendOfflineAssetListIfEnabled);
+        window.addEventListener('online', sendOfflineAssetListIfEnabled);
+        window.addEventListener('focus', sendOfflineAssetListIfEnabled);
+        window.addEventListener('pageshow', sendOfflineAssetListIfEnabled);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) sendOfflineAssetListIfEnabled();
+        });
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) {
+          console.error('[Service Worker] Registration failed:', err);
+        }
+      });
   });
 }

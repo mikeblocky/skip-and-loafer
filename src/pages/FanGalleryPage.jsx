@@ -2,12 +2,12 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { AnimatePresence } from 'framer-motion';
 import { ImagePlus, Upload } from 'lucide-react';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import {
   createFanGalleryEntry,
   fetchFanGalleryEntries,
   getCachedFanGalleryEntries,
-} from '../features/community/communityApi';
+} from '../features/community/fanGalleryApi';
 import CommunityPageHero from '../features/community/CommunityPageHero';
 import CommunityModal from '../features/community/CommunityModal';
 import CommunityStatusBanner from '../features/community/CommunityStatusBanner';
@@ -247,9 +247,9 @@ function getCopy(uiLanguage) {
   return PAGE_COPY[uiLanguage] || PAGE_COPY.en;
 }
 
-export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
+export const FanGalleryPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
   const copy = getCopy(uiLanguage);
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.fanGallery?.label || 'Fan gallery');
   const {
@@ -272,6 +272,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const galleryBoardRef = useRef(null);
+  const isSubmittingRef = useRef(false);
   const [activeDraggedId, setActiveDraggedId] = useState(null);
   const lastDragEndedAtRef = useRef(0);
   const [stackOrder, setStackOrder] = useState([]);
@@ -430,6 +431,8 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
       return;
     }
 
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -450,6 +453,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }
@@ -479,20 +483,21 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en' }) => {
           countValue={entries.length}
           countLabel={copy.itemsCountLabel}
           counterColors={{
-            borderColor: '#93c5fd',
+            borderColor: '#2563eb',
             bottomColor: '#2563eb',
             color: '#1d4ed8',
           }}
           actionLabel={copy.button}
           actionIcon={Upload}
           actionColors={{
-            borderColor: '#93c5fd',
+            borderColor: '#2563eb',
             bottomColor: '#2563eb',
             color: '#1d4ed8',
           }}
           onAction={() => setIsComposerOpen(true)}
           resetLabel={copy.resetCanvas}
           onReset={resetCanvas}
+          outerSwitcher={outerSwitcher}
         />
 
         <CommunityStatusBanner tone="error" message={errorMessage} />

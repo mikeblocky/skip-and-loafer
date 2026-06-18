@@ -5,7 +5,7 @@ import DesktopChaptersTab from '../features/chapters/tabs/DesktopChaptersTab';
 import NotesTab from '../features/chapters/tabs/NotesTab';
 import ChaptersPageHeader from '../features/chapters/ChaptersPageHeader';
 import usePageTitle from '../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../config/appUiText';
+import { getUI } from '../i18n/ui';
 import {
   ChapterRow as SharedChapterRow,
   NavBtn as SharedNavBtn,
@@ -84,9 +84,10 @@ const ChaptersPage = ({
   getRemainingCooldown,
   pendingLinks,
   pushNow,
+  outerSwitcher,
 }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
   const chaptersTitle = t.chapters || 'Chapters';
   const subtabPages = useMemo(() => (uiLanguage === 'ja' ? ['main', 'notes'] : SUBTABS), [uiLanguage]);
 
@@ -312,6 +313,7 @@ const ChaptersPage = ({
           uiLanguage={uiLanguage}
           unreadCount={unreadCount}
           unreadLabel={unreadLabel}
+          outerSwitcher={outerSwitcher}
         />
       </div>
 

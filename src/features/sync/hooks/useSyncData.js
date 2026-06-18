@@ -18,6 +18,68 @@ const collectSyncData = () => {
 const serializeSyncSnapshot = (data) => JSON.stringify(
     Object.entries(data || {}).sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
 );
+
+const mergeSiteStats = (localRaw, remoteRaw) => {
+    try {
+        const localStats = localRaw ? JSON.parse(localRaw) : {};
+        const remoteStats = remoteRaw ? JSON.parse(remoteRaw) : {};
+        const localDevices = localStats.devices && typeof localStats.devices === 'object' ? localStats.devices : {};
+        const remoteDevices = remoteStats.devices && typeof remoteStats.devices === 'object' ? remoteStats.devices : {};
+        const devices = { ...localDevices };
+
+        Object.entries(remoteDevices).forEach(([deviceId, remoteDevice]) => {
+            const localDevice = devices[deviceId];
+            if (!localDevice || (remoteDevice.lastSeenAt || '') > (localDevice.lastSeenAt || '')) {
+                devices[deviceId] = remoteDevice;
+            }
+        });
+
+        if (Object.keys(devices).length === 0) {
+            return JSON.stringify({
+                ...localStats,
+                ...remoteStats,
+                totalTimeMs: Math.max(localStats.totalTimeMs || 0, remoteStats.totalTimeMs || 0),
+                visits: Math.max(localStats.visits || 0, remoteStats.visits || 0),
+                pageViews: Math.max(localStats.pageViews || 0, remoteStats.pageViews || 0),
+                pageSwitches: Math.max(localStats.pageSwitches || 0, remoteStats.pageSwitches || 0),
+            });
+        }
+
+        const merged = {
+            ...localStats,
+            ...remoteStats,
+            devices,
+            pages: {},
+            totalTimeMs: 0,
+            visits: 0,
+            pageViews: 0,
+            pageSwitches: 0,
+            currentStreakDays: 0,
+            longestStreakDays: 0,
+        };
+
+        Object.values(devices).forEach((device) => {
+            merged.totalTimeMs += device.totalTimeMs || 0;
+            merged.visits += device.visits || 0;
+            merged.pageViews += device.pageViews || 0;
+            merged.pageSwitches += device.pageSwitches || 0;
+            merged.currentStreakDays = Math.max(merged.currentStreakDays, device.currentStreakDays || 0);
+            merged.longestStreakDays = Math.max(merged.longestStreakDays, device.longestStreakDays || 0);
+            Object.entries(device.pages || {}).forEach(([pageKey, page]) => {
+                merged.pages[pageKey] = {
+                    views: (merged.pages[pageKey]?.views || 0) + (page.views || 0),
+                    timeMs: (merged.pages[pageKey]?.timeMs || 0) + (page.timeMs || 0),
+                    lastSeenAt: page.lastSeenAt || merged.pages[pageKey]?.lastSeenAt || null,
+                };
+            });
+        });
+
+        return JSON.stringify(merged);
+    } catch {
+        return remoteRaw || localRaw || '';
+    }
+};
+
 const mergeSyncData = (remoteData) => {
     if (typeof localStorage === 'undefined') return;
 
@@ -73,6 +135,11 @@ const mergeSyncData = (remoteData) => {
         mergedNotes = remoteNotesRaw || localNotesRaw || '{}';
     }
 
+    const mergedSiteStats = mergeSiteStats(
+        localStorage.getItem('skip_site_stats_v1'),
+        remoteData['skip_site_stats_v1']
+    );
+
     // --- Apply: selectively update keys without wiping unrelated ones ---
     // Preserve skip_syncKey, skip_linkClicks, skip_activePage, skip_readerChapter
     const preserveKeys = ['skip_syncKey', 'skip_linkClicks', 'skip_activePage', 'skip_readerChapter'];
@@ -80,6 +147,7 @@ const mergeSyncData = (remoteData) => {
     // Write remote data for all non-progress, non-preserved keys  
     Object.entries(remoteData).forEach(([key, value]) => {
         if (key === 'skip_finished' || key === 'skip_readCount' || key === 'skip_chapter_notes_v1') return;
+        if (key === 'skip_site_stats_v1') return;
         if (preserveKeys.includes(key)) return;
         localStorage.setItem(key, value);
     });
@@ -88,6 +156,7 @@ const mergeSyncData = (remoteData) => {
     localStorage.setItem('skip_finished', mergedFinished);
     localStorage.setItem('skip_readCount', mergedCounts);
     localStorage.setItem('skip_chapter_notes_v1', mergedNotes);
+    if (mergedSiteStats) localStorage.setItem('skip_site_stats_v1', mergedSiteStats);
 };
 
 const clearProgressData = () => {

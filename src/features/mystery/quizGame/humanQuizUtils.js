@@ -3,55 +3,6 @@ import { AXES } from './config';
 
 const zeroAxes = () => ({ social: 0, planning: 0, focus: 0, drive: 0 });
 
-const resolveLocalizedString = (value, fallback = '') => {
-  if (typeof value === 'string') return value;
-  if (value && typeof value === 'object') {
-    const localized = value.en ?? Object.values(value).find((entry) => typeof entry === 'string');
-    return typeof localized === 'string' ? localized : fallback;
-  }
-  return fallback;
-};
-
-export const localizeQuizQuestion = (question, t) => {
-  const localized = t?.quiz?.questions?.[question.id];
-  if (!localized) return question;
-
-  const next = { ...question };
-
-  [
-    'text',
-    'leftLabel',
-    'rightLabel',
-    'lowLabel',
-    'highLabel',
-    'slowLabel',
-    'fastLabel',
-    'steadyLabel',
-    'wildLabel',
-  ].forEach((key) => {
-    if (localized[key] != null) next[key] = resolveLocalizedString(localized[key], next[key]);
-  });
-
-  if (localized.left && next.left) {
-    next.left = { ...next.left, text: resolveLocalizedString(localized.left, next.left.text) };
-  }
-
-  if (localized.right && next.right) {
-    next.right = { ...next.right, text: resolveLocalizedString(localized.right, next.right.text) };
-  }
-
-  if (Array.isArray(next.options) && Array.isArray(localized.options)) {
-    next.options = next.options.map((option, index) => {
-      const localizedOption = localized.options[index];
-      if (localizedOption == null) return option;
-      if (typeof option === 'string') return resolveLocalizedString(localizedOption, option);
-      return { ...option, text: resolveLocalizedString(localizedOption, option.text) };
-    });
-  }
-
-  return next;
-};
-
 export const computeHumanLiveQuality = ({
   responseQuality,
   pairResponses,
@@ -237,9 +188,9 @@ export const pickMostInformativeHumanQuestion = ({
   return remainingQuestions[scored[0].index];
 };
 
-export const buildHumanQuestionSet = ({ localizedQuestionBank, count = 35 }) => {
-  const validityItems = localizedQuestionBank.filter((question) => question.isValidityItem);
-  const basePool = localizedQuestionBank.filter((question) => !question.isValidityItem);
+export const buildHumanQuestionSet = ({ questionBank, count = 35 }) => {
+  const validityItems = questionBank.filter((question) => question.isValidityItem);
+  const basePool = questionBank.filter((question) => !question.isValidityItem);
   const byType = basePool.reduce((acc, question) => {
     if (!acc[question.type]) acc[question.type] = [];
     acc[question.type].push(question);
@@ -270,10 +221,10 @@ export const buildHumanQuestionSet = ({ localizedQuestionBank, count = 35 }) => 
   ];
 
   const usedIds = new Set(seed.map((question) => question.id));
-  const remainder = localizedQuestionBank
+  const remainder = questionBank
     .filter((question) => !usedIds.has(question.id))
     .sort(() => Math.random() - 0.5);
   return [...seed, ...remainder]
-    .slice(0, Math.min(count, localizedQuestionBank.length))
+    .slice(0, Math.min(count, questionBank.length))
     .sort(() => Math.random() - 0.5);
 };

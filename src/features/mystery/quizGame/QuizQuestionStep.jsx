@@ -1,7 +1,6 @@
 import React from 'react';
 import { triggerHaptic } from '../../../utils/haptics';
 import { QuizStageFrame } from './QuizPrimitives';
-import { getLocalizedQuizQuestion } from './quizCopy';
 import { toMysteryLabelCase } from './ui';
 import FlipQuestion from './interactive/FlipQuestion';
 import ReactionQuestion from './interactive/ReactionQuestion';
@@ -129,7 +128,7 @@ const QuizQuestionStep = ({
   const memoryResolveRef = React.useRef(null);
   const memoryTickerRef = React.useRef(null);
   const memoryStartedAtRef = React.useRef(null);
-  const localizedQuestion = getLocalizedQuizQuestion(t, question.id);
+  const localizedQuestion = question;
   const memoryDeck = React.useMemo(
     () => buildMemoryDeck({ portraitData, question }),
     [portraitData, question],

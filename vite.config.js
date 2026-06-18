@@ -1,7 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// ── Local dev API plugin (simulates Vercel serverless functions) ──
+function offlineBuildAssetsManifestPlugin() {
+  return {
+    name: 'offline-build-assets-manifest',
+    generateBundle(_options, bundle) {
+      const assets = Object.keys(bundle)
+        .filter((fileName) => /\.(?:css|js|wasm|woff2?)$/i.test(fileName))
+        .map((fileName) => `/${fileName}`)
+        .sort();
+
+      this.emitFile({
+        type: 'asset',
+        fileName: 'offline-build-assets.json',
+        source: JSON.stringify({ assets }, null, 2),
+      });
+    },
+  };
+}
+
+// ── Local dev API plugin (simulates the deployed Cloudflare API) ──
 function localSyncApiPlugin() {
   const store = new Map();
   const globalReadsStore = new Map();
@@ -587,6 +605,27 @@ function localSyncApiPlugin() {
 }
 
 function manualChunks(id) {
+  // Vendor rules first — must take priority over all page-specific rules
+  // so React/motion/icons are never duplicated into lazy page chunks.
+  if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
+    return 'vendor-react';
+  }
+  if (id.includes('/framer-motion/')) return 'vendor-motion';
+  if (id.includes('/lucide-react/')) return 'vendor-icons';
+  if (id.includes('@mediapipe')) return 'vendor-mediapipe';
+  if (
+    id.includes('/react-markdown/') ||
+    id.includes('/remark-gfm/') ||
+    id.includes('/rehype-raw/') ||
+    id.includes('/mdast-') ||
+    id.includes('/micromark') ||
+    id.includes('/unified/') ||
+    id.includes('/remark-') ||
+    id.includes('/rehype-')
+  ) {
+    return 'vendor-markdown';
+  }
+
   if (id.includes('/src/components/shared/ImageLightbox')) {
     return 'lightbox';
   }
@@ -616,35 +655,41 @@ function manualChunks(id) {
     return 'community';
   }
 
-  if (!id.includes('node_modules')) return undefined;
+  if (id.includes('/src/features/quiz/') || id.includes('/src/pages/QuizPage') || id.includes('/src/data/quizQuestion')) {
+    return 'quiz';
+  }
 
+  if (id.includes('/src/features/sync/') || id.includes('/src/pages/SyncPage')) {
+    return 'sync-page';
+  }
+
+  if (id.includes('/src/features/chat/') || id.includes('/src/pages/ChatPage')) {
+    return 'chat';
+  }
+
+  // Mystery shell (menu, header, draw, hooks) — sub-games are lazy and get auto-chunks
   if (
-    id.includes('/react-markdown/') ||
-    id.includes('/remark-gfm/') ||
-    id.includes('/rehype-raw/') ||
-    id.includes('/mdast-') ||
-    id.includes('/micromark') ||
-    id.includes('/unified/') ||
-    id.includes('/remark-') ||
-    id.includes('/rehype-')
+    id.includes('/src/pages/MysteryPage') ||
+    id.includes('/src/features/mystery/MysteryExperience') ||
+    id.includes('/src/features/mystery/components/') ||
+    id.includes('/src/features/mystery/hooks/') ||
+    id.includes('/src/features/mystery/mysteryData') ||
+    id.includes('/src/features/mystery/mysteryLocaleLoader')
   ) {
-    return 'vendor-markdown';
+    return 'mystery';
   }
 
-  if (id.includes('/framer-motion/')) {
-    return 'vendor-motion';
+  // Regular quiz data — shared by quiz page and mystery QuizGame
+  if (id.includes('/src/data/quizData') || id.includes('/src/data/quizQuestionBankLoader')) {
+    return 'quiz-data';
+  }
+  // Animal quiz data — only needed by mystery AnimalQuizGame (large, separate)
+  if (id.includes('/src/data/animalQuizData') || id.includes('/src/data/animalQuizQuestions')) {
+    return 'animal-quiz-data';
   }
 
-  if (id.includes('/lucide-react/')) {
-    return 'vendor-icons';
-  }
-
-  if (
-    id.includes('/react/') ||
-    id.includes('/react-dom/') ||
-    id.includes('/scheduler/')
-  ) {
-    return 'vendor-react';
+  if (id.includes('/src/features/birthday/') || id.includes('/src/pages/BirthdayPage')) {
+    return 'birthday';
   }
 
   return undefined;
@@ -652,11 +697,11 @@ function manualChunks(id) {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), localSyncApiPlugin()],
+  plugins: [react(), localSyncApiPlugin(), offlineBuildAssetsManifestPlugin()],
   build: {
-    modulePreload: {
-      resolveDependencies: () => [],
-    },
+    // Let Vite inject <link rel="modulepreload"> for all chunks so the
+    // browser fetches them in parallel instead of in a waterfall.
+    modulePreload: true,
     rollupOptions: {
       output: {
         manualChunks,

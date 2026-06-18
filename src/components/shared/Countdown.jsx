@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { differenceInSeconds, isBefore } from 'date-fns';
 
 const TARGET_DATE = new Date('2026-06-25T00:00:00+09:00');
 
@@ -146,17 +145,12 @@ const Countdown = ({ isMobile = false, uiLanguage = 'en', largeText = false }) =
 
     useEffect(() => {
         const calculateTimeLeft = () => {
-            const now = new Date();
-            if (isBefore(now, TARGET_DATE)) {
-                const totalSeconds = differenceInSeconds(TARGET_DATE, now);
-                const days = Math.floor(totalSeconds / (60 * 60 * 24));
-                const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
-                const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
-                const seconds = totalSeconds % 60;
-                setTimeLeft({ days, hours, minutes, seconds });
-            } else {
-                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-            }
+            const totalSeconds = Math.max(0, Math.floor((TARGET_DATE - Date.now()) / 1000));
+            const days = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+            const seconds = totalSeconds % 60;
+            setTimeLeft({ days, hours, minutes, seconds });
         };
 
         calculateTimeLeft();

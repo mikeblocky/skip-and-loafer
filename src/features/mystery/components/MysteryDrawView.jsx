@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Gift } from 'lucide-react';
 import { CHARACTER_COLORS } from '../../../data/characters';
 import { getCharacterDisplayName } from '../../../data/characterNames';
-import { FALLBACK_COLORS } from '../../chat/chatPalette';
+import { FALLBACK_COLORS } from '../mysteryPalette';
 import { getCharacterPrediction } from '../mysteryData';
 import { toMysteryLabelCase } from '../quizGame/ui';
 

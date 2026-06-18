@@ -545,7 +545,7 @@ const RatingGame = ({ isMobile, portraitData, t }) => {
             fontFamily: 'var(--font-hand)',
             opacity: 0.8
           }}>
-            skip-and-loafer.vercel.app
+            skip-and-loafer
           </p>
         )}
       </div>

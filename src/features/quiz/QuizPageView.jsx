@@ -4,7 +4,7 @@ import PageLayout from '../../components/shared/paper/PageLayout';
 import { History as HistoryIcon, ListChecks, Trophy } from 'lucide-react';
 import { TabSelector } from '../sync/syncSharedComponents';
 import { CONTENT_SLIDE, TRANSITION_TAB } from '../../components/shared/animationPresets';
-import { UI_TEXT } from './quizText';
+import { QUIZ_UI_TEXT as UI_TEXT } from '../../i18n/quiz';
 import QuestionsTab from './components/QuestionsTab';
 import LeaderboardTab from './components/LeaderboardTab';
 import HistoryTab from './components/HistoryTab';
@@ -12,13 +12,13 @@ import { useQuizGameController } from './hooks/useQuizGameController';
 import { useQuizTabNavigation } from './hooks/useQuizTabNavigation';
 import { toUiLabelCase } from '../../utils/textCase';
 import usePageTitle from '../../hooks/shared/usePageTitle';
-import APP_UI_TEXT_GLOBAL from '../../config/appUiText';
+import { getUI } from '../../i18n/ui';
 import PaperPageHeader from '../../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../../components/shared/paper/PaperHeadingBadge';
 
 const QuizPageView = ({ isMobile, uiLanguage = 'en', subtabShortcut }) => {
   const t = UI_TEXT[uiLanguage] || UI_TEXT.en;
-  const tGlobal = APP_UI_TEXT_GLOBAL[uiLanguage] || APP_UI_TEXT_GLOBAL.en;
+  const tGlobal = getUI(uiLanguage);
 
   usePageTitle(tGlobal.tabs?.quiz?.label || 'Quiz');
 

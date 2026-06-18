@@ -1,5 +1,4 @@
 import { Suspense, useState, useEffect } from 'react';
-import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { ChevronUp, WifiOff } from 'lucide-react';
 import NavTabs from '../../components/shared/NavTabs';
 import {
@@ -7,12 +6,10 @@ import {
   AppDecorativeLayer,
   BirthdayNotification,
   ChangelogPopup,
-  RetirementPopup,
   MangaReader,
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
 import ReaderOverlayFallback from './ReaderOverlayFallback';
-import { CHAPTERS, isMainChapter } from '../../data/chapters';
 
 const skipLinkStyle = {
   position: 'absolute',
@@ -45,27 +42,22 @@ const copyrightStyle = {
 
 const offlineBannerStyle = (isMobile) => ({
   position: 'fixed',
-  top: isMobile ? '12px' : '20px',
-  left: '50%',
-  transform: 'translateX(-50%)',
+  top: isMobile ? '10px' : '16px',
+  right: isMobile ? '10px' : '16px',
   zIndex: 2000,
-  display: 'flex',
+  display: 'inline-flex',
   alignItems: 'center',
-  gap: '10px',
+  justifyContent: 'center',
   background: '#fef3c7',
-  border: '3px solid #d97706',
-  borderBottom: '7px solid #b45309',
-  borderRadius: '16px',
-  padding: isMobile ? '10px 16px' : '12px 24px',
+  border: '2px solid #d97706',
+  borderBottom: '4px solid #b45309',
+  borderRadius: '9999px',
+  padding: '0',
   color: '#b45309',
-  fontFamily: 'Sniglet, var(--font-hand)',
-  fontSize: isMobile ? '0.88rem' : '0.96rem',
-  fontWeight: 'bold',
   boxShadow: '0 8px 24px rgba(180, 83, 9, 0.15)',
-  pointerEvents: 'auto',
-  maxWidth: '90%',
-  width: isMobile ? '340px' : 'auto',
-  textAlign: 'center',
+  pointerEvents: 'none',
+  width: isMobile ? '34px' : '38px',
+  height: isMobile ? '34px' : '38px',
 });
 
 const OFFLINE_COPY = {
@@ -81,10 +73,6 @@ const OFFLINE_COPY = {
 const getOfflineLabel = (uiLanguage) => OFFLINE_COPY[uiLanguage] || OFFLINE_COPY.en;
 
 const AppChrome = ({ app }) => {
-  const unreadCount = CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && (chapter.links?.en || chapter.pages)).length -
-    CHAPTERS.filter((chapter) => isMainChapter(chapter.number) && app.isFinished(chapter.number)).length;
-  const safeUnreadCount = Math.max(0, unreadCount);
-
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -124,53 +112,50 @@ const AppChrome = ({ app }) => {
   }, [app.uiLanguage]);
 
   return (
-    <MotionConfig reducedMotion={app.accessibilityPrefs.reduceMotion ? 'always' : 'never'}>
-      <div className="app-surface-shell" style={shellViewportStyle}>
-        {/* SVG Color Blindness Matrix Filters */}
-        <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
-          <defs>
-            <filter id="filter-protanopia">
-              <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0, 0.558, 0.442, 0, 0, 0, 0, 0.242, 0.758, 0, 0, 0, 0, 0, 1, 0" />
-            </filter>
-            <filter id="filter-deuteranopia">
-              <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0, 0.7, 0.3, 0, 0, 0, 0, 0.3, 0.7, 0, 0, 0, 0, 0, 1, 0" />
-            </filter>
-            <filter id="filter-tritanopia">
-              <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0, 0, 0.433, 0.567, 0, 0, 0, 0.475, 0.525, 0, 0, 0, 0, 0, 1, 0" />
-            </filter>
-            <filter id="filter-black-white">
-              <feColorMatrix type="matrix" values="0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 1, 0" />
-            </filter>
-          </defs>
-        </svg>
-        <AnimatePresence>
-          {!isOnline && (
-            <motion.div
-              key="offline-banner"
-              initial={{ y: -100, x: '-50%', opacity: 0 }}
-              animate={{ y: 0, x: '-50%', opacity: 1 }}
-              exit={{ y: -100, x: '-50%', opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              style={offlineBannerStyle(app.isMobile)}
-            >
-              <WifiOff size={18} strokeWidth={2.5} />
-              <span>{getOfflineLabel(app.uiLanguage)}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="app-surface-shell" style={shellViewportStyle}>
+      {/* SVG Color Blindness Matrix Filters */}
+      <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+        <defs>
+          <filter id="filter-protanopia">
+            <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0, 0.558, 0.442, 0, 0, 0, 0, 0.242, 0.758, 0, 0, 0, 0, 0, 1, 0" />
+          </filter>
+          <filter id="filter-deuteranopia">
+            <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0, 0.7, 0.3, 0, 0, 0, 0, 0.3, 0.7, 0, 0, 0, 0, 0, 1, 0" />
+          </filter>
+          <filter id="filter-tritanopia">
+            <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0, 0, 0.433, 0.567, 0, 0, 0, 0, 0.475, 0.525, 0, 0, 0, 0, 0, 1, 0" />
+          </filter>
+          <filter id="filter-black-white">
+            <feColorMatrix type="matrix" values="0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 1, 0" />
+          </filter>
+        </defs>
+      </svg>
 
-        <a
-          href="#main-content"
-          style={skipLinkStyle}
-          onFocus={(event) => {
-            event.currentTarget.style.transform = 'translateY(0)';
-          }}
-          onBlur={(event) => {
-            event.currentTarget.style.transform = 'translateY(-180%)';
-          }}
+      {!isOnline && (
+        <div
+          key="offline-banner"
+          className="offline-banner-visible"
+          style={offlineBannerStyle(app.isMobile)}
+          role="status"
+          aria-label={getOfflineLabel(app.uiLanguage)}
+          title={getOfflineLabel(app.uiLanguage)}
         >
-          {app.t.skipToContent}
-        </a>
+          <WifiOff size={app.isMobile ? 16 : 18} strokeWidth={2.8} aria-hidden="true" />
+        </div>
+      )}
+
+      <a
+        href="#main-content"
+        style={skipLinkStyle}
+        onFocus={(event) => {
+          event.currentTarget.style.transform = 'translateY(0)';
+        }}
+        onBlur={(event) => {
+          event.currentTarget.style.transform = 'translateY(-180%)';
+        }}
+      >
+        {app.t.skipToContent}
+      </a>
 
       {app.showDisclaimer && app.deferredShellMount && (
         <Suspense fallback={null}>
@@ -194,134 +179,142 @@ const AppChrome = ({ app }) => {
         </Suspense>
       )}
 
-      <AnimatePresence>
-        {app.showUI && (
-          <motion.div
-            ref={app.mainScrollRef}
-            className="hide-scrollbar app-shell-scroll"
-            style={{
-              position: 'relative',
-              zIndex: 500,
-              height: '100dvh',
-              minHeight: '100dvh',
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              overflowY: 'auto',
-              overflowX: 'visible',
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
-              padding: app.isMobile
-                ? 'calc(env(safe-area-inset-top, 0px) + 20px) 0 calc(env(safe-area-inset-bottom, 0px) + 96px) 0'
-                : '56px 48px 56px',
-              pointerEvents: 'auto',
-            }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            {app.showMitsumiReplayBanner && (
-              <motion.a
-                href="/mitsumi"
-                className="app-tactile"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35 }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  marginTop: app.isMobile ? '4px' : '8px',
-                  marginBottom: app.isMobile ? '8px' : '10px',
-                  padding: app.isMobile ? '8px 12px' : '10px 14px',
-                  borderRadius: '9999px',
-                  textDecoration: 'none',
-                  fontFamily: 'var(--font-hand)',
-                  fontSize: app.isMobile ? '0.85rem' : '0.92rem',
-                  fontWeight: 'bold',
-                  color: '#be185d',
-                  background: '#fdf2f8',
-                  border: '2px solid #f9a8d4',
-                  boxShadow: '0 4px 10px rgba(244,114,182,0.18)',
-                  zIndex: 900,
-                }}
-              >
-                Replay Mitsumi&apos;s birthday surprise!
-              </motion.a>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.16, ease: 'easeOut', delay: 0.01 }}
+      {app.showUI && (
+        <div
+          ref={app.mainScrollRef}
+          className="hide-scrollbar app-shell-scroll app-shell-fadein"
+          style={{
+            position: 'relative',
+            zIndex: 500,
+            height: '100dvh',
+            minHeight: '100dvh',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            overflowY: 'auto',
+            overflowX: 'visible',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehaviorY: 'contain',
+            padding: app.isMobile
+              ? 'calc(env(safe-area-inset-top, 0px) + 20px) 0 calc(env(safe-area-inset-bottom, 0px) + 96px) 0'
+              : '56px 48px 56px',
+            pointerEvents: 'auto',
+          }}
+        >
+          {app.showMitsumiReplayBanner && (
+            <a
+              href="/mitsumi"
+              className="app-tactile mitsumi-replay-banner"
               style={{
-                position: 'relative',
-                scrollMarginTop: '0px',
-                width: '100%',
-                maxWidth: app.isMobile
-                  ? '100%'
-                  : (app.accessibilityPrefs.largeText ? '1300px' : '1180px'),
-                minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
-                height: app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
-                display: 'flex',
-                flexDirection: app.isMobile ? 'column' : 'row',
-                alignItems: 'stretch',
-                gap: '10px',
-                pointerEvents: 'auto',
-                flex: '1 0 auto',
-                flexShrink: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: app.isMobile ? '4px' : '8px',
+                marginBottom: app.isMobile ? '8px' : '10px',
+                padding: app.isMobile ? '8px 12px' : '10px 14px',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                fontFamily: 'var(--font-hand)',
+                fontSize: app.isMobile ? '0.85rem' : '0.92rem',
+                fontWeight: 'bold',
+                color: '#be185d',
+                background: '#fdf2f8',
+                border: '2px solid #f9a8d4',
+                boxShadow: '0 4px 10px rgba(244,114,182,0.18)',
+                zIndex: 900,
               }}
             >
+              Replay Mitsumi&apos;s birthday surprise!
+            </a>
+          )}
+
+          <div
+            className="app-content-fadein"
+            style={{
+              position: 'relative',
+              scrollMarginTop: '0px',
+              width: '100%',
+              maxWidth: app.isMobile
+                ? '100%'
+                : (app.accessibilityPrefs.largeText ? '1300px' : '1180px'),
+              minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
+              height: app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
+              display: 'flex',
+              flexDirection: app.isMobile ? 'column' : 'row',
+              alignItems: 'stretch',
+              gap: '10px',
+              pointerEvents: 'auto',
+              flex: '1 0 auto',
+              flexShrink: 0,
+            }}
+          >
+            {/* Desktop sidebar NavTabs — stays inside scroll layout */}
+            {!app.isMobile && (
               <NavTabs
                 activePage={app.activePage}
                 onPageChange={app.handlePageChange}
-                isMobile={app.isMobile}
+                isMobile={false}
                 tabs={app.visibleTabPages}
                 labelsById={app.t.tabs}
                 openTabPrefix={app.t.openTabPrefix}
                 tabSuffix={app.t.tabSuffix}
-                unreadCount={safeUnreadCount}
+                unreadCount={app.unreadCount}
               />
+            )}
 
-              <AppTabContent
-                activePage={app.activePage}
-                isMobile={app.isMobile}
-                uiLanguage={app.uiLanguage}
-                subtabShortcut={app.subtabShortcut}
-                setReaderChapter={app.handleReaderChapterChange}
-                isFinished={app.isFinished}
-                trackExternalLink={app.trackExternalLink}
-                cancelExternalLink={app.cancelExternalLink}
-                markFinished={app.markFinished}
-                unmarkFinished={app.unmarkFinished}
-                getReadCount={app.getReadCount}
-                incrementReadCount={app.incrementReadCount}
-                getRemainingCooldown={app.getRemainingCooldown}
-                pendingLinks={app.pendingLinks}
-                finishedCount={app.finishedCount}
-                finished={app.finished}
-                readCounts={app.readCounts}
-                reloadFromStorage={app.reloadFromStorage}
-                syncData={app.syncData}
-                accessibilityPrefs={app.accessibilityPrefs}
-                readerPrefs={app.readerPrefs}
-                setReaderPrefs={app.setReaderPrefs}
-                handleMainTouchStart={app.handleMainTouchStart}
-                handleMainTouchEnd={app.handleMainTouchEnd}
-                setUiLanguage={app.setUiLanguage}
-                toggleAccessibilityPref={app.toggleAccessibilityPref}
-                setAccessibilityColorBlindMode={app.setAccessibilityColorBlindMode}
-                shortcutStats={app.shortcutStats}
-                t={app.t}
-              />
-            </motion.div>
+            <AppTabContent
+              activePage={app.activePage}
+              isMobile={app.isMobile}
+              uiLanguage={app.uiLanguage}
+              subtabShortcut={app.subtabShortcut}
+              setReaderChapter={app.handleReaderChapterChange}
+              isFinished={app.isFinished}
+              trackExternalLink={app.trackExternalLink}
+              cancelExternalLink={app.cancelExternalLink}
+              markFinished={app.markFinished}
+              unmarkFinished={app.unmarkFinished}
+              getReadCount={app.getReadCount}
+              incrementReadCount={app.incrementReadCount}
+              getRemainingCooldown={app.getRemainingCooldown}
+              pendingLinks={app.pendingLinks}
+              finishedCount={app.finishedCount}
+              finished={app.finished}
+              readCounts={app.readCounts}
+              reloadFromStorage={app.reloadFromStorage}
+              syncData={app.syncData}
+              accessibilityPrefs={app.accessibilityPrefs}
+              readerPrefs={app.readerPrefs}
+              setReaderPrefs={app.setReaderPrefs}
+              handleMainTouchStart={app.handleMainTouchStart}
+              handleMainTouchEnd={app.handleMainTouchEnd}
+              setUiLanguage={app.setUiLanguage}
+              toggleAccessibilityPref={app.toggleAccessibilityPref}
+              setAccessibilityColorBlindMode={app.setAccessibilityColorBlindMode}
+              shortcutStats={app.shortcutStats}
+              siteStats={app.siteStats}
+              t={app.t}
+            />
+          </div>
 
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
+
+      {/* Mobile NavTabs — rendered OUTSIDE the scroll container so position:fixed works */}
+      {app.showUI && app.isMobile && (
+        <NavTabs
+          activePage={app.activePage}
+          onPageChange={app.handlePageChange}
+          isMobile={true}
+          tabs={app.visibleTabPages}
+          labelsById={app.t.tabs}
+          openTabPrefix={app.t.openTabPrefix}
+          tabSuffix={app.t.tabSuffix}
+          unreadCount={app.unreadCount}
+        />
+      )}
 
       {app.deferredShellMount && (
         <Suspense fallback={null}>
@@ -337,67 +330,54 @@ const AppChrome = ({ app }) => {
 
       <div style={copyrightStyle}>© Takamatsu Misaki / KODANSHA</div>
 
-      <AnimatePresence>
-        {app.showScrollTop && !app.readerChapter && app.activePage !== 'blog' && app.activePage !== 'quiz' && (
-          <motion.button
-            key="scroll-top"
-            className="app-tactile no-override"
-            onClick={app.scrollToTop}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92, y: 4 }}
-            style={{
-              position: 'fixed',
-              right: app.isMobile ? '16px' : '28px',
-              bottom: app.isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : '106px',
-              zIndex: 1100,
-              border: '3px solid var(--surface-border, #cbd5e1)',
-              borderBottom: '7px solid var(--surface-border-strong, #94a3b8)',
-              background: 'var(--surface-card, #fff)',
-              color: 'var(--text-primary, #374151)',
-              borderRadius: '20px',
-              padding: app.isMobile ? '14px' : '14px 20px',
-              fontFamily: 'var(--font-hand)',
-              fontWeight: 'bold',
-              fontSize: app.isMobile ? '0.98rem' : '1.05rem',
-              boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: app.isMobile ? '0' : '6px',
-            }}
-          >
-            <ChevronUp size={22} /> {!app.isMobile && app.t.returnToTop}
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {app.showScrollTop && !app.readerChapter && app.activePage !== 'blog' && app.activePage !== 'quiz' && (
+        <button
+          key="scroll-top"
+          className="app-tactile no-override scroll-top-fadein"
+          onClick={app.scrollToTop}
+          style={{
+            position: 'fixed',
+            right: app.isMobile ? '16px' : '28px',
+            bottom: app.isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : '106px',
+            zIndex: 1100,
+            border: '3px solid var(--surface-border, #cbd5e1)',
+            borderBottom: '7px solid var(--surface-border-strong, #94a3b8)',
+            background: 'var(--surface-card, #fff)',
+            color: 'var(--text-primary, #374151)',
+            borderRadius: '20px',
+            padding: app.isMobile ? '14px' : '14px 20px',
+            fontFamily: 'var(--font-hand)',
+            fontWeight: 'bold',
+            fontSize: app.isMobile ? '0.98rem' : '1.05rem',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: app.isMobile ? '0' : '6px',
+          }}
+        >
+          <ChevronUp size={22} /> {!app.isMobile && app.t.returnToTop}
+        </button>
+      )}
 
-      {/* Settings control controls migrated natively to sidebar Settings tab */}
-
-      <AnimatePresence>
-        {app.readerChapter && app.readerChapter.pages && (
-          <Suspense fallback={<ReaderOverlayFallback isMobile={app.isMobile} label={app.t.openingReader || 'Opening chapter...'} />}>
-            <MangaReader
-              key={`reader-${app.readerChapter.number}`}
-              chapter={app.readerChapter}
-              pages={app.readerChapter.pages}
-              onClose={app.closeReader}
-              onNextChapter={app.hasNextChapter ? app.handleNextChapter : undefined}
-              onPrevChapter={app.hasPrevChapter ? app.handlePrevChapter : undefined}
-              isMobile={app.isMobile}
-              uiLanguage={app.uiLanguage}
-              onChapterFinished={app.markFinished}
-              getRemainingCooldown={app.getRemainingCooldown}
-            />
-          </Suspense>
-        )}
-      </AnimatePresence>
+      {app.readerChapter && app.readerChapter.pages && (
+        <Suspense fallback={<ReaderOverlayFallback isMobile={app.isMobile} label={app.t.openingReader || 'Opening chapter...'} />}>
+          <MangaReader
+            key={`reader-${app.readerChapter.number}`}
+            chapter={app.readerChapter}
+            pages={app.readerChapter.pages}
+            onClose={app.closeReader}
+            onNextChapter={app.hasNextChapter ? app.handleNextChapter : undefined}
+            onPrevChapter={app.hasPrevChapter ? app.handlePrevChapter : undefined}
+            isMobile={app.isMobile}
+            uiLanguage={app.uiLanguage}
+            onChapterFinished={app.markFinished}
+            getRemainingCooldown={app.getRemainingCooldown}
+          />
+        </Suspense>
+      )}
     </div>
-  </MotionConfig>
   );
 };
 

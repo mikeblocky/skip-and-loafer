@@ -1,6 +1,14 @@
 const PENDING_READS_KEY = 'skip_pending_reads';
-const PENDING_SIGS_KEY = 'skip_pending_signatures';
-const PENDING_GALLERY_KEY = 'skip_pending_gallery';
+const PENDING_SIGS_KEY = 'skip_pending_signatures_v2';
+const PENDING_GALLERY_KEY = 'skip_pending_gallery_v2';
+
+// Clear stale pre-v2 queues so they never get re-submitted
+try {
+  localStorage.removeItem('skip_pending_signatures');
+  localStorage.removeItem('skip_pending_gallery');
+  localStorage.removeItem('skip_signatures_cache');
+  localStorage.removeItem('skip_fangallery_cache');
+} catch {};
 
 const getQueue = (key) => {
   try {
@@ -69,7 +77,6 @@ export const flushPendingRequests = async () => {
     // 1. Flush Pending Reads
     const reads = getQueue(PENDING_READS_KEY);
     if (reads.length > 0) {
-      console.log(`Replaying ${reads.length} offline chapter read increments...`);
       const remainingReads = [];
       for (const chapter of reads) {
         try {
@@ -90,7 +97,6 @@ export const flushPendingRequests = async () => {
     // 2. Flush Pending Signatures
     const sigs = getQueue(PENDING_SIGS_KEY);
     if (sigs.length > 0) {
-      console.log(`Replaying ${sigs.length} offline guestbook signatures...`);
       const remainingSigs = [];
       let updatedSignatures = null;
       for (const sig of sigs) {
@@ -124,7 +130,6 @@ export const flushPendingRequests = async () => {
     // 3. Flush Pending Fan Drawings
     const gallery = getQueue(PENDING_GALLERY_KEY);
     if (gallery.length > 0) {
-      console.log(`Replaying ${gallery.length} offline fan drawings...`);
       const remainingGallery = [];
       let updatedGallery = null;
       for (const entry of gallery) {

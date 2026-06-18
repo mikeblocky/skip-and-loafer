@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap } from 'lucide-react';
-import { getAppLanguageOptions, APP_UI_TEXT } from '../config/appUiText';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy } from 'lucide-react';
+import { getLanguageOptions, UI } from '../i18n/ui';
+import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
 import {
   createPaperChipStyle,
   createPaperPanelStyle,
@@ -104,6 +105,23 @@ const PREVIEW_QUOTES = {
   ja: { title: "桜の並木道", text: "美津未と聡介は咲き誇る桜の下を歩いて登校した。美しい春の朝だった。", button: "記事を読む" },
 };
 
+const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
+const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
+
+const getSavedInstallPrompt = () => window.__skipInstallPromptEvent || null;
+const OFFLINE_PUBLIC_ASSET_PATHS = new Set(OFFLINE_PUBLIC_ASSETS);
+
+const getOfflinePublicAssetPath = (request) => {
+  try {
+    const pathname = new URL(request.url).pathname;
+    if (OFFLINE_PUBLIC_ASSET_PATHS.has(pathname)) return pathname;
+    const decodedPathname = decodeURIComponent(pathname);
+    return OFFLINE_PUBLIC_ASSET_PATHS.has(decodedPathname) ? decodedPathname : null;
+  } catch {
+    return null;
+  }
+};
+
 const SettingsPage = ({
   isMobile,
   uiLanguage,
@@ -115,10 +133,299 @@ const SettingsPage = ({
   readerPrefs,
   setReaderPrefs,
   t,
+  siteStats,
+  outerSwitcher,
 }) => {
-  const fallbackText = APP_UI_TEXT.en;
-  
-  const appLanguageOptions = getAppLanguageOptions();
+  const fallbackText = UI.en;
+
+  const installPromptRef = useRef(null);
+  const [canInstall, setCanInstall] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [offlineStatus, setOfflineStatus] = useState({
+    cached: 0,
+    processed: 0,
+    total: OFFLINE_PUBLIC_ASSETS.length,
+    preparing: false,
+  });
+  const [storageEstimate, setStorageEstimate] = useState(null);
+  const [isClearingOfflineCache, setIsClearingOfflineCache] = useState(false);
+  const [keepPreparingOffline, setKeepPreparingOffline] = useState(() => {
+    try {
+      return localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    installPromptRef.current = getSavedInstallPrompt();
+    setCanInstall(!!installPromptRef.current);
+
+    const syncSavedPrompt = () => {
+      installPromptRef.current = getSavedInstallPrompt();
+      setCanInstall(!!installPromptRef.current);
+    };
+
+    const handler = (e) => {
+      e.preventDefault();
+      installPromptRef.current = e;
+      window.__skipInstallPromptEvent = e;
+      setCanInstall(true);
+    };
+    const handleInstalled = () => {
+      window.__skipInstallPromptEvent = null;
+      installPromptRef.current = null;
+      setIsInstalled(true);
+      setCanInstall(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener(INSTALL_PROMPT_READY_EVENT, syncSavedPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener(INSTALL_PROMPT_READY_EVENT, syncSavedPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
+    const refreshStorageStatus = async () => {
+      try {
+        if ('storage' in navigator && typeof navigator.storage.estimate === 'function') {
+          setStorageEstimate(await navigator.storage.estimate());
+        }
+
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          const offlineCacheNames = cacheNames.filter((name) => name.startsWith('skip-offline-'));
+          const cachedAssets = new Set();
+          const cachedPathLists = await Promise.all(
+            offlineCacheNames.map(async (cacheName) => {
+              const cache = await caches.open(cacheName);
+              const requests = await cache.keys();
+              return requests.map(getOfflinePublicAssetPath).filter(Boolean);
+            }),
+          );
+          cachedPathLists.flat().forEach((path) => cachedAssets.add(path));
+          const cached = Math.min(cachedAssets.size, OFFLINE_PUBLIC_ASSETS.length);
+          setOfflineStatus((previous) => ({ ...previous, cached }));
+        }
+      } catch {
+        // Browser storage APIs can be unavailable in private browsing.
+      }
+    };
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    const handleServiceWorkerMessage = (event) => {
+      if (event.data?.type === 'SKIP_OFFLINE_CACHE_PROGRESS') {
+        setOfflineStatus((previous) => ({
+          ...previous,
+          cached: Math.min(
+            Number(event.data.cached || previous.cached || 0),
+            Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
+          ),
+          processed: Number(event.data.processed || previous.processed || 0),
+          total: Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
+          preparing: true,
+        }));
+        return;
+      }
+
+      if (event.data?.type === 'SKIP_OFFLINE_CACHE_CLEARED') {
+        setIsClearingOfflineCache(false);
+        setOfflineStatus((previous) => ({
+          ...previous,
+          cached: 0,
+          processed: 0,
+          preparing: false,
+        }));
+        refreshStorageStatus();
+        return;
+      }
+
+      if (event.data?.type !== 'SKIP_OFFLINE_CACHE_COMPLETE') return;
+      const completedTotal = Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length);
+      setOfflineStatus({
+        cached: Math.min(Number(event.data.cached || 0), completedTotal),
+        processed: completedTotal,
+        total: completedTotal,
+        preparing: false,
+      });
+      refreshStorageStatus();
+    };
+
+    refreshStorageStatus();
+    const refreshIntervalId = window.setInterval(refreshStorageStatus, 1800);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', refreshStorageStatus);
+    document.addEventListener('visibilitychange', refreshStorageStatus);
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
+
+    return () => {
+      window.clearInterval(refreshIntervalId);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', refreshStorageStatus);
+      document.removeEventListener('visibilitychange', refreshStorageStatus);
+      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    const promptEvent = installPromptRef.current || getSavedInstallPrompt();
+    if (!promptEvent) return;
+
+    await promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
+    if (outcome === 'accepted') { setIsInstalled(true); setCanInstall(false); }
+    installPromptRef.current = null;
+    window.__skipInstallPromptEvent = null;
+    setCanInstall(false);
+  };
+
+  const handlePrepareOffline = async ({ persist = true } = {}) => {
+    if (!navigator.serviceWorker?.controller && !navigator.serviceWorker?.ready) return;
+    if (persist) {
+      try {
+        localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
+      } catch {
+        // Ignore storage failures; this run can still continue.
+      }
+      setKeepPreparingOffline(true);
+    }
+    setOfflineStatus((previous) => ({
+      ...previous,
+      processed: 0,
+      preparing: true,
+      total: OFFLINE_PUBLIC_ASSETS.length,
+    }));
+
+    const registration = await navigator.serviceWorker.ready.catch(() => null);
+    const worker = registration?.active || navigator.serviceWorker.controller;
+    if (!worker) {
+      setOfflineStatus((previous) => ({ ...previous, preparing: false }));
+      return;
+    }
+
+    worker.postMessage({
+      type: 'SKIP_CACHE_OFFLINE_ASSETS',
+      assets: OFFLINE_PUBLIC_ASSETS,
+    });
+  };
+
+  const handleKeepPreparingChange = (enabled) => {
+    setKeepPreparingOffline(enabled);
+    try {
+      if (enabled) {
+        localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
+        handlePrepareOffline({ persist: false });
+      } else {
+        localStorage.removeItem(OFFLINE_LIBRARY_ENABLED_KEY);
+      }
+    } catch {
+      // Ignore storage failures.
+    }
+  };
+
+  const handleClearOfflineCache = async () => {
+    setIsClearingOfflineCache(true);
+    setKeepPreparingOffline(false);
+    try {
+      localStorage.removeItem(OFFLINE_LIBRARY_ENABLED_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+
+    const registration = await navigator.serviceWorker?.ready.catch(() => null);
+    const worker = registration?.active || navigator.serviceWorker?.controller;
+
+    if (worker) {
+      worker.postMessage({ type: 'SKIP_CLEAR_OFFLINE_CACHE' });
+      return;
+    }
+
+    try {
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.filter((name) => name.startsWith('skip-offline-')).map((name) => caches.delete(name)));
+      }
+    } catch {
+      // Ignore cache API failures.
+    }
+
+    setOfflineStatus((previous) => ({
+      ...previous,
+      cached: 0,
+      processed: 0,
+      preparing: false,
+    }));
+    setIsClearingOfflineCache(false);
+  };
+
+  const formatBytes = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '0 MB';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = value;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex += 1;
+    }
+    return `${size >= 10 || unitIndex === 0 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
+  };
+
+  const formatDuration = (ms = 0) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
+
+  const pageLabels = {
+    home: 'Planner',
+    chapters: 'Chapters',
+    gallery: 'Gallery',
+    community: 'Community',
+    blog: 'Blog',
+    wiki: 'Wiki',
+    quiz: 'Quiz',
+    birthdays: 'Birthdays',
+    mystery: 'Mystery',
+    settings: 'Settings',
+    stickerCam: 'Sticker cam',
+  };
+
+  const usageStats = siteStats || {};
+  const pageEntries = Object.entries(usageStats.pages || {});
+  const favoritePage = pageEntries
+    .sort(([, left], [, right]) => (right.timeMs || 0) - (left.timeMs || 0))[0];
+  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'Nowhere yet';
+  const usageRoast = usageStats.totalTimeMs > 3600000
+    ? 'Certified resident. The website should probably offer you tea.'
+    : usageStats.totalTimeMs > 600000
+      ? 'A respectable loaf. Not alarming. Yet.'
+      : 'Freshly arrived. Your chair is still warm, not haunted.';
+
+  const offlineProgress = Math.max(
+    0,
+    Math.min(100, Math.round((offlineStatus.cached / Math.max(1, offlineStatus.total)) * 100)),
+  );
+  const displayedOfflineCached = Math.min(offlineStatus.cached, offlineStatus.total);
+
+  const appLanguageOptions = getLanguageOptions();
   const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
 
   const colorBlindOptions = [
@@ -291,20 +598,22 @@ const SettingsPage = ({
 
       <PaperPageHeader
         isMobile={isMobile}
-        center={(
-          <PaperHeadingBadge
-            isMobile={isMobile}
-            icon={Settings}
-            title="Settings"
-            palette={{
-              borderColor: '#818cf8',
-              bottomColor: '#4338ca',
-              shadow: '0 8px 18px rgba(129, 140, 248, 0.12)',
-            }}
-            titleColor="#818cf8"
-            iconColor="#818cf8"
-          />
-        )}
+        center={
+          outerSwitcher ?? (
+            <PaperHeadingBadge
+              isMobile={isMobile}
+              icon={Settings}
+              title="Settings"
+              palette={{
+                borderColor: '#818cf8',
+                bottomColor: '#4338ca',
+                shadow: '0 8px 18px rgba(129, 140, 248, 0.12)',
+              }}
+              titleColor="#818cf8"
+              iconColor="#818cf8"
+            />
+          )
+        }
         marginBottomMobile="0"
         marginBottomDesktop="0"
         paddingMobile="0 10px"
@@ -769,6 +1078,92 @@ const SettingsPage = ({
 
         {/* RIGHT COLUMN: Live Visual Preview, Language Selector & Shortcuts Guide */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {/* Usage dashboard */}
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #f97316',
+              borderBottom: '8px solid #c2410c',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.06)',
+            }}
+          >
+            <div
+              className="washi-tape washi-tape--yellow"
+              style={{
+                top: '-14px',
+                left: '24px',
+                transform: 'rotate(-2deg)',
+                width: '74px',
+                height: '22px',
+                zIndex: 5,
+              }}
+            />
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#fed7aa', '#f97316', '#fff7ed', '#c2410c')}>
+                <Clock3 size={18} strokeWidth={2.4} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Website residency check</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
+              {[
+                { label: 'Total loitering', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
+                { label: 'Times accessed', value: usageStats.visits || 0, icon: MousePointerClick, color: '#2563eb' },
+                { label: 'Page hops', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
+                { label: 'Favorite corner', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="sketchbook-border"
+                  style={{
+                    background: 'var(--surface-panel)',
+                    border: '2.5px solid var(--surface-border)',
+                    borderBottom: '5px solid var(--surface-border-strong)',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 0,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: stat.color, fontFamily: 'var(--font-paper)', fontSize: '0.8rem' }}>
+                    <stat.icon size={15} strokeWidth={2.5} />
+                    <span>{stat.label}</span>
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: stat.label === 'Favorite corner' ? '1.05rem' : '1.25rem',
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.15,
+                    overflowWrap: 'anywhere',
+                  }}>
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="sketchbook-border"
+              style={{
+                background: '#fff7ed',
+                border: '2.5px dashed #fdba74',
+                color: '#9a3412',
+                padding: '10px 12px',
+                fontFamily: 'var(--font-paper)',
+                fontSize: '0.82rem',
+                lineHeight: 1.45,
+              }}
+            >
+              {usageRoast} Synced with your sync key, so every device can contribute to the evidence folder.
+            </div>
+          </div>
           
           {/* A. Live Visual Preview Card */}
           <div
@@ -1001,6 +1396,221 @@ const SettingsPage = ({
             </div>
           </div>
 
+        </div>
+
+        {/* App install and offline library */}
+        <div style={{ gridColumn: isMobile ? 'auto' : '1 / -1' }}>
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #7c3aed',
+              borderBottom: '8px solid #6d28d9',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.06)',
+            }}
+          >
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#ddd6fe', '#7c3aed', '#f5f3ff', '#6d28d9')}>
+                {isInstalled ? <CheckCircle size={18} strokeWidth={2.4} /> : <Smartphone size={18} strokeWidth={2.4} />}
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>
+                App installation & offline
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
+              <div
+                className="sketchbook-border"
+                style={{
+                  background: 'var(--surface-panel)',
+                  border: '2.5px solid #c4b5fd',
+                  borderBottom: '5px solid #8b5cf6',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
+                  {isInstalled ? <CheckCircle size={17} /> : <Download size={17} />}
+                  <span>{isInstalled ? 'Installed app' : 'Install app'}</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  {isInstalled
+                    ? 'Skip and Loafer is installed. Open it from your home screen or app launcher.'
+                    : canInstall
+                      ? 'Add it to your device for a focused app window and easier offline access.'
+                      : 'Use your browser menu to add this site to your home screen or install it as an app.'}
+                </p>
+                <motion.button
+                  onClick={handleInstall}
+                  disabled={!canInstall || isInstalled}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#7c3aed', bottomColor: '#6d28d9', background: '#7c3aed', color: '#fff', radius: '14px', padding: '12px 20px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.92rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: canInstall && !isInstalled ? 'pointer' : 'default',
+                    border: 'none',
+                    opacity: canInstall && !isInstalled ? 1 : 0.62,
+                  }}
+                >
+                  {isInstalled ? <CheckCircle size={16} strokeWidth={2.5} /> : <Download size={16} strokeWidth={2.5} />}
+                  {isInstalled ? 'Installed' : canInstall ? 'Install app' : 'Use browser install menu'}
+                </motion.button>
+              </div>
+
+              <div
+                className="sketchbook-border"
+                style={{
+                  background: 'var(--surface-panel)',
+                  border: '2.5px solid #fbbf24',
+                  borderBottom: '5px solid #d97706',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
+                  <WifiOff size={17} />
+                  <span>Offline library</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  {isOnline
+                    ? 'Prepare galleries, manga pages, and app files so the site keeps opening offline.'
+                    : 'You are offline. Cached pages and images will still open when they have been prepared.'}
+                </p>
+                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
+                  Cached files: {displayedOfflineCached} / {offlineStatus.total}
+                  {storageEstimate ? ` · Storage used: ${formatBytes(storageEstimate.usage)}` : ''}
+                </div>
+                <div
+                  aria-label={`Offline cache progress ${offlineProgress}%`}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={offlineProgress}
+                  style={{
+                    width: '100%',
+                    height: '12px',
+                    borderRadius: '999px',
+                    border: '2px solid #fbbf24',
+                    background: '#fffbeb',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${offlineProgress}%`,
+                      height: '100%',
+                      background: '#f59e0b',
+                      transition: 'width 0.2s ease',
+                    }}
+                  />
+                </div>
+                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.76rem', color: '#92400e', lineHeight: 1.35 }}>
+                  {offlineStatus.preparing
+                    ? `Cached ${displayedOfflineCached} of ${offlineStatus.total} files (${offlineProgress}%).`
+                    : offlineProgress >= 100
+                      ? 'Offline library prepared.'
+                      : 'Progress appears here while the offline library is being prepared.'}
+                </div>
+                <motion.button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={keepPreparingOffline}
+                  onClick={() => handleKeepPreparingChange(!keepPreparingOffline)}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    ...BUTTON_RESET_STYLE,
+                    ...getOptionCardStyle(keepPreparingOffline),
+                    padding: '10px 12px',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
+                    Keep preparing automatically when the app is open
+                  </span>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '6px',
+                    border: '2px solid #cbd5e1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: keepPreparingOffline ? '#3b82f6' : 'var(--surface-card, #fff)',
+                    borderColor: keepPreparingOffline ? '#2563eb' : '#cbd5e1',
+                    flexShrink: 0,
+                  }}>
+                    {keepPreparingOffline && <Check size={14} color="#fff" strokeWidth={3} />}
+                  </div>
+                </motion.button>
+                <motion.button
+                  onClick={handlePrepareOffline}
+                  disabled={!isOnline || offlineStatus.preparing}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#d97706', bottomColor: '#b45309', background: '#f59e0b', color: '#fff', radius: '14px', padding: '12px 20px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.92rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: isOnline && !offlineStatus.preparing ? 'pointer' : 'default',
+                    border: 'none',
+                    opacity: isOnline && !offlineStatus.preparing ? 1 : 0.62,
+                  }}
+                >
+                  <RefreshCw size={16} strokeWidth={2.5} />
+                  {offlineStatus.preparing ? 'Preparing...' : 'Prepare offline library'}
+                </motion.button>
+                <motion.button
+                  onClick={handleClearOfflineCache}
+                  disabled={isClearingOfflineCache}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#ef4444', bottomColor: '#b91c1c', background: '#fff1f2', color: '#b91c1c', radius: '14px', padding: '10px 16px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.86rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: isClearingOfflineCache ? 'default' : 'pointer',
+                    border: 'none',
+                    opacity: isClearingOfflineCache ? 0.62 : 1,
+                  }}
+                >
+                  <Trash2 size={15} strokeWidth={2.5} />
+                  {isClearingOfflineCache ? 'Deleting offline cache...' : 'Delete offline cache and stop using it'}
+                </motion.button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

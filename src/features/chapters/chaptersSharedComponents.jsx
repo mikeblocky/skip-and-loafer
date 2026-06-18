@@ -33,7 +33,6 @@ import {
   VOL_THEMES,
   getChapterRowStyle,
   getNavButtonStyle,
-  getVolSelectorButtonStyle,
   getNotePaletteForChapter,
 } from './chapterStyles';
 import { getChapterDisplayTitle } from '../../data/chapterTitles';
@@ -367,7 +366,16 @@ export const ChapterRow = ({ chapter, volumeNumber, index, isMobile, onReadChapt
       )}
     </div>
  
-      <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        flex: isMobile ? '1 1 100%' : '1 1 260px',
+        minWidth: 0,
+        maxWidth: '100%',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+      }}>
       {!comingSoon && (
         <motion.button
           className="no-override"
@@ -633,7 +641,7 @@ export const NavBtn = ({ onClick, disabled, volumeNumber, children, isMobile }) 
   );
 };
  
-export const VolSelector = ({ activeVol, setActiveVol, isMobile, uiLanguage }) => {
+export const VolSelector = ({ activeVol, setActiveVol, isMobile }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {

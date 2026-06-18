@@ -1,5 +1,3 @@
-import { IS_PRODUCTION_SERVER } from '../../config/runtimeFlags';
-
 export const ACTIVE_PAGE_STORAGE_KEY = 'skip_activePage';
 export const READER_CHAPTER_STORAGE_KEY = 'skip_readerChapter';
 export const ACCESSIBILITY_KEY = 'skip_accessibilityPrefs_v1';
@@ -8,20 +6,16 @@ export const LANGUAGE_KEY = 'skip_uiLanguage_v1';
 export const SHORTCUT_STATS_KEY = 'skip_shortcutStats_v1';
 export const DISCLAIMER_SEEN_KEY = 'skip_disclaimerSeen_v1';
 
-export const isAnimeTabActive = () => {
-  return false;
-};
-
 export const TAB_PAGES = [
   'home',
   'chapters',
-  ...(isAnimeTabActive() ? ['anime'] : []),
   'gallery',
   'community',
   'blog',
   'quiz',
   'mystery',
   'birthdays',
+  'stickerCam',
   'settings',
 ];
 export const DEFAULT_PAGE = TAB_PAGES[0];
@@ -34,7 +28,7 @@ export const getVisibleTabPages = (uiLanguage = 'en') => {
     return basePages.filter((page) => !JAPANESE_HIDDEN_TAB_PAGES.includes(page));
   }
 
-  return IS_PRODUCTION_SERVER ? basePages : TAB_PAGES;
+  return basePages;
 };
 
 export const VALID_COLOR_BLIND_MODES = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'black-white'];

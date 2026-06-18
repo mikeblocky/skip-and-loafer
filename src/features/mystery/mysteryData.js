@@ -1,4 +1,4 @@
-import { FALLBACK_COLORS } from '../chat/chatPalette';
+import { FALLBACK_COLORS } from './mysteryPalette';
 import { getCharacterDisplayName } from '../../data/characterNames';
 
 export const PORTRAIT_DATA = [

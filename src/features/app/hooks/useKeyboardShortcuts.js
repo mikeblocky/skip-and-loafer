@@ -5,21 +5,13 @@ export const useKeyboardShortcuts = ({
   tabPages,
   setActivePage,
   setSubtabShortcut,
-  toggleAccessibilityPanel,
-  toggleShortcutPanel,
   setShortcutStats,
-  closeAllPanels,
 }) => {
   useEffect(() => {
     const onKeyDown = (event) => {
       const targetTag = event.target?.tagName;
       const isTypingTarget = targetTag === 'INPUT' || targetTag === 'TEXTAREA' || targetTag === 'SELECT' || event.target?.isContentEditable;
       const key = event.key?.toLowerCase();
-
-      if (event.key === 'Escape') {
-        closeAllPanels();
-        return;
-      }
 
       if (isTypingTarget) return;
 
@@ -41,16 +33,6 @@ export const useKeyboardShortcuts = ({
         }
       }
 
-      if (event.altKey && key === 'a') {
-        toggleAccessibilityPanel();
-        usedShortcut = true;
-      }
-
-      if (event.altKey && key === 'k') {
-        toggleShortcutPanel();
-        usedShortcut = true;
-      }
-
       if (usedShortcut) {
         event.preventDefault();
         setShortcutStats((prev) => ({ ...prev, usageCount: prev.usageCount + 1 }));
@@ -61,12 +43,9 @@ export const useKeyboardShortcuts = ({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [
     activePage,
-    closeAllPanels,
     setActivePage,
     setShortcutStats,
     setSubtabShortcut,
     tabPages,
-    toggleAccessibilityPanel,
-    toggleShortcutPanel,
   ]);
 };

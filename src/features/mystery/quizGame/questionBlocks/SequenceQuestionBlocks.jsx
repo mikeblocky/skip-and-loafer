@@ -1,7 +1,6 @@
 import React from 'react';
 import { triggerHaptic } from '../../../../utils/haptics';
 import { QUIZ_BUTTON_PALETTES } from '../QuizPrimitives';
-import { getLocalizedQuizOption } from '../quizCopy';
 import { toMysteryLabelCase } from '../ui';
 import {
   QuestionContinueAction,
@@ -34,7 +33,7 @@ export const Sort4Question = React.memo(function Sort4Question({
               isMobile={isMobile}
               selected={selected}
               order={order}
-              label={getLocalizedQuizOption(t, question.id, index, option.text)}
+              label={option.text}
               onClick={() => {
                 triggerHaptic('selection');
                 setSortSelection((previous) => toggleBoundedSelection(previous, index, sortTarget));
@@ -68,7 +67,7 @@ export const Sort4Question = React.memo(function Sort4Question({
         getSlotLabel={(slot) => {
           const selectedIndex = sortSelection[slot];
           return selectedIndex != null
-            ? getLocalizedQuizOption(t, question.id, selectedIndex, question.options?.[selectedIndex]?.text)
+            ? question.options?.[selectedIndex]?.text
             : '...';
         }}
       />
@@ -109,7 +108,7 @@ export const PairMatchQuestion = React.memo(function PairMatchQuestion({
               isMobile={isMobile}
               selected={selected}
               order={order}
-              label={getLocalizedQuizOption(t, question.id, index, option.text)}
+              label={option.text}
               onClick={() => {
                 triggerHaptic('selection');
                 setPairMatchSelection((previous) => toggleBoundedSelection(previous, index, pairTarget));
@@ -135,7 +134,7 @@ export const PairMatchQuestion = React.memo(function PairMatchQuestion({
         getSlotLabel={(slot) => {
           const selectedIndex = pairMatchSelection[slot];
           return selectedIndex != null
-            ? getLocalizedQuizOption(t, question.id, selectedIndex, question.options?.[selectedIndex]?.text)
+            ? question.options?.[selectedIndex]?.text
             : '...';
         }}
       />
@@ -177,7 +176,7 @@ export const ConstellationQuestion = React.memo(function ConstellationQuestion({
               isMobile={isMobile}
               selected={selected}
               order={order}
-              label={getLocalizedQuizOption(t, question.id, index, option.text)}
+              label={option.text}
               onClick={() => {
                 triggerHaptic('selection');
                 setConstellationSelection((previous) => toggleBoundedSelection(previous, index, constellationTarget));
@@ -203,7 +202,7 @@ export const ConstellationQuestion = React.memo(function ConstellationQuestion({
         getSlotLabel={(slot) => {
           const selectedIndex = constellationSelection[slot];
           return selectedIndex != null
-            ? getLocalizedQuizOption(t, question.id, selectedIndex, question.options?.[selectedIndex]?.text)
+            ? question.options?.[selectedIndex]?.text
             : '...';
         }}
       />

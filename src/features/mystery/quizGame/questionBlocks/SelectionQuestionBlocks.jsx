@@ -9,7 +9,6 @@ import {
   QUIZ_BUTTON_PALETTES,
   QUIZ_PANEL_PALETTES,
 } from '../QuizPrimitives';
-import { getLocalizedQuizOption, getLocalizedQuizText } from '../quizCopy';
 import { toMysteryLabelCase } from '../ui';
 import { toggleBoundedSelection } from './QuestionBlockPrimitives';
 
@@ -117,7 +116,7 @@ export const MultiQuestion = React.memo(function MultiQuestion({
             }}
             style={optionButtonStyle(isMobile)}
           >
-            {selected ? '\u2713 ' : ''}{getLocalizedQuizOption(t, question.id, index, option.text)}
+            {selected ? '\u2713 ' : ''}{option.text}
           </QuizActionButton>
         );
       })}
@@ -168,7 +167,7 @@ export const RankQuestion = React.memo(function RankQuestion({
             <span aria-hidden="true" style={{ ...selectionBadgeStyle, border: `3px solid ${palette.badgeBorder}`, background: palette.badgeBg, color: palette.badgeText }}>
               {selected ? rankPosition + 1 : ''}
             </span>
-            <span>{getLocalizedQuizOption(t, question.id, index, option.text)}</span>
+            <span>{option.text}</span>
           </QuizActionButton>
         );
       })}
@@ -208,7 +207,7 @@ export const IpsativeQuestion = React.memo(function IpsativeQuestion({
             style={{ padding: isMobile ? '14px 16px' : '18px 20px', gap: '14px' }}
           >
             <div style={{ color: '#1e293b', fontSize: '1.05rem', lineHeight: 1.35, fontWeight: '700' }}>
-              {getLocalizedQuizOption(t, question.id, index, option.text)}
+              {option.text}
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <QuizActionButton
@@ -264,8 +263,8 @@ export const SpectrumQuestion = React.memo(function SpectrumQuestion({
   spectrumValue,
   t,
 }) {
-  const leftLabel = getLocalizedQuizText(t, question.id, 'leftLabel', question.leftLabel);
-  const rightLabel = getLocalizedQuizText(t, question.id, 'rightLabel', question.rightLabel);
+  const leftLabel = question.leftLabel;
+  const rightLabel = question.rightLabel;
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
@@ -305,7 +304,7 @@ export const AllocationQuestion = React.memo(function AllocationQuestion({
             style={{ padding: isMobile ? '14px 16px' : '16px 20px', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: '14px', boxShadow: '0 4px 0 rgba(0,0,0,0.02)' }}
           >
             <div style={{ color: '#1e293b', fontSize: '1.05rem', lineHeight: 1.35, fontWeight: '700' }}>
-              {getLocalizedQuizOption(t, question.id, index, option.text)}
+              {option.text}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <QuizActionButton
@@ -383,7 +382,7 @@ export const DriftQuestion = React.memo(function DriftQuestion({
               <span aria-hidden="true" style={{ ...selectionBadgeStyle, width: '30px', minWidth: '30px', border: `3px solid ${selected ? '#06b6d4' : '#cbd5e1'}`, background: 'var(--surface-card, #f8fafc)', color: selected ? '#67e8f9' : 'var(--text-muted, #94a3b8)' }}>
                 {selected ? order + 1 : ''}
               </span>
-              <span style={{ fontSize: '1.02rem' }}>{getLocalizedQuizOption(t, question.id, index, option.text)}</span>
+              <span style={{ fontSize: '1.02rem' }}>{option.text}</span>
             </QuizActionButton>
           );
         })}
@@ -394,7 +393,7 @@ export const DriftQuestion = React.memo(function DriftQuestion({
         getSlotTitle={(slot) => `#${slot + 1}`}
         getSlotLabel={(slot) => {
           const selectedIndex = driftSelection[slot];
-          return selectedIndex != null ? getLocalizedQuizOption(t, question.id, selectedIndex, question.options?.[selectedIndex]?.text) : '...';
+          return selectedIndex != null ? question.options?.[selectedIndex]?.text : '...';
         }}
       />
       <QuizInstruction isMobile={isMobile}>{getQuestionInstruction(question)}</QuizInstruction>

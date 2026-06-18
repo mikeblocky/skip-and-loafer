@@ -1,6 +1,5 @@
-import { memo, useEffect, useRef, useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Users2 } from 'lucide-react';
+import { memo, useEffect, useRef, useCallback } from 'react';
+import { Home, BookOpen, BarChart3, Cake, Image as ImageIcon, FileText, Trophy, PenLine, ImagePlus, Package, Settings, HelpCircle, Users2, Camera } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 import { toUiLabelCase } from '../../utils/textCase';
 
@@ -15,21 +14,14 @@ const DEFAULT_TABS = [
     { id: 'sync',       label: 'Reading',    icon: BarChart3, color: '#38c972', textColor: '#15803d', group: 'community' },
     { id: 'quiz',       label: 'Quiz',       icon: Trophy,    color: '#ff5757', textColor: '#b91c1c', group: 'activities' },
     { id: 'mystery',    label: 'Mystery',    icon: Package,   color: '#f472b6', textColor: '#be185d', group: 'activities' },
+    { id: 'stickerCam', label: 'Sticker Cam', mobileLabel: 'SnapCam', icon: Camera, color: '#06b6d4', textColor: '#0891b2', group: 'activities' },
     { id: 'birthdays',  label: 'Birthdays',  icon: Cake,      color: '#ffb11f', textColor: '#a16207', group: 'activities' },
     { id: 'tutorial',   label: 'Tutorial',   mobileLabel: 'Guide', icon: HelpCircle, color: '#06b6d4', textColor: '#0891b2', group: 'misc' },
     { id: 'settings',   label: 'Settings',   icon: Settings,  color: '#818cf8', textColor: '#4338ca', group: 'misc' },
 ];
 
-const GROUP_LABELS = {
-    gallery:    'Gallery',
-    community:  'Community',
-    activities: 'Activities',
-    misc:       null, // just a divider
-};
-
-const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab', unreadCount = 0 }) => {
+const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTabPrefix = 'Open', tabSuffix = 'tab' }) => {
   const railRef = useRef(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const tabsToRender = Array.isArray(tabs) && tabs.length > 0
     ? DEFAULT_TABS.filter((tab) => tabs.includes(tab.id))
     : DEFAULT_TABS;
@@ -37,23 +29,16 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
   const handleTabPress = useCallback((tabId) => {
     triggerHaptic('selection');
     onPageChange(tabId);
-    setIsMobileMenuOpen(false);
   }, [onPageChange]);
 
   useEffect(() => {
     if (!isMobile || !railRef.current) return;
     const activeButton = railRef.current.querySelector(`[data-tab-id="${activePage}"]`);
     if (!activeButton) return;
-
-    activeButton.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
+    activeButton.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, [activePage, isMobile]);
 
   if (isMobile) {
-    // Elegant space-saving frosted glass bottom dock
     return (
       <div
         style={{
@@ -96,22 +81,15 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
             return (
               <div
                 key={`wrap-${tab.id}`}
-                style={{
-                  display: 'flex',
-                  flex: '0 0 auto',
-                  minWidth: `${mobileBasis}px`,
-                  scrollSnapAlign: 'start',
-                }}
+                style={{ display: 'flex', flex: '0 0 auto', minWidth: `${mobileBasis}px`, scrollSnapAlign: 'start' }}
               >
-                <motion.button
+                <button
                   key={tab.id}
                   data-tab-id={tab.id}
                   onClick={() => handleTabPress(tab.id)}
                   aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
                   aria-current={isActive ? 'page' : undefined}
-                  whileHover={{ scale: 1.06, y: -2, rotate: 1 }}
-                  whileTap={{ scale: 0.88, rotate: -2, y: 2 }}
-                  transition={{ type: 'spring', stiffness: 550, damping: 14 }}
+                  className="nav-mobile-btn"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -129,24 +107,18 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
                     fontSize: '0.86rem',
                     lineHeight: 1.1,
                     fontWeight: isActive ? '700' : '600',
-                    color: isActive
-                      ? `var(--themed-nav-active-text-mobile, ${tab.color})`
-                      : `var(--themed-nav-text, ${tab.textColor})`,
+                    color: isActive ? `var(--themed-nav-active-text-mobile, ${tab.color})` : `var(--themed-nav-text, ${tab.textColor})`,
                     opacity: isActive ? 1 : 0.82,
-                    boxShadow: isActive
-                      ? `0 4px 12px ${tab.color}25`
-                      : `0 2px 4px ${tab.color}08`,
+                    boxShadow: isActive ? `0 4px 12px ${tab.color}25` : `0 2px 4px ${tab.color}08`,
                     width: '100%',
                     flex: '1 1 auto',
                     minHeight: '38px',
                     overflow: 'hidden',
-                    transition: 'opacity 0.15s ease',
                   }}
                 >
                   <Icon size={iconSize} strokeWidth={2.4} />
                   <span>{label}</span>
-
-                </motion.button>
+                </button>
               </div>
             );
           })}
@@ -155,15 +127,14 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
     );
   }
 
-  // Notebook Bookmark Sidebar — tabs look like physical paper dividers
+  // Notebook Bookmark Sidebar
   const items = [];
   tabsToRender.forEach((tab) => {
     const isActive = activePage === tab.id;
     const Icon = tab.icon;
     const label = toUiLabelCase(labelsById?.[tab.id]?.label || tab.label);
-    const iconSize = 17;
     items.push(
-      <motion.button
+      <button
         key={tab.id}
         data-tab-id={tab.id}
         data-active={isActive ? 'true' : 'false'}
@@ -171,9 +142,6 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
         aria-label={`${openTabPrefix} ${label} ${tabSuffix}`}
         aria-current={isActive ? 'page' : undefined}
         className="nav-bookmark-btn"
-        whileHover={{ x: 4, scale: 1.03, rotate: 0.5, boxShadow: `0 6px 18px ${tab.color}50` }}
-        whileTap={{ scale: 0.91, x: 2, rotate: -1 }}
-        transition={{ type: 'spring', stiffness: 480, damping: 16 }}
         style={{
           position: 'relative',
           display: 'flex',
@@ -193,43 +161,27 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
           lineHeight: 1.2,
           fontWeight: isActive ? '700' : '600',
           color: isActive ? '#ffffff' : tab.textColor,
-          boxShadow: isActive
-            ? `0 4px 14px ${tab.color}40`
-            : `0 1px 4px ${tab.color}18`,
+          boxShadow: isActive ? `0 4px 14px ${tab.color}40` : `0 1px 4px ${tab.color}18`,
           width: 'calc(100% + 32px)',
           textAlign: 'left',
           overflow: 'visible',
         }}
       >
-        <motion.span
-          style={{ display: 'inline-flex', alignItems: 'center', color: isActive ? '#ffffff' : tab.color, flexShrink: 0 }}
-          animate={isActive ? { rotate: [0, -8, 6, -3, 0], scale: [1, 1.2, 1.05, 1.1, 1] } : {}}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        >
-          <Icon size={iconSize} strokeWidth={isActive ? 2.6 : 2.2} />
-        </motion.span>
+        <span className="nav-tab-icon" style={{ display: 'inline-flex', alignItems: 'center', color: isActive ? '#ffffff' : tab.color, flexShrink: 0 }}>
+          <Icon size={17} strokeWidth={isActive ? 2.6 : 2.2} />
+        </span>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {label}
         </span>
         {isActive && (
-          <motion.span
-            initial={{ scale: 0, rotate: -20, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 14, delay: 0.05 }}
-            style={{
-              position: 'absolute',
-              right: -22,
-              top: '50%',
-              marginTop: -8,
-              fontSize: '13px',
-              pointerEvents: 'none',
-              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))',
-            }}
+          <span
+            className="nav-active-star"
+            style={{ position: 'absolute', right: -22, top: '50%', marginTop: -8, fontSize: '13px', pointerEvents: 'none', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.15))' }}
           >
             ✦
-          </motion.span>
+          </span>
         )}
-      </motion.button>
+      </button>
     );
   });
 
@@ -259,5 +211,3 @@ const NavTabs = ({ activePage, onPageChange, isMobile, tabs, labelsById, openTab
 };
 
 export default memo(NavTabs);
-// Force Vite HMR cache invalidation
-

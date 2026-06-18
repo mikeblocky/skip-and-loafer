@@ -1,12 +1,22 @@
-import en from '../../../config/locales/en';
+import { useState, useEffect } from 'react';
+import { getMysteryText } from '../../../i18n/mystery';
 
-const ENGLISH_MYSTERY_TEXT = Object.freeze({
-  mystery: en.mystery || {},
-  quiz: en.quiz || {},
-});
+let cache = {};
 
-export function useMysteryText() {
-  return { text: ENGLISH_MYSTERY_TEXT, isReady: true };
+export function useMysteryText(lang = 'en') {
+  const [text, setText] = useState(() => cache[lang] || {});
+
+  useEffect(() => {
+    if (cache[lang]) {
+      setText(cache[lang]);
+      return;
+    }
+    const resolved = getMysteryText(lang);
+    cache[lang] = Object.freeze({ mystery: resolved.mystery || {}, quiz: resolved.quiz || {} });
+    setText(cache[lang]);
+  }, [lang]);
+
+  return { text, isReady: !!text.mystery };
 }
 
 export default useMysteryText;

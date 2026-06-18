@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react';
-import { APP_UI_TEXT } from '../../../config/appUiText';
+import { CHAPTERS, isMainChapter } from '../../../data/chapters';
+import { UI } from '../../../i18n/ui';
 import { registerHapticGesture, triggerHaptic } from '../../../utils/haptics';
 import { useReadProgress } from '../../chapters/hooks/useReadProgress';
 import { useSyncData } from '../../sync/hooks/useSyncData';
@@ -33,7 +34,7 @@ import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useMainScrollTop } from './useMainScrollTop';
 import { usePageHistorySync } from './usePageHistorySync';
 import { usePersistedAppState } from './usePersistedAppState';
-import { useQuickPanels } from './useQuickPanels';
+import { useSiteStats } from './useSiteStats';
 import { useReaderChapterNavigation } from './useReaderChapterNavigation';
 import { useTabSwipeNavigation } from './useTabSwipeNavigation';
 import { useUiBootDelay } from './useUiBootDelay';
@@ -57,7 +58,7 @@ export const useAppController = () => {
     pendingLinks,
   } = useReadProgress();
   const syncData = useSyncData(reloadFromStorage);
-  const { pushNow } = syncData;
+  const { pushNow, syncActive } = syncData;
 
   const markFinished = useCallback((chapter) => {
     rawMarkFinished(chapter);
@@ -83,33 +84,20 @@ export const useAppController = () => {
   const visibleTabPages = useMemo(() => getVisibleTabPages(uiLanguage), [uiLanguage]);
   const [activePage, setActivePage] = useState(() => getInitialActivePage(visibleTabPages));
   const [readerChapter, setReaderChapter] = useState(getInitialReaderChapter);
-  const quickControlsRef = useRef(null);
   const mainScrollRef = useRef(null);
   const [subtabShortcut, setSubtabShortcut] = useState({ key: null, token: 0 });
   const [shortcutStats, setShortcutStats] = useState(getInitialShortcutStats);
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(getInitialAccessibilityPrefs);
   const [readerPrefs, setReaderPrefs] = useState(getInitialReaderPrefs);
 
-  const t = APP_UI_TEXT[uiLanguage] || APP_UI_TEXT.en;
+  const t = UI[uiLanguage] || UI.en;
   const supportedUiLanguages = getSupportedUiLanguages();
   const displayActivePage = visibleTabPages.includes(activePage) ? activePage : (visibleTabPages[0] || DEFAULT_PAGE);
+  const siteStats = useSiteStats({ activePage: displayActivePage, syncActive, pushNow });
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
   const deferredShellMount = useDeferredMount(showUI, 180);
   const showDecorativeLayer = deferredShellMount && !accessibilityPrefs.simplifyVisuals;
-
-  const {
-    showAccessibilityPanel,
-    showShortcutPanel,
-    showLanguageMenu,
-    showSettingsMain,
-    setShowLanguageMenu,
-    toggleAccessibilityPanel,
-    toggleShortcutPanel,
-    toggleLanguagePanel,
-    toggleSettingsMain,
-    closeAllPanels,
-  } = useQuickPanels({ quickControlsRef, shortcutStats, setShortcutStats });
 
   const { handleMainTouchStart, handleMainTouchEnd } = useTabSwipeNavigation({
     activePage: displayActivePage,
@@ -137,10 +125,7 @@ export const useAppController = () => {
     tabPages: visibleTabPages,
     setActivePage,
     setSubtabShortcut,
-    toggleAccessibilityPanel,
-    toggleShortcutPanel,
     setShortcutStats,
-    closeAllPanels,
   });
 
   const { showScrollTop, scrollToTop } = useMainScrollTop({ mainScrollRef, showUI });
@@ -150,7 +135,6 @@ export const useAppController = () => {
     void flushPendingRequests();
 
     const handleOnline = () => {
-      console.log('App is back online. Syncing pending requests...');
       void flushPendingRequests();
     };
 
@@ -262,6 +246,12 @@ export const useAppController = () => {
   const [cardPositions] = useState(createInitialCardPositions);
   const [stickerLayoutById] = useState(createStickerLayoutById);
 
+  const unreadCount = useMemo(() => {
+    const total = CHAPTERS.filter((ch) => isMainChapter(ch.number) && (ch.links?.en || ch.pages)).length;
+    const done = CHAPTERS.filter((ch) => isMainChapter(ch.number) && isFinished(ch.number)).length;
+    return Math.max(0, total - done);
+  }, [isFinished]);
+
   return {
     accessibilityPrefs,
     activePage: displayActivePage,
@@ -289,23 +279,17 @@ export const useAppController = () => {
     mainScrollRef,
     markFinished,
     pendingLinks,
-    quickControlsRef,
     readCounts,
     readerChapter,
     reloadFromStorage,
     scrollToTop,
     setAccessibilityColorBlindMode,
-    setShowLanguageMenu,
     setUiLanguage,
     shortcutStats,
-    showAccessibilityPanel,
     showDecorativeLayer,
     showDisclaimer,
-    showLanguageMenu,
     showMitsumiReplayBanner,
     showScrollTop,
-    showSettingsMain,
-    showShortcutPanel,
     showUI,
     stickerLayoutById,
     stickerPositions: stickerPositionsRef.current,
@@ -314,15 +298,11 @@ export const useAppController = () => {
     setReaderPrefs,
     syncData,
     t,
-    tabCount: visibleTabPages.length,
     visibleTabPages,
-    toggleAccessibilityPanel,
     toggleAccessibilityPref,
-    toggleLanguagePanel,
-    toggleSettingsMain,
-    toggleShortcutPanel,
     trackExternalLink,
     uiLanguage,
     unmarkFinished,
+    unreadCount,
   };
 };
