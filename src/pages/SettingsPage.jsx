@@ -231,13 +231,19 @@ const SettingsPage = ({
     };
 
     refreshStorageStatus();
+    const refreshIntervalId = window.setInterval(refreshStorageStatus, 1800);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', refreshStorageStatus);
+    document.addEventListener('visibilitychange', refreshStorageStatus);
     navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
 
     return () => {
+      window.clearInterval(refreshIntervalId);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', refreshStorageStatus);
+      document.removeEventListener('visibilitychange', refreshStorageStatus);
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
     };
   }, []);
@@ -1322,7 +1328,7 @@ const SettingsPage = ({
                     style={{
                       width: `${offlineProgress}%`,
                       height: '100%',
-                      background: 'linear-gradient(90deg, #f59e0b, #22c55e)',
+                      background: '#f59e0b',
                       transition: 'width 0.2s ease',
                     }}
                   />
