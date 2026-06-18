@@ -66,7 +66,7 @@ const cacheOfflineAssets = async (assets = [], onProgress) => {
       const asset = uniqueAssets[nextIndex];
       nextIndex += 1;
       const request = new Request(asset, { cache: 'reload' });
-      const cached = await cache.match(request);
+      const cached = await caches.match(request);
       if (cached) {
         cachedCount += 1;
         processedCount += 1;
@@ -123,7 +123,7 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((names) => Promise.all(
         names
-          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE && n !== OFFLINE_CACHE)
+          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE && !n.startsWith('skip-offline-'))
           .map((n) => caches.delete(n)),
       ))
       .then(() => self.clients.claim()),
@@ -133,7 +133,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_CLEAR_OFFLINE_CACHE') {
     event.waitUntil(
-      caches.delete(OFFLINE_CACHE).then(() => {
+      caches.keys().then((names) => Promise.all(
+        names
+          .filter((name) => name.startsWith('skip-offline-'))
+          .map((name) => caches.delete(name)),
+      )).then(() => {
         if (event.source) {
           event.source.postMessage({
             type: 'SKIP_OFFLINE_CACHE_CLEARED',
