@@ -362,7 +362,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
 
       setEntries(response.signatures);
       setMessage('');
-      setSuccessMessage(activeTab === 'pride' ? 'Your Pride note is on the wall! ❤️‍🔥' : copy.success);
+      setSuccessMessage(activeTab === 'pride' ? 'Your note was posted.' : copy.success);
       setIsComposerOpen(false);
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);
@@ -433,7 +433,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
           isMobile={isMobile}
           entries={filteredEntries}
           isLoading={isLoading}
-          emptyMessage={isPride ? 'No Pride notes yet — be the first to send one! ❤️‍🔥' : copy.empty}
+          emptyMessage={isPride ? 'No notes yet. Be the first to post one.' : copy.empty}
           uiLanguage={uiLanguage}
           notesBoardRef={notesBoardRef}
           noteBoardMinHeight={noteBoardMinHeight}
@@ -473,10 +473,10 @@ export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
           copy={{
             ...copy,
             subtitle: isPride
-              ? 'Send a warm Pride Month note for readers, fans, and the community!'
+              ? 'Leave a message for readers, fans, and the community.'
               : copy.subtitle,
             messagePlaceholder: isPride
-              ? 'Send a supportive message, share your pride, or just say hello...'
+              ? 'Write a message or say hello...'
               : copy.messagePlaceholder,
           }}
           name={name}

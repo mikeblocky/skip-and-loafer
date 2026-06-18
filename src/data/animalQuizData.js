@@ -17,7 +17,7 @@ export const ANIMAL_DISPLAY_TRAITS = [
     key: 'denSoftness',
     label: 'Den softness',
     high: 'deeply soothed by comfort, familiarity, and gentle closeness',
-    low: 'less tied to cozy predictability and more open to movement',
+    low: 'less tied to predictable comfort and more open to movement',
   },
   {
     key: 'soloRoam',
@@ -73,7 +73,7 @@ export const ANIMAL_PROFILES = {
     factors: { chaosCharm: 32, watchCircle: 62, denSoftness: 98, soloRoam: 42, ritualAnchor: 94, bounceEnergy: 28 },
     openers: [
       'Your result settles on Omiso energy: comforting, soft, and quietly grounding for everyone nearby.',
-      'This looks very Omiso: cozy, affectionate, and steady in a way that lowers the temperature of the room.',
+      'This looks very Omiso: warm, affectionate, and steady in a way that lowers the tension in any room.',
       'You matched Omiso because your pattern keeps choosing softness, safety, and reliable warmth over noise.',
     ],
     anchor: 'You regulate best through comfort, familiar pacing, and a calm kind of closeness.',

@@ -412,12 +412,12 @@ const SettingsPage = ({
   const pageEntries = Object.entries(usageStats.pages || {});
   const favoritePage = pageEntries
     .sort(([, left], [, right]) => (right.timeMs || 0) - (left.timeMs || 0))[0];
-  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'Nowhere yet';
+  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'None yet';
   const usageRoast = usageStats.totalTimeMs > 3600000
-    ? 'Certified resident. The website should probably offer you tea.'
+    ? 'You have spent over an hour here total.'
     : usageStats.totalTimeMs > 600000
-      ? 'A respectable loaf. Not alarming. Yet.'
-      : 'Freshly arrived. Your chair is still warm, not haunted.';
+      ? 'You have spent more than 10 minutes here across your visits.'
+      : 'You are new here. No usage history yet to speak of.';
 
   const offlineProgress = Math.max(
     0,
@@ -440,7 +440,7 @@ const SettingsPage = ({
     { keyLabel: '1..8', description: t.mainTabShortcut || fallbackText.mainTabShortcut || 'Jump to a main tab', icon: '🏠' },
     { keyLabel: 'Q / E', description: t.prevNextSubtab || fallbackText.prevNextSubtab || 'Previous / next subtab', icon: '↔️' },
     { keyLabel: 'Alt+A', description: t.accessibility || 'Accessibility', icon: '♿' },
-    { keyLabel: 'Alt+K', description: t.shortcuts || 'Keyboard Help', icon: '⌨️' },
+    { keyLabel: 'Alt+K', description: t.shortcuts || 'Keyboard shortcuts', icon: '⌨️' },
     { keyLabel: 'Esc', description: t.close || 'Close overlay', icon: '✖️' },
   ];
 
@@ -979,7 +979,7 @@ const SettingsPage = ({
                 {[
                   { key: 'largeText', label: t.largeTextMode || 'Larger text', Icon: ALargeSmall },
                   { key: 'wideSpacing', label: t.widerSpacingMode || 'Wider spacing', Icon: Space },
-                  { key: 'focusWidth', label: t.focusWidthMode || 'Comfort width', Icon: Focus },
+                  { key: 'focusWidth', label: t.focusWidthMode || 'Narrow column', Icon: Focus },
                 ].map((pref) => {
                   const isActive = !!readerPrefs[pref.key];
                   return (
@@ -1108,15 +1108,15 @@ const SettingsPage = ({
               <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#fed7aa', '#f97316', '#fff7ed', '#c2410c')}>
                 <Clock3 size={18} strokeWidth={2.4} />
               </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Website residency check</span>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Usage summary</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
               {[
-                { label: 'Total loitering', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
+                { label: 'Time on site', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
                 { label: 'Times accessed', value: usageStats.visits || 0, icon: MousePointerClick, color: '#2563eb' },
-                { label: 'Page hops', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
-                { label: 'Favorite corner', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
+                { label: 'Page switches', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
+                { label: 'Most visited page', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
               ].map((stat) => (
                 <div
                   key={stat.label}
@@ -1138,7 +1138,7 @@ const SettingsPage = ({
                   </div>
                   <div style={{
                     fontFamily: 'var(--font-paper)',
-                    fontSize: stat.label === 'Favorite corner' ? '1.05rem' : '1.25rem',
+                    fontSize: stat.label === 'Most visited page' ? '1.05rem' : '1.25rem',
                     color: 'var(--text-primary)',
                     lineHeight: 1.15,
                     overflowWrap: 'anywhere',
@@ -1161,7 +1161,7 @@ const SettingsPage = ({
                 lineHeight: 1.45,
               }}
             >
-              {usageRoast} Synced with your sync key, so every device can contribute to the evidence folder.
+              {usageRoast} Synced with your sync key across devices.
             </div>
           </div>
           
@@ -1289,7 +1289,7 @@ const SettingsPage = ({
               <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#a7f3d0', '#10b981', '#ecfdf5', '#047857')}>
                 <Languages size={18} strokeWidth={2.4} />
               </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.language || 'LanguageSelector'}</span>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.language || 'Language'}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

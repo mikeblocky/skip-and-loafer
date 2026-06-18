@@ -286,6 +286,7 @@ export const useAppController = () => {
     setAccessibilityColorBlindMode,
     setUiLanguage,
     shortcutStats,
+    siteStats,
     showDecorativeLayer,
     showDisclaimer,
     showMitsumiReplayBanner,

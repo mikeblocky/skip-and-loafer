@@ -30,7 +30,7 @@ export const CHANGELOG_SERIES = [
     icon: Moon,
     color: { border: '#818cf8', bottom: '#6366f1', bg: 'var(--surface-card, #eef2ff)', icon: '#818cf8' },
     lines: [
-      { type: 'fixed', text: 'Systemic fix: all sketchbook panel elements now properly darken. No more white card surprises.' },
+      { type: 'fixed', text: 'All sketchbook panel elements now properly darken in dark mode.' },
       { type: 'fixed', text: 'Chapter reading cards, leaderboard rows, and tutorial guide sections fully adapted.' },
       { type: 'fixed', text: 'Mystery pick draw button and pulled-character prediction card now use dark surfaces.' },
       { type: 'fixed', text: 'Blog reader Paper & Sepia button, quiz choice grids, and rank question selections now respect dark mode.' },
@@ -52,8 +52,8 @@ export const CHANGELOG_SERIES = [
     icon: BookOpen,
     color: { border: '#fb923c', bottom: '#ea580c', bg: 'var(--surface-card, #fff7ed)', icon: '#fb923c' },
     lines: [
-      { type: 'added', text: 'Introduced the full paper notebook visual identity: textured panels, scrapbook borders, and hand-drawn accents throughout.' },
-      { type: 'added', text: 'Skip & Loafer character illustrations added as animated companions across key screens.' },
+      { type: 'added', text: 'Paper notebook visual style: textured panels, scrapbook borders, and hand-drawn accents throughout.' },
+      { type: 'added', text: 'Character illustrations added as animated elements across key screens.' },
       { type: 'changed', text: 'Gallery images converted to WebP for faster loads and crisper quality.' },
     ],
   },
@@ -72,8 +72,8 @@ export const CHANGELOG_SERIES = [
     color: { border: '#fbbf24', bottom: '#d97706', bg: 'var(--surface-card, #fffbeb)', icon: '#fbbf24' },
     lines: [
       { type: 'fixed', text: 'Quiz playing screen is now scrollable so long questions never get clipped.' },
-      { type: 'changed', text: 'Inline feedback bar replaces the old pop-up modal. Stays in context as you play.' },
-      { type: 'changed', text: 'Narrower max-width keeps questions readable on wide screens.' },
+      { type: 'changed', text: 'Inline feedback bar replaces the pop-up modal, staying in context as you play.' },
+      { type: 'changed', text: 'Narrower max-width improves readability on wide screens.' },
     ],
   },
   {
@@ -95,7 +95,7 @@ export const TYPE_META = {
 };
 
 export const UI_TEXT = {
-  en: { whatsNew: "What's new", releaseDate: 'Release date', local: 'local', gotIt: 'Got it!', type: { added: 'New', changed: 'Updated', removed: 'Removed', fixed: 'Fixed' } },
+  en: { whatsNew: "What's new", releaseDate: 'Release date', local: 'local', gotIt: 'Dismiss', type: { added: 'New', changed: 'Updated', removed: 'Removed', fixed: 'Fixed' } },
   es: { whatsNew: 'Novedades', releaseDate: 'Fecha de lanzamiento', local: 'local', gotIt: '¡Entendido!', type: { added: 'Nuevo', changed: 'Actualizado', removed: 'Eliminado', fixed: 'Corregido' } },
   pt: { whatsNew: 'Novidades', releaseDate: 'Data de lançamento', local: 'local', gotIt: 'Entendi!', type: { added: 'Novo', changed: 'Atualizado', removed: 'Removido', fixed: 'Corrigido' } },
   fr: { whatsNew: 'Nouveautés', releaseDate: 'Date de sortie', local: 'locale', gotIt: 'Compris !', type: { added: 'Nouveau', changed: 'Mis à jour', removed: 'Supprimé', fixed: 'Corrigé' } },

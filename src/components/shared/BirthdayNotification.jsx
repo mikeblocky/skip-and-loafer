@@ -23,76 +23,76 @@ const CHARACTER_BIRTHDAYS = [
 /* ─── Announcement variations per character ─── */
 const ANNOUNCEMENTS = {
     Mitsumi: [
-        "From the salt-aired hills of Ishikawa to the bustling pulse of Tokyo, the girl with the earnest heart finds her stride. Happy birthday, Mitsumi; may your spirit always keep flapping toward the light. 🌊",
-        "Today we celebrate the girl who turns every stumble into a dance. Happy birthday, Iwakura Mitsumi—our future bureaucrat and our constant sun.",
-        "It is March 3rd, the day the plum blossoms begin to wake. Happy birthday to Mitsumi, whose honesty is the heartbeat of our school. 🌸",
-        "To the girl who gives her all until her cheeks are flushed and her heart is full: may your year be as bright as your dreams. Happy birthday, Mitsumi."
+        "Happy birthday, Mitsumi! From Ishikawa all the way to Tokyo, you've put in real effort every step of the way. Hope this year keeps going your direction.",
+        "Happy birthday, Iwakura Mitsumi. You give everything you have and do it sincerely. That counts for a lot.",
+        "March 3rd — happy birthday, Mitsumi. Your honesty makes the people around you better. Have a great one.",
+        "Happy birthday, Mitsumi. You work hard and you mean it. May this year match the effort you put in."
     ],
     Shima: [
-        "Like a soft autumn breeze that asks for nothing in return, Sousuke moves through the world. Today, we celebrate the boy who is finally learning to stay. Happy birthday, Shima-kun. 🍃",
-        "October 9th marks the birth of a boy with a gentle smile and a quiet depth. May you find the things that make your own heart beat faster this year.",
-        "Happy birthday, Shima. May you shed the weight of expectations and find the joy in the simple, unscripted moments of life. 🌟",
-        "To the boy who brings the golden hour with him wherever he goes: may your day be as effortless and kind as you are."
+        "Happy birthday, Shima. You're easy to be around and people feel it. Hope today is a good, easy day for you.",
+        "October 9th — happy birthday to Shima. Quiet, thoughtful, and always a step ahead. May this year bring something worth staying for.",
+        "Happy birthday, Shima. You carry a lot quietly. Hope this birthday gives you a moment that's just for you.",
+        "Happy birthday, Sousuke. You make the people around you feel comfortable without trying too hard. That's a real thing."
     ],
     Makoto: [
-        "Between the quiet rustle of pages and the soft courage of a new friendship, Makoto has found her voice. Happy birthday to our most thoughtful soul. 📖",
-        "It's April 17th, a day for the girl who observes the world with kindness and steady eyes. Happy birthday, Makoto; your strength is in your steadiness.",
-        "To Kurume Makoto, who stepped out of the shadows and into a circle of friends: may your year be filled with stories worth sharing. ✨",
-        "Happy birthday, Makoto. You are the quiet bridge that connects us all, more brave and more loved than you know."
+        "Happy birthday, Makoto. You notice more than you let on, and you show up for people in the right moments. Hope this year treats you well.",
+        "April 17th — happy birthday, Kurume Makoto. Steady, thoughtful, and honest. You're someone people are glad to know.",
+        "Happy birthday, Makoto. You stepped into a new place and made it work. That took more than it looked like. Have a good one.",
+        "Happy birthday, Makoto. More people are glad you're here than you probably realize."
     ],
     Yuzu: [
-        "Behind the striking silhouette and the fashionable grace lies a heart of pure, protective gold. Happy birthday, Yuzuki. 🌿",
-        "December 11th belongs to the girl who stands tall and sees the truth in others. Happy birthday, Yuzu; stay as grounded and as beautiful as you are.",
-        "To the girl who is a sanctuary for her friends: may you receive all the warmth you so freely give. Happy birthday, Murashige Yuzuki. ✨",
-        "Happy birthday, Yuzu. You walk through the world with style, but it's your loyalty that leaves the lasting impression."
+        "Happy birthday, Yuzuki. You look after people without making a big deal of it. That matters more than most things. Hope today is good.",
+        "December 11th — happy birthday, Yuzu. You see people clearly and stay loyal. That's rare. Have a great birthday.",
+        "Happy birthday, Murashige Yuzuki. You give people a steady place to land. Hope this year gives you the same.",
+        "Happy birthday, Yuzu. You carry yourself with confidence, but it's how you look out for others that really stands out."
     ],
     Mika: [
-        "A summer's day for the girl who works harder than the sun to shine. Happy birthday, Mika; your growth is a melody we all love to hear. ☀️",
-        "July 29th is for Mika, the girl who learned that being herself is more than enough. May your year be as rewarding as your efforts.",
-        "Happy birthday, Mika-chan. From the sharp edges of competition to the soft landing of true friendship, you have traveled so far. 🎀",
-        "To the most relatable heart in Tokyo: may your birthday be a reflection of the beautiful, honest person you've become."
+        "Happy birthday, Mika. You hold yourself to a high standard and you put in the work. Hope this year reflects that effort.",
+        "July 29th — happy birthday, Egashira Mika. You've grown a lot and you've done it on your own terms. That deserves a proper celebration.",
+        "Happy birthday, Mika. You've come a long way and the direction is good. Have a birthday that matches how far you've come.",
+        "Happy birthday, Mika. You're more honest with yourself than most people are. That's worth something."
     ],
     Yamada: [
-        "The rhythm of a bouncing ball and the echo of a loud laugh—August 6th is for the boy who keeps our energy high. Happy birthday, Yamada! 🏀",
-        "To the life of the classroom and the king of the court: may your energy never fade and your appetite always be satisfied. Happy birthday, Yamada.",
-        "Happy birthday to the boy who wears his heart on his sleeve and his enthusiasm like a badge of honor. Keep making some noise! 📣",
-        "Yamada, you are the bright spark in every school day. May your birthday be a championship win for the books."
+        "Happy birthday, Yamada! You make every room a little louder and a lot more fun. Hope this birthday delivers on that energy.",
+        "August 6th — happy birthday, Yamada. You keep things moving and you bring people along with you. Have a great one.",
+        "Happy birthday, Yamada. You don't overthink it and people appreciate that more than you know. Enjoy the day.",
+        "Happy birthday, Yamada. You're a good person to have around. Hope today is exactly your kind of day."
     ],
     Mukai: [
-        "The steady hum of a summer afternoon and a cool drink in hand—today we celebrate the calm in the center of the storm. Happy birthday, Mukai. 🥤",
-        "May 19th be a day of leisure for the boy who notices the small things and keeps his friends close. Happy birthday, Mukai Tsukasa.",
-        "To the boy who listens more than he speaks: your quiet kindness is the glue that holds the group together. Happy birthday. 🍃",
-        "Happy birthday, Mukai. May your year be as chill as your vibes and as meaningful as your observations."
+        "Happy birthday, Mukai. You pay attention to things other people miss and you don't make a big deal out of it. That's a good quality. Have a calm, good day.",
+        "May 19th — happy birthday, Mukai Tsukasa. You're steady and reliable, and people count on that more than they say.",
+        "Happy birthday, Mukai. You listen well and say what you mean. Hope today is easy and enjoyable.",
+        "Happy birthday, Mukai. You hold the group together in a quiet way. Hope your year is as solid as you are."
     ],
     Takamine: [
-        "The click of heels on a direct path to success—today our president takes a well-earned breath. Happy birthday, Takamine-san. 👠",
-        "June 30th is for the girl who masters every minute. May you find the beauty in the unplanned detours this year, Tokiko.",
-        "Happy birthday to the girl who leads with iron will and a hidden, soft heart. Your discipline inspires us all. 🏔️",
-        "To Takamine-senpai: may your schedule today be cleared for nothing but joy and the fragrance of blooming flowers."
+        "Happy birthday, Takamine. You run things well and you take it seriously. Hope today is one where you get to step back and enjoy the results.",
+        "June 30th — happy birthday, Tokiko. You set the bar high and you clear it. May this year give you something worth organizing.",
+        "Happy birthday, Takamine-san. You lead with purpose and you follow through. That combination is harder than it looks.",
+        "Happy birthday, Takamine. You've earned a day off. Hope you actually take it."
     ],
     Kazakami: [
-        "Like the scent of spring rain on a quiet street, Kazakami-kun brings a gentle peace to every room. Happy birthday. 🌧️",
-        "April 24th belongs to the boy with the soft voice and the kindest eyes in the class. Happy birthday, Kazakami.",
-        "To the boy who finds the wonder in the background: may your own light shine a little brighter this year. ✨",
-        "Happy birthday, Kazakami. You are the soft melody in the soundtrack of our school days."
+        "Happy birthday, Kazakami. You make the people around you feel less tense without even trying. That's a good thing to be. Have a quiet, good day.",
+        "April 24th — happy birthday, Kazakami. You pay attention to what's going on in the background and that keeps things from going sideways.",
+        "Happy birthday, Kazakami. You're easy to be around and that makes a real difference. Hope this year is as steady as you are.",
+        "Happy birthday, Hiroto. You don't need the spotlight to make an impression. Hope today is genuinely good for you."
     ],
     Kanechika: [
-        "Curtain up and lights bright for the boy who dreams in cinematic sweeps! Happy birthday, Kanechika-senpai. 🎭",
-        "February 1st marks the birth of a director whose passion is the greatest show on earth. Keep chasing that vision, Taichi!",
-        "Happy birthday to the boy who refuses to live a boring life. May your year be a masterpiece of your own making. 🎬",
-        "To Kanechika: the stage is yours today. May your birthday be filled with the applause you deserve."
+        "Happy birthday, Kanechika! You go all in on what you care about and people can feel that. Hope this birthday matches your energy.",
+        "February 1st — happy birthday, Taichi. You have a vision and you pursue it seriously. Keep going.",
+        "Happy birthday, Kanechika. You make things happen when you commit. May this year give you something worth that commitment.",
+        "Happy birthday, Kanechika. The stage is yours today. Have a birthday as bold as everything you do."
     ],
     Chris: [
-        "A voice that cuts through the fog of a polite smile with the clarity of a bell. Happy birthday, Chris. �",
-        "August 24th is for the friend who knows that honesty is the highest form of love. Happy birthday, Christopher Walard.",
-        "To the boy who sees Shima for who he truly is: thank you for being the anchor in the drifting wind. Happy birthday. ⚓",
-        "Happy birthday, Chris. May your straightforward heart find all the sincerity it looks for in the world."
+        "Happy birthday, Chris. You say what you mean and you mean what you say. That's something people can rely on. Have a good one.",
+        "August 24th — happy birthday, Christopher Walard. You're honest with the people you care about and that takes some courage.",
+        "Happy birthday, Chris. You see people clearly and you're willing to say so. That's a good thing to be. Hope today is a great one.",
+        "Happy birthday, Chris. You're direct and you're kind and you make both of those work together. Hope this year is a good one."
     ],
     Ririka: [
-        "Draped in the elegance of an autumn evening, Ririka navigates a world that watches her every move. May you find peace today. �",
-        "October 30th is for the girl with the fragile grace and the hidden scars. Happy birthday, Ririka; you are more than your reflection.",
-        "Happy birthday, Ririka. May the shadows of the past soften into the light of a kinder, gentler future. ✨",
-        "To a girl of complex beauty and deep longing: may this year bring you a happiness that is entirely your own."
+        "Happy birthday, Ririka. You navigate a lot with more composure than most people could manage. Hope today brings something that's just for you.",
+        "October 30th — happy birthday, Ririka. You're more than what people see on the surface. Hope this birthday reflects who you actually are.",
+        "Happy birthday, Ririka. You've dealt with a lot and you're still here. That counts for something. Have a good birthday.",
+        "Happy birthday, Ririka. This year, may things get a little easier and a little more yours."
     ],
 };
 
@@ -147,7 +147,7 @@ const BirthdayNotification = ({ isMobile, uiLanguage = 'en' }) => {
             const sendNotifications = () => {
                 announcements.forEach(char => {
                     const displayName = getCharacterDisplayName(char.name, uiLanguage);
-                    new Notification(`🎂 Happy birthday, ${displayName}!`, {
+                    new Notification(`Happy birthday, ${displayName}!`, {
                         body: char.message,
                         icon: '/swt2-512.png',
                         badge: '/swt2-512.png',
@@ -277,7 +277,7 @@ const BirthdayNotification = ({ isMobile, uiLanguage = 'en' }) => {
                                     color: char.color,
                                     letterSpacing: '0.02em',
                                 }}>
-                                    🎂 Birthday Alert!
+                                    Birthday
                                 </span>
                                 <motion.span
                                     animate={{ scale: [1, 1.2, 1] }}
