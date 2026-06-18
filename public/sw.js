@@ -45,7 +45,7 @@ const putIfOk = async (cache, request, response) => {
   return response;
 };
 
-const cacheOfflineAssets = async (assets = []) => {
+const cacheOfflineAssets = async (assets = [], onProgress) => {
   const uniqueAssets = [...new Set(assets)]
     .filter((asset) => typeof asset === 'string' && asset.startsWith('/') && !asset.startsWith('/api/'));
   if (!uniqueAssets.length) return { cached: 0, total: 0 };
@@ -53,6 +53,13 @@ const cacheOfflineAssets = async (assets = []) => {
   const cache = await caches.open(OFFLINE_CACHE);
   let nextIndex = 0;
   let cachedCount = 0;
+  let processedCount = 0;
+
+  const reportProgress = () => {
+    if (typeof onProgress === 'function') {
+      onProgress({ cached: cachedCount, processed: processedCount, total: uniqueAssets.length });
+    }
+  };
 
   const cacheNext = async () => {
     while (nextIndex < uniqueAssets.length) {
@@ -62,6 +69,8 @@ const cacheOfflineAssets = async (assets = []) => {
       const cached = await cache.match(request);
       if (cached) {
         cachedCount += 1;
+        processedCount += 1;
+        if (processedCount === 1 || processedCount % 12 === 0 || processedCount === uniqueAssets.length) reportProgress();
         continue;
       }
 
@@ -71,6 +80,9 @@ const cacheOfflineAssets = async (assets = []) => {
         if (response.ok) cachedCount += 1;
       } catch {
         // Keep going; one missing or quota-blocked asset should not cancel the rest.
+      } finally {
+        processedCount += 1;
+        if (processedCount === 1 || processedCount % 12 === 0 || processedCount === uniqueAssets.length) reportProgress();
       }
     }
   };
@@ -121,9 +133,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type !== 'SKIP_CACHE_OFFLINE_ASSETS') return;
   const assets = Array.isArray(event.data.assets) ? event.data.assets : [];
+  const postProgress = (status) => {
+    if (!event.source || !status) return;
+    event.source.postMessage({
+      type: 'SKIP_OFFLINE_CACHE_PROGRESS',
+      ...status,
+    });
+  };
   backgroundCachePromise = backgroundCachePromise
     .catch(() => {})
-    .then(() => cacheOfflineAssets(assets))
+    .then(() => cacheOfflineAssets(assets, postProgress))
     .then((status) => {
       if (event.source && status) {
         event.source.postMessage({

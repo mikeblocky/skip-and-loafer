@@ -105,6 +105,11 @@ const PREVIEW_QUOTES = {
   ja: { title: "桜の並木道", text: "美津未と聡介は咲き誇る桜の下を歩いて登校した。美しい春の朝だった。", button: "記事を読む" },
 };
 
+const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
+const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
+
+const getSavedInstallPrompt = () => window.__skipInstallPromptEvent || null;
+
 const SettingsPage = ({
   isMobile,
   uiLanguage,
@@ -124,22 +129,57 @@ const SettingsPage = ({
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
-  const [offlineStatus, setOfflineStatus] = useState({ cached: 0, total: OFFLINE_PUBLIC_ASSETS.length, preparing: false });
+  const [offlineStatus, setOfflineStatus] = useState({
+    cached: 0,
+    processed: 0,
+    total: OFFLINE_PUBLIC_ASSETS.length,
+    preparing: false,
+  });
   const [storageEstimate, setStorageEstimate] = useState(null);
+  const [keepPreparingOffline, setKeepPreparingOffline] = useState(() => {
+    try {
+      return localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
+
+    installPromptRef.current = getSavedInstallPrompt();
+    setCanInstall(!!installPromptRef.current);
+
+    const syncSavedPrompt = () => {
+      installPromptRef.current = getSavedInstallPrompt();
+      setCanInstall(!!installPromptRef.current);
+    };
+
     const handler = (e) => {
       e.preventDefault();
       installPromptRef.current = e;
+      window.__skipInstallPromptEvent = e;
       setCanInstall(true);
     };
+    const handleInstalled = () => {
+      window.__skipInstallPromptEvent = null;
+      installPromptRef.current = null;
+      setIsInstalled(true);
+      setCanInstall(false);
+    };
+
     window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => { setIsInstalled(true); setCanInstall(false); });
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    window.addEventListener(INSTALL_PROMPT_READY_EVENT, syncSavedPrompt);
+    window.addEventListener('appinstalled', handleInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener(INSTALL_PROMPT_READY_EVENT, syncSavedPrompt);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
   }, []);
 
   useEffect(() => {
@@ -169,9 +209,21 @@ const SettingsPage = ({
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     const handleServiceWorkerMessage = (event) => {
+      if (event.data?.type === 'SKIP_OFFLINE_CACHE_PROGRESS') {
+        setOfflineStatus((previous) => ({
+          ...previous,
+          cached: Number(event.data.cached || previous.cached || 0),
+          processed: Number(event.data.processed || previous.processed || 0),
+          total: Number(event.data.total || previous.total || OFFLINE_PUBLIC_ASSETS.length),
+          preparing: true,
+        }));
+        return;
+      }
+
       if (event.data?.type !== 'SKIP_OFFLINE_CACHE_COMPLETE') return;
       setOfflineStatus({
         cached: Number(event.data.cached || 0),
+        processed: Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length),
         total: Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length),
         preparing: false,
       });
@@ -191,16 +243,33 @@ const SettingsPage = ({
   }, []);
 
   const handleInstall = async () => {
-    if (!installPromptRef.current) return;
-    installPromptRef.current.prompt();
-    const { outcome } = await installPromptRef.current.userChoice;
+    const promptEvent = installPromptRef.current || getSavedInstallPrompt();
+    if (!promptEvent) return;
+
+    await promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
     if (outcome === 'accepted') { setIsInstalled(true); setCanInstall(false); }
     installPromptRef.current = null;
+    window.__skipInstallPromptEvent = null;
+    setCanInstall(false);
   };
 
-  const handlePrepareOffline = async () => {
+  const handlePrepareOffline = async ({ persist = true } = {}) => {
     if (!navigator.serviceWorker?.controller && !navigator.serviceWorker?.ready) return;
-    setOfflineStatus((previous) => ({ ...previous, preparing: true, total: OFFLINE_PUBLIC_ASSETS.length }));
+    if (persist) {
+      try {
+        localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
+      } catch {
+        // Ignore storage failures; this run can still continue.
+      }
+      setKeepPreparingOffline(true);
+    }
+    setOfflineStatus((previous) => ({
+      ...previous,
+      processed: 0,
+      preparing: true,
+      total: OFFLINE_PUBLIC_ASSETS.length,
+    }));
 
     const registration = await navigator.serviceWorker.ready.catch(() => null);
     const worker = registration?.active || navigator.serviceWorker.controller;
@@ -215,6 +284,20 @@ const SettingsPage = ({
     });
   };
 
+  const handleKeepPreparingChange = (enabled) => {
+    setKeepPreparingOffline(enabled);
+    try {
+      if (enabled) {
+        localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
+        handlePrepareOffline({ persist: false });
+      } else {
+        localStorage.removeItem(OFFLINE_LIBRARY_ENABLED_KEY);
+      }
+    } catch {
+      // Ignore storage failures.
+    }
+  };
+
   const formatBytes = (value) => {
     if (!Number.isFinite(value) || value <= 0) return '0 MB';
     const units = ['B', 'KB', 'MB', 'GB'];
@@ -226,6 +309,11 @@ const SettingsPage = ({
     }
     return `${size >= 10 || unitIndex === 0 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
   };
+
+  const offlineProgress = Math.max(
+    0,
+    Math.min(100, Math.round(((offlineStatus.processed || offlineStatus.cached || 0) / Math.max(1, offlineStatus.total)) * 100)),
+  );
 
   const appLanguageOptions = getLanguageOptions();
   const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
@@ -1214,6 +1302,68 @@ const SettingsPage = ({
                   Cached files: {offlineStatus.cached} / {offlineStatus.total}
                   {storageEstimate ? ` · Storage used: ${formatBytes(storageEstimate.usage)}` : ''}
                 </div>
+                <div
+                  aria-label={`Offline cache progress ${offlineProgress}%`}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={offlineProgress}
+                  style={{
+                    width: '100%',
+                    height: '12px',
+                    borderRadius: '999px',
+                    border: '2px solid #fbbf24',
+                    background: '#fffbeb',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${offlineProgress}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #f59e0b, #22c55e)',
+                      transition: 'width 0.2s ease',
+                    }}
+                  />
+                </div>
+                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.76rem', color: '#92400e', lineHeight: 1.35 }}>
+                  {offlineStatus.preparing
+                    ? `Preparing ${offlineStatus.processed} of ${offlineStatus.total} files (${offlineProgress}%).`
+                    : offlineProgress >= 100
+                      ? 'Offline library prepared.'
+                      : 'Progress appears here while the offline library is being prepared.'}
+                </div>
+                <motion.button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={keepPreparingOffline}
+                  onClick={() => handleKeepPreparingChange(!keepPreparingOffline)}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    ...BUTTON_RESET_STYLE,
+                    ...getOptionCardStyle(keepPreparingOffline),
+                    padding: '10px 12px',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
+                    Keep preparing automatically when the app is open
+                  </span>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '6px',
+                    border: '2px solid #cbd5e1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: keepPreparingOffline ? '#3b82f6' : 'var(--surface-card, #fff)',
+                    borderColor: keepPreparingOffline ? '#2563eb' : '#cbd5e1',
+                    flexShrink: 0,
+                  }}>
+                    {keepPreparingOffline && <Check size={14} color="#fff" strokeWidth={3} />}
+                  </div>
+                </motion.button>
                 <motion.button
                   onClick={handlePrepareOffline}
                   disabled={!isOnline || offlineStatus.preparing}

@@ -9,6 +9,19 @@ const MakotoBirthday = lazy(() => import('./MakotoBirthday.jsx'))
 const RetiredPage = lazy(() => import('./RetiredPage.jsx'))
 
 const MITSUMI_FIRST_VISIT_KEY = 'skip_mitsumi_first_visit';
+const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
+const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
+
+window.__skipInstallPromptEvent = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  window.__skipInstallPromptEvent = event;
+  window.dispatchEvent(new CustomEvent(INSTALL_PROMPT_READY_EVENT));
+});
+
+window.addEventListener('appinstalled', () => {
+  window.__skipInstallPromptEvent = null;
+});
 
 const getTodayKey = () => {
   const now = new Date();
@@ -82,18 +95,32 @@ if ('serviceWorker' in navigator) {
             assets: OFFLINE_PUBLIC_ASSETS,
           });
         };
+        const sendOfflineAssetListIfEnabled = () => {
+          try {
+            if (localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1') {
+              sendOfflineAssetList();
+            }
+          } catch {
+            // Storage can be unavailable in private browsing; manual Settings action still works.
+          }
+        };
 
-        if (registration.active) {
-          sendOfflineAssetList();
-        } else {
+        if (!registration.active) {
           registration.addEventListener('updatefound', () => {
             registration.installing?.addEventListener('statechange', () => {
-              if (registration.active) sendOfflineAssetList();
+              if (registration.active) sendOfflineAssetListIfEnabled();
             });
           });
         }
 
-        navigator.serviceWorker.ready.then(sendOfflineAssetList).catch(() => {});
+        navigator.serviceWorker.ready.then(sendOfflineAssetListIfEnabled).catch(() => {});
+        navigator.serviceWorker.addEventListener('controllerchange', sendOfflineAssetListIfEnabled);
+        window.addEventListener('online', sendOfflineAssetListIfEnabled);
+        window.addEventListener('focus', sendOfflineAssetListIfEnabled);
+        window.addEventListener('pageshow', sendOfflineAssetListIfEnabled);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) sendOfflineAssetListIfEnabled();
+        });
       })
       .catch((err) => {
         if (import.meta.env.DEV) {
