@@ -34,6 +34,7 @@ import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { useMainScrollTop } from './useMainScrollTop';
 import { usePageHistorySync } from './usePageHistorySync';
 import { usePersistedAppState } from './usePersistedAppState';
+import { useSiteStats } from './useSiteStats';
 import { useReaderChapterNavigation } from './useReaderChapterNavigation';
 import { useTabSwipeNavigation } from './useTabSwipeNavigation';
 import { useUiBootDelay } from './useUiBootDelay';
@@ -57,7 +58,7 @@ export const useAppController = () => {
     pendingLinks,
   } = useReadProgress();
   const syncData = useSyncData(reloadFromStorage);
-  const { pushNow } = syncData;
+  const { pushNow, syncActive } = syncData;
 
   const markFinished = useCallback((chapter) => {
     rawMarkFinished(chapter);
@@ -92,6 +93,7 @@ export const useAppController = () => {
   const t = UI[uiLanguage] || UI.en;
   const supportedUiLanguages = getSupportedUiLanguages();
   const displayActivePage = visibleTabPages.includes(activePage) ? activePage : (visibleTabPages[0] || DEFAULT_PAGE);
+  const siteStats = useSiteStats({ activePage: displayActivePage, syncActive, pushNow });
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
   const deferredShellMount = useDeferredMount(showUI, 180);

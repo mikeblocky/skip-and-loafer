@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
 import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
 import {
@@ -133,6 +133,7 @@ const SettingsPage = ({
   readerPrefs,
   setReaderPrefs,
   t,
+  siteStats,
   outerSwitcher,
 }) => {
   const fallbackText = UI.en;
@@ -382,6 +383,41 @@ const SettingsPage = ({
     }
     return `${size >= 10 || unitIndex === 0 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
   };
+
+  const formatDuration = (ms = 0) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
+
+  const pageLabels = {
+    home: 'Planner',
+    chapters: 'Chapters',
+    gallery: 'Gallery',
+    community: 'Community',
+    blog: 'Blog',
+    wiki: 'Wiki',
+    quiz: 'Quiz',
+    birthdays: 'Birthdays',
+    mystery: 'Mystery',
+    settings: 'Settings',
+    stickerCam: 'Sticker cam',
+  };
+
+  const usageStats = siteStats || {};
+  const pageEntries = Object.entries(usageStats.pages || {});
+  const favoritePage = pageEntries
+    .sort(([, left], [, right]) => (right.timeMs || 0) - (left.timeMs || 0))[0];
+  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'Nowhere yet';
+  const usageRoast = usageStats.totalTimeMs > 3600000
+    ? 'Certified resident. The website should probably offer you tea.'
+    : usageStats.totalTimeMs > 600000
+      ? 'A respectable loaf. Not alarming. Yet.'
+      : 'Freshly arrived. Your chair is still warm, not haunted.';
 
   const offlineProgress = Math.max(
     0,
@@ -1042,6 +1078,92 @@ const SettingsPage = ({
 
         {/* RIGHT COLUMN: Live Visual Preview, Language Selector & Shortcuts Guide */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {/* Usage dashboard */}
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #f97316',
+              borderBottom: '8px solid #c2410c',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.06)',
+            }}
+          >
+            <div
+              className="washi-tape washi-tape--yellow"
+              style={{
+                top: '-14px',
+                left: '24px',
+                transform: 'rotate(-2deg)',
+                width: '74px',
+                height: '22px',
+                zIndex: 5,
+              }}
+            />
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#fed7aa', '#f97316', '#fff7ed', '#c2410c')}>
+                <Clock3 size={18} strokeWidth={2.4} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Website residency check</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
+              {[
+                { label: 'Total loitering', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
+                { label: 'Times accessed', value: usageStats.visits || 0, icon: MousePointerClick, color: '#2563eb' },
+                { label: 'Page hops', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
+                { label: 'Favorite corner', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="sketchbook-border"
+                  style={{
+                    background: 'var(--surface-panel)',
+                    border: '2.5px solid var(--surface-border)',
+                    borderBottom: '5px solid var(--surface-border-strong)',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 0,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: stat.color, fontFamily: 'var(--font-paper)', fontSize: '0.8rem' }}>
+                    <stat.icon size={15} strokeWidth={2.5} />
+                    <span>{stat.label}</span>
+                  </div>
+                  <div style={{
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: stat.label === 'Favorite corner' ? '1.05rem' : '1.25rem',
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.15,
+                    overflowWrap: 'anywhere',
+                  }}>
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="sketchbook-border"
+              style={{
+                background: '#fff7ed',
+                border: '2.5px dashed #fdba74',
+                color: '#9a3412',
+                padding: '10px 12px',
+                fontFamily: 'var(--font-paper)',
+                fontSize: '0.82rem',
+                lineHeight: 1.45,
+              }}
+            >
+              {usageRoast} Synced with your sync key, so every device can contribute to the evidence folder.
+            </div>
+          </div>
           
           {/* A. Live Visual Preview Card */}
           <div

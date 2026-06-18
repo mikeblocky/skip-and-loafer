@@ -202,6 +202,7 @@ const AppTabContent = ({
   toggleAccessibilityPref,
   setAccessibilityColorBlindMode,
   shortcutStats,
+  siteStats,
   t,
 }) => {
   const [chaptersSubTab, setChaptersSubTab] = useState('chapters');
@@ -381,6 +382,7 @@ const AppTabContent = ({
           readerPrefs={readerPrefs}
           setReaderPrefs={setReaderPrefs}
           t={t}
+          siteStats={siteStats}
           outerSwitcher={settingsDropdown}
         />
       ) : (

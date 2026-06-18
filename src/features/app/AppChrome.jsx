@@ -294,6 +294,7 @@ const AppChrome = ({ app }) => {
               toggleAccessibilityPref={app.toggleAccessibilityPref}
               setAccessibilityColorBlindMode={app.setAccessibilityColorBlindMode}
               shortcutStats={app.shortcutStats}
+              siteStats={app.siteStats}
               t={app.t}
             />
           </div>
