@@ -37,52 +37,54 @@ async function rawQuery(text, params = []) {
   return getPool().query(text, params);
 }
 
+async function runSchemaMigrations() {
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS sync_entries (
+      key text PRIMARY KEY,
+      payload jsonb NOT NULL,
+      expires_at timestamptz NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    `CREATE TABLE IF NOT EXISTS read_counts (
+      chapter text PRIMARY KEY,
+      count integer NOT NULL DEFAULT 0
+    )`,
+    `CREATE TABLE IF NOT EXISTS quiz_results (
+      id text PRIMARY KEY,
+      name text NOT NULL,
+      score integer NOT NULL,
+      total integer NOT NULL,
+      difficulty_mode text NOT NULL,
+      question_set text NOT NULL,
+      played_at bigint NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS quiz_leaderboard (
+      name text PRIMARY KEY,
+      best_score integer NOT NULL,
+      played integer NOT NULL,
+      updated_at bigint NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS app_kv (
+      key text PRIMARY KEY,
+      value text NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    `CREATE INDEX IF NOT EXISTS sync_entries_expires_at_idx ON sync_entries (expires_at)`,
+    `CREATE INDEX IF NOT EXISTS quiz_results_played_at_idx ON quiz_results (played_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS quiz_leaderboard_score_idx ON quiz_leaderboard (best_score DESC, played ASC, name ASC)`,
+  ];
+
+  for (const sql of statements) {
+    await rawQuery(sql);
+  }
+}
+
 export async function ensureSchema() {
   if (!schemaReady) {
-    schemaReady = rawQuery(`
-        CREATE TABLE IF NOT EXISTS sync_entries (
-          key text PRIMARY KEY,
-          payload jsonb NOT NULL,
-          expires_at timestamptz NOT NULL,
-          updated_at timestamptz NOT NULL DEFAULT now()
-        );
-
-        CREATE TABLE IF NOT EXISTS read_counts (
-          chapter text PRIMARY KEY,
-          count integer NOT NULL DEFAULT 0
-        );
-
-        CREATE TABLE IF NOT EXISTS quiz_results (
-          id text PRIMARY KEY,
-          name text NOT NULL,
-          score integer NOT NULL,
-          total integer NOT NULL,
-          difficulty_mode text NOT NULL,
-          question_set text NOT NULL,
-          played_at bigint NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS quiz_leaderboard (
-          name text PRIMARY KEY,
-          best_score integer NOT NULL,
-          played integer NOT NULL,
-          updated_at bigint NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS app_kv (
-          key text PRIMARY KEY,
-          value text NOT NULL,
-          updated_at timestamptz NOT NULL DEFAULT now()
-        );
-
-        CREATE INDEX IF NOT EXISTS sync_entries_expires_at_idx ON sync_entries (expires_at);
-        CREATE INDEX IF NOT EXISTS quiz_results_played_at_idx ON quiz_results (played_at DESC);
-        CREATE INDEX IF NOT EXISTS quiz_leaderboard_score_idx ON quiz_leaderboard (best_score DESC, played ASC, name ASC);
-      `)
-      .catch((error) => {
-        schemaReady = undefined;
-        throw error;
-      });
+    schemaReady = runSchemaMigrations().catch((error) => {
+      schemaReady = undefined;
+      throw error;
+    });
   }
 
   await schemaReady;
