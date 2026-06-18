@@ -616,6 +616,26 @@ function manualChunks(id) {
     return 'community';
   }
 
+  if (id.includes('/src/features/quiz/') || id.includes('/src/pages/QuizPage') || id.includes('/src/data/quizQuestion')) {
+    return 'quiz';
+  }
+
+  if (id.includes('/src/features/sync/') || id.includes('/src/pages/SyncPage')) {
+    return 'sync-page';
+  }
+
+  if (id.includes('/src/features/chat/') || id.includes('/src/pages/ChatPage')) {
+    return 'chat';
+  }
+
+  if (id.includes('/src/features/mystery/') || id.includes('/src/pages/MysteryPage')) {
+    return 'mystery';
+  }
+
+  if (id.includes('/src/features/birthday/') || id.includes('/src/pages/BirthdayPage')) {
+    return 'birthday';
+  }
+
   if (!id.includes('node_modules')) return undefined;
 
   if (

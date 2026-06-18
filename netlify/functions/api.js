@@ -9,6 +9,7 @@ import communitySignatures from '../../api/community/signatures.js';
 import communityFanGallery from '../../api/community/fan-gallery.js';
 import chatRooms from '../../api/chat/rooms.js';
 import chatRoom from '../../api/chat/rooms/[roomId].js';
+import geoCountry from '../../api/geo/country.js';
 
 const ROUTES = [
   { pattern: /^\/?sync\/create\/?$/, handler: syncCreate },
@@ -21,6 +22,7 @@ const ROUTES = [
   { pattern: /^\/?community\/fan-gallery\/?$/, handler: communityFanGallery },
   { pattern: /^\/?chat\/rooms\/?$/, handler: chatRooms },
   { pattern: /^\/?chat\/rooms\/[^/]+\/?$/, handler: chatRoom },
+  { pattern: /^\/?geo\/country\/?$/, handler: geoCountry },
 ];
 
 function parseBody(event) {

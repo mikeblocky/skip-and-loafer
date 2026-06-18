@@ -1,117 +1,111 @@
-const CACHE_NAME = 'skip-loafer-shell-v1';
-const ASSET_CACHE_NAME = 'skip-loafer-assets-v1';
+// Bump this when the shell assets change to force old SW out.
+const SHELL_VERSION = 'v3';
+const SHELL_CACHE = `skip-shell-${SHELL_VERSION}`;
+const FONT_CACHE = `skip-fonts-${SHELL_VERSION}`;
 
-const STATIC_ASSETS = [
+// Files to pre-cache on install (small set — only truly static shell assets).
+const SHELL_ASSETS = [
   '/',
-  '/index.html',
   '/manifest.json',
   '/favicon.ico',
   '/swt2-512.png',
-  '/Kei_Ji.woff2',
-  '/Kei_Ji-P.woff2',
 ];
 
-const OFFLINE_RESPONSE = new Response('', {
-  status: 503,
-  statusText: 'Offline',
-});
-
-// Install Event: cache static shell assets
+// ── Install: pre-cache shell ──────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Pre-caching app shell');
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE)
+      .then((cache) => cache.addAll(SHELL_ASSETS))
+      .then(() => self.skipWaiting()),
   );
 });
 
-// Activate Event: clear old caches
+// ── Activate: purge stale caches ─────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME && cache !== ASSET_CACHE_NAME) {
-            console.log('[Service Worker] Removing old cache', cache);
-            return caches.delete(cache);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((names) => Promise.all(
+        names
+          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE)
+          .map((n) => caches.delete(n)),
+      ))
+      .then(() => self.clients.claim()),
   );
 });
 
-// Fetch Event: handle caching strategies
+// ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
-  const request = event.request;
+  const { request } = event;
   const url = new URL(request.url);
 
-  // Bypass API routes and Vercel runtime scripts.
+  // Pass through: API calls, Netlify internals, non-GET
   if (
+    request.method !== 'GET' ||
     url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/_vercel/')
+    url.pathname.startsWith('/_netlify/') ||
+    url.pathname.startsWith('/.netlify/')
   ) {
     return;
   }
 
-  // Navigation requests: Network-First (falls back to cached index.html SPA shell)
-  if (request.mode === 'navigate') {
+  // Hashed assets (/assets/*) already have Cache-Control: immutable from
+  // the _headers file — the browser HTTP cache handles them perfectly.
+  // Let the SW pass through so we don't double-cache megabytes of JS/CSS.
+  if (url.pathname.startsWith('/assets/')) {
+    return;
+  }
+
+  // Google Fonts CSS + woff2 — Cache-first (fonts never change for a given URL).
+  if (
+    url.hostname === 'fonts.googleapis.com' ||
+    url.hostname === 'fonts.gstatic.com'
+  ) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache a copy of the fresh index.html
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put('/', responseClone);
-          });
-          return response;
-        })
-        .catch(() => {
-          // If offline, serve the pre-cached SPA shell
-          return caches.match('/').then((cachedResponse) => cachedResponse || OFFLINE_RESPONSE.clone());
-        })
+      caches.open(FONT_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok) cache.put(request, response.clone());
+        return response;
+      }),
     );
     return;
   }
 
-  // Static assets (JS, CSS, fonts, local images): Stale-While-Revalidate
-  const isStaticAsset = 
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.ttf') ||
-    url.pathname.endsWith('.woff') ||
-    url.pathname.endsWith('.woff2') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.jpg') ||
-    url.pathname.endsWith('.jpeg') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.ico') ||
-    url.hostname.includes('fonts.gstatic.com') ||
-    url.hostname.includes('fonts.googleapis.com');
-
-  if (isStaticAsset) {
+  // Navigation requests — Network-first, fall back to cached shell.
+  if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        const fetchPromise = fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
-              caches.open(ASSET_CACHE_NAME).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return networkResponse;
-          })
-          .catch((err) => {
-            console.log('[Service Worker] Fetch failed (probably offline):', err);
-            return cachedResponse || OFFLINE_RESPONSE.clone();
-          });
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(SHELL_CACHE).then((cache) => cache.put('/', clone));
+          return response;
+        })
+        .catch(() =>
+          caches.match('/').then((r) => r || new Response('', { status: 503 })),
+        ),
+    );
+    return;
+  }
 
-        // Return cache instantly if available, otherwise wait for network fetch
-        return cachedResponse || fetchPromise;
-      })
+  // Shell static files (icons, manifest, woff2 in root) — Stale-while-revalidate.
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname === '/manifest.json' ||
+      url.pathname.endsWith('.woff2') ||
+      url.pathname.endsWith('.woff') ||
+      url.pathname.endsWith('.ico') ||
+      url.pathname.endsWith('.png'))
+  ) {
+    event.respondWith(
+      caches.open(SHELL_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        const fetchPromise = fetch(request).then((response) => {
+          if (response.ok) cache.put(request, response.clone());
+          return response;
+        });
+        return cached || fetchPromise;
+      }),
     );
   }
 });
