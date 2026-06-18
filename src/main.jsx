@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { OFFLINE_PUBLIC_ASSETS } from './data/offlineAssets.js'
 
 const App = lazy(() => import('./App.jsx'))
 const MitsumiBirthday = lazy(() => import('./MitsumiBirthday.jsx'))
@@ -72,6 +73,28 @@ createRoot(document.getElementById('root')).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        const sendOfflineAssetList = () => {
+          const worker = registration.active || registration.waiting || registration.installing || navigator.serviceWorker.controller;
+          if (!worker) return;
+          worker.postMessage({
+            type: 'SKIP_CACHE_OFFLINE_ASSETS',
+            assets: OFFLINE_PUBLIC_ASSETS,
+          });
+        };
+
+        if (registration.active) {
+          sendOfflineAssetList();
+        } else {
+          registration.addEventListener('updatefound', () => {
+            registration.installing?.addEventListener('statechange', () => {
+              if (registration.active) sendOfflineAssetList();
+            });
+          });
+        }
+
+        navigator.serviceWorker.ready.then(sendOfflineAssetList).catch(() => {});
+      })
       .catch((err) => {
         if (import.meta.env.DEV) {
           console.error('[Service Worker] Registration failed:', err);

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
+import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
 import {
   createPaperChipStyle,
   createPaperPanelStyle,
@@ -122,6 +123,9 @@ const SettingsPage = ({
   const installPromptRef = useRef(null);
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [offlineStatus, setOfflineStatus] = useState({ cached: 0, total: OFFLINE_PUBLIC_ASSETS.length, preparing: false });
+  const [storageEstimate, setStorageEstimate] = useState(null);
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -138,12 +142,89 @@ const SettingsPage = ({
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  useEffect(() => {
+    const refreshStorageStatus = async () => {
+      try {
+        if ('storage' in navigator && typeof navigator.storage.estimate === 'function') {
+          setStorageEstimate(await navigator.storage.estimate());
+        }
+
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          const offlineCacheNames = cacheNames.filter((name) => name.startsWith('skip-offline-'));
+          const cacheCounts = await Promise.all(
+            offlineCacheNames.map(async (cacheName) => {
+              const cache = await caches.open(cacheName);
+              return (await cache.keys()).length;
+            }),
+          );
+          const cached = cacheCounts.reduce((sum, count) => sum + count, 0);
+          setOfflineStatus((previous) => ({ ...previous, cached }));
+        }
+      } catch {
+        // Browser storage APIs can be unavailable in private browsing.
+      }
+    };
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    const handleServiceWorkerMessage = (event) => {
+      if (event.data?.type !== 'SKIP_OFFLINE_CACHE_COMPLETE') return;
+      setOfflineStatus({
+        cached: Number(event.data.cached || 0),
+        total: Number(event.data.total || OFFLINE_PUBLIC_ASSETS.length),
+        preparing: false,
+      });
+      refreshStorageStatus();
+    };
+
+    refreshStorageStatus();
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
+    };
+  }, []);
+
   const handleInstall = async () => {
     if (!installPromptRef.current) return;
     installPromptRef.current.prompt();
     const { outcome } = await installPromptRef.current.userChoice;
     if (outcome === 'accepted') { setIsInstalled(true); setCanInstall(false); }
     installPromptRef.current = null;
+  };
+
+  const handlePrepareOffline = async () => {
+    if (!navigator.serviceWorker?.controller && !navigator.serviceWorker?.ready) return;
+    setOfflineStatus((previous) => ({ ...previous, preparing: true, total: OFFLINE_PUBLIC_ASSETS.length }));
+
+    const registration = await navigator.serviceWorker.ready.catch(() => null);
+    const worker = registration?.active || navigator.serviceWorker.controller;
+    if (!worker) {
+      setOfflineStatus((previous) => ({ ...previous, preparing: false }));
+      return;
+    }
+
+    worker.postMessage({
+      type: 'SKIP_CACHE_OFFLINE_ASSETS',
+      assets: OFFLINE_PUBLIC_ASSETS,
+    });
+  };
+
+  const formatBytes = (value) => {
+    if (!Number.isFinite(value) || value <= 0) return '0 MB';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = value;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex += 1;
+    }
+    return `${size >= 10 || unitIndex === 0 ? Math.round(size) : size.toFixed(1)} ${units[unitIndex]}`;
   };
 
   const appLanguageOptions = getLanguageOptions();
@@ -1033,8 +1114,8 @@ const SettingsPage = ({
 
         </div>
 
-        {/* Install App Card (shows when PWA install is available) */}
-        {(canInstall || isInstalled) && (
+        {/* App install and offline library */}
+        <div style={{ gridColumn: isMobile ? 'auto' : '1 / -1' }}>
           <div
             className="sketchbook-border"
             style={{
@@ -1051,23 +1132,40 @@ const SettingsPage = ({
           >
             <div style={PANEL_TITLE_STYLE}>
               <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#ddd6fe', '#7c3aed', '#f5f3ff', '#6d28d9')}>
-                {isInstalled ? <CheckCircle size={18} strokeWidth={2.4} /> : <Download size={18} strokeWidth={2.4} />}
+                {isInstalled ? <CheckCircle size={18} strokeWidth={2.4} /> : <Smartphone size={18} strokeWidth={2.4} />}
               </div>
               <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>
-                {isInstalled ? 'Installed as App' : 'Install as App'}
+                App installation & offline
               </span>
             </div>
-            {isInstalled ? (
-              <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                Skip and Loafer is installed on your device. Open it from your home screen or app launcher.
-              </p>
-            ) : (
-              <>
-                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                  Add Skip and Loafer to your home screen for a full app experience — offline support, no browser UI.
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
+              <div
+                className="sketchbook-border"
+                style={{
+                  background: 'var(--surface-panel)',
+                  border: '2.5px solid #c4b5fd',
+                  borderBottom: '5px solid #8b5cf6',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
+                  {isInstalled ? <CheckCircle size={17} /> : <Download size={17} />}
+                  <span>{isInstalled ? 'Installed app' : 'Install app'}</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  {isInstalled
+                    ? 'Skip and Loafer is installed. Open it from your home screen or app launcher.'
+                    : canInstall
+                      ? 'Add it to your device for a focused app window and easier offline access.'
+                      : 'Use your browser menu to add this site to your home screen or install it as an app.'}
                 </p>
                 <motion.button
                   onClick={handleInstall}
+                  disabled={!canInstall || isInstalled}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   className="sketchbook-border"
@@ -1081,17 +1179,69 @@ const SettingsPage = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    cursor: 'pointer',
+                    cursor: canInstall && !isInstalled ? 'pointer' : 'default',
                     border: 'none',
+                    opacity: canInstall && !isInstalled ? 1 : 0.62,
                   }}
                 >
-                  <Download size={16} strokeWidth={2.5} />
-                  Install App
+                  {isInstalled ? <CheckCircle size={16} strokeWidth={2.5} /> : <Download size={16} strokeWidth={2.5} />}
+                  {isInstalled ? 'Installed' : canInstall ? 'Install app' : 'Use browser install menu'}
                 </motion.button>
-              </>
-            )}
+              </div>
+
+              <div
+                className="sketchbook-border"
+                style={{
+                  background: 'var(--surface-panel)',
+                  border: '2.5px solid #fbbf24',
+                  borderBottom: '5px solid #d97706',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
+                  <WifiOff size={17} />
+                  <span>Offline library</span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                  {isOnline
+                    ? 'Prepare galleries, manga pages, and app files so the site keeps opening offline.'
+                    : 'You are offline. Cached pages and images will still open when they have been prepared.'}
+                </p>
+                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
+                  Cached files: {offlineStatus.cached} / {offlineStatus.total}
+                  {storageEstimate ? ` · Storage used: ${formatBytes(storageEstimate.usage)}` : ''}
+                </div>
+                <motion.button
+                  onClick={handlePrepareOffline}
+                  disabled={!isOnline || offlineStatus.preparing}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="sketchbook-border"
+                  style={{
+                    ...createPaperChipStyle({ borderColor: '#d97706', bottomColor: '#b45309', background: '#f59e0b', color: '#fff', radius: '14px', padding: '12px 20px' }),
+                    width: '100%',
+                    fontFamily: 'var(--font-paper)',
+                    fontSize: '0.92rem',
+                    fontWeight: '400',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: isOnline && !offlineStatus.preparing ? 'pointer' : 'default',
+                    border: 'none',
+                    opacity: isOnline && !offlineStatus.preparing ? 1 : 0.62,
+                  }}
+                >
+                  <RefreshCw size={16} strokeWidth={2.5} />
+                  {offlineStatus.preparing ? 'Preparing...' : 'Prepare offline library'}
+                </motion.button>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
 
       </div>
 

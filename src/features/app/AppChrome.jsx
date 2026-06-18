@@ -42,26 +42,22 @@ const copyrightStyle = {
 
 const offlineBannerStyle = (isMobile) => ({
   position: 'fixed',
-  top: isMobile ? '12px' : '20px',
-  left: '50%',
+  top: isMobile ? '10px' : '16px',
+  right: isMobile ? '10px' : '16px',
   zIndex: 2000,
-  display: 'flex',
+  display: 'inline-flex',
   alignItems: 'center',
-  gap: '10px',
+  justifyContent: 'center',
   background: '#fef3c7',
-  border: '3px solid #d97706',
-  borderBottom: '7px solid #b45309',
-  borderRadius: '16px',
-  padding: isMobile ? '10px 16px' : '12px 24px',
+  border: '2px solid #d97706',
+  borderBottom: '4px solid #b45309',
+  borderRadius: '9999px',
+  padding: '0',
   color: '#b45309',
-  fontFamily: 'Sniglet, var(--font-hand)',
-  fontSize: isMobile ? '0.88rem' : '0.96rem',
-  fontWeight: 'bold',
   boxShadow: '0 8px 24px rgba(180, 83, 9, 0.15)',
-  pointerEvents: 'auto',
-  maxWidth: '90%',
-  width: isMobile ? '340px' : 'auto',
-  textAlign: 'center',
+  pointerEvents: 'none',
+  width: isMobile ? '34px' : '38px',
+  height: isMobile ? '34px' : '38px',
 });
 
 const OFFLINE_COPY = {
@@ -140,9 +136,11 @@ const AppChrome = ({ app }) => {
           key="offline-banner"
           className="offline-banner-visible"
           style={offlineBannerStyle(app.isMobile)}
+          role="status"
+          aria-label={getOfflineLabel(app.uiLanguage)}
+          title={getOfflineLabel(app.uiLanguage)}
         >
-          <WifiOff size={18} strokeWidth={2.5} />
-          <span>{getOfflineLabel(app.uiLanguage)}</span>
+          <WifiOff size={app.isMobile ? 16 : 18} strokeWidth={2.8} aria-hidden="true" />
         </div>
       )}
 

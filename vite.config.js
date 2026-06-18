@@ -1,6 +1,24 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function offlineBuildAssetsManifestPlugin() {
+  return {
+    name: 'offline-build-assets-manifest',
+    generateBundle(_options, bundle) {
+      const assets = Object.keys(bundle)
+        .filter((fileName) => /\.(?:css|js|wasm|woff2?)$/i.test(fileName))
+        .map((fileName) => `/${fileName}`)
+        .sort();
+
+      this.emitFile({
+        type: 'asset',
+        fileName: 'offline-build-assets.json',
+        source: JSON.stringify({ assets }, null, 2),
+      });
+    },
+  };
+}
+
 // ── Local dev API plugin (simulates the deployed Cloudflare API) ──
 function localSyncApiPlugin() {
   const store = new Map();
@@ -679,7 +697,7 @@ function manualChunks(id) {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), localSyncApiPlugin()],
+  plugins: [react(), localSyncApiPlugin(), offlineBuildAssetsManifestPlugin()],
   build: {
     // Let Vite inject <link rel="modulepreload"> for all chunks so the
     // browser fetches them in parallel instead of in a waterfall.
