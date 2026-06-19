@@ -1,5 +1,7 @@
 import {
   Aperture,
+  ArrowDown,
+  ArrowUp,
   Camera,
   CameraOff,
   Circle,
@@ -10,6 +12,7 @@ import {
   Network,
   Pause,
   Play,
+  RotateCw,
   SlidersHorizontal,
   Sticker,
   SwitchCamera,
@@ -121,11 +124,19 @@ function MobileBottomControls({
       {selectedLive && (
         <div data-snap-ctrl="1" style={{ display:'grid', gridTemplateColumns:'repeat(6, minmax(0,1fr))', gap:8, padding:'8px 14px 0' }}>
           <button onClick={deleteSelectedLive} style={themedCamera ? themedSmallButton('#ef4444') : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Delete"><Trash2 size={17} /></button>
-          <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) - 1 }))} style={themedCamera ? { ...themedSmallButton('#64748b'), fontFamily:'Sniglet, var(--font-hand)', fontSize:16 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward">-</button>
-          <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) + 1 }))} style={themedCamera ? { ...themedSmallButton('#64748b'), fontFamily:'Sniglet, var(--font-hand)', fontSize:16 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward">+</button>
-          <button onClick={() => adjustSelectedLive(s => ({ ...s, rotation: (s.rotation ?? 0) + 15 }))} style={themedCamera ? themedSmallButton('#8b5cf6') : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><SlidersHorizontal size={17} /></button>
-          <button onClick={() => adjustSelectedLive(s => ({ ...s, w: Math.max(36, (s.w || 120) * 0.86), h: Math.max(36, (s.h || 120) * 0.86) }))} style={themedCamera ? { ...themedSmallButton('#06b6d4'), fontFamily:'Sniglet, var(--font-hand)', fontSize:13 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller">S</button>
-          <button onClick={() => adjustSelectedLive(s => ({ ...s, w: Math.min(stageSize.width, (s.w || 120) * 1.16), h: Math.min(stageSize.height, (s.h || 120) * 1.16) }))} style={themedCamera ? { ...themedSmallButton('#10b981'), fontFamily:'Sniglet, var(--font-hand)', fontSize:13 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger">L</button>
+          <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) - 1 }))} style={themedCamera ? themedSmallButton('#64748b') : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward"><ArrowDown size={17} /></button>
+          <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) + 1 }))} style={themedCamera ? themedSmallButton('#64748b') : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward"><ArrowUp size={17} /></button>
+          <button onClick={() => adjustSelectedLive(s => ({ ...s, rotation: (s.rotation ?? 0) + 15 }))} style={themedCamera ? themedSmallButton('#8b5cf6') : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><RotateCw size={17} /></button>
+          <button onClick={() => adjustSelectedLive(s => {
+            const nw = (s.w || 120) * 0.86, nh = (s.h || 120) * 0.86;
+            if (nw < 36 || nh < 36) return s;
+            return { ...s, w: nw, h: nh };
+          })} style={themedCamera ? { ...themedSmallButton('#06b6d4'), fontFamily:'Sniglet, var(--font-hand)', fontSize:13 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller">S</button>
+          <button onClick={() => adjustSelectedLive(s => {
+            const nw = (s.w || 120) * 1.16, nh = (s.h || 120) * 1.16;
+            const c = Math.min(1, stageSize.width / nw, stageSize.height / nh);
+            return { ...s, w: nw * c, h: nh * c };
+          })} style={themedCamera ? { ...themedSmallButton('#10b981'), fontFamily:'Sniglet, var(--font-hand)', fontSize:13 } : { height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger">L</button>
         </div>
       )}
       <div style={{ display:'grid', gridTemplateColumns:'56px 1fr 56px', alignItems:'center', gap:12, padding:'8px 18px 10px' }}>
