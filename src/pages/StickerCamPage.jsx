@@ -1179,10 +1179,12 @@ export default function StickerCamPage() {
         hasCamera={hasCamera}
         hideCam={hideCam}
         isFront={isFront}
+        mirrorCam={mirrorCam}
         openImageLibrary={openImageLibrary}
         savePhoto={savePhoto}
         setAspectRatio={setAspectRatio}
         setHideCam={setHideCam}
+        setMirrorCam={setMirrorCam}
         setPanel={setPanel}
         setShowSkeleton={setShowSkeleton}
         setTrackingPaused={setTrackingPaused}

@@ -169,10 +169,12 @@ function DesktopToolbar({
   hasCamera,
   hideCam,
   isFront,
+  mirrorCam,
   openImageLibrary,
   savePhoto,
   setAspectRatio,
   setHideCam,
+  setMirrorCam,
   setPanel,
   setShowSkeleton,
   setTrackingPaused,
@@ -194,9 +196,14 @@ function DesktopToolbar({
       }
       <ToolBtn color="#a78bfa" onClick={openImageLibrary} title="Open image library" themed={themedCamera} darkMode={darkMode}><ImagePlus size={16} /></ToolBtn>
       {hasCamera && (
-        <ToolBtn color="#22d3ee" onClick={flipCamera} title={isFront ? 'Switch to back camera' : 'Switch to selfie camera'} themed={themedCamera} darkMode={darkMode}>
-          <FlipHorizontal size={16} />
-        </ToolBtn>
+        <>
+          <ToolBtn color="#22d3ee" onClick={flipCamera} title={isFront ? 'Switch to back camera' : 'Switch to selfie camera'} themed={themedCamera} darkMode={darkMode}>
+            <SwitchCamera size={16} />
+          </ToolBtn>
+          <ToolBtn color={mirrorCam ? '#f472b6' : '#64748b'} active={mirrorCam} onClick={() => setMirrorCam(v => !v)} title={mirrorCam ? 'Un-mirror' : 'Mirror camera'} themed={themedCamera} darkMode={darkMode}>
+            <FlipHorizontal size={16} />
+          </ToolBtn>
+        </>
       )}
       {!simplePhone && (
         <div style={{ display:'flex', gap:3, padding:3, border:themedCamera ? (darkMode ? '2px solid rgba(186,230,253,0.3)' : '2px solid #bae6fd') : '1px solid rgba(255,255,255,0.1)', borderRadius:12, background:themedCamera ? (darkMode ? 'rgba(186,230,253,0.08)' : 'rgba(255,255,255,0.68)') : 'rgba(255,255,255,0.04)', flex:'0 0 auto' }}>
