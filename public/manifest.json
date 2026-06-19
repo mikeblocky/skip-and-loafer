@@ -1,23 +1,96 @@
 {
-    "name": "Skip and Loafer",
-    "short_name": "Skip & Loafer",
-    "description": "Chapter tracker and countdown for Skip and Loafer manga",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
-    "icons": [
-        {
-            "src": "/swt2-512.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/swt2-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ]
+  "name": "Skip and Loafer",
+  "short_name": "Skip & Loafer",
+  "description": "A fan-made Skip and Loafer companion app for chapters, galleries, countdowns, quizzes, and offline reading.",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "categories": ["books", "entertainment", "lifestyle"],
+  "prefer_related_applications": false,
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/swt2-512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/swt2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Chapters",
+      "short_name": "Chapters",
+      "description": "Open the chapter tracker.",
+      "url": "/#chapters",
+      "icons": [{ "src": "/swt2-512.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Gallery",
+      "short_name": "Gallery",
+      "description": "Open saved Skip and Loafer galleries.",
+      "url": "/#gallery",
+      "icons": [{ "src": "/swt2-512.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Open app, offline, and accessibility settings.",
+      "url": "/#settings",
+      "icons": [{ "src": "/swt2-512.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sticker Camera",
+      "short_name": "Camera",
+      "description": "Open the sticker camera.",
+      "url": "/#stickerCam",
+      "icons": [{ "src": "/swt2-512.png", "sizes": "192x192" }]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+skiploafer",
+      "url": "/?open=%s"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/opengraph-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Skip and Loafer fan app"
+    },
+    {
+      "src": "/swt2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Skip and Loafer app icon"
+    }
+  ],
+  "share_target": {
+    "action": "/?share-target=1",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

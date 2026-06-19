@@ -136,20 +136,16 @@ const SECTION_COPY = {
         washi: 'blue',
         text: 'Use keyboard shortcuts to navigate the site quickly. See the full reference below.',
         details: [
-          'Press 1–8 to switch between main tabs.',
+          'Press 1-9 for the first nine visible tabs, or 0 for the tenth visible tab.',
           'Press Q and E to move between sub-tabs within a page.',
-          'Press Escape to close any open overlay or dialog.'
         ]
       },
     ],
     shortcutsTitle: 'Keyboard shortcuts',
     shortcutsIntro: 'Keyboard shortcuts available across the site:',
     shortcutsList: [
-      { key: '1..8', desc: 'Switch to a main tab by number' },
-      { key: 'Q / E', desc: 'Go to the previous or next sub-tab' },
-      { key: 'Alt + A', desc: 'Open the accessibility panel in Settings' },
-      { key: 'Alt + K', desc: 'Open the keyboard shortcuts reference' },
-      { key: 'Esc', desc: 'Close any open overlay or dialog' },
+      { key: '1-9, 0', desc: 'Open the matching visible main tab; 0 opens the tenth visible tab' },
+      { key: 'Q / E', desc: 'Go to the previous or next sub-tab in Chapters, Gallery, or Reading/Sync' },
     ],
   },
   ja: {
@@ -259,20 +255,16 @@ const SECTION_COPY = {
         washi: 'blue',
         text: 'キーボードショートカットを使ってサクサク移動できます。詳細はページ下部のリファレンスを参照してください。',
         details: [
-          '1〜8キーを押すことで、左側のメインタブを瞬時に切り替え。',
+          '1〜9キーで最初の9個の表示中タブ、0キーで10番目の表示中タブへ切り替え。',
           'QキーとEキーでパネル内のサブタブを前後フリップ。',
-          'Escキーを押すことで開いているダイアログや投稿画面をクローズ。'
         ]
       },
     ],
     shortcutsTitle: 'ショートカットキー一覧',
     shortcutsIntro: 'サイト内で次のキーボード入力を使うと、瞬時にナビゲーションが可能です：',
     shortcutsList: [
-      { key: '1..8', desc: '左メニューのメインタブへ瞬時に切り替え' },
-      { key: 'Q / E', desc: 'ページ内のサブタブを前後に切り替え' },
-      { key: 'Alt + A', desc: '設定のアクセシビリティパネルを直接起動' },
-      { key: 'Alt + K', desc: 'ショートカット使用状況のヘルプを起動' },
-      { key: 'Esc', desc: '開いている各種ダイアログやモーダルシートを閉じる' },
+      { key: '1〜9, 0', desc: '対応する表示中のメインタブへ切り替え。0キーは10番目の表示中タブです' },
+      { key: 'Q / E', desc: 'コミックス、ギャラリー、読書/同期内のサブタブを前後に切り替え' },
     ],
   },
 };
@@ -1094,4 +1086,3 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
 };
 
 export default TutorialPage;
-

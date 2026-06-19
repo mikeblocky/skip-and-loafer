@@ -1,3 +1,5 @@
+import { PWA_SYNC_COMPLETE_EVENT, PWA_SYNC_IDLE_EVENT, PWA_SYNC_START_EVENT } from './pwaEvents.js';
+
 const PENDING_READS_KEY = 'skip_pending_reads';
 const PENDING_SIGS_KEY = 'skip_pending_signatures_v2';
 const PENDING_GALLERY_KEY = 'skip_pending_gallery_v2';
@@ -61,9 +63,12 @@ export const enqueueFanGallery = (entry) => {
   return pendingEntry;
 };
 
+export const getPendingOfflineRequestCount = () =>
+  getQueue(PENDING_READS_KEY).length + getQueue(PENDING_SIGS_KEY).length + getQueue(PENDING_GALLERY_KEY).length;
+
 // Custom event to trigger UI re-sync after background syncing completes
 export const triggerOfflineSyncComplete = (type) => {
-  const event = new CustomEvent('skip_offline_sync_complete', { detail: { type } });
+  const event = new CustomEvent(PWA_SYNC_COMPLETE_EVENT, { detail: { type } });
   window.dispatchEvent(event);
 };
 
@@ -72,6 +77,9 @@ let isSyncing = false;
 export const flushPendingRequests = async () => {
   if (isSyncing || !navigator.onLine) return;
   isSyncing = true;
+  window.dispatchEvent(new CustomEvent(PWA_SYNC_START_EVENT, {
+    detail: { pending: getPendingOfflineRequestCount() },
+  }));
 
   try {
     // 1. Flush Pending Reads
@@ -165,5 +173,8 @@ export const flushPendingRequests = async () => {
     console.error('Offline request queue flushing encountered an error:', error);
   } finally {
     isSyncing = false;
+    window.dispatchEvent(new CustomEvent(PWA_SYNC_IDLE_EVENT, {
+      detail: { pending: getPendingOfflineRequestCount() },
+    }));
   }
 };

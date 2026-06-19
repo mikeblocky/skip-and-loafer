@@ -1,5 +1,5 @@
-import { Suspense, useState, useEffect } from 'react';
-import { ChevronUp, WifiOff } from 'lucide-react';
+import { Suspense, useEffect } from 'react';
+import { ChevronUp } from 'lucide-react';
 import NavTabs from '../../components/shared/NavTabs';
 import {
   AppDisclaimerModal,
@@ -9,6 +9,7 @@ import {
   MangaReader,
 } from './appLazyComponents';
 import AppTabContent from './AppTabContent';
+import AppStatusChip from './AppStatusChip';
 import ReaderOverlayFallback from './ReaderOverlayFallback';
 
 const skipLinkStyle = {
@@ -40,54 +41,8 @@ const copyrightStyle = {
   display: 'none',
 };
 
-const offlineBannerStyle = (isMobile) => ({
-  position: 'fixed',
-  top: isMobile ? '10px' : '16px',
-  right: isMobile ? '10px' : '16px',
-  zIndex: 2000,
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: '#fef3c7',
-  border: '2px solid #d97706',
-  borderBottom: '4px solid #b45309',
-  borderRadius: '9999px',
-  padding: '0',
-  color: '#b45309',
-  boxShadow: '0 8px 24px rgba(180, 83, 9, 0.15)',
-  pointerEvents: 'none',
-  width: isMobile ? '34px' : '38px',
-  height: isMobile ? '34px' : '38px',
-});
-
-const OFFLINE_COPY = {
-  en: "Offline Mode — Caching active! Chat and syncing are paused.",
-  es: "Modo sin conexión — ¡Caché activo! Chat y sincronización pausados.",
-  pt: "Modo offline — Cache ativo! Chat e sincronização pausados.",
-  fr: "Mode hors ligne — Cache actif ! Le chat et la synchronisation sont suspendus.",
-  de: "Offline-Modus — Cache aktiv! Chat und Synchronisierung pausiert.",
-  it: "Modalità offline — Cache attiva! Chat e sincronizzazione sono in pausa.",
-  ja: "オフラインモード — キャッシュ有効！チャットと同期は一時停止中です。",
-};
-
-const getOfflineLabel = (uiLanguage) => OFFLINE_COPY[uiLanguage] || OFFLINE_COPY.en;
-
 const AppChrome = ({ app }) => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const isMobileStickerCam = app.isMobile && app.activePage === 'stickerCam';
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   useEffect(() => {
     if (app.uiLanguage === 'ja') {
@@ -112,6 +67,16 @@ const AppChrome = ({ app }) => {
     }
   }, [app.uiLanguage]);
 
+  useEffect(() => {
+    if (!('setAppBadge' in navigator) || !('clearAppBadge' in navigator)) return;
+    const unreadCount = Number(app.unreadCount || 0);
+    if (unreadCount > 0) {
+      navigator.setAppBadge(unreadCount).catch(() => {});
+      return;
+    }
+    navigator.clearAppBadge().catch(() => {});
+  }, [app.unreadCount]);
+
   return (
     <div className="app-surface-shell" style={shellViewportStyle}>
       {/* SVG Color Blindness Matrix Filters */}
@@ -132,18 +97,7 @@ const AppChrome = ({ app }) => {
         </defs>
       </svg>
 
-      {!isOnline && (
-        <div
-          key="offline-banner"
-          className="offline-banner-visible"
-          style={offlineBannerStyle(app.isMobile)}
-          role="status"
-          aria-label={getOfflineLabel(app.uiLanguage)}
-          title={getOfflineLabel(app.uiLanguage)}
-        >
-          <WifiOff size={app.isMobile ? 16 : 18} strokeWidth={2.8} aria-hidden="true" />
-        </div>
-      )}
+      <AppStatusChip isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
 
       <a
         href="#main-content"
@@ -325,13 +279,13 @@ const AppChrome = ({ app }) => {
         />
       )}
 
-      {app.deferredShellMount && (
+      {app.canMountRichPanels && (
         <Suspense fallback={null}>
           <ChangelogPopup isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
         </Suspense>
       )}
 
-      {app.deferredShellMount && (
+      {app.canMountRichPanels && (
         <Suspense fallback={null}>
           <BirthdayNotification isMobile={app.isMobile} uiLanguage={app.uiLanguage} />
         </Suspense>
