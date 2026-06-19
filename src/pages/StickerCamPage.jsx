@@ -1001,7 +1001,7 @@ export default function StickerCamPage() {
     height: stageSize.height,
     alignSelf: 'center',
     background: '#05050d',
-    borderRadius: themedCamera ? '0 0 16px 16px' : (simplePhone ? 24 : 22),
+    borderRadius: themedCamera ? 16 : (simplePhone ? 24 : 22),
     boxShadow: themedCamera ? 'none' : (simplePhone ? 'none' : undefined),
     border: themedCamera ? 'none' : (simplePhone ? '1px solid rgba(255,255,255,0.14)' : undefined),
   };
@@ -1016,7 +1016,7 @@ export default function StickerCamPage() {
         style={{ display:'none' }}
       />
       <div style={themedCamera ? { flex:1, minHeight:0, display:'flex', flexDirection:'column', margin: simplePhone ? '0' : '10px', background:'transparent', borderRadius: simplePhone ? 0 : 24, overflow:'hidden', boxShadow: simplePhone ? 'none' : '0 6px 28px rgba(0,0,0,0.16)', border: simplePhone ? 'none' : '1.5px solid rgba(0,0,0,0.06)' } : { flex:1, minHeight:0, display:'flex', flexDirection:'column' }}>
-      <div ref={stageWrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: themedCamera ? '0' : (simplePhone ? '0' : '8px 8px 0'), overflow:'hidden' }}>
+      <div ref={stageWrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'center', justifyContent:'center', padding: themedCamera ? '0' : (simplePhone ? '0' : '8px 8px 0'), overflow:'hidden' }}>
         <div ref={containerRef} style={stageStyle}>
 
         <video ref={videoRef} autoPlay playsInline muted
