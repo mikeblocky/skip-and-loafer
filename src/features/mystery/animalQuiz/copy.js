@@ -2,7 +2,7 @@ const COPY = {
   en: {
     menuTitle: 'Which animal are you?',
     menuDescription: 'A deeper instinct quiz for Satonosuke, Oshio, or Omiso.',
-    introNote: 'A den-deep quiz that weighs warmth, caution, play, routine, and roaming instinct.',
+    introNote: 'A quiz that measures warmth, caution, play, routine, and roaming instinct.',
     resultTitle: 'Your animal match',
     notesTitle: 'Animal reading',
     traitsTitle: 'Instinct traits',
@@ -63,7 +63,7 @@ const COPY = {
     traitDescriptions: {
       chaosCharm: { high: 'bright, disarming energy that turns tension into play', low: 'more measured than chaotic, with energy released carefully' },
       watchCircle: { high: 'quietly reading the room and keeping track of everything', low: 'relaxing fast instead of staying in guard mode' },
-      denSoftness: { high: 'deeply soothed by comfort, familiarity, and gentle closeness', low: 'less tied to cozy predictability and more open to movement' },
+      denSoftness: { high: 'deeply settled by comfort, familiarity, and gentle closeness', low: 'less tied to predictable comfort and more open to movement' },
       soloRoam: { high: 'needs space, range, and a little self-directed wandering', low: 'prefers staying closer to trusted people and known rhythms' },
       ritualAnchor: { high: 'stabilized by repeated habits, safe routes, and familiar timing', low: 'more willing to loosen routine and adapt in motion' },
       bounceEnergy: { high: 'quick to pop back up and create movement around others', low: 'recharges more quietly and spends energy carefully' },
@@ -90,7 +90,7 @@ const COPY = {
       Omiso: {
         openers: [
           'Your result settles on Omiso energy: comforting, soft, and quietly grounding for everyone nearby.',
-          'This looks very Omiso: cozy, affectionate, and steady in a way that lowers the temperature of the room.',
+          'This looks very Omiso: warm, affectionate, and steady in a way that lowers the tension in any room.',
           'You matched Omiso because your pattern keeps choosing softness, safety, and reliable warmth over noise.',
         ],
         anchor: 'You regulate best through comfort, familiar pacing, and a calm kind of closeness.',

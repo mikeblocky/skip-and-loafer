@@ -35,11 +35,11 @@ import { useMainScrollTop } from './useMainScrollTop';
 import { usePageHistorySync } from './usePageHistorySync';
 import { usePersistedAppState } from './usePersistedAppState';
 import { useSiteStats } from './useSiteStats';
+import { useAdaptivePerformanceMode } from './useAdaptivePerformanceMode';
 import { useReaderChapterNavigation } from './useReaderChapterNavigation';
 import { useTabSwipeNavigation } from './useTabSwipeNavigation';
 import { useUiBootDelay } from './useUiBootDelay';
 import { useWindowSize } from './useWindowSize';
-import { flushPendingRequests } from '../../../utils/offlineSync';
 
 export const useAppController = () => {
   const {
@@ -91,13 +91,15 @@ export const useAppController = () => {
   const [readerPrefs, setReaderPrefs] = useState(getInitialReaderPrefs);
 
   const t = UI[uiLanguage] || UI.en;
+  const performanceMode = useAdaptivePerformanceMode();
   const supportedUiLanguages = getSupportedUiLanguages();
   const displayActivePage = visibleTabPages.includes(activePage) ? activePage : (visibleTabPages[0] || DEFAULT_PAGE);
   const siteStats = useSiteStats({ activePage: displayActivePage, syncActive, pushNow });
   const now = new Date();
   const showMitsumiReplayBanner = now.getMonth() === 2 && now.getDate() === 3;
-  const deferredShellMount = useDeferredMount(showUI, 180);
-  const showDecorativeLayer = deferredShellMount && !accessibilityPrefs.simplifyVisuals;
+  const deferredShellMount = useDeferredMount(showUI, performanceMode.isEfficient ? 1200 : 180);
+  const canMountRichPanels = deferredShellMount && !performanceMode.isEfficient;
+  const showDecorativeLayer = deferredShellMount && !accessibilityPrefs.simplifyVisuals && !performanceMode.isEfficient;
 
   const { handleMainTouchStart, handleMainTouchEnd } = useTabSwipeNavigation({
     activePage: displayActivePage,
@@ -131,20 +133,8 @@ export const useAppController = () => {
   const { showScrollTop, scrollToTop } = useMainScrollTop({ mainScrollRef, showUI });
 
   useEffect(() => {
-    // Flush any pending offline requests on boot
-    void flushPendingRequests();
+    if (performanceMode.isEfficient) return undefined;
 
-    const handleOnline = () => {
-      void flushPendingRequests();
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
-  }, []);
-
-  useEffect(() => {
     const interactiveSelector = 'button, [role="button"], a[href], input[type="button"], input[type="submit"], input[type="reset"]';
 
     const handlePointerDown = (event) => {
@@ -160,12 +150,12 @@ export const useAppController = () => {
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, true);
     };
-  }, []);
+  }, [performanceMode.isEfficient]);
 
-  useGalleryPrefetch({ activePage: displayActivePage, loadGalleryPage, enabled: uiLanguage !== 'ja' });
+  useGalleryPrefetch({ activePage: displayActivePage, loadGalleryPage, enabled: uiLanguage !== 'ja' && !performanceMode.isEfficient });
   useIdlePreload([loadMangaReader, preloadChapterData], !readerChapter && (displayActivePage === 'chapters' || displayActivePage === 'sync'), {
-    delayMs: 420,
-    staggerMs: 180,
+    delayMs: performanceMode.isEfficient ? 1200 : 420,
+    staggerMs: performanceMode.isEfficient ? 420 : 180,
     maxPreloadCount: isMobile ? 1 : 2,
   });
 
@@ -259,6 +249,7 @@ export const useAppController = () => {
     cardPositions,
     closeDisclaimer,
     closeReader,
+    canMountRichPanels,
     deferredShellMount,
     finished,
     finishedCount,
@@ -279,6 +270,7 @@ export const useAppController = () => {
     mainScrollRef,
     markFinished,
     pendingLinks,
+    performanceMode,
     readCounts,
     readerChapter,
     reloadFromStorage,
@@ -286,6 +278,7 @@ export const useAppController = () => {
     setAccessibilityColorBlindMode,
     setUiLanguage,
     shortcutStats,
+    siteStats,
     showDecorativeLayer,
     showDisclaimer,
     showMitsumiReplayBanner,

@@ -49,14 +49,14 @@ const FACE_ANCHORS = {
 
 // ── Background modes ──────────────────────────────────────────────────────────
 const BG_MODES = [
-  { id: 'none',       label: '🎥 Normal',   needsSeg: false },
-  { id: 'blur',       label: '🌫️ Blur BG',  needsSeg: true  },
-  { id: 'black',      label: '⬛ Black',     needsSeg: true  },
-  { id: 'white',      label: '⬜ White',     needsSeg: true  },
-  { id: 'gradient',   label: '🌈 Gradient',  needsSeg: true  },
-  { id: 'notebook',   label: '📓 Notebook',  needsSeg: true  },
-  { id: 'hidePerson', label: '👻 Vanish',    needsSeg: true  },
-  { id: 'hideFace',   label: '🙈 Hide Face', needsSeg: true  },
+  { id: 'none',       label: 'Normal',          needsSeg: false },
+  { id: 'blur',       label: 'Blur background', needsSeg: true  },
+  { id: 'black',      label: 'Black',           needsSeg: true  },
+  { id: 'white',      label: 'White',           needsSeg: true  },
+  { id: 'gradient',   label: 'Gradient',        needsSeg: true  },
+  { id: 'notebook',   label: 'Notebook',        needsSeg: true  },
+  { id: 'hidePerson', label: 'Hide person',     needsSeg: true  },
+  { id: 'hideFace',   label: 'Hide face',       needsSeg: true  },
 ];
 
 // ── Sticker sources ───────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ const BASE_SNAP_STICKER = 120;
 
 // ── Gesture vocab & hold thresholds ──────────────────────────────────────────
 const GESTURE_HOLD = { fist: 25, open: 20, point: 0, peace: 22, thumbup: 20, rock: 18, shaka: 18, other: 0, idle: 0 };
-const GESTURE_LABELS = { fist: '✊ Fist', open: '🖐 Open', point: '☝️ Point', peace: '✌️ Peace', thumbup: '👍 Thumbs Up', rock: '🤘 Rock', shaka: '🤙 Shaka', other: '🤚', idle: '' };
+const GESTURE_LABELS = { fist: 'Fist', open: 'Open hand', point: 'Point', peace: 'Peace', thumbup: 'Thumbs up', rock: 'Rock', shaka: 'Shaka', other: '', idle: '' };
 
 export {
   ALL_STICKER_SRCS,

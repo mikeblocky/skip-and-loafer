@@ -24,12 +24,12 @@ const RelationshipMap = lazy(loadRelationshipMap);
 const MYSTERY_LANGUAGE = 'en';
 
 const tabsConfig = [
-  { view: 'menu', label: 'Desk Corkboard', shortLabel: 'Dashboard', icon: Sparkles, bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
-  { view: 'gacha', label: 'Spirit Draw', shortLabel: 'Gacha', icon: Camera, bg: '#fce7f3', color: '#be185d', border: '#fbcfe8' },
-  { view: 'quiz', label: 'Soul Quiz', shortLabel: 'Quiz', icon: Clipboard, bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
-  { view: 'animalQuiz', label: 'Animal Buddy', shortLabel: 'Animal', icon: PawPrint, bg: '#d1fae5', color: '#047857', border: '#a7f3d0' },
-  { view: 'map', label: 'Story Canvas', shortLabel: 'Map', icon: MapIcon, bg: '#f3e8ff', color: '#6d28d9', border: '#e9d5ff' },
-  { view: 'rating', label: 'Tier Board', shortLabel: 'Tier', icon: Star, bg: '#fffbeb', color: '#d97706', border: '#fde68a' },
+  { view: 'menu', label: 'Menu', shortLabel: 'Menu', icon: Sparkles, bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
+  { view: 'gacha', label: 'Character draw', shortLabel: 'Draw', icon: Camera, bg: '#fce7f3', color: '#be185d', border: '#fbcfe8' },
+  { view: 'quiz', label: 'Character quiz', shortLabel: 'Quiz', icon: Clipboard, bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' },
+  { view: 'animalQuiz', label: 'Animal quiz', shortLabel: 'Animal', icon: PawPrint, bg: '#d1fae5', color: '#047857', border: '#a7f3d0' },
+  { view: 'map', label: 'Story map', shortLabel: 'Map', icon: MapIcon, bg: '#f3e8ff', color: '#6d28d9', border: '#e9d5ff' },
+  { view: 'rating', label: 'Tier maker', shortLabel: 'Tier', icon: Star, bg: '#fffbeb', color: '#d97706', border: '#fde68a' },
 ];
 
 const MysteryExperience = ({ isMobile, darkMode = false }) => {
@@ -266,7 +266,7 @@ const MysteryExperience = ({ isMobile, darkMode = false }) => {
                   showBackButton={true}
                 title={t.mystery?.[view === 'animalQuiz' ? 'animalQuiz' : view]?.title || t.mystery?.[view]?.title || t.mystery?.title || 'Case File'}
                   onBack={leaveSubView}
-                  backLabel={t.mystery?.returnToMenu || 'Desk Corkboard'}
+                  backLabel={t.mystery?.returnToMenu || 'Back to menu'}
                 />
             )}
 

@@ -1,6 +1,6 @@
 export const QUIZ_UI_TEXT = {
   en: {
-    header: 'Quiz challenge',
+    header: 'Quiz',
     questionsTab: 'Questions',
     leaderboardTab: 'Leaderboard',
     globalBoard: 'Global leaderboard',
@@ -15,7 +15,7 @@ export const QUIZ_UI_TEXT = {
     historyPlayed: 'played',
     boardSource: 'Source',
     historyTab: 'History',
-    setupTitle: 'Ready to play?',
+    setupTitle: 'Set up your quiz',
     setupInstructions: '1. Enter your name. 2. Pick a difficulty. 3. Choose your question set.',
     setupSetTitle: 'Choose number of questions',
     setupDifficultyTitle: 'Choose difficulty mode',
@@ -48,8 +48,8 @@ export const QUIZ_UI_TEXT = {
     correct: 'Correct',
     wrong: 'Wrong',
     timeout: 'Time up',
-    finalScore: 'Final Score',
-    playAgain: 'Play Again',
+    finalScore: 'Final score',
+    playAgain: 'Play again',
     noLeaderboard: 'No leaderboard entries yet.',
     historyTitle: 'Recent quiz history',
     noHistory: 'No quiz history yet.',

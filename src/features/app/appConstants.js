@@ -14,8 +14,8 @@ export const TAB_PAGES = [
   'blog',
   'quiz',
   'mystery',
-  'birthdays',
   'stickerCam',
+  'birthdays',
   'settings',
 ];
 export const DEFAULT_PAGE = TAB_PAGES[0];

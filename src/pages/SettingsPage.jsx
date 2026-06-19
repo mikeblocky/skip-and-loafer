@@ -1,16 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Check, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Eye, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy, Camera, HardDriveDownload, Share2, Bell, UploadCloud, ChevronRight, Type, Maximize2, AlignJustify, Link, Contrast, Layers, CircleOff, WandSparkles, Palette, Globe2, Home, ArrowLeftRight } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
 import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
 import {
   createPaperChipStyle,
-  createPaperPanelStyle,
   PAPER_FONT_FAMILY,
 } from '../components/shared/paper/paperTheme';
 import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
+import { getThemedCameraEnabled, setThemedCameraEnabled } from '../features/stickerCam/themedCameraPreference';
+import {
+  INSTALL_PROMPT_READY_EVENT,
+  OFFLINE_LIBRARY_ENABLED_KEY,
+  PWA_SYNC_COMPLETE_EVENT,
+  PWA_SYNC_IDLE_EVENT,
+  PWA_UPDATE_APPLY_EVENT,
+  PWA_UPDATE_READY_EVENT,
+} from '../utils/pwaEvents.js';
+import { flushPendingRequests, getPendingOfflineRequestCount } from '../utils/offlineSync.js';
+import {
+  PERFORMANCE_MODE_CHANGE_EVENT,
+  getDevicePerformanceSnapshot,
+  readPerformanceModePreference,
+  resolvePerformanceMode,
+  writePerformanceModePreference,
+} from '../utils/performanceMode.js';
 
 const PANEL_TITLE_STYLE = {
   display: 'flex',
@@ -44,43 +60,6 @@ const getPanelIconBoxStyle = (border, bottom, background, color) => ({
   flexShrink: 0,
 });
 
-const getOptionCardStyle = (active = false) => ({
-  ...createPaperPanelStyle({
-    background: active ? 'var(--surface-card-active)' : 'var(--surface-card)',
-    borderColor: active ? '#3b82f6' : 'var(--surface-border)',
-    bottomColor: active ? '#2563eb' : 'var(--surface-border-strong)',
-    radius: '16px',
-    shadow: active ? '0 6px 14px rgba(59,130,246,0.06)' : '0 4px 8px rgba(0,0,0,0.01)',
-  }),
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '10px',
-  padding: '12px 16px',
-  borderWidth: '2.5px',
-  borderBottomWidth: active ? '5px' : '4px',
-  cursor: 'pointer',
-  transition: 'all 0.15s ease',
-});
-
-const KEYCAP_STYLE = {
-  ...createPaperChipStyle({
-    borderColor: 'var(--surface-border-strong)',
-    bottomColor: 'var(--surface-border-strong)',
-    background: 'var(--keycap-bg)',
-    color: 'var(--keycap-color)',
-    radius: '10px',
-    padding: '4px 8px',
-    fontSize: '0.8rem',
-    fontFamily: 'var(--font-paper)',
-  }),
-  minWidth: '48px',
-  textAlign: 'center',
-  fontWeight: '400',
-  lineHeight: 1.1,
-  flexShrink: 0,
-};
-
 const BUTTON_RESET_STYLE = {
   width: '100%',
   textAlign: 'left',
@@ -95,18 +74,200 @@ const BUTTON_RESET_STYLE = {
   margin: 0,
 };
 
-const PREVIEW_QUOTES = {
-  en: { title: "Cherry Blossoms", text: "Mitsumi and Sousuke walked to school under the blooming cherry blossoms. It was a beautiful spring morning.", button: "Read Article" },
-  es: { title: "Flores de Cerezo", text: "Mitsumi y Sousuke caminaron a la escuela bajo las flores de cerezo en flor. Era una hermosa mañana de primavera.", button: "Leer Artículo" },
-  pt: { title: "Flores de Cerejeira", text: "Mitsumi e Sousuke caminharam para a escola sob as flores de cerejeira em flor. Era uma bela manhã de primavera.", button: "Ler Artigo" },
-  fr: { title: "Cerisiers en Fleurs", text: "Mitsumi et Sousuke marchèrent vers l’école sous les cerisiers en fleurs. C'était une magnifique matinée de printemps.", button: "Lire l'Article" },
-  de: { title: "Kirschblüten", text: "Mitsumi und Sousuke gingen unter den blühenden Kirschblüten zur Schule. Es war ein wunderschöner Frühlingsmorgen.", button: "Artikel Lesen" },
-  it: { title: "Fiori di Ciliegio", text: "Mitsumi e Sousuke camminarono verso la scuola sotto i ciliegi in fiore. Era una splendida mattina di primavera.", button: "Leggi Articolo" },
-  ja: { title: "桜の並木道", text: "美津未と聡介は咲き誇る桜の下を歩いて登校した。美しい春の朝だった。", button: "記事を読む" },
+const SETTINGS_GROUP_STYLE = {
+  background: 'var(--surface-panel)',
+  border: '2.5px solid var(--surface-border)',
+  borderBottom: '5px solid var(--surface-border-strong)',
+  borderRadius: '18px',
+  overflow: 'hidden',
 };
 
-const INSTALL_PROMPT_READY_EVENT = 'skip_install_prompt_ready';
-const OFFLINE_LIBRARY_ENABLED_KEY = 'skip_offline_library_enabled_v1';
+const getSettingsRowStyle = (disabled = false) => ({
+  ...BUTTON_RESET_STYLE,
+  minHeight: '54px',
+  display: 'grid',
+  gridTemplateColumns: '32px minmax(0, 1fr) auto',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '12px 14px',
+  borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)',
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.58 : 1,
+});
+
+const SETTINGS_ROW_LAST_STYLE = {
+  borderBottom: 'none',
+};
+
+const getSettingsIconStyle = (background, color) => ({
+  width: '30px',
+  height: '30px',
+  borderRadius: '9px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background,
+  color,
+  flexShrink: 0,
+});
+
+const SETTINGS_VALUE_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  fontFamily: 'var(--font-paper)',
+  fontSize: '0.76rem',
+  color: 'var(--text-secondary)',
+  whiteSpace: 'nowrap',
+};
+
+const SettingsRow = ({
+  icon,
+  iconBackground,
+  iconColor,
+  title,
+  detail,
+  value,
+  onClick,
+  disabled = false,
+  destructive = false,
+  last = false,
+  role,
+  ariaChecked,
+}) => {
+  const content = (
+    <>
+      <span style={getSettingsIconStyle(iconBackground, iconColor)}>{icon}</span>
+      <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span style={{
+          fontFamily: 'var(--font-paper)',
+          fontSize: '0.9rem',
+          color: destructive ? '#b91c1c' : 'var(--text-primary)',
+          lineHeight: 1.25,
+        }}>
+          {title}
+        </span>
+        {detail && (
+          <span style={{
+            fontFamily: 'var(--font-paper)',
+            fontSize: '0.74rem',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.3,
+          }}>
+            {detail}
+          </span>
+        )}
+      </span>
+      <span style={SETTINGS_VALUE_STYLE}>
+        {value}
+        {onClick && !disabled && <ChevronRight size={15} strokeWidth={2.4} aria-hidden="true" />}
+      </span>
+    </>
+  );
+
+  if (!onClick) {
+    return <div style={{ ...getSettingsRowStyle(false), cursor: 'default', ...(last ? SETTINGS_ROW_LAST_STYLE : {}) }}>{content}</div>;
+  }
+
+  return (
+    <motion.button
+      type="button"
+      role={role}
+      aria-checked={ariaChecked}
+      onClick={onClick}
+      disabled={disabled}
+      whileTap={disabled ? undefined : { scale: 0.995 }}
+      style={{ ...getSettingsRowStyle(disabled), ...(last ? SETTINGS_ROW_LAST_STYLE : {}) }}
+    >
+      {content}
+    </motion.button>
+  );
+};
+
+const SettingsToggleRow = ({
+  icon,
+  iconBackground = '#dbeafe',
+  iconColor = '#1d4ed8',
+  title,
+  detail,
+  checked,
+  onClick,
+  last = false,
+}) => (
+  <SettingsRow
+    icon={icon}
+    iconBackground={checked ? iconBackground : '#e2e8f0'}
+    iconColor={checked ? iconColor : '#64748b'}
+    title={title}
+    detail={detail}
+    value={checked ? 'On' : 'Off'}
+    onClick={onClick}
+    role="checkbox"
+    ariaChecked={checked}
+    last={last}
+  />
+);
+
+const SettingsChoiceRow = ({
+  icon,
+  iconBackground = '#dbeafe',
+  iconColor = '#1d4ed8',
+  title,
+  detail,
+  selected,
+  onClick,
+  last = false,
+}) => (
+  <SettingsRow
+    icon={icon}
+    iconBackground={selected ? iconBackground : '#e2e8f0'}
+    iconColor={selected ? iconColor : '#64748b'}
+    title={title}
+    detail={detail}
+    value={selected ? 'Selected' : ''}
+    onClick={onClick}
+    role="radio"
+    ariaChecked={selected}
+    last={last}
+  />
+);
+
+const SettingsDropdown = ({
+  title,
+  value,
+  children,
+  defaultOpen = false,
+}) => (
+  <details
+    open={defaultOpen}
+    style={{
+      ...SETTINGS_GROUP_STYLE,
+      overflow: 'hidden',
+    }}
+  >
+    <summary
+      style={{
+        minHeight: '52px',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '12px 14px',
+        cursor: 'pointer',
+        listStyle: 'none',
+        fontFamily: 'var(--font-paper)',
+        color: 'var(--text-primary)',
+        borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)',
+      }}
+    >
+      <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span style={{ fontSize: '0.9rem', lineHeight: 1.25 }}>{title}</span>
+      </span>
+      <span style={SETTINGS_VALUE_STYLE}>{value}</span>
+    </summary>
+    <div>{children}</div>
+  </details>
+);
 
 const getSavedInstallPrompt = () => window.__skipInstallPromptEvent || null;
 const OFFLINE_PUBLIC_ASSET_PATHS = new Set(OFFLINE_PUBLIC_ASSETS);
@@ -150,6 +311,19 @@ const SettingsPage = ({
   });
   const [storageEstimate, setStorageEstimate] = useState(null);
   const [isClearingOfflineCache, setIsClearingOfflineCache] = useState(false);
+  const [persistentStorage, setPersistentStorage] = useState({
+    supported: typeof navigator !== 'undefined' && !!navigator.storage?.persist,
+    persisted: false,
+    requesting: false,
+  });
+  const [updateReady, setUpdateReady] = useState(typeof window !== 'undefined' && !!window.__skipWaitingServiceWorker);
+  const [canShareApp, setCanShareApp] = useState(typeof navigator !== 'undefined' && !!navigator.share);
+  const [notificationPermission, setNotificationPermission] = useState(
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  );
+  const [pendingOfflineActions, setPendingOfflineActions] = useState(() => getPendingOfflineRequestCount());
+  const [performancePreference, setPerformancePreference] = useState(readPerformanceModePreference);
+  const [performanceSnapshot, setPerformanceSnapshot] = useState(getDevicePerformanceSnapshot);
   const [keepPreparingOffline, setKeepPreparingOffline] = useState(() => {
     try {
       return localStorage.getItem(OFFLINE_LIBRARY_ENABLED_KEY) === '1';
@@ -157,6 +331,7 @@ const SettingsPage = ({
       return false;
     }
   });
+  const [themedCamera, setThemedCamera] = useState(() => getThemedCameraEnabled());
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -193,6 +368,59 @@ const SettingsPage = ({
       window.removeEventListener('beforeinstallprompt', handler);
       window.removeEventListener(INSTALL_PROMPT_READY_EVENT, syncSavedPrompt);
       window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshPersistence = async () => {
+      if (!navigator.storage?.persisted) return;
+      try {
+        const persisted = await navigator.storage.persisted();
+        if (!cancelled) {
+          setPersistentStorage((previous) => ({ ...previous, supported: true, persisted }));
+        }
+      } catch {
+        // Persistence can be hidden by private browsing or older browser modes.
+      }
+    };
+
+    const handleUpdateReady = () => setUpdateReady(true);
+    const refreshPendingActions = () => setPendingOfflineActions(getPendingOfflineRequestCount());
+
+    refreshPersistence();
+    setCanShareApp(!!navigator.share);
+    window.addEventListener(PWA_UPDATE_READY_EVENT, handleUpdateReady);
+    window.addEventListener('online', refreshPendingActions);
+    window.addEventListener('focus', refreshPendingActions);
+    window.addEventListener(PWA_SYNC_COMPLETE_EVENT, refreshPendingActions);
+    window.addEventListener(PWA_SYNC_IDLE_EVENT, refreshPendingActions);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(PWA_UPDATE_READY_EVENT, handleUpdateReady);
+      window.removeEventListener('online', refreshPendingActions);
+      window.removeEventListener('focus', refreshPendingActions);
+      window.removeEventListener(PWA_SYNC_COMPLETE_EVENT, refreshPendingActions);
+      window.removeEventListener(PWA_SYNC_IDLE_EVENT, refreshPendingActions);
+    };
+  }, []);
+
+  useEffect(() => {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const refreshPerformanceSnapshot = () => setPerformanceSnapshot(getDevicePerformanceSnapshot());
+    const handlePerformancePreference = (event) => {
+      setPerformancePreference(event.detail?.value || readPerformanceModePreference());
+      refreshPerformanceSnapshot();
+    };
+
+    window.addEventListener(PERFORMANCE_MODE_CHANGE_EVENT, handlePerformancePreference);
+    connection?.addEventListener?.('change', refreshPerformanceSnapshot);
+
+    return () => {
+      window.removeEventListener(PERFORMANCE_MODE_CHANGE_EVENT, handlePerformancePreference);
+      connection?.removeEventListener?.('change', refreshPerformanceSnapshot);
     };
   }, []);
 
@@ -291,6 +519,64 @@ const SettingsPage = ({
     installPromptRef.current = null;
     window.__skipInstallPromptEvent = null;
     setCanInstall(false);
+  };
+
+  const handleApplyUpdate = () => {
+    window.dispatchEvent(new CustomEvent(PWA_UPDATE_APPLY_EVENT));
+  };
+
+  const handleRequestPersistentStorage = async () => {
+    if (!navigator.storage?.persist) return;
+    setPersistentStorage((previous) => ({ ...previous, requesting: true }));
+    try {
+      const persisted = await navigator.storage.persist();
+      setPersistentStorage((previous) => ({ ...previous, persisted, requesting: false }));
+      if ('storage' in navigator && typeof navigator.storage.estimate === 'function') {
+        setStorageEstimate(await navigator.storage.estimate());
+      }
+    } catch {
+      setPersistentStorage((previous) => ({ ...previous, requesting: false }));
+    }
+  };
+
+  const handleShareApp = async () => {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({
+        title: 'Skip and Loafer',
+        text: 'Open the Skip and Loafer fan app.',
+        url: window.location.origin,
+      });
+    } catch {
+      // Share sheets throw when users cancel; no need to show an error.
+    }
+  };
+
+  const handleRequestNotifications = async () => {
+    if (typeof Notification === 'undefined') return;
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') {
+      try {
+        new Notification('Skip and Loafer', {
+          body: 'Notifications are ready for this app.',
+          icon: '/swt2-512.png',
+          badge: '/swt2-512.png',
+        });
+      } catch {
+        // Some browsers allow permission but block direct construction outside service workers.
+      }
+    }
+  };
+
+  const handleFlushPendingActions = async () => {
+    await flushPendingRequests();
+    setPendingOfflineActions(getPendingOfflineRequestCount());
+  };
+
+  const handlePerformancePreferenceChange = (value) => {
+    setPerformancePreference(writePerformanceModePreference(value));
+    setPerformanceSnapshot(getDevicePerformanceSnapshot());
   };
 
   const handlePrepareOffline = async ({ persist = true } = {}) => {
@@ -412,49 +698,75 @@ const SettingsPage = ({
   const pageEntries = Object.entries(usageStats.pages || {});
   const favoritePage = pageEntries
     .sort(([, left], [, right]) => (right.timeMs || 0) - (left.timeMs || 0))[0];
-  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'Nowhere yet';
+  const favoritePageName = favoritePage ? (pageLabels[favoritePage[0]] || favoritePage[0]) : 'None yet';
   const usageRoast = usageStats.totalTimeMs > 3600000
-    ? 'Certified resident. The website should probably offer you tea.'
+    ? 'You have spent over an hour here total.'
     : usageStats.totalTimeMs > 600000
-      ? 'A respectable loaf. Not alarming. Yet.'
-      : 'Freshly arrived. Your chair is still warm, not haunted.';
+      ? 'You have spent more than 10 minutes here across your visits.'
+      : 'You are new here. No usage history yet to speak of.';
 
   const offlineProgress = Math.max(
     0,
     Math.min(100, Math.round((offlineStatus.cached / Math.max(1, offlineStatus.total)) * 100)),
   );
   const displayedOfflineCached = Math.min(offlineStatus.cached, offlineStatus.total);
+  const resolvedPerformanceMode = resolvePerformanceMode(performancePreference, performanceSnapshot);
+  const performanceReasonLabel = {
+    'save-data': 'Save-Data is on',
+    'slow-2g': 'very slow connection',
+    '2g': 'slow connection',
+    '3g': 'mobile connection',
+    memory: 'limited memory',
+    cpu: 'mobile CPU',
+    comfortable: 'comfortable device',
+    unknown: 'device check unavailable',
+  }[performanceSnapshot.reason] || performanceSnapshot.reason;
+  const performanceModeOptions = [
+    {
+      key: 'auto',
+      label: 'Auto',
+      detail: performanceSnapshot.constrained ? `Efficiency because of ${performanceReasonLabel}.` : 'Full mode on this device.',
+    },
+    { key: 'efficient', label: 'Efficiency', detail: 'Less preloading and fewer decorative layers.' },
+    { key: 'full', label: 'Full', detail: 'Richer visuals and warmer preloading.' },
+  ];
 
   const appLanguageOptions = getLanguageOptions();
+  const languageDetails = {
+    en: 'Use the original English interface text.',
+    es: 'Switch menus and labels to Spanish.',
+    pt: 'Switch menus and labels to Brazilian Portuguese.',
+    fr: 'Switch menus and labels to French.',
+    de: 'Switch menus and labels to German.',
+    it: 'Switch menus and labels to Italian.',
+    ja: 'Switch menus and labels to Japanese.',
+  };
   const colorBlindLabel = t.colorVisionMode || fallbackText.colorVisionMode || 'Color vision mode';
 
   const colorBlindOptions = [
-    { key: 'none', label: t.colorVisionOff || fallbackText.colorVisionOff || 'Off' },
-    { key: 'protanopia', label: t.colorVisionProtanopia || fallbackText.colorVisionProtanopia || 'Protanopia' },
-    { key: 'deuteranopia', label: t.colorVisionDeuteranopia || fallbackText.colorVisionDeuteranopia || 'Deuteranopia' },
-    { key: 'tritanopia', label: t.colorVisionTritanopia || fallbackText.colorVisionTritanopia || 'Tritanopia' },
-    { key: 'black-white', label: t.colorVisionBlackWhite || fallbackText.colorVisionBlackWhite || 'Black & White' },
+    { key: 'none', label: t.colorVisionOff || fallbackText.colorVisionOff || 'Off', detail: 'Keep the original app colors unchanged.' },
+    { key: 'protanopia', label: t.colorVisionProtanopia || fallbackText.colorVisionProtanopia || 'Protanopia', detail: 'Reduce red-green reliance for red-light sensitivity.' },
+    { key: 'deuteranopia', label: t.colorVisionDeuteranopia || fallbackText.colorVisionDeuteranopia || 'Deuteranopia', detail: 'Separate green-heavy UI cues with safer contrast.' },
+    { key: 'tritanopia', label: t.colorVisionTritanopia || fallbackText.colorVisionTritanopia || 'Tritanopia', detail: 'Adjust blue-yellow cues so controls remain distinct.' },
+    { key: 'black-white', label: t.colorVisionBlackWhite || fallbackText.colorVisionBlackWhite || 'Black & White', detail: 'Remove hue dependence and keep meaning in contrast.' },
   ];
 
   const shortcutRows = [
-    { keyLabel: '1..8', description: t.mainTabShortcut || fallbackText.mainTabShortcut || 'Jump to a main tab', icon: '🏠' },
-    { keyLabel: 'Q / E', description: t.prevNextSubtab || fallbackText.prevNextSubtab || 'Previous / next subtab', icon: '↔️' },
-    { keyLabel: 'Alt+A', description: t.accessibility || 'Accessibility', icon: '♿' },
-    { keyLabel: 'Alt+K', description: t.shortcuts || 'Keyboard Help', icon: '⌨️' },
-    { keyLabel: 'Esc', description: t.close || 'Close overlay', icon: '✖️' },
+    { keyLabel: '1-9, 0', description: t.mainTabShortcut || fallbackText.mainTabShortcut || 'Jump to a main tab', detail: '1 opens the first visible tab, 2 opens the second, and 0 opens the tenth. Hidden tabs are skipped.', icon: Home },
+    { keyLabel: 'Q / E', description: t.prevNextSubtab || fallbackText.prevNextSubtab || 'Previous / next subtab', detail: 'Works inside Chapters, Gallery, and Reading/Sync sub-tabs.', icon: ArrowLeftRight },
   ];
 
   const accessibilityOptions = [
-    { key: 'largeText', label: t.largeText || fallbackText.largeText },
-    { key: 'largeControls', label: t.largeControls || fallbackText.largeControls },
-    { key: 'readableSpacing', label: t.readableSpacing || fallbackText.readableSpacing },
-    { key: 'underlineLinks', label: t.underlineLinks || fallbackText.underlineLinks },
-    { key: 'highContrast', label: t.highContrast || fallbackText.highContrast },
-    { key: 'reduceTransparency', label: t.reduceTransparency || fallbackText.reduceTransparency },
-    { key: 'reduceMotion', label: t.reduceMotion || fallbackText.reduceMotion },
-    { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals },
-    { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors' },
-    { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Comfortable dark mode' },
+    { key: 'largeText', label: t.largeText || fallbackText.largeText, detail: 'Increase body and control text for easier reading.' },
+    { key: 'largeControls', label: t.largeControls || fallbackText.largeControls, detail: 'Make tap targets roomier across the app.' },
+    { key: 'readableSpacing', label: t.readableSpacing || fallbackText.readableSpacing, detail: 'Add breathing room between lines and paragraphs.' },
+    { key: 'underlineLinks', label: t.underlineLinks || fallbackText.underlineLinks, detail: 'Underline links so they are easier to recognize.' },
+    { key: 'highContrast', label: t.highContrast || fallbackText.highContrast, detail: 'Strengthen borders and text contrast.' },
+    { key: 'reduceTransparency', label: t.reduceTransparency || fallbackText.reduceTransparency, detail: 'Use more solid panels and reduce layered glass effects.' },
+    { key: 'reduceMotion', label: t.reduceMotion || fallbackText.reduceMotion, detail: 'Limit motion-heavy transitions and animated effects.' },
+    { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals, detail: 'Hide extra decorative details for a calmer page.' },
+    { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors', detail: 'Tone down accent colors that are not carrying information.' },
+    { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Comfortable dark mode', detail: 'Use a softer dark palette for longer sessions.' },
     { key: 'hideStickers', label: 'Hide character stickers' },
   ];
 
@@ -462,130 +774,45 @@ const SettingsPage = ({
   const clarityOptions = accessibilityOptions.filter(o => ['highContrast', 'reduceTransparency', 'darkMode'].includes(o.key));
   const visualsOptions = accessibilityOptions.filter(o => ['reduceMotion', 'simplifyVisuals', 'dimNonEssentialColors'].includes(o.key));
 
-  const getLanguageVisual = (code) => {
-    const flags = {
-      en: '🇺🇸',
-      es: '🇪🇸',
-      pt: '🇧🇷',
-      fr: '🇫🇷',
-      de: '🇩🇪',
-      it: '🇮🇹',
-      ja: '🇯🇵',
+  const getSettingIcon = (key) => {
+    const iconMap = {
+      largeText: Type,
+      largeControls: Maximize2,
+      readableSpacing: AlignJustify,
+      underlineLinks: Link,
+      highContrast: Contrast,
+      reduceTransparency: Layers,
+      darkMode: Moon,
+      reduceMotion: CircleOff,
+      simplifyVisuals: WandSparkles,
+      dimNonEssentialColors: Palette,
     };
-    return (
-      <span style={{ fontSize: '1.35rem', marginRight: '8px', display: 'inline-flex', alignItems: 'center' }}>
-        {flags[code] || '🌐'}
-      </span>
-    );
-  };
-
-  const getVisualPreview = (key, val) => {
-    switch (key) {
-      case 'largeText':
-        return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginRight: '6px', minWidth: '40px' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Aa</span>
-            <span style={{ fontSize: '1.05rem', color: '#1e293b' }}>Aa</span>
-          </div>
-        );
-      case 'largeControls':
-        return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginRight: '6px', minWidth: '40px' }}>
-            <span style={{ padding: '2.5px 5px', background: '#cbd5e1', borderRadius: '3px', fontSize: '0.62rem' }}>A</span>
-            <span style={{ padding: '3.5px 7px', background: '#3b82f6', color: '#fff', borderRadius: '5px', fontSize: '0.75rem' }}>A</span>
-          </div>
-        );
-      case 'readableSpacing':
-        return (
-          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: val ? '4px' : '2px', marginRight: '6px', width: '22px' }}>
-            <div style={{ height: '2px', background: '#64748b', width: '100%' }} />
-            <div style={{ height: '2px', background: '#64748b', width: '100%' }} />
-            <div style={{ height: '2px', background: '#64748b', width: '100%' }} />
-          </div>
-        );
-      case 'underlineLinks':
-        return (
-          <span style={{ textDecoration: 'underline', color: '#3b82f6', fontSize: '0.8rem', marginRight: '6px', minWidth: '40px' }}>
-            abc
-          </span>
-        );
-      case 'highContrast':
-        return (
-          <div style={{
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            background: 'conic-gradient(#000 180deg, #fff 180deg)',
-            border: '2px solid #000',
-            marginRight: '6px'
-          }} />
-        );
-      case 'darkMode':
-        return (
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '6px',
-            width: '18px',
-          }}>
-            <span style={{ fontSize: '0.85rem' }}>🌙</span>
-          </div>
-        );
-      case 'reduceTransparency':
-        return (
-          <div style={{ display: 'inline-flex', gap: '3px', marginRight: '6px' }}>
-            <div style={{ width: '11px', height: '11px', background: 'rgba(59,130,246,0.3)', borderRadius: '2.5px' }} />
-            <div style={{ width: '11px', height: '11px', background: '#3b82f6', borderRadius: '2.5px' }} />
-          </div>
-        );
-      case 'reduceMotion':
-        return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', position: 'relative', marginRight: '6px', width: '18px' }}>
-            <span style={{ fontSize: '0.85rem', display: 'inline-block' }}>🌀</span>
-            {val && <span style={{ position: 'absolute', color: '#ef4444', fontSize: '1rem' }}>/</span>}
-          </div>
-        );
-      case 'simplifyVisuals':
-        return (
-          <div style={{ display: 'inline-flex', gap: '3px', marginRight: '6px', fontSize: '0.8rem', width: '18px' }}>
-            <span>{val ? '•' : '✨'}</span>
-          </div>
-        );
-      case 'dimNonEssentialColors':
-        return (
-          <div style={{ display: 'inline-flex', gap: '2px', marginRight: '6px' }}>
-            <div style={{ width: '5px', height: '11px', background: val ? '#94a3b8' : '#ef4444', borderRadius: '0.8px' }} />
-            <div style={{ width: '5px', height: '11px', background: val ? '#cbd5e1' : '#10b981', borderRadius: '0.8px' }} />
-            <div style={{ width: '5px', height: '11px', background: val ? '#e2e8f0' : '#3b82f6', borderRadius: '0.8px' }} />
-          </div>
-        );
-      default:
-        return null;
-    }
+    const Icon = iconMap[key] || Settings;
+    return <Icon size={16} strokeWidth={2.5} />;
   };
 
   const getColorBlindPreview = (key) => {
-    const swatches = [
-      { color: '#ef4444', name: 'Red' },
-      { color: '#22c55e', name: 'Green' },
-      { color: '#3b82f6', name: 'Blue' },
-      { color: '#eab308', name: 'Yellow' }
-    ];
-
-    const filterName = key === 'none' ? 'none' : `url(#filter-${key})`;
+    const swatchesByMode = {
+      none: ['#ef4444', '#22c55e', '#3b82f6', '#eab308'],
+      protanopia: ['#8f8f3a', '#b6a840', '#4f72c3', '#d7c956'],
+      deuteranopia: ['#b09a3d', '#d6c64f', '#6174bd', '#e2d768'],
+      tritanopia: ['#e24a4a', '#2aa6a6', '#43b8b8', '#d18a20'],
+      'black-white': ['#111827', '#6b7280', '#cbd5e1', '#f8fafc'],
+    };
+    const swatches = swatchesByMode[key] || swatchesByMode.none;
 
     return (
-      <div style={{ display: 'flex', gap: '4px', marginRight: '8px', filter: filterName }}>
-        {swatches.map((s, idx) => (
+      <div style={{ display: 'flex', gap: '3px' }}>
+        {swatches.map((color, idx) => (
           <div
             key={idx}
             style={{
               width: '10px',
               height: '10px',
               borderRadius: '50%',
-              background: s.color,
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
+              background: color,
+              border: key === 'black-white' && idx === 3 ? '1px solid #94a3b8' : 'none',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.12)'
             }}
           />
         ))}
@@ -620,19 +847,96 @@ const SettingsPage = ({
         paddingDesktop="0"
       />
 
-      {/* Beautiful, Balanced Scrapbook Two-Column Grid Dashboard */}
+      <div
+        className="sketchbook-border"
+        style={{
+          background: 'var(--surface-card)',
+          border: '3px solid #f97316',
+          borderBottom: '8px solid #c2410c',
+          padding: '20px 24px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+          position: 'relative',
+          boxShadow: '0 4px 12px rgba(249, 115, 22, 0.06)',
+          width: '100%',
+          maxWidth: '1240px',
+          margin: '0 auto 28px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={PANEL_TITLE_STYLE}>
+          <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#fed7aa', '#f97316', '#fff7ed', '#c2410c')}>
+            <Clock3 size={18} strokeWidth={2.4} />
+          </div>
+          <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Usage summary</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))', gap: '10px' }}>
+          {[
+            { label: 'Time on site', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
+            { label: 'Times accessed', value: usageStats.visits || 0, icon: MousePointerClick, color: '#2563eb' },
+            { label: 'Page switches', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
+            { label: 'Most visited page', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="sketchbook-border"
+              style={{
+                background: 'var(--surface-panel)',
+                border: '2.5px solid var(--surface-border)',
+                borderBottom: '5px solid var(--surface-border-strong)',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                minWidth: 0,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: stat.color, fontFamily: 'var(--font-paper)', fontSize: '0.8rem' }}>
+                <stat.icon size={15} strokeWidth={2.5} />
+                <span>{stat.label}</span>
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-paper)',
+                fontSize: stat.label === 'Most visited page' ? '1.05rem' : '1.25rem',
+                color: 'var(--text-primary)',
+                lineHeight: 1.15,
+                overflowWrap: 'anywhere',
+              }}>
+                {stat.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="sketchbook-border"
+          style={{
+            background: '#fff7ed',
+            border: '2.5px dashed #fdba74',
+            color: '#9a3412',
+            padding: '10px 12px',
+            fontFamily: 'var(--font-paper)',
+            fontSize: '0.82rem',
+            lineHeight: 1.45,
+          }}
+        >
+          {usageRoast} Synced with your sync key across devices.
+        </div>
+      </div>
+
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1.1fr 0.9fr',
-        gap: '28px',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)',
+        gap: isMobile ? '22px' : '20px',
         alignItems: 'start',
         width: '100%',
         maxWidth: '1240px',
         margin: '0 auto',
         boxSizing: 'border-box',
       }}>
-        {/* LEFT COLUMN: Accessibility Options & Blog Reader Preferences */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '22px' : '20px' }}>
           {/* A1. Text & Reading Preferences Card */}
           <div
             className="sketchbook-border"
@@ -663,282 +967,99 @@ const SettingsPage = ({
               <div className="panel-icon-box pink-box no-override" style={getPanelIconBoxStyle('#fbcfe8', '#ec4899', '#fdf2f8', '#db2777')}>
                 <FileTextIcon size={18} strokeWidth={2.4} />
               </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.textAndReading || 'Text & Reading'}</span>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Accessibility & display</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+            <SettingsDropdown
+              title={t.textAndReading || 'Text & Reading'}
+              value={`${readingOptions.filter((option) => accessibilityPrefs[option.key]).length}/${readingOptions.length}`}
+              defaultOpen={!isMobile}
+            >
               {readingOptions.map(option => {
                 const val = !!accessibilityPrefs[option.key];
                 return (
-                  <motion.button
+                  <SettingsToggleRow
                     key={option.key}
-                    type="button"
-                    role="checkbox"
-                    aria-checked={val}
+                    icon={getSettingIcon(option.key)}
+                    iconBackground="#fce7f3"
+                    iconColor="#db2777"
+                    title={option.label}
+                    detail={option.detail}
+                    checked={val}
                     onClick={() => toggleAccessibilityPref(option.key)}
-                    whileTap={{ scale: 0.98 }}
-                    style={{
-                      ...BUTTON_RESET_STYLE,
-                      ...getOptionCardStyle(val),
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
-                        {option.label}
-                      </span>
-                    </div>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '6px',
-                      border: '2px solid #cbd5e1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
-                      borderColor: val ? '#2563eb' : '#cbd5e1',
-                      flexShrink: 0,
-                    }}>
-                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                    </div>
-                  </motion.button>
+                    last={option.key === readingOptions[readingOptions.length - 1]?.key}
+                  />
                 );
               })}
-            </div>
-          </div>
+            </SettingsDropdown>
 
-          {/* A2. Display & Contrast Card */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #3b82f6',
-              borderBottom: '8px solid #2563eb',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--blue"
-              style={{
-                top: '-14px',
-                right: '24px',
-                transform: 'rotate(2deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-            <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box blue-box no-override" style={getPanelIconBoxStyle('#bfdbfe', '#3b82f6', '#eff6ff', '#1d4ed8')}>
-                <Eye size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.displayAndContrast || 'Display & Contrast'}</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+            <SettingsDropdown
+              title={t.displayAndContrast || 'Display & Contrast'}
+              value={`${clarityOptions.filter((option) => accessibilityPrefs[option.key]).length}/${clarityOptions.length}`}
+            >
               {clarityOptions.map(option => {
                 const val = !!accessibilityPrefs[option.key];
                 return (
-                  <motion.button
+                  <SettingsToggleRow
                     key={option.key}
-                    type="button"
-                    role="checkbox"
-                    aria-checked={val}
+                    icon={getSettingIcon(option.key)}
+                    iconBackground="#dbeafe"
+                    iconColor="#1d4ed8"
+                    title={option.label}
+                    detail={option.detail}
+                    checked={val}
                     onClick={() => toggleAccessibilityPref(option.key)}
-                    whileTap={{ scale: 0.98 }}
-                    style={{
-                      ...BUTTON_RESET_STYLE,
-                      ...getOptionCardStyle(val),
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
-                        {option.label}
-                      </span>
-                    </div>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '6px',
-                      border: '2px solid #cbd5e1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
-                      borderColor: val ? '#2563eb' : '#cbd5e1',
-                      flexShrink: 0,
-                    }}>
-                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                    </div>
-                  </motion.button>
+                    last={option.key === clarityOptions[clarityOptions.length - 1]?.key}
+                  />
                 );
               })}
-            </div>
-          </div>
+            </SettingsDropdown>
 
-          {/* A3. Motion & Visuals Card */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #eab308',
-              borderBottom: '8px solid #ca8a04',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--yellow"
-              style={{
-                top: '-14px',
-                left: '32px',
-                transform: 'rotate(-2.5deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-            <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box orange-box no-override" style={getPanelIconBoxStyle('#fef08a', '#eab308', '#fef9c3', '#ca8a04')}>
-                <Zap size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.motionAndVisuals || 'Motion & Visuals'}</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+            <SettingsDropdown
+              title={t.motionAndVisuals || 'Motion & Visuals'}
+              value={`${visualsOptions.filter((option) => accessibilityPrefs[option.key]).length}/${visualsOptions.length}`}
+            >
               {visualsOptions.map(option => {
                 const val = !!accessibilityPrefs[option.key];
                 return (
-                  <motion.button
+                  <SettingsToggleRow
                     key={option.key}
-                    type="button"
-                    role="checkbox"
-                    aria-checked={val}
+                    icon={getSettingIcon(option.key)}
+                    iconBackground="#fef3c7"
+                    iconColor="#b45309"
+                    title={option.label}
+                    detail={option.detail}
+                    checked={val}
                     onClick={() => toggleAccessibilityPref(option.key)}
-                    whileTap={{ scale: 0.98 }}
-                    style={{
-                      ...BUTTON_RESET_STYLE,
-                      ...getOptionCardStyle(val),
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {getVisualPreview(option.key, val)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.88rem', color: 'var(--text-primary, #334155)', fontWeight: '400' }}>
-                        {option.label}
-                      </span>
-                    </div>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '6px',
-                      border: '2px solid #cbd5e1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: val ? '#3b82f6' : 'var(--surface-card, #fff)',
-                      borderColor: val ? '#2563eb' : '#cbd5e1',
-                      flexShrink: 0,
-                    }}>
-                      {val && <Check size={14} color="#fff" strokeWidth={3} />}
-                    </div>
-                  </motion.button>
+                    last={option.key === visualsOptions[visualsOptions.length - 1]?.key}
+                  />
                 );
               })}
-            </div>
-          </div>
+            </SettingsDropdown>
 
-          {/* A4. Colorblindness Settings Card */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #a855f7',
-              borderBottom: '8px solid #7e22ce',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--pink"
-              style={{
-                top: '-14px',
-                right: '32px',
-                transform: 'rotate(1.8deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-            <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box purple-box no-override" style={getPanelIconBoxStyle('#e9d5ff', '#a855f7', '#f3e8ff', '#7e22ce')}>
-                <Accessibility size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{colorBlindLabel}</span>
-            </div>
-
-            <div role="radiogroup" aria-label={colorBlindLabel} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <SettingsDropdown
+              title={colorBlindLabel}
+              value={colorBlindOptions.find((option) => option.key === (accessibilityPrefs.colorBlindMode || 'none'))?.label || 'Off'}
+            >
+            <div role="radiogroup" aria-label={colorBlindLabel}>
               {colorBlindOptions.map((option) => {
                 const selected = (accessibilityPrefs.colorBlindMode || 'none') === option.key;
                 return (
-                  <motion.button
+                  <SettingsChoiceRow
                     key={option.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
+                    icon={getColorBlindPreview(option.key)}
+                    iconBackground="#f3e8ff"
+                    iconColor="#7e22ce"
+                    title={option.label}
+                    detail={option.detail}
+                    selected={selected}
                     onClick={() => setAccessibilityColorBlindMode(option.key)}
-                    whileTap={{ scale: 0.98 }}
-                    className="sketchbook-border"
-                    style={{
-                      ...BUTTON_RESET_STYLE,
-                      ...getOptionCardStyle(selected),
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {getColorBlindPreview(option.key)}
-                      <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: '#334155', fontWeight: '400' }}>
-                        {option.label}
-                      </span>
-                    </div>
-                    <div style={{
-                      width: '18px',
-                      height: '18px',
-                      borderRadius: '50%',
-                      border: '2px solid #cbd5e1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'var(--surface-card, #fff)',
-                      borderColor: selected ? '#3b82f6' : '#cbd5e1',
-                      flexShrink: 0,
-                    }}>
-                      {selected && (
-                        <div style={{
-                          width: '10px',
-                          height: '10px',
-                          borderRadius: '50%',
-                          background: '#3b82f6',
-                        }} />
-                      )}
-                    </div>
-                  </motion.button>
+                    last={option.key === colorBlindOptions[colorBlindOptions.length - 1]?.key}
+                  />
                 );
               })}
             </div>
+            </SettingsDropdown>
           </div>
 
           {/* B. Blog Reader Options Card */}
@@ -975,291 +1096,75 @@ const SettingsPage = ({
                 <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.readerControls || 'Blog reader options'}</span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <SettingsDropdown
+                title="Reader layout"
+                value={`${[
+                  readerPrefs.largeText,
+                  readerPrefs.wideSpacing,
+                  readerPrefs.focusWidth,
+                ].filter(Boolean).length}/3`}
+              >
                 {[
-                  { key: 'largeText', label: t.largeTextMode || 'Larger text', Icon: ALargeSmall },
-                  { key: 'wideSpacing', label: t.widerSpacingMode || 'Wider spacing', Icon: Space },
-                  { key: 'focusWidth', label: t.focusWidthMode || 'Comfort width', Icon: Focus },
-                ].map((pref) => {
+                  { key: 'largeText', label: t.largeTextMode || 'Larger text', Icon: ALargeSmall, detail: 'Increase article text inside the blog reader.' },
+                  { key: 'wideSpacing', label: t.widerSpacingMode || 'Wider spacing', Icon: Space, detail: 'Loosen paragraph spacing for slower reading.' },
+                  { key: 'focusWidth', label: t.focusWidthMode || 'Narrow column', Icon: Focus, detail: 'Keep articles in a narrower, easier scanning column.' },
+                ].map((pref, index, prefs) => {
                   const isActive = !!readerPrefs[pref.key];
                   return (
-                    <motion.button
+                    <SettingsToggleRow
                       key={pref.key}
-                      type="button"
-                      role="checkbox"
-                      aria-checked={isActive}
+                      icon={<pref.Icon size={16} strokeWidth={2.4} />}
+                      iconBackground="#ffedd5"
+                      iconColor="#c2410c"
+                      title={pref.label}
+                      detail={pref.detail}
+                      checked={isActive}
                       onClick={() => setReaderPrefs(prev => ({ ...prev, [pref.key]: !prev[pref.key] }))}
-                      whileTap={{ scale: 0.98 }}
-                      style={{
-                        ...BUTTON_RESET_STYLE,
-                        ...getOptionCardStyle(isActive),
-                      }}
-                    >
-                      <span style={{
-                        fontFamily: 'var(--font-paper)',
-                        fontSize: '0.88rem',
-                        color: '#334155',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontWeight: '400',
-                      }}>
-                        <pref.Icon size={16} strokeWidth={2.4} style={{ color: isActive ? '#3b82f6' : '#64748b' }} />
-                        {pref.label}
-                      </span>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '6px',
-                        border: '2px solid #cbd5e1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: isActive ? '#3b82f6' : 'var(--surface-card, #fff)',
-                        borderColor: isActive ? '#2563eb' : '#cbd5e1',
-                        flexShrink: 0,
-                      }}>
-                        {isActive && <Check size={14} color="#fff" strokeWidth={3} />}
-                      </div>
-                    </motion.button>
+                      last={index === prefs.length - 1}
+                    />
                   );
                 })}
-              </div>
+              </SettingsDropdown>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                <span style={{ fontFamily: 'var(--font-paper)', color: '#64748b', fontSize: '0.84rem', fontWeight: '400' }}>
-                  Reader color theme
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              <SettingsDropdown
+                title="Reader color theme"
+                value={[
+                  { key: 'paper', label: t.themePaper || 'Paper' },
+                  { key: 'sepia', label: t.themeSepia || 'Sepia' },
+                  { key: 'night', label: t.themeNight || 'Night' },
+                ].find((option) => option.key === readerPrefs.theme)?.label || 'Paper'}
+              >
+                <div role="radiogroup" aria-label="Reader color theme">
                   {[
-                    { key: 'paper', label: t.themePaper || 'Paper', bg: '#fff7ed', border: '#fdba74', text: '#7c2d12', Icon: FileTextIcon },
-                    { key: 'sepia', label: t.themeSepia || 'Sepia', bg: '#fef3c7', border: '#f59e0b', text: '#78350f', Icon: Sun },
-                    { key: 'night', label: t.themeNight || 'Night', bg: '#0f172a', border: '#334155', text: '#f8fafc', Icon: Moon },
-                  ].map((themeOpt) => {
+                    { key: 'paper', label: t.themePaper || 'Paper', bg: '#fff7ed', border: '#fdba74', text: '#7c2d12', Icon: FileTextIcon, detail: 'Warm paper background for daytime reading.' },
+                    { key: 'sepia', label: t.themeSepia || 'Sepia', bg: '#fef3c7', border: '#f59e0b', text: '#78350f', Icon: Sun, detail: 'Amber tint for softer contrast.' },
+                    { key: 'night', label: t.themeNight || 'Night', bg: '#0f172a', border: '#334155', text: '#f8fafc', Icon: Moon, detail: 'Dark reader surface for low light.' },
+                  ].map((themeOpt, index, themes) => {
                     const isThemeActive = readerPrefs.theme === themeOpt.key;
                     return (
-                      <motion.button
+                      <SettingsChoiceRow
                         key={themeOpt.key}
-                        type="button"
+                        icon={<themeOpt.Icon size={16} strokeWidth={2.4} />}
+                        iconBackground={themeOpt.bg}
+                        iconColor={themeOpt.text}
+                        title={themeOpt.label}
+                        detail={themeOpt.detail}
+                        selected={isThemeActive}
                         onClick={() => setReaderPrefs(prev => ({ ...prev, theme: themeOpt.key }))}
-                        whileHover={{ y: -1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="sketchbook-border"
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          padding: '10px 6px',
-                          background: themeOpt.bg,
-                          color: themeOpt.text,
-                          border: isThemeActive ? `3px solid #3b82f6` : `2px solid ${themeOpt.border}`,
-                          borderBottom: isThemeActive ? `5px solid #2563eb` : `4px solid ${themeOpt.border}`,
-                          cursor: 'pointer',
-                          boxShadow: isThemeActive ? '0 4px 8px rgba(59,130,246,0.1)' : 'none',
-                          transition: 'all 0.1s ease',
-                          fontWeight: '400',
-                        }}
-                      >
-                        <themeOpt.Icon size={16} strokeWidth={isThemeActive ? 3 : 2.2} />
-                        <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', fontWeight: '400' }}>
-                          {themeOpt.label}
-                        </span>
-                      </motion.button>
+                        last={index === themes.length - 1}
+                      />
                     );
                   })}
                 </div>
-              </div>
+              </SettingsDropdown>
             </div>
           )}
 
         </div>
 
-        {/* RIGHT COLUMN: Live Visual Preview, Language Selector & Shortcuts Guide */}
+        {/* RIGHT COLUMN: Language, shortcuts, and supporting controls */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {/* Usage dashboard */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #f97316',
-              borderBottom: '8px solid #c2410c',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.06)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--yellow"
-              style={{
-                top: '-14px',
-                left: '24px',
-                transform: 'rotate(-2deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-            <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#fed7aa', '#f97316', '#fff7ed', '#c2410c')}>
-                <Clock3 size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Website residency check</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
-              {[
-                { label: 'Total loitering', value: formatDuration(usageStats.totalTimeMs), icon: Clock3, color: '#c2410c' },
-                { label: 'Times accessed', value: usageStats.visits || 0, icon: MousePointerClick, color: '#2563eb' },
-                { label: 'Page hops', value: usageStats.pageSwitches || 0, icon: Route, color: '#0f766e' },
-                { label: 'Favorite corner', value: favoritePageName, icon: Trophy, color: '#7e22ce' },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="sketchbook-border"
-                  style={{
-                    background: 'var(--surface-panel)',
-                    border: '2.5px solid var(--surface-border)',
-                    borderBottom: '5px solid var(--surface-border-strong)',
-                    padding: '12px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    minWidth: 0,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: stat.color, fontFamily: 'var(--font-paper)', fontSize: '0.8rem' }}>
-                    <stat.icon size={15} strokeWidth={2.5} />
-                    <span>{stat.label}</span>
-                  </div>
-                  <div style={{
-                    fontFamily: 'var(--font-paper)',
-                    fontSize: stat.label === 'Favorite corner' ? '1.05rem' : '1.25rem',
-                    color: 'var(--text-primary)',
-                    lineHeight: 1.15,
-                    overflowWrap: 'anywhere',
-                  }}>
-                    {stat.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div
-              className="sketchbook-border"
-              style={{
-                background: '#fff7ed',
-                border: '2.5px dashed #fdba74',
-                color: '#9a3412',
-                padding: '10px 12px',
-                fontFamily: 'var(--font-paper)',
-                fontSize: '0.82rem',
-                lineHeight: 1.45,
-              }}
-            >
-              {usageRoast} Synced with your sync key, so every device can contribute to the evidence folder.
-            </div>
-          </div>
-          
-          {/* A. Live Visual Preview Card */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #14b8a6',
-              borderBottom: '8px solid #0f766e',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--pink"
-              style={{
-                top: '-14px',
-                right: '24px',
-                transform: 'rotate(1.5deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-             <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box teal-box no-override" style={getPanelIconBoxStyle('#99f6e4', '#14b8a6', '#f0fdfa', '#0f766e')}>
-                <Sparkle size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Visual preview</span>
-            </div>
-
-            <div
-              className="sketchbook-border"
-              style={{
-                border: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '3.5px solid #fff' : '3.5px solid #000') : '3px solid #fdba74',
-                borderBottom: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '7px solid #fff' : '7px solid #000') : '6px solid #f97316',
-                background: readerPrefs?.theme === 'night' ? '#0f172a' : (readerPrefs?.theme === 'sepia' ? '#fef3c7' : '#fff7ed'),
-                color: readerPrefs?.theme === 'night' ? '#f8fafc' : (readerPrefs?.theme === 'sepia' ? '#451a03' : '#431407'),
-                padding: accessibilityPrefs.largeControls ? '16px 18px' : '12px 14px',
-                transition: 'all 0.2s ease',
-                filter: accessibilityPrefs.colorBlindMode && accessibilityPrefs.colorBlindMode !== 'none' ? `url(#filter-${accessibilityPrefs.colorBlindMode})` : 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: accessibilityPrefs.readableSpacing || readerPrefs?.wideSpacing ? '14px' : '8px',
-                boxSizing: 'border-box',
-              }}
-            >
-              <h4 style={{
-                margin: 0,
-                fontFamily: 'var(--font-paper)',
-                fontSize: (accessibilityPrefs.largeText || readerPrefs?.largeText) ? '1.3rem' : '1.1rem',
-                lineHeight: 1.2,
-                textDecoration: accessibilityPrefs.underlineLinks ? 'underline' : 'none',
-                fontWeight: '400',
-              }}>
-                {PREVIEW_QUOTES[uiLanguage]?.title || PREVIEW_QUOTES.en.title}
-              </h4>
-              
-              <p style={{
-                margin: 0,
-                fontFamily: 'var(--font-paper)',
-                fontSize: (accessibilityPrefs.largeText || readerPrefs?.largeText) ? '0.92rem' : '0.8rem',
-                lineHeight: accessibilityPrefs.readableSpacing || readerPrefs?.wideSpacing ? 1.75 : 1.45,
-                letterSpacing: accessibilityPrefs.readableSpacing ? '0.04em' : 'normal',
-                opacity: 0.9,
-                fontWeight: '400',
-              }}>
-                {PREVIEW_QUOTES[uiLanguage]?.text || PREVIEW_QUOTES.en.text}
-              </p>
-
-              <button
-                type="button"
-                style={{
-                  alignSelf: 'flex-start',
-                  border: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '3px solid #fff' : '3px solid #000') : '2px solid #bfdbfe',
-                  borderBottom: accessibilityPrefs.highContrast ? (accessibilityPrefs.darkMode ? '5px solid #fff' : '5px solid #000') : '4px solid #60a5fa',
-                  background: 'var(--surface-card, #fff)',
-                  color: '#1d4ed8',
-                  borderRadius: accessibilityPrefs.largeControls ? '12px' : '9px',
-                  padding: accessibilityPrefs.largeControls ? '9px 16px' : '7px 12px',
-                  fontFamily: 'var(--font-paper)',
-                  fontSize: (accessibilityPrefs.largeText || readerPrefs?.largeText) ? '0.9rem' : '0.78rem',
-                  cursor: 'pointer',
-                  textDecoration: accessibilityPrefs.underlineLinks ? 'underline' : 'none',
-                  fontWeight: '400',
-                }}
-              >
-                {PREVIEW_QUOTES[uiLanguage]?.button || PREVIEW_QUOTES.en.button}
-              </button>
-            </div>
-          </div>
-
-          {/* B. Language Selector Card */}
+          {/* Language and shortcuts */}
           <div
             className="sketchbook-border"
             style={{
@@ -1289,111 +1194,62 @@ const SettingsPage = ({
               <div className="panel-icon-box green-box no-override" style={getPanelIconBoxStyle('#a7f3d0', '#10b981', '#ecfdf5', '#047857')}>
                 <Languages size={18} strokeWidth={2.4} />
               </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.language || 'LanguageSelector'}</span>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>Language & controls</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {appLanguageOptions.map(({ code, name }) => {
+            <SettingsDropdown
+              title={t.language || 'Language'}
+              value={appLanguageOptions.find((option) => option.code === uiLanguage)?.name || uiLanguage}
+              defaultOpen={!isMobile}
+            >
+            <div role="radiogroup" aria-label={t.language || 'Language'}>
+              {appLanguageOptions.map(({ code, name }, index) => {
                 const isActive = code === uiLanguage;
                 return (
-                  <motion.button
+                  <SettingsChoiceRow
                     key={code}
+                    icon={<Globe2 size={16} strokeWidth={2.5} />}
+                    iconBackground="#ecfdf5"
+                    iconColor="#047857"
+                    title={name}
+                    detail={languageDetails[code] || 'Switch menus and labels to this language.'}
+                    selected={isActive}
                     onClick={() => setUiLanguage(code)}
-                    whileHover={{ y: -1, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="sketchbook-border"
-                    style={{
-                      ...getOptionCardStyle(isActive),
-                      fontFamily: 'var(--font-paper)',
-                      fontSize: '0.88rem',
-                      color: isActive ? 'var(--keycap-color)' : 'var(--text-secondary)',
-                      padding: '10px 14px',
-                      background: isActive ? 'var(--surface-card-active)' : 'var(--surface-card)',
-                      border: isActive ? '2.5px solid #3b82f6' : '2.5px solid var(--surface-border)',
-                      borderBottom: isActive ? '5px solid #2563eb' : '4px solid var(--surface-border)',
-                      boxShadow: isActive ? '0 4px 8px rgba(59, 130, 246, 0.05)' : 'none',
-                      justifyContent: 'flex-start',
-                      width: '100%',
-                      fontWeight: '400',
-                    }}
-                  >
-                    {getLanguageVisual(code)}
-                    <span style={{ flex: 1, textAlign: 'left', fontWeight: '400' }}>{name}</span>
-                    {isActive && <Sparkle size={12} strokeWidth={3} style={{ color: '#3b82f6', marginLeft: 'auto' }} />}
-                  </motion.button>
+                    last={index === appLanguageOptions.length - 1}
+                  />
                 );
               })}
             </div>
-          </div>
+            </SettingsDropdown>
 
-          {/* C. Keyboard Shortcuts Guide Card */}
-          <div
-            className="sketchbook-border"
-            style={{
-              background: 'var(--surface-card)',
-              border: '3px solid #6366f1',
-              borderBottom: '8px solid #4f46e5',
-              padding: '20px 24px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              position: 'relative',
-              boxShadow: '0 4px 12px rgba(148, 163, 184, 0.02)',
-            }}
-          >
-            <div
-              className="washi-tape washi-tape--yellow"
-              style={{
-                top: '-14px',
-                right: '24px',
-                transform: 'rotate(2.5deg)',
-                width: '74px',
-                height: '22px',
-                zIndex: 5,
-              }}
-            />
-             <div style={PANEL_TITLE_STYLE}>
-              <div className="panel-icon-box indigo-box no-override" style={getPanelIconBoxStyle('#c7d2fe', '#6366f1', '#e0e7ff', '#4f46e5')}>
-                <Keyboard size={18} strokeWidth={2.4} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>{t.shortcuts || 'Keyboard Shortcuts'}</span>
-            </div>
-
-            <p style={{
-              fontFamily: 'var(--font-paper)',
-              fontSize: '0.84rem',
-              color: '#4b5563',
-              fontWeight: '400',
-              margin: '0 0 4px 0',
-              lineHeight: 1.4,
-            }}>
-              {t.shortcutsIntro || 'Use keyboard shortcuts to quickly navigate the notebook.'}
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {shortcutRows.map((row) => (
-                <div key={row.keyLabel} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  background: 'var(--surface-panel)',
-                  border: '2px solid var(--surface-border)',
-                  borderRadius: '12px',
-                  padding: '8px 12px',
-                }} className="sketchbook-border">
-                  <div style={KEYCAP_STYLE}>{row.keyLabel}</div>
-                  <div style={{ fontSize: '1.15rem' }}>{row.icon}</div>
-                  <div style={{
-                    fontFamily: 'var(--font-paper)',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.84rem',
-                    fontWeight: '400',
-                  }}>
-                    {row.description}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {!isMobile && (
+              <SettingsDropdown title={t.shortcuts || 'Keyboard shortcuts'} value={`${shortcutRows.length}`}>
+                <p style={{
+                  fontFamily: 'var(--font-paper)',
+                  fontSize: '0.84rem',
+                  color: '#4b5563',
+                  fontWeight: '400',
+                  margin: '0',
+                  padding: '12px 14px',
+                  lineHeight: 1.4,
+                  borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)',
+                }}>
+                  {t.shortcutsIntro || 'Use keyboard shortcuts to quickly navigate the notebook.'}
+                </p>
+                {shortcutRows.map((row) => (
+                  <SettingsRow
+                    key={row.keyLabel}
+                    icon={<row.icon size={15} strokeWidth={2.5} />}
+                    iconBackground="#eef2ff"
+                    iconColor="#4f46e5"
+                    title={row.description}
+                    detail={row.detail}
+                    value={row.keyLabel}
+                    last={row.keyLabel === shortcutRows[shortcutRows.length - 1]?.keyLabel}
+                  />
+                ))}
+              </SettingsDropdown>
+            )}
           </div>
 
         </div>
@@ -1423,81 +1279,120 @@ const SettingsPage = ({
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
-              <div
-                className="sketchbook-border"
-                style={{
-                  background: 'var(--surface-panel)',
-                  border: '2.5px solid #c4b5fd',
-                  borderBottom: '5px solid #8b5cf6',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
-                  {isInstalled ? <CheckCircle size={17} /> : <Download size={17} />}
-                  <span>{isInstalled ? 'Installed app' : 'Install app'}</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                  {isInstalled
-                    ? 'Skip and Loafer is installed. Open it from your home screen or app launcher.'
-                    : canInstall
-                      ? 'Add it to your device for a focused app window and easier offline access.'
-                      : 'Use your browser menu to add this site to your home screen or install it as an app.'}
-                </p>
-                <motion.button
-                  onClick={handleInstall}
-                  disabled={!canInstall || isInstalled}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="sketchbook-border"
-                  style={{
-                    ...createPaperChipStyle({ borderColor: '#7c3aed', bottomColor: '#6d28d9', background: '#7c3aed', color: '#fff', radius: '14px', padding: '12px 20px' }),
-                    width: '100%',
-                    fontFamily: 'var(--font-paper)',
-                    fontSize: '0.92rem',
-                    fontWeight: '400',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: canInstall && !isInstalled ? 'pointer' : 'default',
-                    border: 'none',
-                    opacity: canInstall && !isInstalled ? 1 : 0.62,
-                  }}
-                >
-                  {isInstalled ? <CheckCircle size={16} strokeWidth={2.5} /> : <Download size={16} strokeWidth={2.5} />}
-                  {isInstalled ? 'Installed' : canInstall ? 'Install app' : 'Use browser install menu'}
-                </motion.button>
-              </div>
+            <SettingsDropdown
+              title="Installation"
+              value={isInstalled ? 'Installed' : canInstall ? 'Available' : 'Browser'}
+              defaultOpen={!isMobile}
+            >
+              <SettingsRow
+                icon={isInstalled ? <CheckCircle size={17} strokeWidth={2.5} /> : <Download size={17} strokeWidth={2.5} />}
+                iconBackground="#ede9fe"
+                iconColor="#6d28d9"
+                title="Install"
+                detail={isInstalled ? 'Opens from your launcher or home screen.' : canInstall ? 'Add a focused app window for this device.' : 'Use the browser install menu on this device.'}
+                value={isInstalled ? 'Installed' : canInstall ? 'Available' : 'Browser'}
+                onClick={canInstall && !isInstalled ? handleInstall : undefined}
+                disabled={!canInstall || isInstalled}
+                last={!updateReady}
+              />
+              {updateReady && (
+                <SettingsRow
+                  icon={<RefreshCw size={16} strokeWidth={2.5} />}
+                  iconBackground="#dbeafe"
+                  iconColor="#1d4ed8"
+                  title="Update app"
+                  detail="A fresh app shell is ready."
+                  value="Ready"
+                  onClick={handleApplyUpdate}
+                  last
+                />
+              )}
+            </SettingsDropdown>
 
-              <div
-                className="sketchbook-border"
-                style={{
-                  background: 'var(--surface-panel)',
-                  border: '2.5px solid #fbbf24',
-                  borderBottom: '5px solid #d97706',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
+            <SettingsDropdown
+              title="Device features"
+              value={performancePreference === 'auto' ? `Auto: ${resolvedPerformanceMode === 'efficient' ? 'Efficiency' : 'Full'}` : (resolvedPerformanceMode === 'efficient' ? 'Efficiency' : 'Full')}
+            >
+              <SettingsRow
+                icon={<Zap size={17} strokeWidth={2.5} />}
+                iconBackground="#dbeafe"
+                iconColor="#1d4ed8"
+                title="Performance"
+                detail={performancePreference === 'auto'
+                  ? performanceModeOptions[0].detail
+                  : performanceModeOptions.find((option) => option.key === performancePreference)?.detail}
+                value={performancePreference === 'auto' ? `Auto: ${resolvedPerformanceMode === 'efficient' ? 'Efficiency' : 'Full'}` : (resolvedPerformanceMode === 'efficient' ? 'Efficiency' : 'Full')}
+                onClick={() => {
+                  const currentIndex = performanceModeOptions.findIndex((option) => option.key === performancePreference);
+                  const nextOption = performanceModeOptions[(currentIndex + 1) % performanceModeOptions.length] || performanceModeOptions[0];
+                  handlePerformancePreferenceChange(nextOption.key);
                 }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
-                  <WifiOff size={17} />
-                  <span>Offline library</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                  {isOnline
-                    ? 'Prepare galleries, manga pages, and app files so the site keeps opening offline.'
-                    : 'You are offline. Cached pages and images will still open when they have been prepared.'}
-                </p>
-                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
-                  Cached files: {displayedOfflineCached} / {offlineStatus.total}
-                  {storageEstimate ? ` · Storage used: ${formatBytes(storageEstimate.usage)}` : ''}
-                </div>
+              />
+              <SettingsRow
+                icon={<HardDriveDownload size={17} strokeWidth={2.5} />}
+                iconBackground="#dcfce7"
+                iconColor="#166534"
+                title="Storage protection"
+                detail={persistentStorage.supported ? 'Ask the browser to keep offline files longer.' : 'This browser does not expose durable storage.'}
+                value={persistentStorage.persisted ? 'On' : persistentStorage.requesting ? 'Asking' : persistentStorage.supported ? 'Off' : 'Unavailable'}
+                onClick={persistentStorage.supported && !persistentStorage.persisted && !persistentStorage.requesting ? handleRequestPersistentStorage : undefined}
+                disabled={!persistentStorage.supported || persistentStorage.persisted || persistentStorage.requesting}
+              />
+              <SettingsRow
+                icon={<Bell size={16} strokeWidth={2.5} />}
+                iconBackground="#fce7f3"
+                iconColor="#be185d"
+                title="Notifications"
+                detail={notificationPermission === 'denied' ? 'Blocked in browser settings.' : 'Enable app alerts where the browser supports them.'}
+                value={notificationPermission === 'granted' ? 'On' : notificationPermission === 'denied' ? 'Blocked' : notificationPermission === 'unsupported' ? 'Unavailable' : 'Off'}
+                onClick={notificationPermission !== 'unsupported' && notificationPermission !== 'granted' ? handleRequestNotifications : undefined}
+                disabled={notificationPermission === 'unsupported' || notificationPermission === 'granted'}
+              />
+              <SettingsRow
+                icon={<Share2 size={16} strokeWidth={2.5} />}
+                iconBackground="#cffafe"
+                iconColor="#0e7490"
+                title="Share app"
+                detail="Open the device share sheet."
+                value={canShareApp ? '' : 'Unavailable'}
+                onClick={canShareApp ? handleShareApp : undefined}
+                disabled={!canShareApp}
+              />
+              <SettingsToggleRow
+                icon={<Camera size={17} strokeWidth={2.5} />}
+                iconBackground="#cffafe"
+                iconColor="#0e7490"
+                title="Sticker Camera theme"
+                detail="Use the colorful sketchbook UI in Sticker Camera."
+                checked={themedCamera}
+                onClick={() => {
+                  const next = !themedCamera;
+                  setThemedCamera(next);
+                  setThemedCameraEnabled(next);
+                }}
+                last
+              />
+            </SettingsDropdown>
+
+            <SettingsDropdown
+              title="Offline library"
+              value={`${offlineProgress}%`}
+            >
+              <SettingsRow
+                icon={<WifiOff size={17} strokeWidth={2.5} />}
+                iconBackground="#fef3c7"
+                iconColor="#b45309"
+                title="Offline library"
+                detail={offlineStatus.preparing
+                  ? `Cached ${displayedOfflineCached} of ${offlineStatus.total} files.`
+                  : offlineProgress >= 100
+                    ? 'Prepared for offline use.'
+                    : 'Prepare galleries, manga pages, and app files.'}
+                value={`${offlineProgress}%`}
+                onClick={isOnline && !offlineStatus.preparing ? handlePrepareOffline : undefined}
+                disabled={!isOnline || offlineStatus.preparing}
+              />
+              <div style={{ padding: '0 14px 12px 58px', borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)' }}>
                 <div
                   aria-label={`Offline cache progress ${offlineProgress}%`}
                   role="progressbar"
@@ -1506,110 +1401,50 @@ const SettingsPage = ({
                   aria-valuenow={offlineProgress}
                   style={{
                     width: '100%',
-                    height: '12px',
+                    height: '8px',
                     borderRadius: '999px',
-                    border: '2px solid #fbbf24',
                     background: '#fffbeb',
                     overflow: 'hidden',
-                    boxSizing: 'border-box',
                   }}
                 >
-                  <div
-                    style={{
-                      width: `${offlineProgress}%`,
-                      height: '100%',
-                      background: '#f59e0b',
-                      transition: 'width 0.2s ease',
-                    }}
-                  />
+                  <div style={{ width: `${offlineProgress}%`, height: '100%', background: '#f59e0b', transition: 'width 0.2s ease' }} />
                 </div>
-                <div style={{ fontFamily: 'var(--font-paper)', fontSize: '0.76rem', color: '#92400e', lineHeight: 1.35 }}>
-                  {offlineStatus.preparing
-                    ? `Cached ${displayedOfflineCached} of ${offlineStatus.total} files (${offlineProgress}%).`
-                    : offlineProgress >= 100
-                      ? 'Offline library prepared.'
-                      : 'Progress appears here while the offline library is being prepared.'}
+                <div style={{ marginTop: '6px', fontFamily: 'var(--font-paper)', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                  {displayedOfflineCached} / {offlineStatus.total} files{storageEstimate ? ` · ${formatBytes(storageEstimate.usage)} used` : ''}
                 </div>
-                <motion.button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={keepPreparingOffline}
-                  onClick={() => handleKeepPreparingChange(!keepPreparingOffline)}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    ...BUTTON_RESET_STYLE,
-                    ...getOptionCardStyle(keepPreparingOffline),
-                    padding: '10px 12px',
-                  }}
-                >
-                  <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
-                    Keep preparing automatically when the app is open
-                  </span>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '6px',
-                    border: '2px solid #cbd5e1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: keepPreparingOffline ? '#3b82f6' : 'var(--surface-card, #fff)',
-                    borderColor: keepPreparingOffline ? '#2563eb' : '#cbd5e1',
-                    flexShrink: 0,
-                  }}>
-                    {keepPreparingOffline && <Check size={14} color="#fff" strokeWidth={3} />}
-                  </div>
-                </motion.button>
-                <motion.button
-                  onClick={handlePrepareOffline}
-                  disabled={!isOnline || offlineStatus.preparing}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="sketchbook-border"
-                  style={{
-                    ...createPaperChipStyle({ borderColor: '#d97706', bottomColor: '#b45309', background: '#f59e0b', color: '#fff', radius: '14px', padding: '12px 20px' }),
-                    width: '100%',
-                    fontFamily: 'var(--font-paper)',
-                    fontSize: '0.92rem',
-                    fontWeight: '400',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: isOnline && !offlineStatus.preparing ? 'pointer' : 'default',
-                    border: 'none',
-                    opacity: isOnline && !offlineStatus.preparing ? 1 : 0.62,
-                  }}
-                >
-                  <RefreshCw size={16} strokeWidth={2.5} />
-                  {offlineStatus.preparing ? 'Preparing...' : 'Prepare offline library'}
-                </motion.button>
-                <motion.button
-                  onClick={handleClearOfflineCache}
-                  disabled={isClearingOfflineCache}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="sketchbook-border"
-                  style={{
-                    ...createPaperChipStyle({ borderColor: '#ef4444', bottomColor: '#b91c1c', background: '#fff1f2', color: '#b91c1c', radius: '14px', padding: '10px 16px' }),
-                    width: '100%',
-                    fontFamily: 'var(--font-paper)',
-                    fontSize: '0.86rem',
-                    fontWeight: '400',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: isClearingOfflineCache ? 'default' : 'pointer',
-                    border: 'none',
-                    opacity: isClearingOfflineCache ? 0.62 : 1,
-                  }}
-                >
-                  <Trash2 size={15} strokeWidth={2.5} />
-                  {isClearingOfflineCache ? 'Deleting offline cache...' : 'Delete offline cache and stop using it'}
-                </motion.button>
               </div>
-            </div>
+              <SettingsRow
+                icon={<RefreshCw size={16} strokeWidth={2.5} />}
+                iconBackground={keepPreparingOffline ? '#dbeafe' : '#e2e8f0'}
+                iconColor={keepPreparingOffline ? '#1d4ed8' : '#64748b'}
+                title="Prepare while open"
+                detail="Continue offline prep when the app is open."
+                value={keepPreparingOffline ? 'On' : 'Off'}
+                onClick={() => handleKeepPreparingChange(!keepPreparingOffline)}
+              />
+              <SettingsRow
+                icon={<UploadCloud size={16} strokeWidth={2.5} />}
+                iconBackground="#d1fae5"
+                iconColor="#047857"
+                title="Pending sync"
+                detail={pendingOfflineActions > 0 ? `${pendingOfflineActions} saved action${pendingOfflineActions === 1 ? '' : 's'} waiting.` : 'Offline actions are synced.'}
+                value={pendingOfflineActions > 0 ? `${pendingOfflineActions}` : 'Clear'}
+                onClick={isOnline && pendingOfflineActions > 0 ? handleFlushPendingActions : undefined}
+                disabled={!isOnline || pendingOfflineActions === 0}
+              />
+              <SettingsRow
+                icon={<Trash2 size={16} strokeWidth={2.5} />}
+                iconBackground="#fee2e2"
+                iconColor="#b91c1c"
+                title={isClearingOfflineCache ? 'Deleting offline cache' : 'Delete offline cache'}
+                detail="Remove prepared files and stop automatic offline prep."
+                value=""
+                onClick={handleClearOfflineCache}
+                disabled={isClearingOfflineCache}
+                destructive
+                last
+              />
+            </SettingsDropdown>
           </div>
         </div>
 

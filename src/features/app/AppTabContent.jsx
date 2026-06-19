@@ -161,8 +161,8 @@ const TabFrame = ({ activePage, children, isMobile, style, fallbackLabel }) => (
     className="hide-scrollbar"
     style={{ 
       ...style, 
-      height: isMobile ? 'auto' : '100%', 
-      overflowY: isMobile ? 'visible' : 'auto',
+      height: isMobile && activePage !== 'stickerCam' ? 'auto' : '100%', 
+      overflowY: isMobile && activePage !== 'stickerCam' ? 'visible' : 'auto',
       display: 'flex',
       flexDirection: 'column',
     }}
@@ -392,6 +392,12 @@ const AppTabContent = ({
     }
     case 'stickerCam':
       tabContent = <StickerCamPage isMobile={isMobile} />;
+      frameStyle = {
+        ...sharedPageShellStyle,
+        padding: 0,
+        overflow: 'hidden',
+        background: '#05050d',
+      };
       break;
     default:
       tabContent = (
@@ -424,12 +430,12 @@ const AppTabContent = ({
         padding: activePage === 'mystery' ? (isMobile ? '8px 16px 0' : homeDesktopPadding) : 0,
         zIndex: 110,
         pointerEvents: 'auto',
-        minHeight: isMobile ? 0 : '100%',
-        height: isMobile ? 'auto' : '100%',
+        minHeight: isMobile && activePage !== 'stickerCam' ? 0 : '100%',
+        height: isMobile && activePage !== 'stickerCam' ? 'auto' : '100%',
         overflow: 'hidden',
         border: isMobile ? 'none' : '3.5px solid #cbd5e1',
         borderLeft: isMobile ? 'none' : '3.5px solid #cbd5e1',
-        borderRadius: isMobile ? '12px' : '24px',
+        borderRadius: isMobile && activePage === 'stickerCam' ? 0 : isMobile ? '12px' : '24px',
         boxShadow: isMobile ? 'none' : '12px 16px 28px rgba(15, 23, 42, 0.05), 0 4px 10px rgba(15, 23, 42, 0.02)',
       }}
     >

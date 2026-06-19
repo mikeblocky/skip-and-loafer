@@ -17,7 +17,7 @@ export const useKeyboardShortcuts = ({
 
       let usedShortcut = false;
 
-      const tabShortcutKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
+      const tabShortcutKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
       const numericPageIndex = tabShortcutKeys.indexOf(event.key);
 
       if (Number.isInteger(numericPageIndex) && numericPageIndex >= 0 && numericPageIndex < tabPages.length) {

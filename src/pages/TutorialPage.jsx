@@ -31,10 +31,10 @@ const COMMUNITY_FONT_FAMILY = 'var(--font-paper)';
 const SECTION_COPY = {
   en: {
     title: 'Website guide',
-    subtitle: 'Learn how to explore, read, play, and share everything on this dedicated sketchbook scrapbook hub.',
-    welcome: 'Welcome to the hub!',
-    welcomeBody: 'This website is built as an interactive physical scrapbook notebook. Drag elements around, tap stickers, and customize your experience with the settings panel. Select a feature below to see how it works!',
-    clickToExplore: 'Select a tab to view its interactive preview:',
+    subtitle: 'An overview of the features available on this site.',
+    welcome: 'How this site works',
+    welcomeBody: 'This site has a scrapbook-style layout. You can drag elements around, tap stickers, and adjust your experience in Settings. Select a section below to see how each feature works.',
+    clickToExplore: 'Select a section to see its preview:',
     sections: [
       {
         id: 'home',
@@ -44,11 +44,11 @@ const SECTION_COPY = {
         bg: '#fff5f8',
         border: '#fda4af',
         washi: 'pink',
-        text: 'Keep track of the countdown to the latest manga chapters (such as Chapter 81). You will also see upcoming character birthdays, mini quick-controls, and helpful shortcuts.',
+        text: 'Shows a live countdown to the next manga chapter release, upcoming character birthdays, and quick navigation controls.',
         details: [
-          'Ticking countdown timer showing days, hours, minutes, and seconds until release.',
-          'Upcoming birthdays widget highlighting character birthdays in the next 30 days.',
-          'Quick shortcuts bar at the top for instant jump navigation.'
+          'Countdown timer with days, hours, minutes, and seconds until the next chapter.',
+          'Birthdays widget showing characters with upcoming birthdays in the next 30 days.',
+          'Quick-access shortcuts bar at the top of the page.'
         ]
       },
       {
@@ -59,11 +59,11 @@ const SECTION_COPY = {
         bg: '#eff6ff',
         border: '#bfdbfe',
         washi: 'blue',
-        text: 'Track which chapters you have read by checking the wobbly checklist circles. Click "+1 read" to log reread sessions, and link out directly to official chapters in Japanese (JP) or English.',
+        text: 'Mark chapters as read using the chapter checklist. Use "+1 read" to log rereads, and follow links to official releases in Japanese or English.',
         details: [
-          'Wobbly checklist checkboxes that save automatically to your local browser.',
-          'Click "+1 read" button to increment your read count and feed into reread milestones.',
-          'Direct outbound links to official Shonen Jump Plus and English platforms.'
+          'Chapter checkboxes that save automatically in your browser.',
+          '"+1 read" button to track reread sessions and milestone progress.',
+          'Links to official Shonen Jump Plus and English platforms.'
         ]
       },
       {
@@ -74,41 +74,41 @@ const SECTION_COPY = {
         bg: '#f0fdf4',
         border: '#bbf7d0',
         washi: 'yellow',
-        text: 'Generate a unique Sync Key in the Reading tab to securely sync your chapter checklist, read history, and achievements across multiple devices. No logins required, just paste your key!',
+        text: 'Generate a sync key in the Reading tab to transfer your checklist, read history, and milestones to another device. No account required.',
         details: [
-          'One-click sync key generation, storing all checklist and milestone data.',
-          'Paste the key on any other device (phone, laptop) to instant-merge your logs.',
-          'Completely secure and private, no emails or passwords required.'
+          'One-click sync key generation covering all checklist and milestone data.',
+          'Paste the key on any device to merge your reading logs instantly.',
+          'No account, email, or password needed.'
         ]
       },
       {
         id: 'gallery',
-        title: 'Polaroid fan galleries',
+        title: 'Fan gallery',
         icon: PenLine,
         color: '#ea580c',
         bg: '#fff7ed',
         border: '#fdba74',
         washi: 'pink',
-        text: 'Submit your favorite fan art, merch shelf shots, or cosplay photos in the fan gallery! You can drag, drop, and rotate Polaroid photos and guestbook hello sticky notes across the canvas walls.',
+        text: 'Browse and submit fan art, merchandise photos, or cosplay shots. Photos can be dragged, rotated, and repositioned on the canvas.',
         details: [
-          'Interactive physics canvas where polaroids can be dragged, tossed, and rotated.',
-          'Hello sticky-note guestbook composer to stamp your cute signature on the wall.',
-          'Image uploading dashboard supporting description titles and fan artist credit tags.'
+          'Draggable, rotatable photo canvas for fan submissions.',
+          'Guestbook note composer to post a message on the wall.',
+          'Submission form with title and artist credit fields.'
         ]
       },
       {
         id: 'quiz',
-        title: 'Trivia quizzes & rankings',
+        title: 'Trivia & rankings',
         icon: Trophy,
         color: '#dc2626',
         bg: '#fff1f2',
         border: '#fca5a5',
         washi: 'blue',
-        text: 'Test your series knowledge with the multi-tier trivia quiz! Select different questions sets, pick a difficulty (easy, medium, hard, or really hard), and submit your best scores to the global leaderboard!',
+        text: 'Take timed trivia quizzes on the series. Choose a question set and difficulty level, then submit your score to the global leaderboard.',
         details: [
-          'Timed quizzes with various sets focusing on characters, volumes, and trivia.',
-          'Global scoreboard displaying best scores and attempt histories for all users.',
-          'Local scoring records tab saved directly in your personal scrapbook.'
+          'Timed quizzes covering characters, volumes, and story trivia.',
+          'Global leaderboard showing top scores and attempt counts.',
+          'Personal score history saved locally in your browser.'
         ]
       },
       {
@@ -119,11 +119,11 @@ const SECTION_COPY = {
         bg: '#fffbeb',
         border: '#fcd34d',
         washi: 'yellow',
-        text: 'Celebrate character birthdays (like Mitsumi or Makoto) with lovely card rows, active countdowns, interactive profile widgets, and special animated birthday notification overlays!',
+        text: 'View character birthdays with profile cards showing birth dates, zodiac signs, and relationships. Birthday notifications appear automatically on the day.',
         details: [
-          'Interactive profile cards details birthday dates, zodiac signs, and relationships.',
-          'Confetti birthday alerts on the specific calendar days.',
-          'Cake candles visualizer and tribute comments panel.'
+          'Profile cards with birthday dates, zodiac signs, and character relationships.',
+          'Birthday alerts and confetti on the character\'s actual birthday.',
+          'Candle display and tribute message panel on birthday pages.'
         ]
       },
       {
@@ -134,22 +134,18 @@ const SECTION_COPY = {
         bg: '#e0e7ff',
         border: '#a5b4fc',
         washi: 'blue',
-        text: 'Navigate the scrapbook instantly with specialized keyboard hotkeys. Learn the navigation shortcuts inside the reference grid below!',
+        text: 'Use keyboard shortcuts to navigate the site quickly. See the full reference below.',
         details: [
-          'Press numbers 1 to 8 to swap primary notebook tabs instantly.',
-          'Press Q and E keys to flip back and forth through sub-tabs inside panels.',
-          'Press Escape to instantly dismiss modal overlays and composers.'
+          'Press 1-9 for the first nine visible tabs, or 0 for the tenth visible tab.',
+          'Press Q and E to move between sub-tabs within a page.',
         ]
       },
     ],
-    shortcutsTitle: 'Shortcut keys reference',
-    shortcutsIntro: 'Use these keyboard keys inside the app for quick, seamless navigation:',
+    shortcutsTitle: 'Keyboard shortcuts',
+    shortcutsIntro: 'Keyboard shortcuts available across the site:',
     shortcutsList: [
-      { key: '1..8', desc: 'Jump directly to one of the primary sidebar tabs' },
-      { key: 'Q / E', desc: 'Navigate forward or backward through page sub-tabs' },
-      { key: 'Alt + A', desc: 'Open accessibility panel in settings instantly' },
-      { key: 'Alt + K', desc: 'Open shortcut stats and settings reference modal' },
-      { key: 'Esc', desc: 'Close open overlay modals or close composer sheets' },
+      { key: '1-9, 0', desc: 'Open the matching visible main tab; 0 opens the tenth visible tab' },
+      { key: 'Q / E', desc: 'Go to the previous or next sub-tab in Chapters, Gallery, or Reading/Sync' },
     ],
   },
   ja: {
@@ -259,20 +255,16 @@ const SECTION_COPY = {
         washi: 'blue',
         text: 'キーボードショートカットを使ってサクサク移動できます。詳細はページ下部のリファレンスを参照してください。',
         details: [
-          '1〜8キーを押すことで、左側のメインタブを瞬時に切り替え。',
+          '1〜9キーで最初の9個の表示中タブ、0キーで10番目の表示中タブへ切り替え。',
           'QキーとEキーでパネル内のサブタブを前後フリップ。',
-          'Escキーを押すことで開いているダイアログや投稿画面をクローズ。'
         ]
       },
     ],
     shortcutsTitle: 'ショートカットキー一覧',
     shortcutsIntro: 'サイト内で次のキーボード入力を使うと、瞬時にナビゲーションが可能です：',
     shortcutsList: [
-      { key: '1..8', desc: '左メニューのメインタブへ瞬時に切り替え' },
-      { key: 'Q / E', desc: 'ページ内のサブタブを前後に切り替え' },
-      { key: 'Alt + A', desc: '設定のアクセシビリティパネルを直接起動' },
-      { key: 'Alt + K', desc: 'ショートカット使用状況のヘルプを起動' },
-      { key: 'Esc', desc: '開いている各種ダイアログやモーダルシートを閉じる' },
+      { key: '1〜9, 0', desc: '対応する表示中のメインタブへ切り替え。0キーは10番目の表示中タブです' },
+      { key: 'Q / E', desc: 'コミックス、ギャラリー、読書/同期内のサブタブを前後に切り替え' },
     ],
   },
 };
@@ -367,7 +359,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontFamily: COMMUNITY_FONT_FAMILY, fontSize: '0.9rem', color: '#1f2937' }}>Shima</div>
-                <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.76rem', color: '#ea580c' }}>birthday countdown: 24 days</div>
+                <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.76rem', color: '#ea580c' }}>Birthday in 24 days</div>
               </div>
             </div>
           </div>
@@ -485,7 +477,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
                 className="washi-tape washi-tape--yellow" 
                 style={{ position: 'absolute', top: '-10px', right: '12px', width: '50px', height: '14px', transform: 'rotate(5deg)' }}
               />
-              <div style={{ fontFamily: 'var(--font-hand)', color: '#15803d', fontSize: '0.84rem' }}>Your personal sync key</div>
+              <div style={{ fontFamily: 'var(--font-hand)', color: '#15803d', fontSize: '0.84rem' }}>Your sync key</div>
               <div 
                 className="sketchbook-border"
                 style={{
@@ -523,7 +515,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
                 </button>
               </div>
               <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.74rem', color: '#16a34a', marginTop: '6px' }}>
-                {copiedSync ? 'copied!' : 'click icon to copy sync code'}
+                {copiedSync ? 'Copied' : 'Click to copy sync key'}
               </div>
             </div>
           </div>
@@ -680,7 +672,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
                 {uiLanguage === 'ja' ? '美津未の誕生日！' : "Mitsumi's birthday!"}
               </div>
               <div style={{ fontFamily: 'var(--font-hand)', fontSize: '0.78rem', color: '#d97706', marginTop: '2px' }}>
-                {uiLanguage === 'ja' ? 'バースデー特製スタンプ & バルーン出現' : 'cake visualization & tributes active'}
+                {uiLanguage === 'ja' ? 'バースデー特製スタンプ & バルーン出現' : 'Birthday page active'}
               </div>
             </div>
           </div>
@@ -713,7 +705,7 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
               ))}
             </div>
             <span style={{ fontFamily: 'var(--font-hand)', fontSize: '0.78rem', color: '#4f46e5', textAlign: 'center' }}>
-              {uiLanguage === 'ja' ? 'サブタブを前後にフリップ切り替え' : 'navigate sub-tabs back & forth'}
+              {uiLanguage === 'ja' ? 'サブタブを前後にフリップ切り替え' : 'Switch sub-tabs with Q / E'}
             </span>
           </div>
         );
@@ -1094,4 +1086,3 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
 };
 
 export default TutorialPage;
-

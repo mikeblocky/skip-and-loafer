@@ -1,7 +1,8 @@
 // Bump this when the shell assets change to force old SW out.
-const SHELL_VERSION = 'v5';
+const SHELL_VERSION = 'v6';
 const SHELL_CACHE = `skip-shell-${SHELL_VERSION}`;
 const FONT_CACHE = `skip-fonts-${SHELL_VERSION}`;
+const RUNTIME_CACHE = `skip-runtime-${SHELL_VERSION}`;
 const OFFLINE_CACHE = `skip-offline-${SHELL_VERSION}`;
 const BUILD_ASSET_MANIFEST = '/offline-build-assets.json';
 
@@ -16,6 +17,8 @@ const SHELL_ASSETS = [
 
 const MEDIA_EXTENSIONS = /\.(?:avif|gif|ico|jpe?g|mp4|png|svg|webm|webp|woff2?)$/i;
 const MAX_BACKGROUND_CACHE_CONCURRENCY = 3;
+const MAX_RUNTIME_CACHE_ENTRIES = 180;
+const NAVIGATION_TIMEOUT_MS = 2800;
 let backgroundCachePromise = Promise.resolve();
 
 const sameOrigin = (url) => url.origin === self.location.origin;
@@ -43,6 +46,19 @@ const putIfOk = async (cache, request, response) => {
     await cache.put(request, response.clone());
   }
   return response;
+};
+
+const trimCache = async (cacheName, maxEntries) => {
+  const cache = await caches.open(cacheName);
+  const requests = await cache.keys();
+  if (requests.length <= maxEntries) return;
+  await Promise.all(requests.slice(0, requests.length - maxEntries).map((request) => cache.delete(request)));
+};
+
+const getBackgroundCacheConcurrency = () => {
+  const connection = self.navigator?.connection || self.navigator?.mozConnection || self.navigator?.webkitConnection;
+  if (connection?.saveData || /(^slow-2g$|^2g$)/.test(connection?.effectiveType || '')) return 1;
+  return MAX_BACKGROUND_CACHE_CONCURRENCY;
 };
 
 const cacheOfflineAssets = async (assets = [], onProgress) => {
@@ -88,7 +104,7 @@ const cacheOfflineAssets = async (assets = [], onProgress) => {
   };
 
   await Promise.all(
-    Array.from({ length: Math.min(MAX_BACKGROUND_CACHE_CONCURRENCY, uniqueAssets.length) }, cacheNext),
+    Array.from({ length: Math.min(getBackgroundCacheConcurrency(), uniqueAssets.length) }, cacheNext),
   );
 
   return { cached: cachedCount, total: uniqueAssets.length };
@@ -112,8 +128,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL_CACHE)
       .then((cache) => cache.addAll(SHELL_ASSETS))
-      .then(() => cacheBuildAssets())
-      .then(() => self.skipWaiting()),
+      .then(() => cacheBuildAssets()),
   );
 });
 
@@ -123,14 +138,20 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((names) => Promise.all(
         names
-          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE && !n.startsWith('skip-offline-'))
+          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE && n !== RUNTIME_CACHE && !n.startsWith('skip-offline-'))
           .map((n) => caches.delete(n)),
       ))
+      .then(() => self.registration.navigationPreload?.enable?.())
       .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
   if (event.data?.type === 'SKIP_CLEAR_OFFLINE_CACHE') {
     event.waitUntil(
       caches.keys().then((names) => Promise.all(
@@ -205,7 +226,12 @@ self.addEventListener('fetch', (event) => {
   // Navigation requests — Network-first, fall back to cached shell.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      Promise.race([
+        Promise.resolve(event.preloadResponse).then((response) => response || fetch(request)),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Navigation timed out')), NAVIGATION_TIMEOUT_MS);
+        }),
+      ])
         .then((response) => {
           const clone = response.clone();
           caches.open(SHELL_CACHE).then((cache) => {
@@ -223,13 +249,15 @@ self.addEventListener('fetch', (event) => {
 
   if (shouldCacheRuntimeRequest(request, url)) {
     event.respondWith(
-      caches.open(OFFLINE_CACHE).then(async (cache) => {
+      caches.open(RUNTIME_CACHE).then(async (cache) => {
         const cached = await cache.match(request);
         if (cached) return cached;
 
         try {
           const response = await fetch(request);
-          return putIfOk(cache, request, response);
+          const cachedResponse = await putIfOk(cache, request, response);
+          trimCache(RUNTIME_CACHE, MAX_RUNTIME_CACHE_ENTRIES).catch(() => {});
+          return cachedResponse;
         } catch {
           return caches.match(request);
         }

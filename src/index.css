@@ -1591,6 +1591,41 @@ html[data-a11y-large-text='1'] [data-nav-tab='1'] {
   }
 }
 
+/* ── Adaptive PWA efficiency mode: keep weak devices smooth ── */
+html[data-app-performance='efficient'] .app-shell-fadein,
+html[data-app-performance='efficient'] .app-content-fadein,
+html[data-app-performance='efficient'] .offline-banner-visible,
+html[data-app-performance='efficient'] .mitsumi-bounce,
+html[data-app-performance='efficient'] .notebook-wiggle,
+html[data-app-performance='efficient'] .sticker-pop,
+html[data-app-performance='efficient'] .washi-tape-anim,
+html[data-app-performance='efficient'] .doodle-corner-star {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+html[data-app-performance='efficient'] .doodle-corner-star,
+html[data-app-performance='efficient'] .heart-float,
+html[data-app-performance='efficient'] .sparkle-float,
+html[data-app-performance='efficient'] .morphing-shape {
+  display: none !important;
+}
+
+html[data-app-performance='efficient'] .sketchbook-border,
+html[data-app-performance='efficient'] .planner-container,
+html[data-app-performance='efficient'] .memo-card,
+html[data-app-performance='efficient'] .calendar-pad,
+html[data-app-performance='efficient'] #main-content,
+html[data-app-performance='efficient'] .quiz-choice-card,
+html[data-app-performance='efficient'] .quiz-step-card {
+  box-shadow: none !important;
+}
+
+html[data-app-performance='efficient'] * {
+  text-shadow: none !important;
+  scroll-behavior: auto !important;
+}
+
 html[data-a11y-reduce-motion='1'] *,
 html[data-a11y-reduce-motion='1'] *::before,
 html[data-a11y-reduce-motion='1'] *::after {

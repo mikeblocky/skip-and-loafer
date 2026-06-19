@@ -7,24 +7,24 @@ export const MYSTERY_TEXT = {
   en: {
     mystery: {
       title: 'Mystery cabin',
-      subtitle: 'A quiet place to wonder...',
+      subtitle: 'Personality quizzes and character draws.',
       characterDraw: 'Character portrait',
-      characterDrawDesc: 'Draw a kindred spirit for your daily vibe!',
+      characterDrawDesc: 'Draw a random character for the day.',
       whoAreYou: 'Who are you?',
-      whoAreYouDesc: 'A gentle quiz to find your soul-match.',
+      whoAreYouDesc: 'Find your closest character match.',
       characterRating: 'Tier maker',
       characterRatingDesc: 'Build and customize your own ranking board with stickers!',
-      returnToMenu: 'Step back outside',
+      returnToMenu: 'Back to menu',
       mysteryPick: 'Mystery pick',
-      drawADay: 'Draw a friend for the day!',
+      drawADay: 'Draw a character for the day.',
       drawBtn: 'Draw',
       dailyCheck: 'Daily message',
       drawAgain: 'Try another?',
-      disclaimer: '* Whimsical guesses for fun!',
+      disclaimer: '* Results are for fun only.',
       rating: {
         title: 'Custom tier maker',
         instructions: 'Tap a character, then tap a tier to rank them. Tap a tier label to rename it.',
-        unranked: 'Potential friends',
+        unranked: 'Unranked',
         reset: 'Reset board',
         save: 'Save image',
       },
@@ -32,7 +32,7 @@ export const MYSTERY_TEXT = {
         title: 'Custom story map',
         instructions: 'Freely place, resize, and connect characters to map out your own story!',
         addNode: 'Add character',
-        connect: 'Draw bond',
+        connect: 'Add connection',
         labelPlaceholder: 'Relationship type...',
         reset: 'Clear board',
         save: 'Save map',
@@ -40,24 +40,24 @@ export const MYSTERY_TEXT = {
       },
     },
     quiz: {
-      startBtn: "Let's begin!",
+      startBtn: 'Start',
       pointsUsed: 'Points used',
-      integrityTitle: 'Moment of sincerity',
-      calibrationTitle: 'Resonance calibration',
-      instinctNote: 'Your genuine self is enough! Please answer with your first instinct.',
-      proceedBtn: 'Continue the journey',
-      signalStrength: 'Sync clarity',
+      integrityTitle: 'Consistency check',
+      calibrationTitle: 'Calibration',
+      instinctNote: 'Answer based on your first instinct, not your ideal self.',
+      proceedBtn: 'Continue',
+      signalStrength: 'Signal strength',
       reliability: 'Consistency',
-      resultTitle: 'Your heart-match',
+      resultTitle: 'Your result',
       retakeBtn: 'Retake quiz',
-      notesTitle: 'A reading of your pattern...',
-      growthTitle: 'Your path ahead',
-      backBtn: 'Return to the cabin',
+      notesTitle: 'Pattern notes',
+      growthTitle: 'Growth areas',
+      backBtn: 'Back to menu',
       confidence: 'Certainty',
       question: 'Question',
       of: 'of',
       thinking: 'Thinking...',
-      calculating: 'Calculating your heart-match...',
+      calculating: 'Calculating your result...',
       youAre: 'You are',
       dailyPrediction: 'Daily prediction',
       personalityTraits: 'Personality traits',
@@ -130,7 +130,7 @@ export const MYSTERY_TEXT = {
         stability: 'Emotional stability',
         discipline: 'Execution discipline',
         reliability: 'Reliability signal',
-        suitabilityRankingTitle: 'Top suitability ranking ({confidence}% confidence)',
+        suitabilityRankingTitle: 'Suitability ranking ({confidence}% confidence)',
         scoreExplanationDetailed: 'Scores are recalculated for all characters using weighted distance, directional alignment, and axis agreement.',
         menuLabel: 'Menu',
         returnToMenu: 'Return to menu',
@@ -196,7 +196,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'People trust you because your intentions are clear and your effort is visible.',
           growth: 'You do best when you keep your plan, but leave a little room for detours.',
-          prediction: 'An energetic day full of wild, unplanned detours that lead to good things! Embrace the chaos with sincere effort.',
+          prediction: 'An active day with unexpected turns that lead somewhere worthwhile. Stay sincere and keep moving forward.',
         },
         Shima: {
           openers: [
@@ -206,7 +206,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You notice what other people need before they say it out loud.',
           growth: 'Your sweet spot is staying kind without abandoning what you want for yourself.',
-          prediction: 'A breezy, effortless day where things fall into place. Read the room, but prioritize your own happiness too.',
+          prediction: 'A smooth day where things come together with little friction. Stay aware of others, but make time for yourself too.',
         },
         Mika: {
           openers: [
@@ -216,7 +216,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You care deeply about outcomes, so you hold yourself to a higher bar.',
           growth: 'Things flow better when you let trusted people see the softer side behind the armor.',
-          prediction: 'Your outfit will be on point, boosting your confidence! Use that energy to conquer your to-do list.',
+          prediction: 'Starting the day feeling put-together will carry you further than expected. Use that momentum to get things done.',
         },
         Makoto: {
           openers: [
@@ -261,12 +261,12 @@ export const MYSTERY_TEXT = {
         Kanechika: {
           openers: [
             'You landed on Kanechika energy: high fire, high commitment, and all-in passion.',
-            'This profile screams Kanechika: intense drive, bold expression, and zero half-effort.',
+            'This profile matches Kanechika: intense drive, bold expression, and zero half-effort.',
             'Like Kanechika, you have a single-minded intensity that is inspiring.',
           ],
           anchor: 'When you care, people can feel it immediately and get pulled into your momentum.',
           growth: 'Your best results come when you pair that passion with a bit more pacing.',
-          prediction: 'A slightly chaotic start redeemed by creativity. Follow your blazing passion where it logically leads.',
+          prediction: 'A busy start with a strong creative finish. Channel your energy toward something specific today.',
         },
         Fumino: {
           openers: [
@@ -276,7 +276,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'People settle faster around you because your presence feels safe and practical.',
           growth: 'You stay strongest when you protect your own needs as seriously as you protect others.',
-          prediction: "You'll be a remarkably great listener for someone today. Your grounded presence will help them tremendously!",
+          prediction: "You will be a good listener for someone today. Your calm, steady presence will make a real difference.",
         },
         Hiroto: {
           openers: [
@@ -296,7 +296,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You can turn vague situations into systems that actually work.',
           growth: 'Your flow improves when you let support in instead of carrying everything alone.',
-          prediction: "You'll tackle tasks with impressive efficiency. Maintain structure, but lean on friends for target support!",
+          prediction: "You will handle tasks efficiently today. Keep your structure in place, but accept help where it makes sense.",
         },
         Mukai: {
           openers: [
@@ -316,7 +316,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You are highly sensitive to trust and can read social risk faster than most people.',
           growth: 'Life gets lighter when you lower the shield with people who have earned it.',
-          prediction: 'Finaly let your true, unfiltered self shine without fear. Lower the walls and enjoy the genuine warmth.',
+          prediction: 'Let yourself open up today. Lower your guard with people who have earned it and accept the warmth.',
         },
         Chris: {
           openers: [
@@ -326,7 +326,7 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You help groups function by noticing tension early and softening it.',
           growth: 'Keep making room for your own needs, not only everyone else\'s.',
-          prediction: 'Your attentive listening will help a friend today. Smooth over conflict, but remember your own feelings too!',
+          prediction: 'Listening carefully will help someone close to you today. Help ease the tension, but do not forget your own needs.',
         },
         Ujiie: {
           openers: [
@@ -336,11 +336,11 @@ export const MYSTERY_TEXT = {
           ],
           anchor: 'You spot weak logic quickly and usually call out what others avoid naming.',
           growth: 'Your insight lands better when you let people see the care behind your critique.',
-          prediction: 'Overthinking might slow you down, but your careful analysis will pay off. Accept being wonderfully included!',
+          prediction: 'Overthinking may slow you down early, but your careful analysis will pay off. Let people include you today.',
         },
-        Omiso: { prediction: 'A pure day filled with endlessly cozy naps. Focus completely on treating yourself very well.' },
-        Oshio: { prediction: 'Your quiet, intense observation skills will come in handy. Solve a tricky mystery peacefully.' },
-        Satonosuke: { prediction: 'You\'ll bring unconditional joy to someone you meet today. Vibrate with chaotic positive energy!' },
+        Omiso: { prediction: 'A restful day. Focus on comfort and giving yourself time to recover.' },
+        Oshio: { prediction: 'Your observation skills will be useful today. Stay patient and let the picture come into focus.' },
+        Satonosuke: { prediction: 'You will brighten someone\'s day just by being around. Let your energy be contagious in a good way.' },
       },
       axisDynamicLines: {
         social: {
