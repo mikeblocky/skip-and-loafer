@@ -25,6 +25,7 @@ import { useStickerCamStageSize } from '../features/stickerCam/hooks/useStickerC
 import { useStickerCamModels } from '../features/stickerCam/hooks/useStickerCamModels';
 import { ASPECT_RATIOS, CAMERA_FILTERS } from '../features/stickerCam/stickerCamConfig';
 import { gestureHint } from '../features/stickerCam/stickerCamStyles';
+import { getThemedCameraEnabled } from '../features/stickerCam/themedCameraPreference';
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function StickerCamPage() {
@@ -47,6 +48,7 @@ export default function StickerCamPage() {
   const [focusPoint,     setFocusPoint]     = useState(null);
   const [selectedLiveId, setSelectedLiveId] = useState(null);
   const [liveEditVersion, setLiveEditVersion] = useState(0);
+  const [themedCamera, setThemedCamera] = useState(() => getThemedCameraEnabled());
   const [faceAnchorPick, setFaceAnchorPick] = useState(null); // {name, lmIdx} waiting for sticker pick
 
   // DOM refs
@@ -109,6 +111,16 @@ export default function StickerCamPage() {
     update();
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    const syncThemedCamera = () => setThemedCamera(getThemedCameraEnabled());
+    window.addEventListener('storage', syncThemedCamera);
+    window.addEventListener('skip_themed_camera_change', syncThemedCamera);
+    return () => {
+      window.removeEventListener('storage', syncThemedCamera);
+      window.removeEventListener('skip_themed_camera_change', syncThemedCamera);
+    };
   }, []);
 
   // Live sticker state (mutated in rAF loop — no React state)
@@ -963,6 +975,7 @@ export default function StickerCamPage() {
         panel={snapPanel}
         setPanel={setSnapPanel}
         initialMirrored={mirrorCam}
+        themedCamera={themedCamera}
       />
     );
   }
@@ -981,12 +994,12 @@ export default function StickerCamPage() {
     alignSelf: 'center',
     background: '#05050d',
     borderRadius: simplePhone ? 24 : 22,
-    boxShadow: simplePhone ? 'none' : undefined,
-    border: simplePhone ? '1px solid rgba(255,255,255,0.14)' : undefined,
+    boxShadow: themedCamera && !simplePhone ? '0 18px 38px rgba(14,165,233,0.14), 0 8px 0 rgba(251,191,36,0.16)' : (simplePhone ? 'none' : undefined),
+    border: themedCamera ? '3px solid rgba(255,255,255,0.88)' : (simplePhone ? '1px solid rgba(255,255,255,0.14)' : undefined),
   };
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simplePhone ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background: simplePhone ? '#000' : '#06060f', overflow:'hidden', alignItems:'stretch' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simplePhone ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background: themedCamera ? 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 48%, #fdf2f8 100%)' : (simplePhone ? '#000' : '#06060f'), overflow:'hidden', alignItems:'stretch' }}>
       <input
         ref={imageInputRef}
         type="file"
@@ -1074,6 +1087,7 @@ export default function StickerCamPage() {
             openImageLibrary={openImageLibrary}
             setAspectRatio={setAspectRatio}
             setCameraFilter={setCameraFilter}
+            themedCamera={themedCamera}
           />
         )}
 
@@ -1143,6 +1157,7 @@ export default function StickerCamPage() {
           stageSize={stageSize}
           startAll={startAll}
           takeSnap={takeSnap}
+          themedCamera={themedCamera}
         />
       ) : (
       <DesktopToolbar
@@ -1163,11 +1178,17 @@ export default function StickerCamPage() {
         stickerCount={stickerCount}
         stopCamera={stopCamera}
         takeSnap={takeSnap}
+        themedCamera={themedCamera}
       />
       )}
 
       {hasCamera && handStatus === 'ready' && !trackingPaused && !simplePhone && (
-        <div style={gestureHint}>
+        <div style={{
+          ...gestureHint,
+          background: themedCamera ? 'rgba(255,255,255,0.76)' : gestureHint.background,
+          color: themedCamera ? '#64748b' : gestureHint.color,
+          borderTop: themedCamera ? '1px dashed rgba(14,165,233,0.22)' : undefined,
+        }}>
           🖱️ Drag sticker &nbsp;·&nbsp; ✊ Pinch grab &nbsp;·&nbsp; ✌️ Peace→Snap &nbsp;·&nbsp; ✊ Fist→Delete &nbsp;·&nbsp; 🖐 Palm→Repulse &nbsp;·&nbsp; 👍 Clone &nbsp;·&nbsp; 🤘 Spin &nbsp;·&nbsp; 🤙 Bounce all
         </div>
       )}

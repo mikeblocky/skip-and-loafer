@@ -19,12 +19,52 @@ const StatusChip = ({ label, color }) => (
   </div>
 );
 
-function ToolBtn({ color, onClick, children }) {
+function ToolBtn({ color, onClick, children, title, compact = false, active = false, themed = false }) {
+  const background = themed
+    ? (active ? '#ffffff' : 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 55%, #fdf2f8 100%)')
+    : (active ? `${color}33` : `${color}1a`);
+  const borderColor = themed ? color : (active ? `${color}88` : `${color}44`);
+  const bottomColor = themed ? color : `${color}66`;
+  const shadow = themed
+    ? `0 5px 0 ${color}33, 0 8px 18px ${color}18`
+    : (active ? `0 0 18px ${color}2e` : 'none');
+
   return (
-    <button onClick={onClick}
-      style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 10px', minHeight:36, background:`${color}1a`, border:`1.5px solid ${color}44`, borderBottom:`3px solid ${color}66`, borderRadius:10, color, fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.8rem', cursor:'pointer', whiteSpace:'nowrap', flex:'0 0 auto', transition:'background 0.12s, transform 0.1s' }}
-      onMouseEnter={e => { e.currentTarget.style.background=`${color}2e`; e.currentTarget.style.transform='translateY(-1px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background=`${color}1a`; e.currentTarget.style.transform=''; }}
+    <button onClick={onClick} title={title}
+      style={{
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        gap:compact ? 0 : 5,
+        padding:compact ? '0' : '6px 10px',
+        width:compact ? 40 : undefined,
+        minWidth:compact ? 40 : undefined,
+        minHeight:36,
+        background,
+        border:`1.5px solid ${borderColor}`,
+        borderBottom:`3px solid ${bottomColor}`,
+        borderRadius:themed ? 13 : 10,
+        color,
+        fontFamily:'Sniglet, var(--font-hand)',
+        fontSize:'0.8rem',
+        cursor:'pointer',
+        whiteSpace:'nowrap',
+        flex:'0 0 auto',
+        transition:'background 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease',
+        boxShadow:shadow,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background=themed ? '#ffffff' : `${color}30`;
+        e.currentTarget.style.transform='translateY(-2px) scale(1.03)';
+        e.currentTarget.style.boxShadow=themed ? `0 7px 0 ${color}40, 0 10px 24px ${color}25` : `0 8px 22px ${color}22`;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background=background;
+        e.currentTarget.style.transform='';
+        e.currentTarget.style.boxShadow=shadow;
+      }}
+      onPointerDown={e => { e.currentTarget.style.transform='translateY(1px) scale(0.96)'; }}
+      onPointerUp={e => { e.currentTarget.style.transform='translateY(-2px) scale(1.03)'; }}
     >{children}</button>
   );
 }
