@@ -81,18 +81,20 @@ function makePresetCrop(ratio, current = { x: 8, y: 8, w: 84, h: 84 }) {
   });
 }
 
-const themedMobileTray = {
-  background: 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 50%, #fdf2f8 100%)',
-  borderTop: '3px solid #bae6fd',
-  boxShadow: '0 -10px 26px rgba(14,165,233,0.12)',
-};
+const themedMobileTray = (darkMode = false) => ({
+  background: darkMode ? 'transparent' : 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 50%, #fdf2f8 100%)',
+  borderTop: 'none',
+  boxShadow: 'none',
+});
 
-const themedIconButton = (color, active = false) => ({
+const themedIconButton = (color, active = false, darkMode = false) => ({
   height: 44,
   borderRadius: 14,
   border: `2px solid ${color}`,
   borderBottom: `5px solid ${color}`,
-  background: active ? '#ffffff' : 'rgba(255,255,255,0.86)',
+  background: active
+    ? (darkMode ? 'rgba(255,255,255,0.12)' : '#ffffff')
+    : (darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.86)'),
   color,
   display: 'grid',
   placeItems: 'center',
@@ -101,7 +103,7 @@ const themedIconButton = (color, active = false) => ({
 
 // ── SnapEditView ──────────────────────────────────────────────────────────────
 const SnapEditView = memo(function SnapEditView({
-  snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel, initialMirrored = false, themedCamera = false,
+  snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel, initialMirrored = false, themedCamera = false, darkMode = false,
 }) {
   const containerRef  = useRef(null);
   const wrapRef       = useRef(null);
@@ -430,11 +432,12 @@ const SnapEditView = memo(function SnapEditView({
   const sel = stickers.find(s => s.id === selectedId);
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simpleEditor ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background:themedCamera ? 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 50%, #fdf2f8 100%)' : '#000', overflow:'hidden' }}>
-      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'center', justifyContent:'center', padding: simpleEditor ? '0' : '8px', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simpleEditor ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, backgroundColor: themedCamera ? 'var(--surface-shell)' : '#000', backgroundImage: themedCamera ? 'var(--paper-lines)' : 'none', overflow:'hidden' }}>
+      <div style={themedCamera ? { flex:1, minHeight:0, display:'flex', flexDirection:'column', margin: simpleEditor ? '0' : '10px', background:'transparent', borderRadius: simpleEditor ? 0 : 24, overflow:'hidden', boxShadow: simpleEditor ? 'none' : '0 6px 28px rgba(0,0,0,0.16)', border: simpleEditor ? 'none' : '1.5px solid rgba(0,0,0,0.06)' } : { flex:1, minHeight:0, display:'flex', flexDirection:'column' }}>
+      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', overflow:'hidden', position: themedCamera ? 'relative' : undefined }}>
       <div
         ref={containerRef}
-        style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: simpleEditor ? 18 : 22, background:'#05050d', border: themedCamera ? '3px solid rgba(255,255,255,0.88)' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? '0 18px 38px rgba(14,165,233,0.14), 0 8px 0 rgba(251,191,36,0.16)' : undefined }}
+        style={{ ...(themedCamera ? { position:'absolute', top:0, left:'50%', transform:'translateX(-50%)' } : { position:'relative' }), width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: themedCamera ? '0 0 16px 16px' : (simpleEditor ? 18 : 22), background:'#05050d', border: themedCamera ? 'none' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? 'none' : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -504,13 +507,6 @@ const SnapEditView = memo(function SnapEditView({
           );
         })()}
 
-        {stickers.length === 0 && !panel && (
-          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', pointerEvents:'none', textAlign:'center' }}>
-            <div style={{ color:'rgba(255,255,255,0.72)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.88rem', background:'rgba(0,0,0,0.5)', borderRadius:12, padding:'8px 18px', border:'1px solid rgba(255,255,255,0.14)' }}>
-              Tap Stickers to add one
-            </div>
-          </div>
-        )}
 
         {panel === 'stickers' && (
           <StickerPicker onSelect={addSnapSticker} onClose={() => setPanel(null)} hint={simpleEditor ? 'Choose a sticker for this snap' : 'Pick a sticker to place'} mobile={simpleEditor} />
@@ -538,10 +534,10 @@ const SnapEditView = memo(function SnapEditView({
                 touchAction:'none',
               }}
             >
-              <div style={{ position:'absolute', inset:'33.333% 0 auto 0', borderTop:'1px solid rgba(255,255,255,0.42)' }} />
-              <div style={{ position:'absolute', inset:'66.666% 0 auto 0', borderTop:'1px solid rgba(255,255,255,0.42)' }} />
-              <div style={{ position:'absolute', inset:'0 auto 0 33.333%', borderLeft:'1px solid rgba(255,255,255,0.42)' }} />
-              <div style={{ position:'absolute', inset:'0 auto 0 66.666%', borderLeft:'1px solid rgba(255,255,255,0.42)' }} />
+              <div style={{ position:'absolute', inset:'33.333% 0 auto 0', borderTop:'1px solid rgba(255,255,255,0.55)' }} />
+              <div style={{ position:'absolute', inset:'66.666% 0 auto 0', borderTop:'1px solid rgba(255,255,255,0.55)' }} />
+              <div style={{ position:'absolute', inset:'0 auto 0 33.333%', borderLeft:'1px solid rgba(255,255,255,0.55)' }} />
+              <div style={{ position:'absolute', inset:'0 auto 0 66.666%', borderLeft:'1px solid rgba(255,255,255,0.55)' }} />
               {['nw', 'ne', 'sw', 'se'].map(handle => (
                 <button
                   key={handle}
@@ -556,13 +552,14 @@ const SnapEditView = memo(function SnapEditView({
                     width:22,
                     height:22,
                     borderRadius:'50%',
-                    border:'2px solid #050505',
-                    background:'#fff',
+                    border:'2.5px solid rgba(255,255,255,0.9)',
+                    background:'rgba(255,255,255,0.95)',
                     cursor:`${handle}-resize`,
                     left: handle.includes('w') ? -11 : undefined,
                     right: handle.includes('e') ? -11 : undefined,
                     top: handle.includes('n') ? -11 : undefined,
                     bottom: handle.includes('s') ? -11 : undefined,
+                    boxShadow:'0 2px 8px rgba(0,0,0,0.5)',
                   }}
                 />
               ))}
@@ -582,13 +579,13 @@ const SnapEditView = memo(function SnapEditView({
             alignItems:'center',
             overflowX:'auto',
             padding:'7px 10px',
-            background:themedCamera ? themedMobileTray.background : '#050505',
-            borderTop:themedCamera ? themedMobileTray.borderTop : '1px solid rgba(255,255,255,0.12)',
-            boxShadow:themedCamera ? themedMobileTray.boxShadow : undefined,
+            background:themedCamera ? themedMobileTray(darkMode).background : '#050505',
+            borderTop: themedCamera ? 'none' : '1px solid rgba(255,255,255,0.12)',
+            boxShadow: 'none',
             flexShrink:0,
           }}
         >
-          <div style={{ display:'flex', gap:4, overflowX:'auto', scrollbarWidth:'none', background:themedCamera ? 'linear-gradient(135deg, #fff7ed, #ecfeff)' : 'rgba(255,255,255,0.06)', border:themedCamera ? '2px solid #bae6fd' : '1px solid rgba(255,255,255,0.14)', borderRadius:14, padding:4 }}>
+          <div style={{ display:'flex', gap:4, overflowX:'auto', scrollbarWidth:'none', background:themedCamera ? (darkMode ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #fff7ed, #ecfeff)') : 'rgba(255,255,255,0.06)', border:themedCamera ? (darkMode ? '2px solid rgba(186,230,253,0.3)' : '2px solid #bae6fd') : '1px solid rgba(255,255,255,0.14)', borderRadius:14, padding:4 }}>
             {CROP_PRESETS.map(preset => (
               <button
                 key={preset.id}
@@ -596,8 +593,8 @@ const SnapEditView = memo(function SnapEditView({
                 style={{
                   border:0,
                   borderRadius:10,
-                  background:cropPreset === preset.id ? (themedCamera ? '#fef3c7' : 'rgba(255,255,255,0.88)') : 'transparent',
-                  color:cropPreset === preset.id ? (themedCamera ? '#92400e' : '#050505') : (themedCamera ? '#64748b' : '#fff'),
+                  background:cropPreset === preset.id ? (themedCamera ? (darkMode ? 'rgba(253,230,138,0.15)' : '#fef3c7') : 'rgba(255,255,255,0.88)') : 'transparent',
+                  color:cropPreset === preset.id ? (themedCamera ? (darkMode ? '#fde68a' : '#92400e') : '#050505') : (themedCamera ? (darkMode ? '#94a3b8' : '#64748b') : '#fff'),
                   flex:'0 0 auto',
                   fontFamily:'Sniglet, var(--font-hand)',
                   fontSize:11,
@@ -611,9 +608,9 @@ const SnapEditView = memo(function SnapEditView({
             ))}
           </div>
           <div style={{ display:'flex', gap:6, flex:'0 0 auto' }}>
-            <button onClick={resetCrop} title="Reset crop" style={themedCamera ? { ...themedIconButton('#f59e0b'), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:14 } : { width:36, height:36, border:'1px solid rgba(255,255,255,0.22)', borderRadius:12, background:'rgba(255,255,255,0.08)', color:'#fff', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:14 }}>↺</button>
-            <button onClick={applyCrop} title="Apply crop" style={themedCamera ? { ...themedIconButton('#10b981'), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:15 } : { width:36, height:36, border:'1px solid rgba(110,231,183,0.48)', borderRadius:12, background:'rgba(110,231,183,0.2)', color:'#bbf7d0', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:15 }}>✓</button>
-            <button onClick={() => setCropMode(false)} title="Done cropping" style={themedCamera ? { ...themedIconButton('#64748b'), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:15 } : { width:36, height:36, border:'1px solid rgba(255,255,255,0.72)', borderRadius:12, background:'rgba(255,255,255,0.9)', color:'#050505', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:15 }}>×</button>
+            <button onClick={resetCrop} title="Reset crop" style={themedCamera ? { ...themedIconButton('#f59e0b', false, darkMode), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:14 } : { width:36, height:36, border:'1px solid rgba(255,255,255,0.22)', borderRadius:12, background:'rgba(255,255,255,0.08)', color:'#fff', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:14 }}>↺</button>
+            <button onClick={applyCrop} title="Apply crop" style={themedCamera ? { ...themedIconButton('#10b981', false, darkMode), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:15 } : { width:36, height:36, border:'1px solid rgba(110,231,183,0.48)', borderRadius:12, background:'rgba(110,231,183,0.2)', color:'#bbf7d0', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:15 }}>✓</button>
+            <button onClick={() => setCropMode(false)} title="Done cropping" style={themedCamera ? { ...themedIconButton('#64748b', false, darkMode), width:38, fontFamily:'Sniglet, var(--font-hand)', fontSize:15 } : { width:36, height:36, border:'1px solid rgba(255,255,255,0.72)', borderRadius:12, background:'rgba(255,255,255,0.9)', color:'#050505', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:15 }}>×</button>
           </div>
         </div>
       )}
@@ -642,38 +639,39 @@ const SnapEditView = memo(function SnapEditView({
       )}
 
       {simpleEditor ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(5, minmax(0, 1fr))', gap:8, padding:'8px 12px 10px', background:themedCamera ? themedMobileTray.background : '#000', borderTop:themedCamera ? themedMobileTray.borderTop : '1px solid rgba(255,255,255,0.1)', boxShadow:themedCamera ? themedMobileTray.boxShadow : undefined, flexShrink:0 }}>
-          <button onClick={onBack} style={themedCamera ? themedIconButton('#64748b') : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Back"><ArrowLeft size={18} /></button>
-          <button onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} style={themedCamera ? { ...themedIconButton('#ec4899'), display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 } : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Sticker size={16} /> {stickers.length}</button>
-          <button onClick={() => setCropMode(v => !v)} style={themedCamera ? themedIconButton('#06b6d4', cropMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background: cropMode ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Crop"><Crop size={18} /></button>
-          <button onClick={() => setMirrored(v => !v)} style={themedCamera ? themedIconButton('#8b5cf6', mirrored) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background: mirrored ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Flip"><FlipHorizontal size={18} /></button>
-          <button onClick={saveSnap} style={themedCamera ? themedIconButton('#f59e0b') : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.86)', background:'rgba(255,255,255,0.92)', color:'#050505', display:'grid', placeItems:'center' }} title="Save"><Download size={18} /></button>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(5, minmax(0, 1fr))', gap:8, padding:'8px 12px 10px', background: themedCamera ? 'transparent' : '#000', borderTop: themedCamera ? 'none' : '1px solid rgba(255,255,255,0.1)', flexShrink:0 }}>
+          <button onClick={onBack} style={themedCamera ? themedIconButton('#64748b', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Back"><ArrowLeft size={18} /></button>
+          <button onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} style={themedCamera ? { ...themedIconButton('#ec4899', false, darkMode), display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 } : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Sticker size={16} /> {stickers.length}</button>
+          <button onClick={() => setCropMode(v => !v)} style={themedCamera ? themedIconButton('#06b6d4', cropMode, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background: cropMode ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Crop"><Crop size={18} /></button>
+          <button onClick={() => setMirrored(v => !v)} style={themedCamera ? themedIconButton('#8b5cf6', mirrored, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background: mirrored ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Flip"><FlipHorizontal size={18} /></button>
+          <button onClick={saveSnap} style={themedCamera ? themedIconButton('#f59e0b', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.86)', background:'rgba(255,255,255,0.92)', color:'#050505', display:'grid', placeItems:'center' }} title="Save"><Download size={18} /></button>
         </div>
       ) : (
-        <>
-          <div style={{ ...toolbar, background: themedCamera ? 'linear-gradient(135deg, rgba(255,247,237,0.96), rgba(236,254,255,0.96) 52%, rgba(253,242,248,0.96))' : toolbar.background, borderTop: themedCamera ? '2px solid #fbcfe8' : toolbar.borderTop }}>
-            <ToolBtn color="#94a3b8" onClick={onBack} title="Back" themed={themedCamera}><ArrowLeft size={16} /></ToolBtn>
-            <ToolBtn color={mirrored ? '#38bdf8' : '#64748b'} onClick={() => setMirrored(v => !v)} title="Mirror image" active={mirrored} themed={themedCamera}>
+          <div style={{ ...toolbar, background: themedCamera ? 'transparent' : toolbar.background, borderTop: themedCamera ? 'none' : toolbar.borderTop }}>
+            <ToolBtn color="#94a3b8" onClick={onBack} title="Back" themed={themedCamera} darkMode={darkMode}><ArrowLeft size={16} /></ToolBtn>
+            <ToolBtn color={mirrored ? '#38bdf8' : '#64748b'} onClick={() => setMirrored(v => !v)} title="Mirror image" active={mirrored} themed={themedCamera} darkMode={darkMode}>
               <FlipHorizontal size={16} />
             </ToolBtn>
-            <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} title="Stickers" themed={themedCamera}>
+            <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} title="Stickers" themed={themedCamera} darkMode={darkMode}>
               <Sticker size={16} /> {stickers.length > 0 ? stickers.length : ''}
             </ToolBtn>
-            <ToolBtn color={cropMode ? '#6ee7b7' : '#38bdf8'} onClick={() => setCropMode(v => !v)} title="Crop" active={cropMode} themed={themedCamera}>
+            <ToolBtn color={cropMode ? '#6ee7b7' : '#38bdf8'} onClick={() => setCropMode(v => !v)} title="Crop" active={cropMode} themed={themedCamera} darkMode={darkMode}>
               <Crop size={16} />
             </ToolBtn>
             {stickers.length > 0 && (
-              <ToolBtn color="#f87171" onClick={() => { setStickers([]); setSelectedId(null); }} title="Clear stickers" themed={themedCamera}>
+              <ToolBtn color="#f87171" onClick={() => { setStickers([]); setSelectedId(null); }} title="Clear stickers" themed={themedCamera} darkMode={darkMode}>
                 <Trash2 size={14} />
               </ToolBtn>
             )}
-            <ToolBtn color="#fbbf24" onClick={saveSnap} title="Save photo" themed={themedCamera}><Download size={16} /></ToolBtn>
+            <ToolBtn color="#fbbf24" onClick={saveSnap} title="Save photo" themed={themedCamera} darkMode={darkMode}><Download size={16} /></ToolBtn>
           </div>
+      )}
+      </div>
 
-          <div style={gestureHint}>
-            👆 Tap to select &nbsp;·&nbsp; 🖱️ Drag to move &nbsp;·&nbsp; 🤌 Pinch to resize & rotate &nbsp;·&nbsp; ↑↓ to layer
-          </div>
-        </>
+      {!simpleEditor && (
+        <div style={{ ...gestureHint, ...(themedCamera ? { background: darkMode ? 'rgba(13,24,33,0.82)' : 'rgba(255,255,255,0.76)', color: darkMode ? '#94a3b8' : '#64748b', borderTop: '1px dashed rgba(14,165,233,0.22)' } : {}) }}>
+          👆 Tap to select &nbsp;·&nbsp; 🖱️ Drag to move &nbsp;·&nbsp; 🤌 Pinch to resize & rotate &nbsp;·&nbsp; ↑↓ to layer
+        </div>
       )}
     </div>
   );

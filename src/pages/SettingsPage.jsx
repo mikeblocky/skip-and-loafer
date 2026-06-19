@@ -1400,6 +1400,87 @@ const SettingsPage = ({
 
         </div>
 
+        {/* Sticker Cam settings */}
+        <div style={{ gridColumn: isMobile ? 'auto' : '1 / -1' }}>
+          <div
+            className="sketchbook-border"
+            style={{
+              background: 'var(--surface-card)',
+              border: '3px solid #38bdf8',
+              borderBottom: '8px solid #0891b2',
+              padding: '20px 24px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.06)',
+            }}
+          >
+            <div style={PANEL_TITLE_STYLE}>
+              <div className="panel-icon-box no-override" style={getPanelIconBoxStyle('#bae6fd', '#0284c7', '#f0f9ff', '#0369a1')}>
+                <Camera size={18} strokeWidth={2.4} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-paper)', fontWeight: '400' }}>
+                Sticker camera
+              </span>
+            </div>
+            <div
+              className="sketchbook-border"
+              style={{
+                background: 'var(--surface-panel)',
+                border: '2.5px solid #38bdf8',
+                borderBottom: '5px solid #0891b2',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0e7490', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
+                <Camera size={17} />
+                <span>Themed camera</span>
+              </div>
+              <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                Use the colorful sketchbook-style UI in Sticker camera. On by default, uncheck for a minimal dark camera.
+              </p>
+              <motion.button
+                type="button"
+                role="checkbox"
+                aria-checked={themedCamera}
+                onClick={() => {
+                  const next = !themedCamera;
+                  setThemedCamera(next);
+                  setThemedCameraEnabled(next);
+                }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  ...BUTTON_RESET_STYLE,
+                  ...getOptionCardStyle(themedCamera),
+                  padding: '10px 12px',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
+                  {themedCamera ? 'Colorful camera UI enabled' : 'Keep camera minimal'}
+                </span>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '6px',
+                  border: '2px solid #cbd5e1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: themedCamera ? '#06b6d4' : 'var(--surface-card, #fff)',
+                  borderColor: themedCamera ? '#0891b2' : '#cbd5e1',
+                  flexShrink: 0,
+                }}>
+                  {themedCamera && <Check size={14} color="#fff" strokeWidth={3} />}
+                </div>
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
         {/* App install and offline library */}
         <div style={{ gridColumn: isMobile ? 'auto' : '1 / -1' }}>
           <div
@@ -1472,61 +1553,6 @@ const SettingsPage = ({
                 >
                   {isInstalled ? <CheckCircle size={16} strokeWidth={2.5} /> : <Download size={16} strokeWidth={2.5} />}
                   {isInstalled ? 'Installed' : canInstall ? 'Install app' : 'Use browser install menu'}
-                </motion.button>
-              </div>
-
-              <div
-                className="sketchbook-border"
-                style={{
-                  background: 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 52%, #fdf2f8 100%)',
-                  border: '2.5px solid #38bdf8',
-                  borderBottom: '5px solid #0891b2',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0e7490', fontFamily: 'var(--font-paper)', fontSize: '0.96rem' }}>
-                  <Camera size={17} />
-                  <span>Themed camera</span>
-                </div>
-                <p style={{ fontFamily: 'var(--font-paper)', fontSize: '0.84rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
-                  Use the colorful sketchbook-style buttons and panels in Sticker Cam.
-                </p>
-                <motion.button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={themedCamera}
-                  onClick={() => {
-                    const next = !themedCamera;
-                    setThemedCamera(next);
-                    setThemedCameraEnabled(next);
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  style={{
-                    ...BUTTON_RESET_STYLE,
-                    ...getOptionCardStyle(themedCamera),
-                    padding: '10px 12px',
-                  }}
-                >
-                  <span style={{ fontFamily: 'var(--font-paper)', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.35 }}>
-                    {themedCamera ? 'Colorful camera UI enabled' : 'Keep camera minimal'}
-                  </span>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '6px',
-                    border: '2px solid #cbd5e1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: themedCamera ? '#06b6d4' : 'var(--surface-card, #fff)',
-                    borderColor: themedCamera ? '#0891b2' : '#cbd5e1',
-                    flexShrink: 0,
-                  }}>
-                    {themedCamera && <Check size={14} color="#fff" strokeWidth={3} />}
-                  </div>
                 </motion.button>
               </div>
 

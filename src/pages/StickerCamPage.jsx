@@ -123,6 +123,13 @@ export default function StickerCamPage() {
     };
   }, []);
 
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.dataset.a11yDarkMode === '1');
+  useEffect(() => {
+    const obs = new MutationObserver(() => setDarkMode(document.documentElement.dataset.a11yDarkMode === '1'));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-a11y-dark-mode'] });
+    return () => obs.disconnect();
+  }, []);
+
   // Live sticker state (mutated in rAF loop — no React state)
   const liveRef     = useRef([]);
   const imgCache    = useRef({});
@@ -976,6 +983,7 @@ export default function StickerCamPage() {
         setPanel={setSnapPanel}
         initialMirrored={mirrorCam}
         themedCamera={themedCamera}
+        darkMode={darkMode}
       />
     );
   }
@@ -993,13 +1001,13 @@ export default function StickerCamPage() {
     height: stageSize.height,
     alignSelf: 'center',
     background: '#05050d',
-    borderRadius: simplePhone ? 24 : 22,
-    boxShadow: themedCamera && !simplePhone ? '0 18px 38px rgba(14,165,233,0.14), 0 8px 0 rgba(251,191,36,0.16)' : (simplePhone ? 'none' : undefined),
-    border: themedCamera ? '3px solid rgba(255,255,255,0.88)' : (simplePhone ? '1px solid rgba(255,255,255,0.14)' : undefined),
+    borderRadius: themedCamera ? '0 0 16px 16px' : (simplePhone ? 24 : 22),
+    boxShadow: themedCamera ? 'none' : (simplePhone ? 'none' : undefined),
+    border: themedCamera ? 'none' : (simplePhone ? '1px solid rgba(255,255,255,0.14)' : undefined),
   };
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simplePhone ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background: themedCamera ? 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 48%, #fdf2f8 100%)' : (simplePhone ? '#000' : '#06060f'), overflow:'hidden', alignItems:'stretch' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simplePhone ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, backgroundColor: themedCamera ? 'var(--surface-shell)' : (simplePhone ? '#000' : '#06060f'), backgroundImage: themedCamera ? 'var(--paper-lines)' : 'none', overflow:'hidden', alignItems:'stretch' }}>
       <input
         ref={imageInputRef}
         type="file"
@@ -1007,8 +1015,9 @@ export default function StickerCamPage() {
         onChange={handleImageImport}
         style={{ display:'none' }}
       />
-      <div ref={stageWrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: simplePhone ? '0' : '8px 8px 0', overflow:'hidden' }}>
-        <div ref={containerRef} style={stageStyle}>
+      <div style={themedCamera ? { flex:1, minHeight:0, display:'flex', flexDirection:'column', margin: simplePhone ? '0' : '10px', background:'transparent', borderRadius: simplePhone ? 0 : 24, overflow:'hidden', boxShadow: simplePhone ? 'none' : '0 6px 28px rgba(0,0,0,0.16)', border: simplePhone ? 'none' : '1.5px solid rgba(0,0,0,0.06)' } : { flex:1, minHeight:0, display:'flex', flexDirection:'column' }}>
+      <div ref={stageWrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: themedCamera ? '0' : (simplePhone ? '0' : '8px 8px 0'), overflow:'hidden', position: themedCamera ? 'relative' : undefined }}>
+        <div ref={containerRef} style={{ ...stageStyle, ...(themedCamera ? { position:'absolute', top:0, left:'50%', transform:'translateX(-50%)' } : {}) }}>
 
         <video ref={videoRef} autoPlay playsInline muted
           style={{ position:'absolute', opacity:0, pointerEvents:'none', width:1, height:1 }} />
@@ -1088,6 +1097,7 @@ export default function StickerCamPage() {
             setAspectRatio={setAspectRatio}
             setCameraFilter={setCameraFilter}
             themedCamera={themedCamera}
+            darkMode={darkMode}
           />
         )}
 
@@ -1158,35 +1168,42 @@ export default function StickerCamPage() {
           startAll={startAll}
           takeSnap={takeSnap}
           themedCamera={themedCamera}
+          darkMode={darkMode}
         />
       ) : (
       <DesktopToolbar
-        adjustCameraZoom={adjustCameraZoom}
         aspectRatio={aspectRatio}
-        cameraZoom={cameraZoom}
         clearStickers={clearStickers}
         flipCamera={flipCamera}
         gatherStickers={gatherStickers}
         hasCamera={hasCamera}
+        hideCam={hideCam}
         isFront={isFront}
         openImageLibrary={openImageLibrary}
         savePhoto={savePhoto}
         setAspectRatio={setAspectRatio}
+        setHideCam={setHideCam}
         setPanel={setPanel}
+        setShowSkeleton={setShowSkeleton}
+        setTrackingPaused={setTrackingPaused}
+        showSkeleton={showSkeleton}
         simplePhone={simplePhone}
         startAll={startAll}
         stickerCount={stickerCount}
         stopCamera={stopCamera}
         takeSnap={takeSnap}
+        trackingPaused={trackingPaused}
         themedCamera={themedCamera}
+        darkMode={darkMode}
       />
       )}
+      </div>
 
       {hasCamera && handStatus === 'ready' && !trackingPaused && !simplePhone && (
         <div style={{
           ...gestureHint,
-          background: themedCamera ? 'rgba(255,255,255,0.76)' : gestureHint.background,
-          color: themedCamera ? '#64748b' : gestureHint.color,
+          background: themedCamera ? (darkMode ? 'rgba(13,24,33,0.82)' : 'rgba(255,255,255,0.76)') : gestureHint.background,
+          color: themedCamera ? (darkMode ? '#94a3b8' : '#64748b') : gestureHint.color,
           borderTop: themedCamera ? '1px dashed rgba(14,165,233,0.22)' : undefined,
         }}>
           🖱️ Drag sticker &nbsp;·&nbsp; ✊ Pinch grab &nbsp;·&nbsp; ✌️ Peace→Snap &nbsp;·&nbsp; ✊ Fist→Delete &nbsp;·&nbsp; 🖐 Palm→Repulse &nbsp;·&nbsp; 👍 Clone &nbsp;·&nbsp; 🤘 Spin &nbsp;·&nbsp; 🤙 Bounce all

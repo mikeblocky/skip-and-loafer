@@ -19,9 +19,11 @@ const StatusChip = ({ label, color }) => (
   </div>
 );
 
-function ToolBtn({ color, onClick, children, title, compact = false, active = false, themed = false }) {
+function ToolBtn({ color, onClick, children, title, compact = false, active = false, themed = false, darkMode = false }) {
   const background = themed
-    ? (active ? '#ffffff' : 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 55%, #fdf2f8 100%)')
+    ? (active
+        ? (darkMode ? 'rgba(255,255,255,0.12)' : '#ffffff')
+        : (darkMode ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #fff7ed 0%, #ecfeff 55%, #fdf2f8 100%)'))
     : (active ? `${color}33` : `${color}1a`);
   const borderColor = themed ? color : (active ? `${color}88` : `${color}44`);
   const bottomColor = themed ? color : `${color}66`;
