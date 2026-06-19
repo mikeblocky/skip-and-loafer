@@ -1,47 +1,33 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, CameraOff, Sticker, FlipHorizontal, Aperture, Pause, SlidersHorizontal, Trash2, Magnet, SwitchCamera, Circle, ZoomIn, ZoomOut } from 'lucide-react';
+import { Pause } from 'lucide-react';
 import {
   BASE_SNAP_STICKER, BG_MODES, CONNECTIONS, DRAG_LERP, DWELL_FRAMES, DWELL_MOVE_MAX,
-  FACE_ANCHORS, FACE_MODEL, GESTURE_HOLD, GESTURE_LABELS, HAND_MODEL,
+  FACE_ANCHORS, GESTURE_HOLD, GESTURE_LABELS,
   INERTIA_FRICTION, INERTIA_MIN, MAX_TRACKED_HANDS, PHYS_ANG_DAMPEN,
   PHYS_DAMPEN, PINCH_OFF, PINCH_ON, REPULSION_FORCE, REPULSION_RADIUS,
-  SEG_H, SEG_MODEL, SEG_W, TWO_HAND_DEBOUNCE, WASM_CDN, ALL_STICKER_SRCS,
+  SEG_H, SEG_W, TWO_HAND_DEBOUNCE, ALL_STICKER_SRCS,
 } from '../features/stickerCam/stickerCamConstants';
 import { OneEuroFilter } from '../features/stickerCam/trackingFilters';
 import {
-  applyBackground, classifyGesture, downloadCanvas, drawNotebook, drawVideoFrame, hitTest, lmPx,
+  applyBackground, classifyGesture, drawNotebook, drawVideoFrame, hitTest, lmPx,
 } from '../features/stickerCam/stickerCamUtils';
 import { BgPicker, ControlPanel, FaceAnchorPicker, StickerPicker } from '../features/stickerCam/StickerCamPanels';
+import { DesktopToolbar, MobileBottomControls, MobileCameraOverlayControls } from '../features/stickerCam/StickerCamControls';
 import SnapEditView from '../features/stickerCam/SnapEditView';
-import { gestureHint, primaryBtn, toolbar } from '../features/stickerCam/stickerCamStyles';
-import { StatusChip, ToolBtn } from '../features/stickerCam/stickerCamUi';
-
-const ASPECT_RATIOS = [
-  { id: '9:16', label: '9:16', value: 9 / 16 },
-  { id: '4:5', label: '4:5', value: 4 / 5 },
-  { id: '4:3', label: '4:3', value: 4 / 3 },
-  { id: '3:2', label: '3:2', value: 3 / 2 },
-  { id: '1:1', label: '1:1', value: 1 },
-  { id: '16:9', label: '16:9', value: 16 / 9 },
-];
-
-const CAMERA_FILTERS = [
-  { id: 'none', label: 'Original', css: 'none' },
-  { id: 'soft', label: 'Soft', css: 'brightness(1.06) contrast(0.96) saturate(1.08)' },
-  { id: 'pop', label: 'Pop', css: 'brightness(1.04) contrast(1.12) saturate(1.28)' },
-  { id: 'film', label: 'Film', css: 'contrast(0.95) saturate(0.86) sepia(0.18)' },
-  { id: 'dream', label: 'Dream', css: 'brightness(1.09) contrast(0.9) saturate(1.16) hue-rotate(-8deg)' },
-  { id: 'mono', label: 'Mono', css: 'grayscale(1) contrast(1.08)' },
-];
+import StickerCamStartOverlay from '../features/stickerCam/StickerCamStartOverlay';
+import StickerCamStatusStack from '../features/stickerCam/StickerCamStatusStack';
+import { useCameraZoom } from '../features/stickerCam/hooks/useCameraZoom';
+import { useCameraSession } from '../features/stickerCam/hooks/useCameraSession';
+import { useImageLibraryImport } from '../features/stickerCam/hooks/useImageLibraryImport';
+import { useLivePointerControls } from '../features/stickerCam/hooks/useLivePointerControls';
+import { useLiveStickerActions } from '../features/stickerCam/hooks/useLiveStickerActions';
+import { useStickerCamStageSize } from '../features/stickerCam/hooks/useStickerCamStageSize';
+import { useStickerCamModels } from '../features/stickerCam/hooks/useStickerCamModels';
+import { ASPECT_RATIOS, CAMERA_FILTERS } from '../features/stickerCam/stickerCamConfig';
+import { gestureHint } from '../features/stickerCam/stickerCamStyles';
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function StickerCamPage() {
-  const [stream,         setStream]         = useState(null);
-  const [camError,       setCamError]       = useState(null);
-  const [facingMode,     setFacingMode]     = useState('user');
-  const [handStatus,     setHandStatus]     = useState('idle');
-  const [segStatus,      setSegStatus]      = useState('idle');
-  const [faceStatus,     setFaceStatus]     = useState('idle');
   const [bgMode,         setBgMode]         = useState('none');
   const [stickerCount,   setStickerCount]   = useState(0);
   const [panel,          setPanel]          = useState(null);
@@ -49,11 +35,9 @@ export default function StickerCamPage() {
   const [showFaceMesh,   setShowFaceMesh]   = useState(false);
   const [trackingPaused, setTrackingPaused] = useState(false);
   const [hideCam,        setHideCam]        = useState(false);
-  const [mirrorCam,      setMirrorCam]      = useState(true);
+  const [mirrorCam,      setMirrorCam]      = useState(false);
   const [aspectRatio,    setAspectRatio]    = useState('9:16');
   const [cameraFilter,   setCameraFilter]   = useState('none');
-  const [cameraZoom,     setCameraZoom]     = useState(1);
-  const [stageSize,      setStageSize]      = useState({ width: 640, height: 480 });
   const [simplePhone,    setSimplePhone]    = useState(false);
   const [snapUrl,        setSnapUrl]        = useState(null);
   const [snapSize,       setSnapSize]       = useState({ width: 640, height: 480 });
@@ -74,11 +58,25 @@ export default function StickerCamPage() {
   const stageWrapRef = useRef(null);
   const hintElRef    = useRef(null);
   const rafRef       = useRef(null);
+  const streamRef    = useRef(null);
 
   // Model refs
   const landmarkerRef = useRef(null);
   const segmenterRef  = useRef(null);
   const faceLmRef     = useRef(null);
+  const {
+    faceStatus,
+    handStatus,
+    loadFace,
+    loadHands,
+    segStatus,
+  } = useStickerCamModels({
+    bgMode,
+    faceLmRef,
+    landmarkerRef,
+    segmenterRef,
+    setShowFaceMesh,
+  });
 
   // rAF-synced refs
   const bgModeRef        = useRef('none');
@@ -86,11 +84,10 @@ export default function StickerCamPage() {
   const showFaceMeshRef  = useRef(false);
   const pausedRef        = useRef(false);
   const hideCamRef       = useRef(false);
-  const facingModeRef    = useRef('user');
-  const mirrorCamRef     = useRef(true);
+  const facingModeRef    = useRef('environment');
+  const mirrorCamRef     = useRef(false);
   const simplePhoneRef   = useRef(false);
   const cameraFilterRef  = useRef('none');
-  const cameraZoomRef    = useRef(1);
   const selectedLiveIdRef = useRef(null);
 
   useEffect(() => { bgModeRef.current       = bgMode;         }, [bgMode]);
@@ -98,11 +95,9 @@ export default function StickerCamPage() {
   useEffect(() => { showFaceMeshRef.current = showFaceMesh;   }, [showFaceMesh]);
   useEffect(() => { pausedRef.current       = trackingPaused; }, [trackingPaused]);
   useEffect(() => { hideCamRef.current      = hideCam;        }, [hideCam]);
-  useEffect(() => { facingModeRef.current   = facingMode;     }, [facingMode]);
   useEffect(() => { mirrorCamRef.current    = mirrorCam;      }, [mirrorCam]);
   useEffect(() => { simplePhoneRef.current  = simplePhone;    }, [simplePhone]);
   useEffect(() => { cameraFilterRef.current = cameraFilter;   }, [cameraFilter]);
-  useEffect(() => { cameraZoomRef.current   = cameraZoom;     }, [cameraZoom]);
   useEffect(() => { selectedLiveIdRef.current = selectedLiveId; }, [selectedLiveId]);
 
   useEffect(() => {
@@ -153,47 +148,34 @@ export default function StickerCamPage() {
 
   // External snap trigger ref (gesture peace fires it)
   const takeSnapRef = useRef(null);
-  const focusTimeoutRef = useRef(null);
+  const stageSize = useStickerCamStageSize({ aspectRatio, snapUrl, stageWrapRef });
 
-  const applyCameraFocus = useCallback(async (point = null, zoomValue = cameraZoomRef.current) => {
-    const track = stream?.getVideoTracks?.()[0];
-    if (!track?.applyConstraints) return;
-    const capabilities = track.getCapabilities?.() ?? {};
-    const advanced = [];
+  const {
+    adjustCameraZoom,
+    applyCameraControls,
+    cameraZoom,
+    cameraZoomRef,
+    renderZoom,
+    setZoomValue,
+    updateZoomCaps,
+  } = useCameraZoom(streamRef);
 
-    if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
-      advanced.push({ focusMode: 'continuous' });
-    }
-    if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
-      advanced.push({ exposureMode: 'continuous' });
-    }
-    if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
-      advanced.push({ whiteBalanceMode: 'continuous' });
-    }
-    if (point && 'pointsOfInterest' in capabilities) {
-      advanced.unshift({ pointsOfInterest: [point] });
-    }
-    if (typeof capabilities.zoom?.min === 'number') {
-      const min = capabilities.zoom.min ?? 1;
-      const max = capabilities.zoom.max ?? 3;
-      advanced.push({ zoom: Math.max(min, Math.min(max, zoomValue)) });
-    }
-
-    if (!advanced.length) return;
-    try {
-      await track.applyConstraints({ advanced });
-    } catch {
-      // Some browsers advertise camera controls but reject them per device.
-    }
-  }, [stream]);
-
-  const adjustCameraZoom = useCallback((delta) => {
-    setCameraZoom((current) => {
-      const next = Math.max(1, Math.min(3, Number((current + delta).toFixed(2))));
-      applyCameraFocus(null, next);
-      return next;
-    });
-  }, [applyCameraFocus]);
+  const {
+    camError,
+    facingMode,
+    flipCamera,
+    startCamera,
+    stopCamera,
+    stream,
+  } = useCameraSession({
+    applyCameraControls,
+    facingModeRef,
+    rafRef,
+    snapUrl,
+    streamRef,
+    updateZoomCaps,
+    videoRef,
+  });
 
   const requestStickerRedraw = useCallback(() => {
     const dcv = displayCvRef.current;
@@ -201,12 +183,6 @@ export default function StickerCamPage() {
     const ctx = dcv.getContext('2d');
     ctx?.clearRect(0, 0, 1, 1);
   }, []);
-
-  // Mouse/touch drag on live canvas stickers
-  const livePtrsRef  = useRef({});
-  const liveDragRef  = useRef(null);
-  const livePinchRef = useRef(null);
-  const cameraPinchRef = useRef(null);
 
   // ── OEF helpers ──────────────────────────────────────────────────────────
   const getOEF = useCallback((handIdx, lmIdx) => {
@@ -227,129 +203,13 @@ export default function StickerCamPage() {
     });
   }, [getOEF]);
 
-  // ── Camera ────────────────────────────────────────────────────────────────
-  const startCamera = useCallback(async (facing) => {
-    const mode = facing ?? facingModeRef.current;
-    try {
-      if (stream) stream.getTracks().forEach(t => t.stop());
-      const s = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: mode,
-          width: { ideal: 2560 },
-          height: { ideal: 1440 },
-          frameRate: { ideal: 60, max: 60 },
-          advanced: [
-            { focusMode: 'continuous' },
-            { exposureMode: 'continuous' },
-            { whiteBalanceMode: 'continuous' },
-          ],
-        },
-        audio: false,
-      });
-      setStream(s); setCamError(null);
-      const track = s.getVideoTracks?.()[0];
-      if (track?.applyConstraints) {
-        const capabilities = track.getCapabilities?.() ?? {};
-        const advanced = [];
-        if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
-          advanced.push({ focusMode: 'continuous' });
-        }
-        if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
-          advanced.push({ exposureMode: 'continuous' });
-        }
-        if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
-          advanced.push({ whiteBalanceMode: 'continuous' });
-        }
-        if (advanced.length) {
-          try { await track.applyConstraints({ advanced }); } catch { /* best-effort camera controls */ }
-        }
-      }
-      if (facing) setFacingMode(facing);
-      setCameraZoom(1);
-    } catch (e) {
-      setCamError(e.name === 'NotAllowedError'
-        ? 'Camera permission denied. Allow access and try again.'
-        : 'Camera error: ' + e.message);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream]);
-
-  const stopCamera = useCallback(() => {
-    if (stream) { stream.getTracks().forEach(t => t.stop()); setStream(null); }
-    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-  }, [stream]);
-
-  const flipCamera = useCallback(() => {
-    startCamera(facingModeRef.current === 'user' ? 'environment' : 'user');
-  }, [startCamera]);
-
-  useEffect(() => {
-    if (stream && videoRef.current) videoRef.current.srcObject = stream;
-  }, [stream, snapUrl]);
-
-  useEffect(() => {
-    if (stream) applyCameraFocus();
-  }, [applyCameraFocus, stream]);
-
-  useEffect(() => () => {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
-    if (landmarkerRef.current) landmarkerRef.current.close();
-    if (segmenterRef.current) segmenterRef.current.close();
-    if (faceLmRef.current) faceLmRef.current.close();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Load models ────────────────────────────────────────────────────────────
-  const loadHands = useCallback(async () => {
-    if (landmarkerRef.current || handStatus === 'loading') return;
-    setHandStatus('loading');
-    try {
-      const { HandLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
-      const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
-      landmarkerRef.current = await HandLandmarker.createFromOptions(vis, {
-        baseOptions: { modelAssetPath: HAND_MODEL, delegate: 'GPU' },
-        runningMode: 'VIDEO', numHands: MAX_TRACKED_HANDS, minHandDetectionConfidence: 0.72, minHandPresenceConfidence: 0.72, minTrackingConfidence: 0.78,
-      });
-      setHandStatus('ready');
-    } catch { setHandStatus('error'); }
-  }, [handStatus]);
-
-  const loadSegmenter = useCallback(async () => {
-    if (segmenterRef.current || segStatus === 'loading') return;
-    setSegStatus('loading');
-    try {
-      const { ImageSegmenter, FilesetResolver } = await import('@mediapipe/tasks-vision');
-      const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
-      segmenterRef.current = await ImageSegmenter.createFromOptions(vis, {
-        baseOptions: { modelAssetPath: SEG_MODEL, delegate: 'GPU' },
-        runningMode: 'VIDEO', outputCategoryMask: true, outputConfidenceMasks: false,
-      });
-      setSegStatus('ready');
-    } catch { setSegStatus('error'); }
-  }, [segStatus]);
-
-  const loadFace = useCallback(async () => {
-    if (faceLmRef.current || faceStatus === 'loading') return;
-    setFaceStatus('loading');
-    try {
-      const { FaceLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
-      const vis = await FilesetResolver.forVisionTasks(WASM_CDN);
-      faceLmRef.current = await FaceLandmarker.createFromOptions(vis, {
-        baseOptions: { modelAssetPath: FACE_MODEL, delegate: 'GPU' },
-        runningMode: 'VIDEO', numFaces: 1, outputFaceBlendshapes: false,
-        outputFacialTransformationMatrixes: false,
-      });
-      setFaceStatus('ready');
-      setShowFaceMesh(true);
-    } catch { setFaceStatus('error'); }
-  }, [faceStatus]);
-
-  useEffect(() => {
-    const m = BG_MODES.find(b => b.id === bgMode);
-    if (m?.needsSeg && !segmenterRef.current) loadSegmenter();
-  }, [bgMode, loadSegmenter]);
+  const { handleImageImport, imageInputRef, openImageLibrary } = useImageLibraryImport({
+    setSnapPanel,
+    setSnapSize,
+    setSnapStickers,
+    setSnapUrl,
+    stopCamera,
+  });
 
   const startAll = useCallback(async () => {
     await startCamera();
@@ -391,38 +251,6 @@ export default function StickerCamPage() {
   // Store stable ref so rAF gesture handler can call it
   useEffect(() => { takeSnapRef.current = takeSnap; }, [takeSnap]);
 
-  useEffect(() => {
-    if (snapUrl) return undefined;
-    const wrap = stageWrapRef.current;
-    if (!wrap) return undefined;
-
-    const active = ASPECT_RATIOS.find(r => r.id === aspectRatio) ?? ASPECT_RATIOS[0];
-    const updateSize = () => {
-      const rect = wrap.getBoundingClientRect();
-      const maxW = Math.max(240, rect.width);
-      const maxH = Math.max(180, rect.height);
-      let width = maxW;
-      let height = width / active.value;
-      if (height > maxH) {
-        height = maxH;
-        width = height * active.value;
-      }
-      setStageSize({
-        width: Math.max(240, Math.round(width)),
-        height: Math.max(180, Math.round(height)),
-      });
-    };
-
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(wrap);
-    window.addEventListener('resize', updateSize);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateSize);
-    };
-  }, [aspectRatio, snapUrl]);
-
   // ── toCvCoords ────────────────────────────────────────────────────────────
   const toCvCoords = useCallback((clientX, clientY) => {
     const cont = containerRef.current;
@@ -434,108 +262,57 @@ export default function StickerCamPage() {
     return { x: cx, y: cy };
   }, []);
 
-  // ── Mouse/touch drag on live canvas stickers ──────────────────────────────
-  const handleLivePointerDown = useCallback((e) => {
-    if (panel) return;
-    if (pausedRef.current) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const focusRect = containerRef.current?.getBoundingClientRect();
-    if (focusRect) {
-      const x = Math.max(0, Math.min(1, (e.clientX - focusRect.left) / focusRect.width));
-      const y = Math.max(0, Math.min(1, (e.clientY - focusRect.top) / focusRect.height));
-      setFocusPoint({ x, y });
-      applyCameraFocus({ x, y });
-      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
-      focusTimeoutRef.current = setTimeout(() => setFocusPoint(null), 720);
-    }
-    const pos = toCvCoords(e.clientX, e.clientY);
-    livePtrsRef.current[e.pointerId] = pos;
-    const count = Object.keys(livePtrsRef.current).length;
-    const live = liveRef.current;
+  const {
+    handleLivePointerDown,
+    handleLivePointerMove,
+    handleLivePointerUp,
+    liveDragRef,
+    livePinchRef,
+  } = useLivePointerControls({
+    applyCameraControls,
+    cameraZoomRef,
+    containerRef,
+    grabRef,
+    inertiaRef,
+    liveRef,
+    panel,
+    pausedRef,
+    setCameraZoomValue: setZoomValue,
+    setFocusPoint,
+    setSelectedLiveId,
+    toCvCoords,
+  });
 
-    if (count === 1) {
-      const sid = hitTest(live, pos.x, pos.y);
-      if (sid != null) {
-        const s = live.find(st => st.id === sid);
-        setSelectedLiveId(sid);
-        liveDragRef.current = { id: sid, offX: pos.x - s.x, offY: pos.y - s.y };
-        inertiaRef.current  = null;
-        grabRef.current     = null;
-      } else {
-        setSelectedLiveId(null);
-        liveDragRef.current = null;
-      }
-    } else if (count === 2) {
-      const pts = Object.values(livePtrsRef.current);
-      const [p1, p2] = pts;
-      const dist  = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-      const sid   = liveDragRef.current?.id;
-      const s     = sid ? live.find(st => st.id === sid) : null;
-      if (s) {
-        livePinchRef.current = { id: s.id, initDist: dist, initAngle: angle, initW: s.w || 120, initH: s.h || 120, initR: s.rotation };
-        liveDragRef.current  = null;
-        cameraPinchRef.current = null;
-      } else {
-        cameraPinchRef.current = { initDist: Math.max(1, dist), initZoom: cameraZoomRef.current };
-        liveDragRef.current = null;
-      }
-    }
-  }, [applyCameraFocus, panel, toCvCoords]);
-
-  const handleLivePointerMove = useCallback((e) => {
-    if (!liveDragRef.current && !livePinchRef.current) return;
-    const pos = toCvCoords(e.clientX, e.clientY);
-    livePtrsRef.current[e.pointerId] = pos;
-    const live = liveRef.current;
-
-    if (liveDragRef.current) {
-      const { id, offX, offY } = liveDragRef.current;
-      const idx = live.findIndex(s => s.id === id);
-      if (idx >= 0) live[idx] = { ...live[idx], x: pos.x - offX, y: pos.y - offY, vx: 0, vy: 0 };
-    }
-
-    if (livePinchRef.current) {
-      const pts = Object.values(livePtrsRef.current);
-      if (pts.length >= 2) {
-        const [p1, p2] = pts;
-        const dist  = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        const { id, initDist, initAngle, initW, initH, initR } = livePinchRef.current;
-        const scale = dist / initDist;
-        const idx   = live.findIndex(s => s.id === id);
-        if (idx >= 0) live[idx] = {
-          ...live[idx],
-          w: Math.max(40, initW * scale), h: Math.max(40, initH * scale),
-          rotation: initR + (angle - initAngle),
-          x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2, vx: 0, vy: 0,
-        };
-      }
-    }
-
-    if (cameraPinchRef.current && !livePinchRef.current) {
-      const pts = Object.values(livePtrsRef.current);
-      if (pts.length >= 2) {
-        const [p1, p2] = pts;
-        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-        const next = Math.max(1, Math.min(3, Number((cameraPinchRef.current.initZoom * (dist / cameraPinchRef.current.initDist)).toFixed(2))));
-        cameraZoomRef.current = next;
-        setCameraZoom(next);
-        applyCameraFocus(null, next);
-      }
-    }
-  }, [applyCameraFocus, setCameraZoom, toCvCoords]);
-
-  const handleLivePointerUp = useCallback((e) => {
-    delete livePtrsRef.current[e.pointerId];
-    if (Object.keys(livePtrsRef.current).length === 0) {
-      liveDragRef.current  = null;
-      livePinchRef.current = null;
-      cameraPinchRef.current = null;
-    } else if (Object.keys(livePtrsRef.current).length < 2) {
-      cameraPinchRef.current = null;
-    }
-  }, []);
+  const {
+    addSticker,
+    adjustSelectedLive,
+    clearStickers,
+    deleteSelectedLive,
+    gatherStickers,
+    savePhoto,
+  } = useLiveStickerActions({
+    displayCvRef,
+    faceAnchorPick,
+    faceLmsRef,
+    gatherRef,
+    grabRef,
+    inertiaRef,
+    liveDragRef,
+    livePinchRef,
+    liveRef,
+    mirrorCamRef,
+    nextIdRef,
+    renderZoom,
+    requestStickerRedraw,
+    selectedLiveId,
+    setFaceAnchorPick,
+    setLiveEditVersion,
+    setPanel,
+    setSelectedLiveId,
+    setStickerCount,
+    twoRef,
+    videoRef,
+  });
 
   // ── rAF render + tracking loop ─────────────────────────────────────────────
   useEffect(() => {
@@ -577,7 +354,7 @@ export default function StickerCamPage() {
       const vw = video.videoWidth  || 640;
       const vh = video.videoHeight || 480;
       const mirrored = mirrorCamRef.current;
-      const zoom = cameraZoomRef.current;
+      const zoom = renderZoom;
       const activeFilter = CAMERA_FILTERS.find(f => f.id === cameraFilterRef.current) ?? CAMERA_FILTERS[0];
       const toScreen = (lm) => lmPx(lm, cw, ch, vw, vh, mirrored, zoom);
       const dctx = dcv.getContext('2d');
@@ -1165,83 +942,6 @@ export default function StickerCamPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream, smoothLandmarksOEF]);
 
-  // ── Live sticker management ────────────────────────────────────────────────
-  const addSticker = useCallback((src) => {
-    const dcv = displayCvRef.current;
-    const dpr = window.devicePixelRatio || 1;
-    if (faceAnchorPick) {
-      // Place face-anchored sticker
-      const { lmIdx } = faceAnchorPick;
-      const faceLms = faceLmsRef.current;
-      const id = nextIdRef.current++;
-      const video = videoRef.current;
-      const cw = dcv?.width ?? 640, ch = dcv?.height ?? 480;
-      const vw = video?.videoWidth ?? 640, vh = video?.videoHeight ?? 480;
-      let startX = cw / 2, startY = ch / 2;
-      if (faceLms?.[lmIdx]) {
-        const p = lmPx(faceLms[lmIdx], cw, ch, vw, vh, mirrorCamRef.current, cameraZoomRef.current);
-        startX = p.x; startY = p.y;
-      }
-      liveRef.current = [...liveRef.current, {
-        id, src, x: startX, y: startY, w: 0, h: 0, rotation: 0, vx: 0, vy: 0, angularVel: 0,
-        zIndex: id,
-        faceAnchor: { lmIdx, offX: 0, offY: 0 },
-      }];
-      setStickerCount(c => c + 1);
-      setSelectedLiveId(id);
-      setFaceAnchorPick(null);
-      setPanel(null);
-      return;
-    }
-    const cx  = dcv ? dcv.width  / 2 + (Math.random() - 0.5) * 140 * dpr : 320;
-    const cy  = dcv ? dcv.height / 2 + (Math.random() - 0.5) * 100 * dpr : 240;
-    const id  = nextIdRef.current++;
-    liveRef.current = [...liveRef.current, { id, src, x: cx, y: cy, w: 0, h: 0, rotation: (Math.random() - 0.5) * 22, vx: 0, vy: 0, angularVel: 0, zIndex: id }];
-    setStickerCount(c => c + 1);
-    setSelectedLiveId(id);
-    setPanel(null);
-  }, [faceAnchorPick]);
-
-  const clearStickers = useCallback(() => {
-    liveRef.current = []; setStickerCount(0);
-    setSelectedLiveId(null);
-    grabRef.current = null; twoRef.current = null; inertiaRef.current = null;
-    liveDragRef.current = null; livePinchRef.current = null;
-  }, []);
-
-  const gatherStickers = useCallback(() => { gatherRef.current = { frames: 0 }; }, []);
-
-  const adjustSelectedLive = useCallback((updater) => {
-    if (!selectedLiveId) return;
-    const idx = liveRef.current.findIndex(s => s.id === selectedLiveId);
-    if (idx < 0) {
-      setSelectedLiveId(null);
-      return;
-    }
-    const current = liveRef.current[idx];
-    const next = typeof updater === 'function' ? updater(current) : { ...current, ...updater };
-    liveRef.current[idx] = { ...next, vx: 0, vy: 0, angularVel: 0 };
-    setLiveEditVersion(v => v + 1);
-    requestStickerRedraw();
-  }, [requestStickerRedraw, selectedLiveId]);
-
-  const deleteSelectedLive = useCallback(() => {
-    if (!selectedLiveId) return;
-    liveRef.current = liveRef.current.filter(s => s.id !== selectedLiveId);
-    setStickerCount(liveRef.current.length);
-    setSelectedLiveId(null);
-    requestStickerRedraw();
-  }, [requestStickerRedraw, selectedLiveId]);
-
-  const savePhoto = useCallback(() => {
-    const dcv = displayCvRef.current; if (!dcv) return;
-    const out = document.createElement('canvas');
-    out.width = dcv.width; out.height = dcv.height;
-    const ctx = out.getContext('2d');
-    ctx.drawImage(dcv, 0, 0);
-    downloadCanvas(out, 'sticker-live.png');
-  }, []);
-
   // ── Face anchor picking ────────────────────────────────────────────────────
   const startFaceAnchorPick = useCallback((name, lmIdx) => {
     setFaceAnchorPick({ name, lmIdx });
@@ -1287,6 +987,13 @@ export default function StickerCamPage() {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simplePhone ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background: simplePhone ? '#000' : '#06060f', overflow:'hidden', alignItems:'stretch' }}>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageImport}
+        style={{ display:'none' }}
+      />
       <div ref={stageWrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: simplePhone ? '0' : '8px 8px 0', overflow:'hidden' }}>
         <div ref={containerRef} style={stageStyle}>
 
@@ -1312,16 +1019,12 @@ export default function StickerCamPage() {
         )}
 
         {!hasCamera && (
-          <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20, background: simplePhone ? '#111118' : undefined }}>
-            <div style={{ width:88, height:88, borderRadius:'50%', background: simplePhone ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)', border: simplePhone ? '1px solid rgba(255,255,255,0.28)' : '2px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <CameraOff size={38} color={simplePhone ? 'rgba(255,255,255,0.84)' : 'rgba(255,255,255,0.22)'} />
-            </div>
-            {camError
-              ? <p style={{ color:'#fca5a5', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.9rem', textAlign:'center', maxWidth:280, margin:0 }}>{camError}</p>
-              : <p style={{ color: simplePhone ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.28)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.95rem', margin:0 }}>{simplePhone ? 'Open camera' : 'Tap to start camera & hand tracking'}</p>
-            }
-            <button onClick={startAll} style={simplePhone ? { ...primaryBtn, background:'rgba(255,255,255,0.94)', border:'1px solid rgba(255,255,255,0.84)', borderBottom:'3px solid rgba(255,255,255,0.58)', color:'#050505', boxShadow:'0 8px 26px rgba(0,0,0,0.28)' } : primaryBtn}><Camera size={17} /> {simplePhone ? 'Start Camera' : 'Start Camera + Hand Tracking'}</button>
-          </div>
+          <StickerCamStartOverlay
+            camError={camError}
+            onStart={startAll}
+            onOpenLibrary={openImageLibrary}
+            simplePhone={simplePhone}
+          />
         )}
 
         {hasCamera && !simplePhone && (
@@ -1330,11 +1033,12 @@ export default function StickerCamPage() {
         )}
 
         {hasCamera && !simplePhone && (
-          <div style={{ position:'absolute', top:12, right:12, display:'flex', flexDirection:'column', gap:5, alignItems:'flex-end', zIndex:200, pointerEvents:'none' }}>
-            <StatusChip label={`Hands: ${handStatus}`} color={handStatus==='ready'?'#34d399':handStatus==='loading'?'#fbbf24':'#94a3b8'} />
-            {bgMode !== 'none' && <StatusChip label={`Seg: ${segStatus}`} color={segStatus==='ready'?'#34d399':segStatus==='loading'?'#fbbf24':'#94a3b8'} />}
-            {faceStatus !== 'idle' && <StatusChip label={`Face: ${faceStatus}`} color={faceStatus==='ready'?'#f9a8d4':faceStatus==='loading'?'#fbbf24':'#94a3b8'} />}
-          </div>
+          <StickerCamStatusStack
+            bgMode={bgMode}
+            faceStatus={faceStatus}
+            handStatus={handStatus}
+            segStatus={segStatus}
+          />
         )}
 
         {snapFlash && (
@@ -1361,30 +1065,16 @@ export default function StickerCamPage() {
         )}
 
         {simplePhone && hasCamera && (
-          <>
-            <div style={{ position:'absolute', top:10, left:10, right:10, zIndex:180, display:'flex', justifyContent:'space-between', alignItems:'center', pointerEvents:'none' }}>
-              <div style={{ display:'flex', gap:6, pointerEvents:'auto' }}>
-                <button onClick={flipCamera} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }}><SwitchCamera size={17} /></button>
-              </div>
-              <div style={{ pointerEvents:'auto', display:'flex', gap:5, background:'rgba(0,0,0,0.28)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:999, padding:4, backdropFilter:'blur(12px)' }}>
-                {ASPECT_RATIOS.filter(r => ['9:16','4:5','1:1'].includes(r.id)).map(r => (
-                  <button key={r.id} onClick={() => setAspectRatio(r.id)} style={{ border:0, borderRadius:999, padding:'6px 9px', color:'white', background: aspectRatio === r.id ? 'rgba(255,255,255,0.28)' : 'transparent', fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}>{r.label}</button>
-                ))}
-              </div>
-            </div>
-            <div style={{ position:'absolute', left:10, top:56, zIndex:180, display:'flex', flexDirection:'column', gap:6, pointerEvents:'auto' }}>
-              <button onClick={() => adjustCameraZoom(0.25)} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }} title="Zoom in"><ZoomIn size={16} /></button>
-              <div style={{ minWidth:38, borderRadius:999, border:'1px solid rgba(255,255,255,0.25)', background:'rgba(0,0,0,0.34)', color:'white', textAlign:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:11, padding:'4px 0', backdropFilter:'blur(10px)' }}>{cameraZoom.toFixed(1)}x</div>
-              <button onClick={() => adjustCameraZoom(-0.25)} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }} title="Zoom out"><ZoomOut size={16} /></button>
-            </div>
-            <div style={{ position:'absolute', right:9, top:88, bottom:104, zIndex:180, display:'flex', flexDirection:'column', justifyContent:'flex-start', gap:6, pointerEvents:'auto', overflowY:'auto', scrollbarWidth:'none' }}>
-              {CAMERA_FILTERS.map(f => (
-                <button key={f.id} onClick={() => setCameraFilter(f.id)} style={{ writingMode:'vertical-rl', transform:'rotate(180deg)', border:'1px solid rgba(255,255,255,0.28)', borderRadius:999, padding:'8px 5px', minHeight:44, color:'white', background: cameraFilter === f.id ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.34)', backdropFilter:'blur(10px)', fontFamily:'Sniglet, var(--font-hand)', fontSize:10, lineHeight:1, flex:'0 0 auto' }}>
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </>
+          <MobileCameraOverlayControls
+            adjustCameraZoom={adjustCameraZoom}
+            aspectRatio={aspectRatio}
+            cameraFilter={cameraFilter}
+            cameraZoom={cameraZoom}
+            flipCamera={flipCamera}
+            openImageLibrary={openImageLibrary}
+            setAspectRatio={setAspectRatio}
+            setCameraFilter={setCameraFilter}
+          />
         )}
 
         {trackingPaused && hasCamera && !simplePhone && (
@@ -1441,89 +1131,39 @@ export default function StickerCamPage() {
       </div>
 
       {simplePhone ? (
-        <div style={{ background:'#000', borderTop:'1px solid rgba(255,255,255,0.1)', flexShrink:0 }}>
-          {selectedLive && (
-            <div data-snap-ctrl="1" style={{ display:'grid', gridTemplateColumns:'repeat(6, minmax(0,1fr))', gap:8, padding:'8px 14px 0' }}>
-              <button onClick={deleteSelectedLive} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Delete"><Trash2 size={17} /></button>
-              <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) - 1 }))} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward">-</button>
-              <button onClick={() => adjustSelectedLive(s => ({ ...s, zIndex: (s.zIndex ?? 1) + 1 }))} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward">+</button>
-              <button onClick={() => adjustSelectedLive(s => ({ ...s, rotation: (s.rotation ?? 0) + 15 }))} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><SlidersHorizontal size={17} /></button>
-              <button onClick={() => adjustSelectedLive(s => ({ ...s, w: Math.max(36, (s.w || 120) * 0.86), h: Math.max(36, (s.h || 120) * 0.86) }))} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller">S</button>
-              <button onClick={() => adjustSelectedLive(s => ({ ...s, w: Math.min(stageSize.width, (s.w || 120) * 1.16), h: Math.min(stageSize.height, (s.h || 120) * 1.16) }))} style={{ height:42, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger">L</button>
-            </div>
-          )}
-          <div style={{ display:'grid', gridTemplateColumns:'56px 1fr 56px', alignItems:'center', gap:12, padding:'8px 18px 10px' }}>
-            <button onClick={() => setPanel(p => p==='stickers'?null:'stickers')} style={{ width:48, height:48, borderRadius:16, border:'1px solid rgba(255,255,255,0.28)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }}><Sticker size={21} /></button>
-            {hasCamera ? (
-              <button onClick={takeSnap} style={{ justifySelf:'center', width:74, height:74, borderRadius:'50%', border:'5px solid rgba(255,255,255,0.92)', background:'transparent', color:'white', display:'grid', placeItems:'center', boxShadow:'0 8px 24px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(255,255,255,0.9)' }}><Circle size={34} fill="currentColor" /></button>
-            ) : (
-              <button onClick={startAll} style={{ justifySelf:'center', width:74, height:74, borderRadius:'50%', border:'5px solid rgba(255,255,255,0.92)', background:'transparent', color:'white', display:'grid', placeItems:'center', boxShadow:'0 8px 24px rgba(0,0,0,0.35)' }}><Camera size={30} /></button>
-            )}
-            {hasCamera ? (
-              <button onClick={() => setCameraFilter((current) => {
-                const idx = CAMERA_FILTERS.findIndex(f => f.id === current);
-                return CAMERA_FILTERS[(idx + 1) % CAMERA_FILTERS.length].id;
-              })} style={{ width:48, height:48, borderRadius:16, border:'1px solid rgba(255,255,255,0.28)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:11, fontWeight:700 }}>
-                FX
-              </button>
-            ) : (
-              <button onClick={stopCamera} style={{ width:48, height:48, borderRadius:16, border:'1px solid rgba(255,255,255,0.28)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }}><CameraOff size={20} /></button>
-            )}
-          </div>
-        </div>
+        <MobileBottomControls
+          adjustSelectedLive={adjustSelectedLive}
+          cameraFilter={cameraFilter}
+          deleteSelectedLive={deleteSelectedLive}
+          hasCamera={hasCamera}
+          openImageLibrary={openImageLibrary}
+          selectedLive={selectedLive}
+          setCameraFilter={setCameraFilter}
+          setPanel={setPanel}
+          stageSize={stageSize}
+          startAll={startAll}
+          takeSnap={takeSnap}
+        />
       ) : (
-      <div style={toolbar}>
-        {!hasCamera
-          ? <ToolBtn color="#4d9cff" onClick={startAll}><Camera size={16} /> Start</ToolBtn>
-          : <ToolBtn color="#f87171" onClick={stopCamera}><CameraOff size={16} /> Stop</ToolBtn>
-        }
-        {hasCamera && (
-          <ToolBtn color="#22d3ee" onClick={flipCamera}>
-            <FlipHorizontal size={16} /> {isFront ? 'Rear' : 'Selfie'}
-          </ToolBtn>
-        )}
-        {!simplePhone && ASPECT_RATIOS.map(r => (
-          <ToolBtn key={r.id} color={aspectRatio === r.id ? '#6ee7b7' : '#64748b'} onClick={() => setAspectRatio(r.id)}>
-            {r.label}
-          </ToolBtn>
-        ))}
-        {hasCamera && (
-          <>
-            <ToolBtn color="#94a3b8" onClick={() => adjustCameraZoom(-0.25)}>
-              <ZoomOut size={16} /> Zoom
-            </ToolBtn>
-            <ToolBtn color="#38bdf8" onClick={() => adjustCameraZoom(0.25)}>
-              <ZoomIn size={16} /> {cameraZoom.toFixed(1)}x
-            </ToolBtn>
-          </>
-        )}
-        {hasCamera && (
-          <ToolBtn color="#f472b6" onClick={takeSnap}>
-            <Aperture size={17} /> Snap!
-          </ToolBtn>
-        )}
-        <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p==='stickers'?null:'stickers')}>
-          <Sticker size={16} /> Stickers{stickerCount > 0 ? ` (${stickerCount})` : ''}
-        </ToolBtn>
-        {stickerCount > 0 && !simplePhone && (
-          <>
-            <ToolBtn color="#a78bfa" onClick={gatherStickers}>
-              <Magnet size={16} /> Gather
-            </ToolBtn>
-            <ToolBtn color="#f97316" onClick={clearStickers}>
-              <Trash2 size={16} /> Clear
-            </ToolBtn>
-          </>
-        )}
-        {simplePhone && (
-          <ToolBtn color="#fbbf24" onClick={savePhoto}><Aperture size={16} /> Save</ToolBtn>
-        )}
-        {!simplePhone && (
-          <ToolBtn color="#c4b5fd" onClick={() => setPanel(p => p==='controls'?null:'controls')}>
-            <SlidersHorizontal size={16} /> More
-          </ToolBtn>
-        )}
-      </div>
+      <DesktopToolbar
+        adjustCameraZoom={adjustCameraZoom}
+        aspectRatio={aspectRatio}
+        cameraZoom={cameraZoom}
+        clearStickers={clearStickers}
+        flipCamera={flipCamera}
+        gatherStickers={gatherStickers}
+        hasCamera={hasCamera}
+        isFront={isFront}
+        openImageLibrary={openImageLibrary}
+        savePhoto={savePhoto}
+        setAspectRatio={setAspectRatio}
+        setPanel={setPanel}
+        simplePhone={simplePhone}
+        startAll={startAll}
+        stickerCount={stickerCount}
+        stopCamera={stopCamera}
+        takeSnap={takeSnap}
+      />
       )}
 
       {hasCamera && handStatus === 'ready' && !trackingPaused && !simplePhone && (
