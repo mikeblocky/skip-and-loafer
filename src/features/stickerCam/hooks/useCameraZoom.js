@@ -22,6 +22,12 @@ function getZoomCaps(track) {
   };
 }
 
+function addCameraModeConstraint(advanced, capabilities, key, modes) {
+  const supportedModes = Array.isArray(capabilities[key]) ? capabilities[key] : [];
+  const mode = modes.find(item => supportedModes.includes(item));
+  if (mode) advanced.push({ [key]: mode });
+}
+
 function useCameraZoom(streamRef) {
   const [cameraZoom, setCameraZoomState] = useState(1);
   const [zoomCaps, setZoomCaps] = useState(DEFAULT_ZOOM_CAPS);
@@ -43,19 +49,15 @@ function useCameraZoom(streamRef) {
     const track = streamRef.current?.getVideoTracks?.()[0];
     if (!track?.applyConstraints) return;
     const capabilities = track.getCapabilities?.() ?? {};
+    const supportedConstraints = navigator.mediaDevices?.getSupportedConstraints?.() ?? {};
     const advanced = [];
 
-    if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
-      advanced.push({ focusMode: 'continuous' });
-    }
-    if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
-      advanced.push({ exposureMode: 'continuous' });
-    }
-    if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
-      advanced.push({ whiteBalanceMode: 'continuous' });
-    }
-    if (point && 'pointsOfInterest' in capabilities) {
-      advanced.unshift({ pointsOfInterest: [point] });
+    addCameraModeConstraint(advanced, capabilities, 'focusMode', point ? ['single-shot', 'manual', 'continuous'] : ['continuous', 'single-shot']);
+    addCameraModeConstraint(advanced, capabilities, 'exposureMode', ['continuous', 'single-shot']);
+    addCameraModeConstraint(advanced, capabilities, 'whiteBalanceMode', ['continuous', 'manual']);
+
+    if (point && (supportedConstraints.pointsOfInterest || 'pointsOfInterest' in capabilities)) {
+      advanced.unshift({ pointsOfInterest: [{ x: point.x, y: point.y }] });
     }
     if (typeof capabilities.zoom?.min === 'number') {
       const min = capabilities.zoom.min ?? zoomCaps.min;
@@ -67,7 +69,12 @@ function useCameraZoom(streamRef) {
     try {
       await track.applyConstraints({ advanced });
     } catch {
-      // Browser camera-control support varies per device.
+      if (!point) return;
+      try {
+        await track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x: point.x, y: point.y }] }] });
+      } catch {
+        // Browser camera-control support varies per device.
+      }
     }
   }, [streamRef, zoomCaps.max, zoomCaps.min]);
 

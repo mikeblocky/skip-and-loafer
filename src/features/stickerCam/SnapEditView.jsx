@@ -6,6 +6,29 @@ import { StickerPicker } from './StickerCamPanels';
 import { gestureHint, toolbar } from './stickerCamStyles';
 import { CtrlBtn, Sep, ToolBtn } from './stickerCamUi';
 
+function drawImageContain(ctx, image, x, y, width, height) {
+  const naturalWidth = image.naturalWidth || width;
+  const naturalHeight = image.naturalHeight || height;
+  const imageRatio = naturalWidth / naturalHeight;
+  const boxRatio = width / height;
+  let drawWidth = width;
+  let drawHeight = height;
+
+  if (imageRatio > boxRatio) {
+    drawHeight = width / imageRatio;
+  } else {
+    drawWidth = height * imageRatio;
+  }
+
+  ctx.drawImage(
+    image,
+    x + (width - drawWidth) / 2,
+    y + (height - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+}
+
 // ── SnapEditView ──────────────────────────────────────────────────────────────
 const SnapEditView = memo(function SnapEditView({
   snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel, initialMirrored = false,
@@ -213,7 +236,7 @@ const SnapEditView = memo(function SnapEditView({
           ctx.rotate(s.rotation * Math.PI / 180);
           const w = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * stickerScale;
           const h = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * stickerScale;
-          ctx.drawImage(si, -w / 2, -h / 2, w, h); ctx.restore();
+          drawImageContain(ctx, si, -w / 2, -h / 2, w, h); ctx.restore();
           if (--pending === 0) downloadCanvas(canvas);
         };
         si.onerror = () => { if (--pending === 0) downloadCanvas(canvas); };

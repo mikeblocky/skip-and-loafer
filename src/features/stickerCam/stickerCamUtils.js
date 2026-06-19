@@ -174,7 +174,15 @@ function getRelPos(e, el) {
   return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
-function downloadCanvas(canvas, filename = 'sticker-snap.png') {
+function getStickerDownloadFilename(prefix = 'sticker-cam') {
+  const stamp = new Date()
+    .toISOString()
+    .replace(/\.\d+Z$/, '')
+    .replace(/[-:T]/g, '');
+  return `${prefix}-${stamp}.png`;
+}
+
+function downloadCanvas(canvas, filename = getStickerDownloadFilename()) {
   canvas.toBlob(blob => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -190,6 +198,7 @@ export {
   downloadCanvas,
   drawVideoFrame,
   drawNotebook,
+  getStickerDownloadFilename,
   getRelPos,
   hitTest,
   hitTestSnap,

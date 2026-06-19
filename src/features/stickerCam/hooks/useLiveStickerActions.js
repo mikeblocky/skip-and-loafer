@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { downloadCanvas, lmPx } from '../stickerCamUtils';
+import { downloadCanvas, getStickerDownloadFilename, lmPx } from '../stickerCamUtils';
 
 function useLiveStickerActions({
   displayCvRef,
@@ -129,7 +129,7 @@ function useLiveStickerActions({
     out.height = dcv.height;
     const ctx = out.getContext('2d');
     ctx.drawImage(dcv, 0, 0);
-    downloadCanvas(out, 'sticker-live.png');
+    downloadCanvas(out, getStickerDownloadFilename('sticker-live'));
   }, [displayCvRef]);
 
   return {
