@@ -437,7 +437,7 @@ const SnapEditView = memo(function SnapEditView({
       <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', overflow:'hidden' }}>
       <div
         ref={containerRef}
-        style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: themedCamera ? '0 0 16px 16px' : (simpleEditor ? 18 : 22), background:'#05050d', border: themedCamera ? 'none' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? 'none' : undefined }}
+        style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: themedCamera ? 16 : (simpleEditor ? 18 : 22), background:'#05050d', border: themedCamera ? 'none' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? 'none' : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -623,18 +623,18 @@ const SnapEditView = memo(function SnapEditView({
             gridTemplateColumns:'repeat(6, minmax(0, 1fr))',
             gap:8,
             padding:'8px 12px 4px',
-            background:'#000',
-            borderTop:'1px solid rgba(255,255,255,0.1)',
+            background: themedCamera ? 'transparent' : '#000',
+            borderTop: themedCamera ? 'none' : '1px solid rgba(255,255,255,0.1)',
             flexShrink:0,
           }}
           onPointerDown={e => e.stopPropagation()}
         >
-          <button onClick={deleteSelected} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Delete"><Trash2 size={18} /></button>
-          <button onClick={() => moveLayer('down')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward"><ChevronDown size={18} /></button>
-          <button onClick={() => moveLayer('up')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward"><ChevronUp size={18} /></button>
-          <button onClick={() => adjust({ rotation: sel.rotation + 15 })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><RotateCw size={18} /></button>
-          <button onClick={() => adjust({ scale: Math.max(0.2, sel.scale - 0.25) })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller"><ZoomOut size={18} /></button>
-          <button onClick={() => adjust({ scale: Math.min(7, sel.scale + 0.25) })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger"><ZoomIn size={18} /></button>
+          <button onClick={deleteSelected} style={themedCamera ? themedIconButton('#ef4444', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Delete"><Trash2 size={18} /></button>
+          <button onClick={() => moveLayer('down')} style={themedCamera ? themedIconButton('#64748b', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward"><ChevronDown size={18} /></button>
+          <button onClick={() => moveLayer('up')} style={themedCamera ? themedIconButton('#64748b', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward"><ChevronUp size={18} /></button>
+          <button onClick={() => adjust({ rotation: sel.rotation + 15 })} style={themedCamera ? themedIconButton('#8b5cf6', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><RotateCw size={18} /></button>
+          <button onClick={() => adjust({ scale: Math.max(0.2, sel.scale - 0.25) })} style={themedCamera ? themedIconButton('#06b6d4', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller"><ZoomOut size={18} /></button>
+          <button onClick={() => adjust({ scale: Math.min(7, sel.scale + 0.25) })} style={themedCamera ? themedIconButton('#10b981', false, darkMode) : { height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger"><ZoomIn size={18} /></button>
         </div>
       )}
 
