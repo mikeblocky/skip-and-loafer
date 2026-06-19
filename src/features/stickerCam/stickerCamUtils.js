@@ -29,14 +29,32 @@ function classifyGesture(lm) {
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
-function lmPx(lm, cw, ch, vw, vh) {
+function lmPx(lm, cw, ch, vw, vh, mirror = false) {
+  const x = mirror ? 1 - lm.x : lm.x;
   const vAR = vw / vh, cAR = cw / ch;
   if (cAR >= vAR) {
     const s = cw / vw, sh = vh * s, cy = (sh - ch) / 2;
-    return { x: lm.x * cw, y: lm.y * sh - cy };
+    return { x: x * cw, y: lm.y * sh - cy };
   }
   const s = ch / vh, sw = vw * s, cx = (sw - cw) / 2;
-  return { x: lm.x * sw - cx, y: lm.y * ch };
+  return { x: x * sw - cx, y: lm.y * ch };
+}
+
+function drawVideoFrame(ctx, video, cw, ch, mirror = false) {
+  const vw = video.videoWidth || cw;
+  const vh = video.videoHeight || ch;
+  const scale = Math.max(cw / vw, ch / vh);
+  const sw = cw / scale;
+  const sh = ch / scale;
+  const sx = Math.max(0, (vw - sw) / 2);
+  const sy = Math.max(0, (vh - sh) / 2);
+  ctx.save();
+  if (mirror) {
+    ctx.translate(cw, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+  ctx.restore();
 }
 
 function hitTest(live, px, py) {
@@ -58,13 +76,13 @@ function drawNotebook(ctx, cw, ch) {
   }
 }
 
-function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv, bgCv) {
+function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv, bgCv, mirror = false) {
   const fgCtx = fgCv.getContext('2d');
   const bgCtx = bgCv.getContext('2d');
 
   if (mode === 'hidePerson') {
     dctx.clearRect(0, 0, cw, ch);
-    bgCtx.filter = 'blur(22px)'; bgCtx.drawImage(video, 0, 0, cw, ch); bgCtx.filter = 'none';
+    bgCtx.filter = 'blur(22px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror); bgCtx.filter = 'none';
     dctx.drawImage(bgCv, 0, 0); return;
   }
 
@@ -78,15 +96,20 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
     md[i * 4 + 3] = alpha;
   }
 
-  fgCtx.clearRect(0, 0, cw, ch); fgCtx.drawImage(video, 0, 0, cw, ch);
+  fgCtx.clearRect(0, 0, cw, ch); drawVideoFrame(fgCtx, video, cw, ch, mirror);
   const maskCv = new OffscreenCanvas(maskW, maskH);
   maskCv.getContext('2d').putImageData(maskImg, 0, 0);
-  fgCtx.globalCompositeOperation = 'destination-in'; fgCtx.drawImage(maskCv, 0, 0, cw, ch);
+  fgCtx.globalCompositeOperation = 'destination-in';
+  if (mirror) {
+    fgCtx.save(); fgCtx.translate(cw, 0); fgCtx.scale(-1, 1); fgCtx.drawImage(maskCv, 0, 0, cw, ch); fgCtx.restore();
+  } else {
+    fgCtx.drawImage(maskCv, 0, 0, cw, ch);
+  }
   fgCtx.globalCompositeOperation = 'source-over';
 
   bgCtx.clearRect(0, 0, cw, ch);
   if (mode === 'blur') {
-    bgCtx.filter = 'blur(18px)'; bgCtx.drawImage(video, 0, 0, cw, ch); bgCtx.filter = 'none';
+    bgCtx.filter = 'blur(18px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror); bgCtx.filter = 'none';
   } else if (mode === 'black') {
     bgCtx.fillStyle = '#000'; bgCtx.fillRect(0, 0, cw, ch);
   } else if (mode === 'white') {
@@ -98,7 +121,7 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
   } else if (mode === 'notebook') {
     drawNotebook(bgCtx, cw, ch);
   } else if (mode === 'hideFace') {
-    bgCtx.drawImage(video, 0, 0, cw, ch);
+    drawVideoFrame(bgCtx, video, cw, ch, mirror);
   }
 
   dctx.clearRect(0, 0, cw, ch); dctx.drawImage(bgCv, 0, 0); dctx.drawImage(fgCv, 0, 0);
@@ -114,12 +137,20 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
     }
     if (found) {
       const sx = cw / maskW, sy = ch / maskH, pad = 18;
-      const fx = Math.max(0, minX * sx - pad), fy = Math.max(0, minY * sy - pad);
+      const rawFx = mirror ? (maskW - maxX) * sx : minX * sx;
+      const fx = Math.max(0, rawFx - pad), fy = Math.max(0, minY * sy - pad);
       const fw = Math.min(cw - fx, (maxX - minX) * sx + pad * 2);
       const fh = Math.min(ch - fy, (maxY - minY) * sy + pad * 2);
       const TILE = 15;
       const tiny = new OffscreenCanvas(Math.max(1, Math.ceil(fw / TILE)), Math.max(1, Math.ceil(fh / TILE)));
-      tiny.getContext('2d').drawImage(video, fx, fy, fw, fh, 0, 0, tiny.width, tiny.height);
+      const tinyCtx = tiny.getContext('2d');
+      if (mirror) {
+        tinyCtx.translate(tiny.width, 0);
+        tinyCtx.scale(-1, 1);
+        tinyCtx.drawImage(video, cw - fx - fw, fy, fw, fh, 0, 0, tiny.width, tiny.height);
+      } else {
+        tinyCtx.drawImage(video, fx, fy, fw, fh, 0, 0, tiny.width, tiny.height);
+      }
       dctx.imageSmoothingEnabled = false;
       dctx.drawImage(tiny, 0, 0, tiny.width, tiny.height, fx, fy, fw, fh);
       dctx.imageSmoothingEnabled = true;
@@ -131,7 +162,9 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
 function hitTestSnap(stickers, x, y) {
   const sorted = [...stickers].sort((a, b) => b.zIndex - a.zIndex);
   for (const s of sorted) {
-    if (Math.hypot(x - s.x, y - s.y) < BASE_SNAP_STICKER * s.scale * 0.6) return s;
+    const w = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1);
+    const h = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1);
+    if (Math.hypot(x - s.x, y - s.y) < Math.max(w, h) * 0.6) return s;
   }
   return null;
 }
@@ -155,6 +188,7 @@ export {
   applyBackground,
   classifyGesture,
   downloadCanvas,
+  drawVideoFrame,
   drawNotebook,
   getRelPos,
   hitTest,

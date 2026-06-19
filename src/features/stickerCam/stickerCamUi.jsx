@@ -22,7 +22,7 @@ const StatusChip = ({ label, color }) => (
 function ToolBtn({ color, onClick, children }) {
   return (
     <button onClick={onClick}
-      style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 13px', background:`${color}1a`, border:`1.5px solid ${color}44`, borderBottom:`4px solid ${color}66`, borderRadius:12, color, fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.86rem', cursor:'pointer', whiteSpace:'nowrap', transition:'background 0.12s, transform 0.1s' }}
+      style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'6px 10px', minHeight:36, background:`${color}1a`, border:`1.5px solid ${color}44`, borderBottom:`3px solid ${color}66`, borderRadius:10, color, fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.8rem', cursor:'pointer', whiteSpace:'nowrap', flex:'0 0 auto', transition:'background 0.12s, transform 0.1s' }}
       onMouseEnter={e => { e.currentTarget.style.background=`${color}2e`; e.currentTarget.style.transform='translateY(-1px)'; }}
       onMouseLeave={e => { e.currentTarget.style.background=`${color}1a`; e.currentTarget.style.transform=''; }}
     >{children}</button>

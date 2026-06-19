@@ -74,6 +74,7 @@ const getOfflineLabel = (uiLanguage) => OFFLINE_COPY[uiLanguage] || OFFLINE_COPY
 
 const AppChrome = ({ app }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const isMobileStickerCam = app.isMobile && app.activePage === 'stickerCam';
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -163,7 +164,7 @@ const AppChrome = ({ app }) => {
         </Suspense>
       )}
 
-      {app.showDecorativeLayer && (
+      {app.showDecorativeLayer && !isMobileStickerCam && (
         <Suspense fallback={null}>
           <AppDecorativeLayer
             accessibilityPrefs={app.accessibilityPrefs}
@@ -197,7 +198,9 @@ const AppChrome = ({ app }) => {
             overflowX: 'visible',
             WebkitOverflowScrolling: 'touch',
             overscrollBehaviorY: 'contain',
-            padding: app.isMobile
+            padding: isMobileStickerCam
+              ? '0'
+              : app.isMobile
               ? 'calc(env(safe-area-inset-top, 0px) + 20px) 0 calc(env(safe-area-inset-bottom, 0px) + 96px) 0'
               : '56px 48px 56px',
             pointerEvents: 'auto',
@@ -237,15 +240,21 @@ const AppChrome = ({ app }) => {
               position: 'relative',
               scrollMarginTop: '0px',
               width: '100%',
-              maxWidth: app.isMobile
+              maxWidth: isMobileStickerCam
+                ? '100%'
+                : app.isMobile
                 ? '100%'
                 : (app.accessibilityPrefs.largeText ? '1300px' : '1180px'),
-              minHeight: app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
-              height: app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
+              minHeight: isMobileStickerCam
+                ? '100dvh'
+                : app.isMobile ? 'calc(100dvh - 72px)' : 'calc(100dvh - 154px)',
+              height: isMobileStickerCam
+                ? '100dvh'
+                : app.isMobile ? 'auto' : 'calc(100dvh - 154px)',
               display: 'flex',
               flexDirection: app.isMobile ? 'column' : 'row',
               alignItems: 'stretch',
-              gap: '10px',
+              gap: isMobileStickerCam ? '0' : '10px',
               pointerEvents: 'auto',
               flex: '1 0 auto',
               flexShrink: 0,

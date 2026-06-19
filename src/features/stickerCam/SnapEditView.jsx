@@ -8,16 +8,53 @@ import { CtrlBtn, Sep, ToolBtn } from './stickerCamUi';
 
 // ── SnapEditView ──────────────────────────────────────────────────────────────
 const SnapEditView = memo(function SnapEditView({
-  snapUrl, onBack, stickers, setStickers, panel, setPanel,
+  snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel,
 }) {
   const containerRef  = useRef(null);
+  const wrapRef       = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: 640, height: 480 });
   const [selectedId, setSelectedId] = useState(null);
+  const [simpleEditor, setSimpleEditor] = useState(false);
   const nextIdRef     = useRef(200);
   const ptrsRef       = useRef({});
   const dragRef       = useRef(null);
   const pinchRef      = useRef(null);
   const stickersRef   = useRef(stickers);
   useEffect(() => { stickersRef.current = stickers; }, [stickers]);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 720px), (pointer: coarse) and (max-width: 900px)');
+    const update = () => setSimpleEditor(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return undefined;
+    const ratio = (snapSize?.width && snapSize?.height) ? snapSize.width / snapSize.height : 4 / 3;
+    const updateSize = () => {
+      const rect = wrap.getBoundingClientRect();
+      const maxW = Math.max(240, rect.width);
+      const maxH = Math.max(180, rect.height);
+      let width = maxW;
+      let height = width / ratio;
+      if (height > maxH) {
+        height = maxH;
+        width = height * ratio;
+      }
+      setStageSize({ width: Math.round(width), height: Math.round(height) });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(wrap);
+    window.addEventListener('resize', updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, [snapSize]);
 
   const bringToFront = useCallback((id) => {
     setStickers(prev => {
@@ -35,6 +72,8 @@ const SnapEditView = memo(function SnapEditView({
       ? Math.max(...stickersRef.current.map(s => s.zIndex)) : 0;
     setStickers(prev => [...prev, {
       id, src, x: cx, y: cy, scale: 1,
+      w: BASE_SNAP_STICKER,
+      h: BASE_SNAP_STICKER,
       rotation: (Math.random() - 0.5) * 20,
       zIndex: maxZ + 1,
     }]);
@@ -142,8 +181,10 @@ const SnapEditView = memo(function SnapEditView({
   const saveSnap = useCallback(() => {
     const c = containerRef.current;
     if (!c || !snapUrl) return;
-    const SCALE = 2;
-    const W = c.offsetWidth * SCALE, H = c.offsetHeight * SCALE;
+    const W = snapSize?.width || c.offsetWidth * 2;
+    const H = snapSize?.height || c.offsetHeight * 2;
+    const scaleX = W / c.offsetWidth;
+    const scaleY = H / c.offsetHeight;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
@@ -160,10 +201,11 @@ const SnapEditView = memo(function SnapEditView({
       for (const s of sorted) {
         const si = new Image(); si.crossOrigin = 'anonymous';
         si.onload = () => {
-          ctx.save(); ctx.translate(s.x * SCALE, s.y * SCALE);
+          ctx.save(); ctx.translate(s.x * scaleX, s.y * scaleY);
           ctx.rotate(s.rotation * Math.PI / 180);
-          const size = BASE_SNAP_STICKER * s.scale * SCALE;
-          ctx.drawImage(si, -size / 2, -size / 2, size, size); ctx.restore();
+          const w = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * scaleX;
+          const h = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * scaleY;
+          ctx.drawImage(si, -w / 2, -h / 2, w, h); ctx.restore();
           if (--pending === 0) downloadCanvas(canvas);
         };
         si.onerror = () => { if (--pending === 0) downloadCanvas(canvas); };
@@ -171,15 +213,16 @@ const SnapEditView = memo(function SnapEditView({
       }
     };
     bg.src = snapUrl;
-  }, [snapUrl]);
+  }, [snapUrl, snapSize]);
 
   const sel = stickers.find(s => s.id === selectedId);
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:'#06060f', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simpleEditor ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background:'#000', overflow:'hidden' }}>
+      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: simpleEditor ? '0' : '8px', overflow:'hidden' }}>
       <div
         ref={containerRef}
-        style={{ position:'relative', flex:1, overflow:'hidden', touchAction:'none', userSelect:'none' }}
+        style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: simpleEditor ? 18 : 22, background:'#05050d', border: simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -189,28 +232,29 @@ const SnapEditView = memo(function SnapEditView({
           style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none', display:'block' }} />
 
         {stickers.map(s => {
-          const size = BASE_SNAP_STICKER * s.scale;
+          const width = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1);
+          const height = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1);
           const isSelected = s.id === selectedId;
           return (
             <div key={s.id} style={{
-              position:'absolute', left:s.x, top:s.y, width:size, height:size,
+              position:'absolute', left:s.x, top:s.y, width, height,
               transform:`translate(-50%,-50%) rotate(${s.rotation}deg)`,
               zIndex: Math.round(s.zIndex), pointerEvents:'none',
-              outline: isSelected ? '2.5px dashed rgba(251,191,36,0.85)' : 'none',
+              outline: isSelected ? '2px solid rgba(255,255,255,0.9)' : 'none',
               outlineOffset: 4, borderRadius: 4,
             }}>
               <img src={s.src} alt="" draggable={false} style={{
                 width:'100%', height:'100%', objectFit:'contain', display:'block',
                 filter: isSelected
-                  ? 'drop-shadow(0 0 10px rgba(251,191,36,0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.5))'
+                  ? 'drop-shadow(0 0 8px rgba(255,255,255,0.78)) drop-shadow(0 2px 6px rgba(0,0,0,0.5))'
                   : 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
               }} />
             </div>
           );
         })}
 
-        {sel && (() => {
-          const halfH  = BASE_SNAP_STICKER * sel.scale / 2;
+        {sel && !simpleEditor && (() => {
+          const halfH  = (sel.h ?? BASE_SNAP_STICKER) * (sel.scale ?? 1) / 2;
           const cw     = containerRef.current?.offsetWidth ?? 400;
           const ctrlW  = 270;
           const left   = Math.max(4, Math.min(sel.x - ctrlW / 2, cw - ctrlW - 4));
@@ -241,33 +285,68 @@ const SnapEditView = memo(function SnapEditView({
 
         {stickers.length === 0 && !panel && (
           <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', pointerEvents:'none', textAlign:'center' }}>
-            <div style={{ color:'rgba(255,255,255,0.45)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.88rem', background:'rgba(0,0,0,0.5)', borderRadius:12, padding:'8px 18px', border:'1px solid rgba(255,255,255,0.1)' }}>
-              📌 Tap "Stickers" to add one
+            <div style={{ color:'rgba(255,255,255,0.72)', fontFamily:'Sniglet, var(--font-hand)', fontSize:'0.88rem', background:'rgba(0,0,0,0.5)', borderRadius:12, padding:'8px 18px', border:'1px solid rgba(255,255,255,0.14)' }}>
+              Tap Stickers to add one
             </div>
           </div>
         )}
 
         {panel === 'stickers' && (
-          <StickerPicker onSelect={addSnapSticker} onClose={() => setPanel(null)} hint="Pick a sticker to place" />
+          <StickerPicker onSelect={addSnapSticker} onClose={() => setPanel(null)} hint={simpleEditor ? 'Choose a sticker for this snap' : 'Pick a sticker to place'} mobile={simpleEditor} />
         )}
       </div>
-
-      <div style={toolbar}>
-        <ToolBtn color="#94a3b8" onClick={onBack}><ArrowLeft size={16} /> Back</ToolBtn>
-        <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')}>
-          <Sticker size={16} /> Stickers{stickers.length > 0 ? ` (${stickers.length})` : ''}
-        </ToolBtn>
-        {stickers.length > 0 && (
-          <ToolBtn color="#f87171" onClick={() => { setStickers([]); setSelectedId(null); }}>
-            <Trash2 size={14} /> Clear
-          </ToolBtn>
-        )}
-        <ToolBtn color="#fbbf24" onClick={saveSnap}><Download size={16} /> Save Photo</ToolBtn>
       </div>
 
-      <div style={gestureHint}>
-        👆 Tap to select &nbsp;·&nbsp; 🖱️ Drag to move &nbsp;·&nbsp; 🤌 Pinch to resize & rotate &nbsp;·&nbsp; ↑↓ to layer
-      </div>
+      {sel && simpleEditor && (
+        <div
+          data-snap-ctrl="1"
+          style={{
+            display:'grid',
+            gridTemplateColumns:'repeat(6, minmax(0, 1fr))',
+            gap:8,
+            padding:'8px 12px 4px',
+            background:'#000',
+            borderTop:'1px solid rgba(255,255,255,0.1)',
+            flexShrink:0,
+          }}
+          onPointerDown={e => e.stopPropagation()}
+        >
+          <button onClick={deleteSelected} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Delete"><Trash2 size={18} /></button>
+          <button onClick={() => moveLayer('down')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Send backward"><ChevronDown size={18} /></button>
+          <button onClick={() => moveLayer('up')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bring forward"><ChevronUp size={18} /></button>
+          <button onClick={() => adjust({ rotation: sel.rotation + 15 })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Rotate"><RotateCw size={18} /></button>
+          <button onClick={() => adjust({ scale: Math.max(0.2, sel.scale - 0.25) })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Smaller"><ZoomOut size={18} /></button>
+          <button onClick={() => adjust({ scale: Math.min(7, sel.scale + 0.25) })} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'grid', placeItems:'center' }} title="Bigger"><ZoomIn size={18} /></button>
+        </div>
+      )}
+
+      {simpleEditor ? (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, minmax(0, 1fr))', gap:8, padding:'8px 12px 10px', background:'#000', borderTop:'1px solid rgba(255,255,255,0.1)', flexShrink:0 }}>
+          <button onClick={onBack} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><ArrowLeft size={16} /> Back</button>
+          <button onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Sticker size={16} /> {stickers.length}</button>
+          <button onClick={() => { setStickers([]); setSelectedId(null); }} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Trash2 size={15} /> Clear</button>
+          <button onClick={saveSnap} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.86)', background:'rgba(255,255,255,0.92)', color:'#050505', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Download size={16} /> Save</button>
+        </div>
+      ) : (
+        <>
+          <div style={toolbar}>
+            <ToolBtn color="#94a3b8" onClick={onBack}><ArrowLeft size={16} /> Back</ToolBtn>
+            <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')}>
+              <Sticker size={16} /> Stickers{stickers.length > 0 ? ` (${stickers.length})` : ''}
+            </ToolBtn>
+            {stickers.length > 0 && (
+              <ToolBtn color="#f87171" onClick={() => { setStickers([]); setSelectedId(null); }}>
+                <Trash2 size={14} /> Clear
+              </ToolBtn>
+            )}
+            <ToolBtn color="#fbbf24" onClick={saveSnap}><Download size={16} /> Save Photo</ToolBtn>
+          </div>
+
+          <div style={gestureHint}>
+            👆 Tap to select &nbsp;·&nbsp; 🖱️ Drag to move &nbsp;·&nbsp; 🤌 Pinch to resize & rotate &nbsp;·&nbsp; ↑↓ to layer
+          </div>
+        </>
+      )}
     </div>
   );
 });
