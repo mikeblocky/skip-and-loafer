@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, memo } from 'react';
-import { Sticker, Download, Trash2, ArrowLeft, ZoomIn, ZoomOut, RotateCw, ChevronUp, ChevronDown } from 'lucide-react';
+import { Sticker, Download, Trash2, ArrowLeft, ZoomIn, ZoomOut, RotateCw, ChevronUp, ChevronDown, FlipHorizontal } from 'lucide-react';
 import { BASE_SNAP_STICKER } from './stickerCamConstants';
 import { downloadCanvas, getRelPos, hitTestSnap } from './stickerCamUtils';
 import { StickerPicker } from './StickerCamPanels';
@@ -8,13 +8,14 @@ import { CtrlBtn, Sep, ToolBtn } from './stickerCamUi';
 
 // ── SnapEditView ──────────────────────────────────────────────────────────────
 const SnapEditView = memo(function SnapEditView({
-  snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel,
+  snapUrl, snapSize, onBack, stickers, setStickers, panel, setPanel, initialMirrored = false,
 }) {
   const containerRef  = useRef(null);
   const wrapRef       = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 640, height: 480 });
   const [selectedId, setSelectedId] = useState(null);
   const [simpleEditor, setSimpleEditor] = useState(false);
+  const [mirrored, setMirrored] = useState(initialMirrored);
   const nextIdRef     = useRef(200);
   const ptrsRef       = useRef({});
   const dragRef       = useRef(null);
@@ -185,6 +186,7 @@ const SnapEditView = memo(function SnapEditView({
     const H = snapSize?.height || c.offsetHeight * 2;
     const scaleX = W / c.offsetWidth;
     const scaleY = H / c.offsetHeight;
+    const stickerScale = Math.min(scaleX, scaleY);
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
@@ -194,7 +196,13 @@ const SnapEditView = memo(function SnapEditView({
       let sx, sy, sw, sh;
       if (iAR > cAR) { sh = bg.naturalHeight; sw = sh * cAR; sx = (bg.naturalWidth - sw) / 2; sy = 0; }
       else { sw = bg.naturalWidth; sh = sw / cAR; sx = 0; sy = (bg.naturalHeight - sh) / 2; }
+      ctx.save();
+      if (mirrored) {
+        ctx.translate(W, 0);
+        ctx.scale(-1, 1);
+      }
       ctx.drawImage(bg, sx, sy, sw, sh, 0, 0, W, H);
+      ctx.restore();
       const sorted = [...stickersRef.current].sort((a, b) => a.zIndex - b.zIndex);
       if (!sorted.length) { downloadCanvas(canvas); return; }
       let pending = sorted.length;
@@ -203,8 +211,8 @@ const SnapEditView = memo(function SnapEditView({
         si.onload = () => {
           ctx.save(); ctx.translate(s.x * scaleX, s.y * scaleY);
           ctx.rotate(s.rotation * Math.PI / 180);
-          const w = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * scaleX;
-          const h = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * scaleY;
+          const w = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * stickerScale;
+          const h = (s.h ?? BASE_SNAP_STICKER) * (s.scale ?? 1) * stickerScale;
           ctx.drawImage(si, -w / 2, -h / 2, w, h); ctx.restore();
           if (--pending === 0) downloadCanvas(canvas);
         };
@@ -213,13 +221,13 @@ const SnapEditView = memo(function SnapEditView({
       }
     };
     bg.src = snapUrl;
-  }, [snapUrl, snapSize]);
+  }, [mirrored, snapUrl, snapSize]);
 
   const sel = stickers.find(s => s.id === selectedId);
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simpleEditor ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, background:'#000', overflow:'hidden' }}>
-      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', padding: simpleEditor ? '0' : '8px', overflow:'hidden' }}>
+      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'center', justifyContent:'center', padding: simpleEditor ? '0' : '8px', overflow:'hidden' }}>
       <div
         ref={containerRef}
         style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: simpleEditor ? 18 : 22, background:'#05050d', border: simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined }}
@@ -229,7 +237,7 @@ const SnapEditView = memo(function SnapEditView({
         onPointerCancel={onUp}
       >
         <img src={snapUrl} alt="" draggable={false}
-          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none', display:'block' }} />
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', pointerEvents:'none', display:'block', transform: mirrored ? 'scaleX(-1)' : 'none' }} />
 
         {stickers.map(s => {
           const width = (s.w ?? BASE_SNAP_STICKER) * (s.scale ?? 1);
@@ -324,13 +332,16 @@ const SnapEditView = memo(function SnapEditView({
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4, minmax(0, 1fr))', gap:8, padding:'8px 12px 10px', background:'#000', borderTop:'1px solid rgba(255,255,255,0.1)', flexShrink:0 }}>
           <button onClick={onBack} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><ArrowLeft size={16} /> Back</button>
           <button onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Sticker size={16} /> {stickers.length}</button>
-          <button onClick={() => { setStickers([]); setSelectedId(null); }} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background:'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Trash2 size={15} /> Clear</button>
+          <button onClick={() => setMirrored(v => !v)} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.26)', background: mirrored ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><FlipHorizontal size={16} /> Flip</button>
           <button onClick={saveSnap} style={{ height:44, borderRadius:14, border:'1px solid rgba(255,255,255,0.86)', background:'rgba(255,255,255,0.92)', color:'#050505', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'Sniglet, var(--font-hand)', fontSize:12 }}><Download size={16} /> Save</button>
         </div>
       ) : (
         <>
           <div style={toolbar}>
             <ToolBtn color="#94a3b8" onClick={onBack}><ArrowLeft size={16} /> Back</ToolBtn>
+            <ToolBtn color={mirrored ? '#38bdf8' : '#64748b'} onClick={() => setMirrored(v => !v)}>
+              <FlipHorizontal size={16} /> {mirrored ? 'Mirrored' : 'Mirror'}
+            </ToolBtn>
             <ToolBtn color="#8b5cf6" onClick={() => setPanel(p => p === 'stickers' ? null : 'stickers')}>
               <Sticker size={16} /> Stickers{stickers.length > 0 ? ` (${stickers.length})` : ''}
             </ToolBtn>

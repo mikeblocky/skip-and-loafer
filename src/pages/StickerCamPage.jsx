@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Camera, CameraOff, Sticker, FlipHorizontal, Aperture, Pause, SlidersHorizontal, Trash2, Magnet, SwitchCamera, Circle } from 'lucide-react';
+import { Camera, CameraOff, Sticker, FlipHorizontal, Aperture, Pause, SlidersHorizontal, Trash2, Magnet, SwitchCamera, Circle, ZoomIn, ZoomOut } from 'lucide-react';
 import {
   BASE_SNAP_STICKER, BG_MODES, CONNECTIONS, DRAG_LERP, DWELL_FRAMES, DWELL_MOVE_MAX,
   FACE_ANCHORS, FACE_MODEL, GESTURE_HOLD, GESTURE_LABELS, HAND_MODEL,
@@ -52,6 +52,7 @@ export default function StickerCamPage() {
   const [mirrorCam,      setMirrorCam]      = useState(true);
   const [aspectRatio,    setAspectRatio]    = useState('9:16');
   const [cameraFilter,   setCameraFilter]   = useState('none');
+  const [cameraZoom,     setCameraZoom]     = useState(1);
   const [stageSize,      setStageSize]      = useState({ width: 640, height: 480 });
   const [simplePhone,    setSimplePhone]    = useState(false);
   const [snapUrl,        setSnapUrl]        = useState(null);
@@ -59,6 +60,7 @@ export default function StickerCamPage() {
   const [snapStickers,   setSnapStickers]   = useState([]);
   const [snapPanel,      setSnapPanel]      = useState(null);
   const [snapFlash,      setSnapFlash]      = useState(false);
+  const [focusPoint,     setFocusPoint]     = useState(null);
   const [selectedLiveId, setSelectedLiveId] = useState(null);
   const [liveEditVersion, setLiveEditVersion] = useState(0);
   const [faceAnchorPick, setFaceAnchorPick] = useState(null); // {name, lmIdx} waiting for sticker pick
@@ -88,6 +90,7 @@ export default function StickerCamPage() {
   const mirrorCamRef     = useRef(true);
   const simplePhoneRef   = useRef(false);
   const cameraFilterRef  = useRef('none');
+  const cameraZoomRef    = useRef(1);
   const selectedLiveIdRef = useRef(null);
 
   useEffect(() => { bgModeRef.current       = bgMode;         }, [bgMode]);
@@ -99,6 +102,7 @@ export default function StickerCamPage() {
   useEffect(() => { mirrorCamRef.current    = mirrorCam;      }, [mirrorCam]);
   useEffect(() => { simplePhoneRef.current  = simplePhone;    }, [simplePhone]);
   useEffect(() => { cameraFilterRef.current = cameraFilter;   }, [cameraFilter]);
+  useEffect(() => { cameraZoomRef.current   = cameraZoom;     }, [cameraZoom]);
   useEffect(() => { selectedLiveIdRef.current = selectedLiveId; }, [selectedLiveId]);
 
   useEffect(() => {
@@ -149,6 +153,47 @@ export default function StickerCamPage() {
 
   // External snap trigger ref (gesture peace fires it)
   const takeSnapRef = useRef(null);
+  const focusTimeoutRef = useRef(null);
+
+  const applyCameraFocus = useCallback(async (point = null, zoomValue = cameraZoomRef.current) => {
+    const track = stream?.getVideoTracks?.()[0];
+    if (!track?.applyConstraints) return;
+    const capabilities = track.getCapabilities?.() ?? {};
+    const advanced = [];
+
+    if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+      advanced.push({ focusMode: 'continuous' });
+    }
+    if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
+      advanced.push({ exposureMode: 'continuous' });
+    }
+    if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
+      advanced.push({ whiteBalanceMode: 'continuous' });
+    }
+    if (point && 'pointsOfInterest' in capabilities) {
+      advanced.unshift({ pointsOfInterest: [point] });
+    }
+    if (typeof capabilities.zoom?.min === 'number') {
+      const min = capabilities.zoom.min ?? 1;
+      const max = capabilities.zoom.max ?? 3;
+      advanced.push({ zoom: Math.max(min, Math.min(max, zoomValue)) });
+    }
+
+    if (!advanced.length) return;
+    try {
+      await track.applyConstraints({ advanced });
+    } catch {
+      // Some browsers advertise camera controls but reject them per device.
+    }
+  }, [stream]);
+
+  const adjustCameraZoom = useCallback((delta) => {
+    setCameraZoom((current) => {
+      const next = Math.max(1, Math.min(3, Number((current + delta).toFixed(2))));
+      applyCameraFocus(null, next);
+      return next;
+    });
+  }, [applyCameraFocus]);
 
   const requestStickerRedraw = useCallback(() => {
     const dcv = displayCvRef.current;
@@ -161,6 +206,7 @@ export default function StickerCamPage() {
   const livePtrsRef  = useRef({});
   const liveDragRef  = useRef(null);
   const livePinchRef = useRef(null);
+  const cameraPinchRef = useRef(null);
 
   // ── OEF helpers ──────────────────────────────────────────────────────────
   const getOEF = useCallback((handIdx, lmIdx) => {
@@ -201,7 +247,25 @@ export default function StickerCamPage() {
         audio: false,
       });
       setStream(s); setCamError(null);
+      const track = s.getVideoTracks?.()[0];
+      if (track?.applyConstraints) {
+        const capabilities = track.getCapabilities?.() ?? {};
+        const advanced = [];
+        if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+          advanced.push({ focusMode: 'continuous' });
+        }
+        if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
+          advanced.push({ exposureMode: 'continuous' });
+        }
+        if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
+          advanced.push({ whiteBalanceMode: 'continuous' });
+        }
+        if (advanced.length) {
+          try { await track.applyConstraints({ advanced }); } catch { /* best-effort camera controls */ }
+        }
+      }
       if (facing) setFacingMode(facing);
+      setCameraZoom(1);
     } catch (e) {
       setCamError(e.name === 'NotAllowedError'
         ? 'Camera permission denied. Allow access and try again.'
@@ -223,9 +287,14 @@ export default function StickerCamPage() {
     if (stream && videoRef.current) videoRef.current.srcObject = stream;
   }, [stream, snapUrl]);
 
+  useEffect(() => {
+    if (stream) applyCameraFocus();
+  }, [applyCameraFocus, stream]);
+
   useEffect(() => () => {
     if (stream) stream.getTracks().forEach(t => t.stop());
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
     if (landmarkerRef.current) landmarkerRef.current.close();
     if (segmenterRef.current) segmenterRef.current.close();
     if (faceLmRef.current) faceLmRef.current.close();
@@ -370,6 +439,15 @@ export default function StickerCamPage() {
     if (panel) return;
     if (pausedRef.current) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    const focusRect = containerRef.current?.getBoundingClientRect();
+    if (focusRect) {
+      const x = Math.max(0, Math.min(1, (e.clientX - focusRect.left) / focusRect.width));
+      const y = Math.max(0, Math.min(1, (e.clientY - focusRect.top) / focusRect.height));
+      setFocusPoint({ x, y });
+      applyCameraFocus({ x, y });
+      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = setTimeout(() => setFocusPoint(null), 720);
+    }
     const pos = toCvCoords(e.clientX, e.clientY);
     livePtrsRef.current[e.pointerId] = pos;
     const count = Object.keys(livePtrsRef.current).length;
@@ -397,9 +475,13 @@ export default function StickerCamPage() {
       if (s) {
         livePinchRef.current = { id: s.id, initDist: dist, initAngle: angle, initW: s.w || 120, initH: s.h || 120, initR: s.rotation };
         liveDragRef.current  = null;
+        cameraPinchRef.current = null;
+      } else {
+        cameraPinchRef.current = { initDist: Math.max(1, dist), initZoom: cameraZoomRef.current };
+        liveDragRef.current = null;
       }
     }
-  }, [panel, toCvCoords]);
+  }, [applyCameraFocus, panel, toCvCoords]);
 
   const handleLivePointerMove = useCallback((e) => {
     if (!liveDragRef.current && !livePinchRef.current) return;
@@ -430,13 +512,28 @@ export default function StickerCamPage() {
         };
       }
     }
-  }, [toCvCoords]);
+
+    if (cameraPinchRef.current && !livePinchRef.current) {
+      const pts = Object.values(livePtrsRef.current);
+      if (pts.length >= 2) {
+        const [p1, p2] = pts;
+        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const next = Math.max(1, Math.min(3, Number((cameraPinchRef.current.initZoom * (dist / cameraPinchRef.current.initDist)).toFixed(2))));
+        cameraZoomRef.current = next;
+        setCameraZoom(next);
+        applyCameraFocus(null, next);
+      }
+    }
+  }, [applyCameraFocus, setCameraZoom, toCvCoords]);
 
   const handleLivePointerUp = useCallback((e) => {
     delete livePtrsRef.current[e.pointerId];
     if (Object.keys(livePtrsRef.current).length === 0) {
       liveDragRef.current  = null;
       livePinchRef.current = null;
+      cameraPinchRef.current = null;
+    } else if (Object.keys(livePtrsRef.current).length < 2) {
+      cameraPinchRef.current = null;
     }
   }, []);
 
@@ -480,8 +577,9 @@ export default function StickerCamPage() {
       const vw = video.videoWidth  || 640;
       const vh = video.videoHeight || 480;
       const mirrored = mirrorCamRef.current;
+      const zoom = cameraZoomRef.current;
       const activeFilter = CAMERA_FILTERS.find(f => f.id === cameraFilterRef.current) ?? CAMERA_FILTERS[0];
-      const toScreen = (lm) => lmPx(lm, cw, ch, vw, vh, mirrored);
+      const toScreen = (lm) => lmPx(lm, cw, ch, vw, vh, mirrored, zoom);
       const dctx = dcv.getContext('2d');
       dctx.imageSmoothingEnabled = true;
       dctx.imageSmoothingQuality = 'high';
@@ -519,11 +617,11 @@ export default function StickerCamPage() {
           const cat = res.categoryMask?.getAsUint8Array();
           const mw  = res.categoryMask?.width  ?? SEG_W;
           const mh  = res.categoryMask?.height ?? SEG_H;
-          if (cat) applyBackground(dctx, video, cat, mw, mh, cw, ch, mode, fgCvRef.current, bgCvRef.current, mirrored);
-          else drawVideoFrame(dctx, video, cw, ch, mirrored);
-        } catch { drawVideoFrame(dctx, video, cw, ch, mirrored); }
+          if (cat) applyBackground(dctx, video, cat, mw, mh, cw, ch, mode, fgCvRef.current, bgCvRef.current, mirrored, zoom);
+          else drawVideoFrame(dctx, video, cw, ch, mirrored, zoom);
+        } catch { drawVideoFrame(dctx, video, cw, ch, mirrored, zoom); }
       } else {
-        drawVideoFrame(dctx, video, cw, ch, mirrored);
+        drawVideoFrame(dctx, video, cw, ch, mirrored, zoom);
       }
       dctx.filter = 'none';
 
@@ -1081,7 +1179,7 @@ export default function StickerCamPage() {
       const vw = video?.videoWidth ?? 640, vh = video?.videoHeight ?? 480;
       let startX = cw / 2, startY = ch / 2;
       if (faceLms?.[lmIdx]) {
-        const p = lmPx(faceLms[lmIdx], cw, ch, vw, vh, mirrorCamRef.current);
+        const p = lmPx(faceLms[lmIdx], cw, ch, vw, vh, mirrorCamRef.current, cameraZoomRef.current);
         startX = p.x; startY = p.y;
       }
       liveRef.current = [...liveRef.current, {
@@ -1164,6 +1262,7 @@ export default function StickerCamPage() {
         setStickers={setSnapStickers}
         panel={snapPanel}
         setPanel={setSnapPanel}
+        initialMirrored={mirrorCam}
       />
     );
   }
@@ -1242,12 +1341,30 @@ export default function StickerCamPage() {
           <div style={{ position:'absolute', inset:0, background:'white', zIndex:400, animation:'snapFlashAnim 0.32s ease-out forwards', pointerEvents:'none' }} />
         )}
 
+        {focusPoint && (
+          <div
+            style={{
+              position:'absolute',
+              left:`${focusPoint.x * 100}%`,
+              top:`${focusPoint.y * 100}%`,
+              width:58,
+              height:58,
+              transform:'translate(-50%,-50%)',
+              border:'2px solid rgba(255,255,255,0.92)',
+              borderRadius:'50%',
+              boxShadow:'0 0 0 1px rgba(0,0,0,0.38), 0 0 22px rgba(255,255,255,0.32)',
+              zIndex:260,
+              pointerEvents:'none',
+              animation:'focusPulse 0.72s ease-out forwards',
+            }}
+          />
+        )}
+
         {simplePhone && hasCamera && (
           <>
             <div style={{ position:'absolute', top:10, left:10, right:10, zIndex:180, display:'flex', justifyContent:'space-between', alignItems:'center', pointerEvents:'none' }}>
               <div style={{ display:'flex', gap:6, pointerEvents:'auto' }}>
                 <button onClick={flipCamera} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }}><SwitchCamera size={17} /></button>
-                <button onClick={() => setMirrorCam(v => !v)} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background: mirrorCam ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }}><FlipHorizontal size={16} /></button>
               </div>
               <div style={{ pointerEvents:'auto', display:'flex', gap:5, background:'rgba(0,0,0,0.28)', border:'1px solid rgba(255,255,255,0.25)', borderRadius:999, padding:4, backdropFilter:'blur(12px)' }}>
                 {ASPECT_RATIOS.filter(r => ['9:16','4:5','1:1'].includes(r.id)).map(r => (
@@ -1255,9 +1372,14 @@ export default function StickerCamPage() {
                 ))}
               </div>
             </div>
-            <div style={{ position:'absolute', right:9, top:64, bottom:96, zIndex:180, display:'flex', flexDirection:'column', justifyContent:'center', gap:7, pointerEvents:'auto' }}>
+            <div style={{ position:'absolute', left:10, top:56, zIndex:180, display:'flex', flexDirection:'column', gap:6, pointerEvents:'auto' }}>
+              <button onClick={() => adjustCameraZoom(0.25)} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }} title="Zoom in"><ZoomIn size={16} /></button>
+              <div style={{ minWidth:38, borderRadius:999, border:'1px solid rgba(255,255,255,0.25)', background:'rgba(0,0,0,0.34)', color:'white', textAlign:'center', fontFamily:'Sniglet, var(--font-hand)', fontSize:11, padding:'4px 0', backdropFilter:'blur(10px)' }}>{cameraZoom.toFixed(1)}x</div>
+              <button onClick={() => adjustCameraZoom(-0.25)} style={{ width:38, height:38, borderRadius:'50%', border:'1px solid rgba(255,255,255,0.35)', background:'rgba(0,0,0,0.34)', color:'white', display:'grid', placeItems:'center', backdropFilter:'blur(10px)' }} title="Zoom out"><ZoomOut size={16} /></button>
+            </div>
+            <div style={{ position:'absolute', right:9, top:88, bottom:104, zIndex:180, display:'flex', flexDirection:'column', justifyContent:'flex-start', gap:6, pointerEvents:'auto', overflowY:'auto', scrollbarWidth:'none' }}>
               {CAMERA_FILTERS.map(f => (
-                <button key={f.id} onClick={() => setCameraFilter(f.id)} style={{ writingMode:'vertical-rl', transform:'rotate(180deg)', border:'1px solid rgba(255,255,255,0.28)', borderRadius:999, padding:'9px 5px', minHeight:54, color:'white', background: cameraFilter === f.id ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.34)', backdropFilter:'blur(10px)', fontFamily:'Sniglet, var(--font-hand)', fontSize:11 }}>
+                <button key={f.id} onClick={() => setCameraFilter(f.id)} style={{ writingMode:'vertical-rl', transform:'rotate(180deg)', border:'1px solid rgba(255,255,255,0.28)', borderRadius:999, padding:'8px 5px', minHeight:44, color:'white', background: cameraFilter === f.id ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.34)', backdropFilter:'blur(10px)', fontFamily:'Sniglet, var(--font-hand)', fontSize:10, lineHeight:1, flex:'0 0 auto' }}>
                   {f.label}
                 </button>
               ))}
@@ -1360,16 +1482,21 @@ export default function StickerCamPage() {
             <FlipHorizontal size={16} /> {isFront ? 'Rear' : 'Selfie'}
           </ToolBtn>
         )}
-        {hasCamera && (
-          <ToolBtn color={mirrorCam ? '#38bdf8' : '#64748b'} onClick={() => setMirrorCam(v => !v)}>
-            <FlipHorizontal size={16} /> {mirrorCam ? 'Mirrored' : 'Unmirrored'}
-          </ToolBtn>
-        )}
         {!simplePhone && ASPECT_RATIOS.map(r => (
           <ToolBtn key={r.id} color={aspectRatio === r.id ? '#6ee7b7' : '#64748b'} onClick={() => setAspectRatio(r.id)}>
             {r.label}
           </ToolBtn>
         ))}
+        {hasCamera && (
+          <>
+            <ToolBtn color="#94a3b8" onClick={() => adjustCameraZoom(-0.25)}>
+              <ZoomOut size={16} /> Zoom
+            </ToolBtn>
+            <ToolBtn color="#38bdf8" onClick={() => adjustCameraZoom(0.25)}>
+              <ZoomIn size={16} /> {cameraZoom.toFixed(1)}x
+            </ToolBtn>
+          </>
+        )}
         {hasCamera && (
           <ToolBtn color="#f472b6" onClick={takeSnap}>
             <Aperture size={17} /> Snap!
@@ -1407,6 +1534,11 @@ export default function StickerCamPage() {
 
       <style>{`
         @keyframes snapFlashAnim { from { opacity:1; } to { opacity:0; } }
+        @keyframes focusPulse {
+          0% { opacity:0; transform:translate(-50%,-50%) scale(1.28); }
+          22% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+          100% { opacity:0; transform:translate(-50%,-50%) scale(0.82); }
+        }
       `}</style>
     </div>
   );

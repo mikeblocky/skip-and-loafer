@@ -29,21 +29,21 @@ function classifyGesture(lm) {
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
-function lmPx(lm, cw, ch, vw, vh, mirror = false) {
+function lmPx(lm, cw, ch, vw, vh, mirror = false, zoom = 1) {
   const x = mirror ? 1 - lm.x : lm.x;
-  const vAR = vw / vh, cAR = cw / ch;
-  if (cAR >= vAR) {
-    const s = cw / vw, sh = vh * s, cy = (sh - ch) / 2;
-    return { x: x * cw, y: lm.y * sh - cy };
-  }
-  const s = ch / vh, sw = vw * s, cx = (sw - cw) / 2;
-  return { x: x * sw - cx, y: lm.y * ch };
+  const safeZoom = Math.max(1, zoom || 1);
+  const scale = Math.max(cw / vw, ch / vh) * safeZoom;
+  const sw = cw / scale;
+  const sh = ch / scale;
+  const sx = Math.max(0, (vw - sw) / 2);
+  const sy = Math.max(0, (vh - sh) / 2);
+  return { x: (x * vw - sx) * scale, y: (lm.y * vh - sy) * scale };
 }
 
-function drawVideoFrame(ctx, video, cw, ch, mirror = false) {
+function drawVideoFrame(ctx, video, cw, ch, mirror = false, zoom = 1) {
   const vw = video.videoWidth || cw;
   const vh = video.videoHeight || ch;
-  const scale = Math.max(cw / vw, ch / vh);
+  const scale = Math.max(cw / vw, ch / vh) * Math.max(1, zoom || 1);
   const sw = cw / scale;
   const sh = ch / scale;
   const sx = Math.max(0, (vw - sw) / 2);
@@ -76,13 +76,13 @@ function drawNotebook(ctx, cw, ch) {
   }
 }
 
-function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv, bgCv, mirror = false) {
+function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv, bgCv, mirror = false, zoom = 1) {
   const fgCtx = fgCv.getContext('2d');
   const bgCtx = bgCv.getContext('2d');
 
   if (mode === 'hidePerson') {
     dctx.clearRect(0, 0, cw, ch);
-    bgCtx.filter = 'blur(22px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror); bgCtx.filter = 'none';
+    bgCtx.filter = 'blur(22px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror, zoom); bgCtx.filter = 'none';
     dctx.drawImage(bgCv, 0, 0); return;
   }
 
@@ -96,7 +96,7 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
     md[i * 4 + 3] = alpha;
   }
 
-  fgCtx.clearRect(0, 0, cw, ch); drawVideoFrame(fgCtx, video, cw, ch, mirror);
+  fgCtx.clearRect(0, 0, cw, ch); drawVideoFrame(fgCtx, video, cw, ch, mirror, zoom);
   const maskCv = new OffscreenCanvas(maskW, maskH);
   maskCv.getContext('2d').putImageData(maskImg, 0, 0);
   fgCtx.globalCompositeOperation = 'destination-in';
@@ -109,7 +109,7 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
 
   bgCtx.clearRect(0, 0, cw, ch);
   if (mode === 'blur') {
-    bgCtx.filter = 'blur(18px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror); bgCtx.filter = 'none';
+    bgCtx.filter = 'blur(18px)'; drawVideoFrame(bgCtx, video, cw, ch, mirror, zoom); bgCtx.filter = 'none';
   } else if (mode === 'black') {
     bgCtx.fillStyle = '#000'; bgCtx.fillRect(0, 0, cw, ch);
   } else if (mode === 'white') {
@@ -121,7 +121,7 @@ function applyBackground(dctx, video, catMask, maskW, maskH, cw, ch, mode, fgCv,
   } else if (mode === 'notebook') {
     drawNotebook(bgCtx, cw, ch);
   } else if (mode === 'hideFace') {
-    drawVideoFrame(bgCtx, video, cw, ch, mirror);
+    drawVideoFrame(bgCtx, video, cw, ch, mirror, zoom);
   }
 
   dctx.clearRect(0, 0, cw, ch); dctx.drawImage(bgCv, 0, 0); dctx.drawImage(fgCv, 0, 0);
