@@ -434,10 +434,10 @@ const SnapEditView = memo(function SnapEditView({
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', boxSizing:'border-box', paddingBottom: simpleEditor ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)' : 0, backgroundColor: themedCamera ? 'var(--surface-shell)' : '#000', backgroundImage: themedCamera ? 'var(--paper-lines)' : 'none', overflow:'hidden' }}>
       <div style={themedCamera ? { flex:1, minHeight:0, display:'flex', flexDirection:'column', margin: simpleEditor ? '0' : '10px', background:'transparent', borderRadius: simpleEditor ? 0 : 24, overflow:'hidden', boxShadow: simpleEditor ? 'none' : '0 6px 28px rgba(0,0,0,0.16)', border: simpleEditor ? 'none' : '1.5px solid rgba(0,0,0,0.06)' } : { flex:1, minHeight:0, display:'flex', flexDirection:'column' }}>
-      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', overflow:'hidden', position: themedCamera ? 'relative' : undefined }}>
+      <div ref={wrapRef} style={{ flex:1, minHeight:0, display:'flex', alignItems:'flex-start', justifyContent:'center', overflow:'hidden' }}>
       <div
         ref={containerRef}
-        style={{ ...(themedCamera ? { position:'absolute', top:0, left:'50%', transform:'translateX(-50%)' } : { position:'relative' }), width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: themedCamera ? '0 0 16px 16px' : (simpleEditor ? 18 : 22), background:'#05050d', border: themedCamera ? 'none' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? 'none' : undefined }}
+        style={{ position:'relative', width:stageSize.width, height:stageSize.height, overflow:'hidden', touchAction:'none', userSelect:'none', borderRadius: themedCamera ? '0 0 16px 16px' : (simpleEditor ? 18 : 22), background:'#05050d', border: themedCamera ? 'none' : (simpleEditor ? '1px solid rgba(255,255,255,0.14)' : undefined), boxShadow: themedCamera ? 'none' : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
