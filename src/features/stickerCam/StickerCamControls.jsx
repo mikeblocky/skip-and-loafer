@@ -14,6 +14,8 @@ import {
   Sticker,
   SwitchCamera,
   Trash2,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { ASPECT_RATIOS, CAMERA_FILTERS } from './stickerCamConfig';
 import { toolbar } from './stickerCamStyles';
