@@ -642,25 +642,21 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t, uiLanguage = 'en'
       .map((axis) => ({ axis, value: standardizedAxes[axis] || 0, magnitude: Math.abs(standardizedAxes[axis] || 0) }))
       .sort((a, b) => b.magnitude - a.magnitude);
 
+    // Turn a scored axis into a full, readable sentence. In English the axis
+    // copy is stored as a verb phrase, so we lead with "You {intensity} ..." to
+    // keep the paragraph flowing; Japanese keeps its own sentence structure.
     const axisLine = (entry, indexShift) => {
       const polarity = entry.value >= 0 ? 'pos' : 'neg';
       const pool = t.quiz.axisDynamicLines?.[entry.axis]?.[polarity] || [];
       if (!pool.length) return '';
       const text = pool[(seed + indexShift) % pool.length];
       const intensity = getIntensity(entry.value);
-      return `${intensity} ${text}`;
+      if (isJapanese) return `${intensity}${text}`;
+      return `You ${intensity} ${text}`;
     };
 
       const primaryLine = rankedAxes[0] ? axisLine(rankedAxes[0], 3) : '';
       const secondaryLine = rankedAxes[1] && rankedAxes[1].magnitude >= 25 ? axisLine(rankedAxes[1], 7) : '';
-      const evidenceLine = evidenceTrailRef.current
-        .slice()
-        .sort((a, b) => Math.abs(b.delta || 0) - Math.abs(a.delta || 0))
-        .slice(0, 1)
-        .map((entry) =>
-          (t.quiz.clueLead || (isJapanese ? '{label} からはっきりした手がかりが出ました。' : 'A clear clue came from {label}.')).replace('{label}', String(entry.label || ''))
-        )
-        .find(Boolean);
 
     // 3. Synergy Injects
     const synergyMatchIndex = SYNERGY_CHECK_LOGIC.findIndex(check => check(standardizedAxes));
@@ -675,20 +671,32 @@ const QuizGame = ({ isMobile, portraitData, fallbackColors, t, uiLanguage = 'en'
         ? t.quiz.reliabilityContext?.stable || (isJapanese ? 'このパターンはかなり安定していて、質問形式が変わっても保たれやすいです。' : 'This profile is fairly stable and reflects your current underlying rhythm well.')
         : t.quiz.reliabilityContext?.consistent || (isJapanese ? '形式や圧が変わっても、とても一貫したパターンです。' : 'The pattern is remarkably consistent across all your responses.');
 
-      const summaryLine = [primaryLine, secondaryLine].filter(Boolean).join(' ');
+      // Normalize any fragment into a clean sentence so the pieces read as one
+      // continuous paragraph: trim, capitalize the first letter, and close with
+      // sentence punctuation. Japanese already carries its own punctuation.
+      const polish = (sentence) => {
+        const trimmed = String(sentence || '').trim();
+        if (!trimmed) return '';
+        if (isJapanese) return trimmed;
+        const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+        return /[.!?]$/.test(capitalized) ? capitalized : `${capitalized}.`;
+      };
+
+      const summaryLine = [primaryLine, secondaryLine].filter(Boolean).map(polish).join(' ');
 
       const blueprints = [
-        () => [opener, style.anchor, summaryLine, evidenceLine, synergyLine, style.growth, reliabilityLine],
-        () => [opener, summaryLine, style.anchor, evidenceLine, style.growth, reliabilityLine],
-        () => [`${opener} ${style.anchor}`, summaryLine || evidenceLine, synergyLine, style.growth, reliabilityLine],
-        () => [opener, primaryLine, style.anchor, evidenceLine, reliabilityLine]
+        () => [opener, style.anchor, summaryLine, synergyLine, style.growth, reliabilityLine],
+        () => [opener, summaryLine, style.anchor, style.growth, reliabilityLine],
+        () => [opener, style.anchor, summaryLine, style.growth, synergyLine, reliabilityLine],
+        () => [opener, primaryLine, style.anchor, style.growth, reliabilityLine]
       ];
 
     const selectedBlueprint = blueprints[seed % blueprints.length]();
 
     return selectedBlueprint
+      .map(polish)
       .filter(Boolean)
-      .join(' ');
+      .join(isJapanese ? '' : ' ');
   };
 
   const buildDynamicPrediction = (characterKey) => {

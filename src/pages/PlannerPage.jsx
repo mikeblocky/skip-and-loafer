@@ -6,10 +6,13 @@ import { getUI } from '../i18n/ui';
 import Countdown from '../components/shared/Countdown';
 import ReleaseNote from '../components/shared/ReleaseNote';
 import { CHARACTER_COLORS } from '../data/characters';
+import { CHAPTER_RELEASE_INFO } from '../data/chapterReleaseInfo';
 import { QUOTES } from '../data/quotes';
 
+const chapterReleaseNote = `Chapter ${CHAPTER_RELEASE_INFO.latestReleasedChapter} will be released in June issue!`;
+
 const UI_TEXT = {
-  en: { agenda: 'AGENDA', breakShort: 'Chapter 81 will be released in June issue!', breakLong: 'Chapter 81 will be released in June issue!' },
+  en: { agenda: 'AGENDA', breakShort: chapterReleaseNote, breakLong: chapterReleaseNote },
   es: { agenda: 'AGENDA', breakShort: 'El Capítulo 81 llegará en la edición de junio!', breakLong: 'El Capítulo 81 llegará en la edición de junio!' },
   pt: { agenda: 'AGENDA', breakShort: 'O Capítulo 81 sai na edição de junho!', breakLong: 'O Capítulo 81 sai na edição de junho!' },
   fr: { agenda: 'AGENDA', breakShort: 'Le chapitre 81 sortira dans l édition de juin !', breakLong: 'Le chapitre 81 sortira dans l édition de juin !' },

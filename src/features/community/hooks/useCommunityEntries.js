@@ -4,12 +4,14 @@ export const useCommunityEntries = ({
   getCachedEntries,
   fetchEntries,
   loadErrorMessage,
+  offlineEventTypes = [],
   staleTimeMs = 30_000,
 }) => {
   const [entries, setEntries] = useState(() => getCachedEntries() || []);
   const [isLoading, setIsLoading] = useState(() => getCachedEntries() == null);
   const [errorMessage, setErrorMessage] = useState('');
   const lastVisibilityRefreshRef = useRef(0);
+  const offlineEventTypesKey = offlineEventTypes.join('|');
 
   const syncEntries = useCallback(async ({ force = false } = {}) => {
     const nextEntries = await fetchEntries({
@@ -50,22 +52,32 @@ export const useCommunityEntries = ({
       void syncEntries().catch(() => {});
     };
 
+    const refreshFromCache = () => {
+      setEntries(getCachedEntries() || []);
+    };
+
     const handleSyncComplete = (event) => {
-      if (event.detail?.type === 'signatures' || event.detail?.type === 'gallery') {
-        void syncEntries({ force: true }).catch(() => {});
-      }
+      if (!offlineEventTypesKey.split('|').includes(event.detail?.type)) return;
+      void syncEntries({ force: true }).catch(refreshFromCache);
+    };
+
+    const handleOfflineQueueChange = (event) => {
+      if (!offlineEventTypesKey.split('|').includes(event.detail?.type)) return;
+      refreshFromCache();
     };
 
     window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleRefresh);
     window.addEventListener('skip_offline_sync_complete', handleSyncComplete);
+    window.addEventListener('skip_offline_queue_change', handleOfflineQueueChange);
 
     return () => {
       window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleRefresh);
       window.removeEventListener('skip_offline_sync_complete', handleSyncComplete);
+      window.removeEventListener('skip_offline_queue_change', handleOfflineQueueChange);
     };
-  }, [syncEntries]);
+  }, [getCachedEntries, offlineEventTypesKey, syncEntries]);
 
   return {
     entries,

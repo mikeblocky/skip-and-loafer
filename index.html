@@ -41,19 +41,16 @@
   <meta name="twitter:description" content="Fan-made website for Skip and Loafer." />
   <meta name="twitter:image" content="https://skip-and-loafer.com/opengraph-image.jpg" />
   <meta name="twitter:image:alt" content="Skip and Loafer manga cover art featuring Mitsumi and Shima" />
+
+  <!-- Google Fonts for typo.love and lelezhang.design aesthetic -->
+  <!-- Loaded as a plain stylesheet (no inline onload) so it works under a strict CSP that
+       forbids inline event handlers. `display=swap` keeps text visible during font load. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Non-blocking font load: media=print loads without blocking render,
-       onload switches to all so fonts apply once downloaded. -->
   <link rel="preload" as="style"
     href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap"
-    rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap" rel="stylesheet">
-  </noscript>
-
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap">
 </head>
 
 <body>

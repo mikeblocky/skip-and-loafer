@@ -247,7 +247,7 @@ const FanGalleryBoard = ({
                           </div>
                         )}
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '6px', flexWrap: 'wrap' }}>
                           <span
                             className="sketchbook-border"
                             style={createCommunityTimestampStyle({
@@ -259,6 +259,19 @@ const FanGalleryBoard = ({
                           >
                             {formatCommunityTimestamp(entry.createdAt, uiLanguage)}
                           </span>
+                          {entry.isPending && (
+                            <span
+                              className="sketchbook-border"
+                              style={createCommunityTimestampStyle({
+                                borderColor: '#bfdbfe',
+                                bottomColor: '#60a5fa',
+                                background: '#eff6ff',
+                                color: '#1d4ed8',
+                              })}
+                            >
+                              pending sync
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

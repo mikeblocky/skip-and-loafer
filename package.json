@@ -13,6 +13,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply skip-and-loafer --remote",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:pwa": "node scripts/run-pwa-smoke.mjs",
     "test:webkit": "playwright test --project=webkit",
     "test:webkit:ui": "playwright test --project=webkit --ui",
     "test:webkit:headed": "playwright test --project=webkit --headed"
@@ -27,7 +28,6 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

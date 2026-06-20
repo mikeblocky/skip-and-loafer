@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getChapterReleaseDate } from '../../data/chapterReleaseInfo';
 
-const TARGET_DATE = new Date('2026-06-25T00:00:00+09:00');
+const TARGET_DATE = getChapterReleaseDate();
 
 const UI_TEXT = {
     en: { days: 'days', hours: 'hrs', minutes: 'min', seconds: 'sec', loading: 'Loading...' },

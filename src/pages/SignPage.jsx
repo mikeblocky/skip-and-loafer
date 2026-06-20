@@ -208,6 +208,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
     getCachedEntries: getCachedSignatures,
     fetchEntries: fetchSignatures,
     loadErrorMessage: copy.loadError,
+    offlineEventTypes: ['signatures'],
   });
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
@@ -362,7 +363,7 @@ export const SignPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => {
 
       setEntries(response.signatures);
       setMessage('');
-      setSuccessMessage(activeTab === 'pride' ? 'Your note was posted.' : copy.success);
+      setSuccessMessage(response.entry?.isPending ? 'Saved offline. It will post when you are online again.' : activeTab === 'pride' ? 'Your note was posted.' : copy.success);
       setIsComposerOpen(false);
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);

@@ -2,22 +2,95 @@ const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SYNC_TTL_DAYS = 36;
 const MAX_SYNC_PAYLOAD_LENGTH = 10 * 1024 * 1024;
 const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
+const MAX_JSON_BODY_LENGTH = 10 * 1024 * 1024;
+const MAX_COMMUNITY_JSON_BODY_LENGTH = 16 * 1024;
+const MAX_QUIZ_JSON_BODY_LENGTH = 8 * 1024;
+const MAX_READS_JSON_BODY_LENGTH = 512;
 const COMMUNITY_SIGNATURE_LIMIT = 80;
 const COMMUNITY_FAN_GALLERY_LIMIT = 20;
 const MEDIA_R2_PATHS = new Set(['anime/episode1.mp4']);
+const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ALLOWED_QUIZ_DIFFICULTIES = new Set(['easy', 'normal', 'hard', 'expert']);
+const ALLOWED_QUIZ_SETS = new Set(['10', '20', 'all']);
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "form-action 'self'",
+    // Cloudflare Web Analytics injects beacon.min.js from static.cloudflareinsights.com.
+    "script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: data:",
+    // cloudflareinsights.com receives the RUM beacon report; the service worker
+    // refetches the Google Fonts stylesheet via fetch(), which needs connect-src.
+    "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://cloudflareinsights.com https://fonts.googleapis.com https://fonts.gstatic.com",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "upgrade-insecure-requests",
+  ].join('; '),
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Origin-Agent-Cluster': '?1',
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-Permitted-Cross-Domain-Policies': 'none',
+};
 
-function json(payload, init = {}) {
+function getRequestOrigin(request) {
+  const origin = request.headers.get('Origin');
+  if (!origin) return '';
+
+  try {
+    const requestUrl = new URL(request.url);
+    const originUrl = new URL(origin);
+    return originUrl.origin === requestUrl.origin ? originUrl.origin : '';
+  } catch {
+    return '';
+  }
+}
+
+function applyCorsHeaders(headers, request, methods = 'GET, POST, OPTIONS') {
+  const origin = getRequestOrigin(request);
+  if (origin) {
+    headers.set('Access-Control-Allow-Origin', origin);
+    headers.set('Vary', 'Origin');
+  }
+  headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  headers.set('Access-Control-Allow-Methods', methods);
+}
+
+function addSecurityHeaders(response, request) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    headers.set(name, value);
+  }
+  if (request?.url.startsWith('https://')) {
+    headers.set('Strict-Transport-Security', SECURITY_HEADERS['Strict-Transport-Security']);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function json(payload, init = {}, request) {
   const headers = new Headers(init.headers || {});
   headers.set('Content-Type', 'application/json');
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (request) applyCorsHeaders(headers, request);
   return new Response(JSON.stringify(payload), { ...init, headers });
 }
 
-function empty(status = 204, extraHeaders = {}) {
+function empty(status = 204, extraHeaders = {}, request, methods) {
   const headers = new Headers(extraHeaders);
-  headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (request) applyCorsHeaders(headers, request, methods);
   return new Response(null, { status, headers });
 }
 
@@ -31,7 +104,13 @@ function methodNotAllowed(allowed) {
   );
 }
 
-async function readJson(request) {
+async function readJson(request, maxLength = MAX_JSON_BODY_LENGTH) {
+  if (!String(request.headers.get('content-type') || '').toLowerCase().includes('application/json')) {
+    throw new Error('Expected application/json');
+  }
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > maxLength) throw new Error('JSON body too large');
+
   try {
     return await request.json();
   } catch {
@@ -40,20 +119,29 @@ async function readJson(request) {
 }
 
 function clampText(value, max) {
-  return String(value || '').trim().slice(0, max);
+  return String(value || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max);
 }
 
 function createEntityId(prefix) {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  const token = [...bytes].map((byte) => byte.toString(36).padStart(2, '0')).join('').slice(0, 12);
+  return `${prefix}_${Date.now().toString(36)}_${token}`;
 }
 
 function generateKey() {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
   let key = '';
   for (let index = 0; index < 8; index += 1) {
     if (index === 4) key += '-';
-    key += CHARSET[Math.floor(Math.random() * CHARSET.length)];
+    key += CHARSET[bytes[index] % CHARSET.length];
   }
   return key;
+}
+
+function isValidSyncKey(key) {
+  return /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/.test(String(key || '').trim().toUpperCase());
 }
 
 function nowIso() {
@@ -68,6 +156,24 @@ function normalizeName(name) {
 function normalizeScoreToHundred(score) {
   const safeScore = Number(score) || 0;
   return Math.max(0, Math.min(100, safeScore));
+}
+
+function normalizeQuizDifficulty(value) {
+  const normalized = String(value || 'easy').trim().toLowerCase();
+  return ALLOWED_QUIZ_DIFFICULTIES.has(normalized) ? normalized : 'easy';
+}
+
+function normalizeQuizSet(value) {
+  const normalized = String(value || '10').trim().toLowerCase();
+  return ALLOWED_QUIZ_SETS.has(normalized) ? normalized : '10';
+}
+
+function requireSameOriginWrite(request) {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return null;
+  const origin = request.headers.get('Origin');
+  if (!origin) return null;
+  if (!getRequestOrigin(request)) return json({ error: 'Cross-origin writes are not allowed' }, { status: 403 }, request);
+  return null;
 }
 
 function normalizePositiveInt(value) {
@@ -117,9 +223,12 @@ function parseImageDataUrl(value) {
 
   const match = normalized.match(/^data:(image\/[^;]+);base64,(.+)$/i);
   if (!match) return null;
+  const mimeType = match[1].toLowerCase();
+  if (!ALLOWED_IMAGE_MIME_TYPES.has(mimeType)) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(match[2])) return null;
 
   return {
-    mimeType: match[1].toLowerCase(),
+    mimeType,
     base64: match[2],
     normalized,
   };
@@ -127,6 +236,7 @@ function parseImageDataUrl(value) {
 
 function base64ToBytes(base64) {
   const binary = atob(base64);
+  if (binary.length > MAX_IMAGE_DATA_URL_LENGTH) throw new Error('Image upload is too large');
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) {
     bytes[index] = binary.charCodeAt(index);
@@ -143,9 +253,7 @@ async function sha256Hex(value) {
 function extensionFromMime(mimeType) {
   if (mimeType === 'image/jpeg') return 'jpg';
   if (mimeType === 'image/png') return 'png';
-  if (mimeType === 'image/gif') return 'gif';
   if (mimeType === 'image/webp') return 'webp';
-  if (mimeType === 'image/svg+xml') return 'svg';
   return 'bin';
 }
 
@@ -158,7 +266,7 @@ async function purgeExpiredSyncEntries(db) {
 }
 
 async function handleSyncCreate(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'POST, OPTIONS');
   if (request.method !== 'POST') return methodNotAllowed(['POST', 'OPTIONS']);
 
   const body = await readJson(request);
@@ -176,6 +284,11 @@ async function handleSyncCreate(request, env) {
   const expiresAt = Date.now() + SYNC_TTL_DAYS * 24 * 60 * 60 * 1000;
 
   if (existingKey) {
+    const normalizedKey = String(existingKey).trim().toUpperCase();
+    if (!isValidSyncKey(normalizedKey)) {
+      return json({ error: 'Invalid sync key format' }, { status: 400 });
+    }
+
     await env.DB.prepare(
       `INSERT INTO sync_entries (key, payload, expires_at, updated_at)
        VALUES (?, ?, ?, ?)
@@ -183,8 +296,8 @@ async function handleSyncCreate(request, env) {
          payload = excluded.payload,
          expires_at = excluded.expires_at,
          updated_at = excluded.updated_at`,
-    ).bind(existingKey, payload, expiresAt, Date.now()).run();
-    return json({ key: existingKey });
+    ).bind(normalizedKey, payload, expiresAt, Date.now()).run();
+    return json({ key: normalizedKey });
   }
 
   for (let attempts = 0; attempts < 10; attempts += 1) {
@@ -200,21 +313,23 @@ async function handleSyncCreate(request, env) {
 }
 
 async function handleSyncClaim(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, OPTIONS');
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'OPTIONS']);
 
   const url = new URL(request.url);
   const key = url.searchParams.get('key') || '';
   const peek = url.searchParams.get('peek') === 'true';
   if (!key) return json({ error: 'Missing key parameter' }, { status: 400 });
+  const normalizedKey = key.trim().toUpperCase();
+  if (!isValidSyncKey(normalizedKey)) return json({ error: 'Invalid key parameter' }, { status: 400 });
 
   await purgeExpiredSyncEntries(env.DB);
   const row = await env.DB.prepare(
     'SELECT payload FROM sync_entries WHERE key = ? AND expires_at > ?',
-  ).bind(key, Date.now()).first();
+  ).bind(normalizedKey, Date.now()).first();
 
   if (!row) return json({ error: 'Key not found or expired' }, { status: 404 });
-  if (!peek) await env.DB.prepare('DELETE FROM sync_entries WHERE key = ?').bind(key).run();
+  if (!peek) await env.DB.prepare('DELETE FROM sync_entries WHERE key = ?').bind(normalizedKey).run();
 
   return json(
     { data: JSON.parse(row.payload) },
@@ -223,15 +338,19 @@ async function handleSyncClaim(request, env) {
 }
 
 async function handleReadsIncrement(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'POST, OPTIONS');
   if (request.method !== 'POST') return methodNotAllowed(['POST', 'OPTIONS']);
 
-  const body = await readJson(request);
+  const body = await readJson(request, MAX_READS_JSON_BODY_LENGTH);
   if (body.chapter === undefined || body.chapter === null) {
     return json({ error: 'Missing chapter number' }, { status: 400 });
   }
 
-  const chapter = String(body.chapter);
+  const chapterNumber = Number(body.chapter);
+  if (!Number.isFinite(chapterNumber) || chapterNumber <= 0 || chapterNumber > 999) {
+    return json({ error: 'Invalid chapter number' }, { status: 400 });
+  }
+  const chapter = String(chapterNumber);
   await env.DB.prepare(
     `INSERT INTO read_counts (chapter, count)
      VALUES (?, 1)
@@ -243,7 +362,7 @@ async function handleReadsIncrement(request, env) {
 }
 
 async function handleReadsTop(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, OPTIONS');
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'OPTIONS']);
 
   const { results } = await env.DB.prepare(
@@ -265,11 +384,11 @@ async function handleReadsTop(request, env) {
 }
 
 async function handleQuizLeaderboard(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, POST, OPTIONS');
   if (!['GET', 'POST'].includes(request.method)) return methodNotAllowed(['GET', 'POST', 'OPTIONS']);
 
   if (request.method === 'POST') {
-    const body = await readJson(request);
+    const body = await readJson(request, MAX_QUIZ_JSON_BODY_LENGTH);
     const name = normalizeName(body.name);
     const score = Number(body.score);
     if (!Number.isFinite(score) || score < 0) return json({ error: 'Invalid score' }, { status: 400 });
@@ -305,34 +424,35 @@ async function handleQuizLeaderboard(request, env) {
 
 function normalizeQuizResult(row) {
   return {
-    id: String(row.id || `${row.playedAt || Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+    id: String(row.id || createEntityId('quiz')),
     name: normalizeName(row.name),
     score: Number(row.score) || 0,
     total: Math.max(1, Number(row.total) || 1),
-    difficultyMode: String(row.difficultyMode || 'easy'),
-    questionSet: String(row.questionSet || '10'),
+    difficultyMode: normalizeQuizDifficulty(row.difficultyMode),
+    questionSet: normalizeQuizSet(row.questionSet),
     playedAt: Number(row.playedAt) || Date.now(),
   };
 }
 
 async function handleQuizResults(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, POST, OPTIONS');
   if (!['GET', 'POST'].includes(request.method)) return methodNotAllowed(['GET', 'POST', 'OPTIONS']);
 
   if (request.method === 'POST') {
-    const body = await readJson(request);
+    const body = await readJson(request, MAX_QUIZ_JSON_BODY_LENGTH);
     const payload = {
-      id: String(body.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+      id: clampText(body.id, 80) || createEntityId('quiz'),
       name: normalizeName(body.name),
       score: Number(body.score),
       total: Number(body.total),
-      difficultyMode: String(body.difficultyMode || 'easy'),
-      questionSet: String(body.questionSet || '10'),
+      difficultyMode: normalizeQuizDifficulty(body.difficultyMode),
+      questionSet: normalizeQuizSet(body.questionSet),
       playedAt: Number(body.playedAt) || Date.now(),
     };
 
     if (!Number.isFinite(payload.score) || payload.score < 0) return json({ error: 'Invalid score' }, { status: 400 });
-    if (!Number.isFinite(payload.total) || payload.total <= 0) return json({ error: 'Invalid total' }, { status: 400 });
+    if (!Number.isFinite(payload.total) || payload.total <= 0 || payload.total > 500) return json({ error: 'Invalid total' }, { status: 400 });
+    if (payload.score > payload.total) return json({ error: 'Invalid score' }, { status: 400 });
 
     await env.DB.prepare(
       `INSERT INTO quiz_results (id, name, score, total, difficulty_mode, question_set, played_at)
@@ -376,12 +496,12 @@ async function handleQuizResults(request, env) {
 }
 
 async function handleSignatures(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, POST, OPTIONS');
   if (!['GET', 'POST'].includes(request.method)) return methodNotAllowed(['GET', 'POST', 'OPTIONS']);
 
   let insertedId = null;
   if (request.method === 'POST') {
-    const body = await readJson(request);
+    const body = await readJson(request, MAX_COMMUNITY_JSON_BODY_LENGTH);
     const name = clampText(body.name, 48);
     const message = clampText(body.message, 280);
     const type = body.type === 'pride' ? 'pride' : 'sign';
@@ -410,9 +530,12 @@ async function handleSignatures(request, env) {
 }
 
 async function handleFanGalleryImage(request, env, imageKey) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, OPTIONS');
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'OPTIONS']);
   if (!env.FAN_GALLERY_BUCKET) return json({ error: 'Fan gallery bucket is not configured' }, { status: 500 });
+  if (!/^fan-gallery\/fan_[a-z0-9_]+?\.(?:jpg|png|webp)$/.test(imageKey)) {
+    return json({ error: 'Image not found' }, { status: 404 });
+  }
 
   const object = await env.FAN_GALLERY_BUCKET.get(imageKey);
   if (!object) return json({ error: 'Image not found' }, { status: 404 });
@@ -426,14 +549,14 @@ async function handleFanGalleryImage(request, env, imageKey) {
 }
 
 async function handleFanGallery(request, env) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, POST, OPTIONS');
   if (!['GET', 'POST'].includes(request.method)) return methodNotAllowed(['GET', 'POST', 'OPTIONS']);
 
   let entryId = null;
   if (request.method === 'POST') {
     if (!env.FAN_GALLERY_BUCKET) return json({ error: 'Fan gallery bucket is not configured' }, { status: 500 });
 
-    const body = await readJson(request);
+    const body = await readJson(request, MAX_IMAGE_DATA_URL_LENGTH);
     const parsedImage = parseImageDataUrl(body.imageDataUrl);
     if (!parsedImage) return json({ error: 'A valid image upload is required' }, { status: 400 });
 
@@ -446,13 +569,20 @@ async function handleFanGallery(request, env) {
     if (!existing) {
       const name = clampText(body.name, 60);
       const description = clampText(body.description, 240);
-      const mimeType = clampText(body.mimeType, 24) || parsedImage.mimeType;
+      const mimeType = parsedImage.mimeType;
       const width = normalizePositiveInt(body.width);
       const height = normalizePositiveInt(body.height);
       const imageKey = `fan-gallery/${entryId}.${extensionFromMime(parsedImage.mimeType)}`;
       const imageUrl = galleryImageUrl(request, imageKey);
 
-      await env.FAN_GALLERY_BUCKET.put(imageKey, base64ToBytes(parsedImage.base64), {
+      let imageBytes;
+      try {
+        imageBytes = base64ToBytes(parsedImage.base64);
+      } catch {
+        return json({ error: 'Image upload is too large' }, { status: 413 });
+      }
+
+      await env.FAN_GALLERY_BUCKET.put(imageKey, imageBytes, {
         httpMetadata: { contentType: parsedImage.mimeType },
         customMetadata: { imageHash, entryId },
       });
@@ -480,7 +610,7 @@ async function handleFanGallery(request, env) {
 }
 
 function handleGeoCountry(request) {
-  if (request.method === 'OPTIONS') return empty(200, { 'Access-Control-Allow-Methods': 'GET, OPTIONS' });
+  if (request.method === 'OPTIONS') return empty(200, {}, request, 'GET, OPTIONS');
   if (request.method !== 'GET') return methodNotAllowed(['GET', 'OPTIONS']);
 
   const countryCode = String(request.headers.get('cf-ipcountry') || '').trim().toUpperCase();
@@ -491,22 +621,32 @@ function handleGeoCountry(request) {
 }
 
 async function handleApiRequest(request, env) {
+  const originError = requireSameOriginWrite(request);
+  if (originError) return originError;
+
   const url = new URL(request.url);
   const pathname = url.pathname.replace(/\/+$/, '') || '/';
 
-  if (pathname === '/api/sync/create') return handleSyncCreate(request, env);
-  if (pathname === '/api/sync/claim') return handleSyncClaim(request, env);
-  if (pathname === '/api/reads/increment') return handleReadsIncrement(request, env);
-  if (pathname === '/api/reads/top') return handleReadsTop(request, env);
-  if (pathname === '/api/quiz/leaderboard') return handleQuizLeaderboard(request, env);
-  if (pathname === '/api/quiz/results') return handleQuizResults(request, env);
-  if (pathname === '/api/community/signatures') return handleSignatures(request, env);
-  if (pathname === '/api/community/fan-gallery') return handleFanGallery(request, env);
-  if (pathname.startsWith('/api/community/fan-gallery/images/')) {
-    const imageKey = decodeURIComponent(pathname.slice('/api/community/fan-gallery/images/'.length));
-    return handleFanGalleryImage(request, env, imageKey);
+  try {
+    if (pathname === '/api/sync/create') return handleSyncCreate(request, env);
+    if (pathname === '/api/sync/claim') return handleSyncClaim(request, env);
+    if (pathname === '/api/reads/increment') return handleReadsIncrement(request, env);
+    if (pathname === '/api/reads/top') return handleReadsTop(request, env);
+    if (pathname === '/api/quiz/leaderboard') return handleQuizLeaderboard(request, env);
+    if (pathname === '/api/quiz/results') return handleQuizResults(request, env);
+    if (pathname === '/api/community/signatures') return handleSignatures(request, env);
+    if (pathname === '/api/community/fan-gallery') return handleFanGallery(request, env);
+    if (pathname.startsWith('/api/community/fan-gallery/images/')) {
+      const imageKey = decodeURIComponent(pathname.slice('/api/community/fan-gallery/images/'.length));
+      return handleFanGalleryImage(request, env, imageKey);
+    }
+    if (pathname === '/api/geo/country') return handleGeoCountry(request);
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (message.includes('too large')) return json({ error: 'Request body too large' }, { status: 413 }, request);
+    if (message.includes('application/json')) return json({ error: 'Expected application/json' }, { status: 415 }, request);
+    return json({ error: 'Bad request' }, { status: 400 }, request);
   }
-  if (pathname === '/api/geo/country') return handleGeoCountry(request);
 
   return json({ error: 'API route not found' }, { status: 404 });
 }
@@ -547,10 +687,10 @@ async function handleMediaAsset(request, env, pathname) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/api/')) return handleApiRequest(request, env);
+    if (url.pathname.startsWith('/api/')) return addSecurityHeaders(await handleApiRequest(request, env), request);
     if (MEDIA_R2_PATHS.has(url.pathname.replace(/^\/+/, ''))) {
-      return handleMediaAsset(request, env, url.pathname);
+      return addSecurityHeaders(await handleMediaAsset(request, env, url.pathname), request);
     }
-    return env.ASSETS.fetch(request);
+    return addSecurityHeaders(await env.ASSETS.fetch(request), request);
   },
 };

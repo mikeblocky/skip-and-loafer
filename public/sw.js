@@ -1,5 +1,6 @@
-// Bump this when the shell assets change to force old SW out.
-const SHELL_VERSION = 'v6';
+// Bump this when the shell assets OR the response headers (e.g. CSP) change, so
+// old caches holding a stale index.html (with an outdated CSP) are purged.
+const SHELL_VERSION = 'v9';
 const SHELL_CACHE = `skip-shell-${SHELL_VERSION}`;
 const FONT_CACHE = `skip-fonts-${SHELL_VERSION}`;
 const RUNTIME_CACHE = `skip-runtime-${SHELL_VERSION}`;
@@ -193,6 +194,26 @@ self.addEventListener('message', (event) => {
   event.waitUntil(backgroundCachePromise);
 });
 
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/#chapters';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const existingClient = clients.find((client) => 'focus' in client);
+      if (existingClient) {
+        if ('navigate' in existingClient) {
+          return existingClient.navigate(targetUrl).then((client) => client.focus());
+        }
+        return existingClient.focus();
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+      return undefined;
+    }),
+  );
+});
+
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -215,9 +236,20 @@ self.addEventListener('fetch', (event) => {
       caches.open(FONT_CACHE).then(async (cache) => {
         const cached = await cache.match(request);
         if (cached) return cached;
-        const response = await fetch(request);
-        if (response.ok) cache.put(request, response.clone());
-        return response;
+        try {
+          const response = await fetch(request);
+          if (response.ok) cache.put(request, response.clone());
+          return response;
+        } catch {
+          // A stale document CSP can block this cross-origin fetch. Degrade
+          // gracefully (cached copy or an empty stylesheet) so the page keeps
+          // rendering with fallback fonts instead of throwing an uncaught error.
+          if (cached) return cached;
+          if (url.hostname === 'fonts.googleapis.com') {
+            return new Response('', { status: 200, headers: { 'Content-Type': 'text/css' } });
+          }
+          return Response.error();
+        }
       }),
     );
     return;
@@ -250,7 +282,7 @@ self.addEventListener('fetch', (event) => {
   if (shouldCacheRuntimeRequest(request, url)) {
     event.respondWith(
       caches.open(RUNTIME_CACHE).then(async (cache) => {
-        const cached = await cache.match(request);
+        const cached = await caches.match(request);
         if (cached) return cached;
 
         try {

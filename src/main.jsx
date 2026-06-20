@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { OFFLINE_PUBLIC_ASSETS } from './data/offlineAssets.js'
 import { flushPendingRequests } from './utils/offlineSync.js'
+import { getChapterReleaseDate, getReleasedChapterNotification } from './data/chapterReleaseInfo.js'
 import {
   INSTALL_PROMPT_READY_EVENT,
   OFFLINE_LIBRARY_ENABLED_KEY,
@@ -30,6 +31,46 @@ const applyInitialPerformanceMode = () => {
 };
 
 applyInitialPerformanceMode();
+
+const CHAPTER_RELEASE_NOTIFICATION_ACK_KEY = 'skip_chapter_release_notification_ack_v1';
+
+const maybeNotifyReleasedChapter = async () => {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if (Date.now() < getChapterReleaseDate().getTime()) return;
+
+  const notification = getReleasedChapterNotification();
+  try {
+    if (localStorage.getItem(CHAPTER_RELEASE_NOTIFICATION_ACK_KEY) === notification.tag) return;
+  } catch {
+    // Private browsing can block storage; the notification can still be attempted.
+  }
+
+  try {
+    const registration = await navigator.serviceWorker?.ready?.catch(() => null);
+    if (registration?.showNotification) {
+      await registration.showNotification(notification.title, {
+        body: notification.body,
+        icon: '/swt2-512.png',
+        badge: '/swt2-512.png',
+        tag: notification.tag,
+        renotify: false,
+        data: { url: '/#chapters' },
+      });
+    } else {
+      new Notification(notification.title, {
+        body: notification.body,
+        icon: '/swt2-512.png',
+        tag: notification.tag,
+      });
+    }
+    try {
+      localStorage.setItem(CHAPTER_RELEASE_NOTIFICATION_ACK_KEY, notification.tag);
+    } catch {}
+  } catch {
+    // Permission can exist while the platform still blocks display.
+  }
+};
+
 window.__skipInstallPromptEvent = null;
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
@@ -196,6 +237,12 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener('online', flushPendingRequests);
 window.addEventListener('focus', flushPendingRequests);
+window.addEventListener('focus', maybeNotifyReleasedChapter);
+window.addEventListener('pageshow', maybeNotifyReleasedChapter);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) maybeNotifyReleasedChapter();
+});
+maybeNotifyReleasedChapter();
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) flushPendingRequests();
 });

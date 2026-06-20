@@ -1,5 +1,25 @@
 import { Children, isValidElement } from 'react';
 
+const ALLOWED_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
+function sanitizeUrl(value, { allowRelative = true } = {}) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (allowRelative && (raw.startsWith('/') || raw.startsWith('#'))) return raw;
+
+  try {
+    const parsed = new URL(raw);
+    return ALLOWED_URL_PROTOCOLS.has(parsed.protocol) ? parsed.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function sanitizeMediaUrl(value) {
+  const raw = sanitizeUrl(value);
+  return raw.startsWith('http') || raw.startsWith('/') ? raw : '';
+}
+
 export const createBlogMarkdownComponents = ({
   isMobile,
   readerTheme,
@@ -104,11 +124,16 @@ export const createBlogMarkdownComponents = ({
   strong: ({ children }) => (
     <strong style={{ color: readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 400, letterSpacing: '0.01em' }}>{children}</strong>
   ),
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: 400 }}>
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => {
+    const safeHref = sanitizeUrl(href);
+    if (!safeHref) return <span>{children}</span>;
+
+    return (
+      <a href={safeHref} target="_blank" rel="noopener noreferrer" style={{ color: readerTheme.link, textDecoration: 'underline', textUnderlineOffset: '3px', fontWeight: 400 }}>
+        {children}
+      </a>
+    );
+  },
   code: ({ inline, children }) => (
     inline ? (
       <code style={{ background: readerTheme.codeBg, border: `2px solid ${readerTheme.codeBorder}`, borderRadius: '8px', padding: '2px 6px', color: readerTheme.heading, fontFamily: 'monospace', fontWeight: '400', fontSize: isMobile ? `${0.75 * bodyFontScale}rem` : `${0.8 * bodyFontScale}rem` }}>
@@ -158,14 +183,16 @@ export const createBlogMarkdownComponents = ({
   },
   img: ({ src, alt, ...props }) => {
     const isTight = props['data-tight'] === true || props['data-tight'] === 'true';
+    const safeSrc = sanitizeMediaUrl(src);
+    if (!safeSrc) return null;
  
     if (isTight) {
       return (
         <img
-          src={src}
+          src={safeSrc}
           alt={alt || ''}
           loading="lazy"
-          onClick={() => openImageBySrc(src)}
+          onClick={() => openImageBySrc(safeSrc)}
           style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 0, cursor: 'zoom-in', margin: 0 }}
         />
       );
@@ -174,25 +201,25 @@ export const createBlogMarkdownComponents = ({
     return (
       <div style={{ margin: '16px 0 12px 0', background: '#fff', border: `2.5px solid ${readerTheme.codeBorder}`, borderBottom: `5px solid ${readerTheme.codeBorder}`, borderRadius: '20px', padding: isMobile ? '12px 12px 14px 12px' : '16px 16px 20px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
         <img
-          src={src}
+          src={safeSrc}
           alt={alt || ''}
           loading="lazy"
-          onClick={() => openImageBySrc(src)}
+          onClick={() => openImageBySrc(safeSrc)}
           style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '12px', cursor: 'zoom-in' }}
         />
       </div>
     );
   },
-  video: ({ children, ...props }) => (
-    <div style={{ margin: '16px 0', border: '2.5px solid #e2e8f0', borderBottom: '5px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
-      <video controls playsInline {...props} style={{ width: '100%', display: 'block' }}>
-        {children}
-      </video>
-    </div>
-  ),
-  iframe: ({ ...props }) => (
-    <div style={{ margin: '16px 0', border: '2.5px solid #e2e8f0', borderBottom: '5px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
-      <iframe title="Embedded media" loading="lazy" {...props} style={{ width: '100%', minHeight: isMobile ? '200px' : '360px', border: 0, display: 'block' }} />
-    </div>
-  ),
+  video: ({ children, src, ...props }) => {
+    const safeSrc = sanitizeMediaUrl(src);
+    if (src && !safeSrc) return null;
+
+    return (
+      <div style={{ margin: '16px 0', border: '2.5px solid #e2e8f0', borderBottom: '5px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', background: '#000' }}>
+        <video controls playsInline {...props} src={safeSrc || undefined} style={{ width: '100%', display: 'block' }}>
+          {children}
+        </video>
+      </div>
+    );
+  },
 });

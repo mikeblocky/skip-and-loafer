@@ -3,13 +3,13 @@ import { PWA_SYNC_COMPLETE_EVENT, PWA_SYNC_IDLE_EVENT, PWA_SYNC_START_EVENT } fr
 const PENDING_READS_KEY = 'skip_pending_reads';
 const PENDING_SIGS_KEY = 'skip_pending_signatures_v2';
 const PENDING_GALLERY_KEY = 'skip_pending_gallery_v2';
+const SIGNATURES_CACHE_KEY = 'skip_signatures_v2';
+const FAN_GALLERY_CACHE_KEY = 'skip_fangallery_v2';
 
 // Clear stale pre-v2 queues so they never get re-submitted
 try {
   localStorage.removeItem('skip_pending_signatures');
   localStorage.removeItem('skip_pending_gallery');
-  localStorage.removeItem('skip_signatures_cache');
-  localStorage.removeItem('skip_fangallery_cache');
 } catch {};
 
 const getQueue = (key) => {
@@ -29,6 +29,12 @@ const saveQueue = (key, queue) => {
   }
 };
 
+const dispatchOfflineQueueChange = (type) => {
+  try {
+    window.dispatchEvent(new CustomEvent('skip_offline_queue_change', { detail: { type } }));
+  } catch {}
+};
+
 export const enqueueReadIncrement = (chapterNumber) => {
   const queue = getQueue(PENDING_READS_KEY);
   queue.push(chapterNumber);
@@ -46,6 +52,7 @@ export const enqueueSignature = (signature) => {
   };
   queue.push(entry);
   saveQueue(PENDING_SIGS_KEY, queue);
+  dispatchOfflineQueueChange('signatures');
   return entry;
 };
 
@@ -60,11 +67,16 @@ export const enqueueFanGallery = (entry) => {
   };
   queue.push(pendingEntry);
   saveQueue(PENDING_GALLERY_KEY, queue);
+  dispatchOfflineQueueChange('gallery');
   return pendingEntry;
 };
 
 export const getPendingOfflineRequestCount = () =>
   getQueue(PENDING_READS_KEY).length + getQueue(PENDING_SIGS_KEY).length + getQueue(PENDING_GALLERY_KEY).length;
+
+export const getPendingSignatures = () => getQueue(PENDING_SIGS_KEY);
+
+export const getPendingFanGalleryEntries = () => getQueue(PENDING_GALLERY_KEY);
 
 // Custom event to trigger UI re-sync after background syncing completes
 export const triggerOfflineSyncComplete = (type) => {
@@ -129,7 +141,7 @@ export const flushPendingRequests = async () => {
       if (updatedSignatures) {
         // Write the new server state to localStorage cache
         try {
-          localStorage.setItem('skip_signatures_cache', JSON.stringify(updatedSignatures));
+          localStorage.setItem(SIGNATURES_CACHE_KEY, JSON.stringify(updatedSignatures));
         } catch {}
         triggerOfflineSyncComplete('signatures');
       }
@@ -164,7 +176,7 @@ export const flushPendingRequests = async () => {
       saveQueue(PENDING_GALLERY_KEY, remainingGallery);
       if (updatedGallery) {
         try {
-          localStorage.setItem('skip_fangallery_cache', JSON.stringify(updatedGallery));
+          localStorage.setItem(FAN_GALLERY_CACHE_KEY, JSON.stringify(updatedGallery));
         } catch {}
         triggerOfflineSyncComplete('gallery');
       }

@@ -262,6 +262,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) =
     getCachedEntries: getCachedFanGalleryEntries,
     fetchEntries: fetchFanGalleryEntries,
     loadErrorMessage: copy.loadError,
+    offlineEventTypes: ['gallery'],
   });
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -448,7 +449,7 @@ export const FanGalleryPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) =
       setEntries(response.entries);
       setDescription('');
       setPreparedImage(null);
-      setSuccessMessage(copy.success);
+      setSuccessMessage(response.entry?.isPending ? 'Saved offline. It will post when you are online again.' : copy.success);
       setIsComposerOpen(false);
     } catch (error) {
       setErrorMessage(error.message || copy.submitError);

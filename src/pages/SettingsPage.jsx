@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
 import { Accessibility, Keyboard, Languages, Settings, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy, Camera, HardDriveDownload, Share2, Bell, UploadCloud, ChevronRight, Type, Maximize2, AlignJustify, Link, Contrast, Layers, CircleOff, WandSparkles, Palette, Globe2, Home, ArrowLeftRight } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
-import { OFFLINE_PUBLIC_ASSETS } from '../data/offlineAssets.js';
+import { OFFLINE_ASSET_GROUPS, OFFLINE_PUBLIC_ASSETS, getOfflineAssetGroup } from '../data/offlineAssets.js';
 import {
   createPaperChipStyle,
   PAPER_FONT_FAMILY,
@@ -11,6 +11,7 @@ import {
 import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
 import { getThemedCameraEnabled, setThemedCameraEnabled } from '../features/stickerCam/themedCameraPreference';
+import { getReleasedChapterNotification } from '../data/chapterReleaseInfo.js';
 import {
   INSTALL_PROMPT_READY_EVENT,
   OFFLINE_LIBRARY_ENABLED_KEY,
@@ -309,6 +310,7 @@ const SettingsPage = ({
     total: OFFLINE_PUBLIC_ASSETS.length,
     preparing: false,
   });
+  const [offlineGroupKey, setOfflineGroupKey] = useState('all');
   const [storageEstimate, setStorageEstimate] = useState(null);
   const [isClearingOfflineCache, setIsClearingOfflineCache] = useState(false);
   const [persistentStorage, setPersistentStorage] = useState({
@@ -321,6 +323,7 @@ const SettingsPage = ({
   const [notificationPermission, setNotificationPermission] = useState(
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
   );
+  const [notificationTestStatus, setNotificationTestStatus] = useState('');
   const [pendingOfflineActions, setPendingOfflineActions] = useState(() => getPendingOfflineRequestCount());
   const [performancePreference, setPerformancePreference] = useState(readPerformanceModePreference);
   const [performanceSnapshot, setPerformanceSnapshot] = useState(getDevicePerformanceSnapshot);
@@ -427,6 +430,8 @@ const SettingsPage = ({
   useEffect(() => {
     const refreshStorageStatus = async () => {
       try {
+        const activeAssets = getOfflineAssetGroup(offlineGroupKey).getAssets();
+        const activeAssetPaths = new Set(activeAssets);
         if ('storage' in navigator && typeof navigator.storage.estimate === 'function') {
           setStorageEstimate(await navigator.storage.estimate());
         }
@@ -443,8 +448,12 @@ const SettingsPage = ({
             }),
           );
           cachedPathLists.flat().forEach((path) => cachedAssets.add(path));
-          const cached = Math.min(cachedAssets.size, OFFLINE_PUBLIC_ASSETS.length);
-          setOfflineStatus((previous) => ({ ...previous, cached }));
+          const cached = activeAssets.filter((path) => cachedAssets.has(path)).length;
+          setOfflineStatus((previous) => ({
+            ...previous,
+            cached: Math.min(cached, activeAssetPaths.size),
+            total: activeAssets.length,
+          }));
         }
       } catch {
         // Browser storage APIs can be unavailable in private browsing.
@@ -507,7 +516,7 @@ const SettingsPage = ({
       document.removeEventListener('visibilitychange', refreshStorageStatus);
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, []);
+  }, [offlineGroupKey]);
 
   const handleInstall = async () => {
     const promptEvent = installPromptRef.current || getSavedInstallPrompt();
@@ -552,21 +561,44 @@ const SettingsPage = ({
     }
   };
 
+  const showChapterNotification = async ({ prefix = '' } = {}) => {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return false;
+    const notification = getReleasedChapterNotification();
+    const options = {
+      body: `${prefix}${notification.body}`,
+      icon: '/swt2-512.png',
+      badge: '/swt2-512.png',
+      tag: `${notification.tag}-settings-test`,
+      data: { url: '/#chapters' },
+    };
+
+    try {
+      const registration = await navigator.serviceWorker?.ready?.catch(() => null);
+      if (registration?.showNotification) {
+        await registration.showNotification(notification.title, options);
+      } else {
+        new Notification(notification.title, options);
+      }
+      setNotificationTestStatus('Sent');
+      return true;
+    } catch {
+      setNotificationTestStatus('Blocked');
+      return false;
+    }
+  };
+
   const handleRequestNotifications = async () => {
     if (typeof Notification === 'undefined') return;
     const permission = await Notification.requestPermission();
     setNotificationPermission(permission);
     if (permission === 'granted') {
-      try {
-        new Notification('Skip and Loafer', {
-          body: 'Notifications are ready for this app.',
-          icon: '/swt2-512.png',
-          badge: '/swt2-512.png',
-        });
-      } catch {
-        // Some browsers allow permission but block direct construction outside service workers.
-      }
+      await showChapterNotification({ prefix: 'Chapter alerts are ready. ' });
     }
+  };
+
+  const handleTestChapterNotification = async () => {
+    setNotificationTestStatus('Sending');
+    await showChapterNotification();
   };
 
   const handleFlushPendingActions = async () => {
@@ -579,8 +611,11 @@ const SettingsPage = ({
     setPerformanceSnapshot(getDevicePerformanceSnapshot());
   };
 
-  const handlePrepareOffline = async ({ persist = true } = {}) => {
+  const handlePrepareOffline = async ({ persist = true, groupKey = offlineGroupKey } = {}) => {
     if (!navigator.serviceWorker?.controller && !navigator.serviceWorker?.ready) return;
+    const assetGroup = getOfflineAssetGroup(groupKey);
+    const assets = assetGroup.getAssets();
+    setOfflineGroupKey(assetGroup.key);
     if (persist) {
       try {
         localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
@@ -593,7 +628,7 @@ const SettingsPage = ({
       ...previous,
       processed: 0,
       preparing: true,
-      total: OFFLINE_PUBLIC_ASSETS.length,
+      total: assets.length,
     }));
 
     const registration = await navigator.serviceWorker.ready.catch(() => null);
@@ -605,7 +640,7 @@ const SettingsPage = ({
 
     worker.postMessage({
       type: 'SKIP_CACHE_OFFLINE_ASSETS',
-      assets: OFFLINE_PUBLIC_ASSETS,
+      assets,
     });
   };
 
@@ -614,7 +649,7 @@ const SettingsPage = ({
     try {
       if (enabled) {
         localStorage.setItem(OFFLINE_LIBRARY_ENABLED_KEY, '1');
-        handlePrepareOffline({ persist: false });
+        handlePrepareOffline({ persist: false, groupKey: 'all' });
       } else {
         localStorage.removeItem(OFFLINE_LIBRARY_ENABLED_KEY);
       }
@@ -710,6 +745,7 @@ const SettingsPage = ({
     Math.min(100, Math.round((offlineStatus.cached / Math.max(1, offlineStatus.total)) * 100)),
   );
   const displayedOfflineCached = Math.min(offlineStatus.cached, offlineStatus.total);
+  const selectedOfflineGroup = getOfflineAssetGroup(offlineGroupKey);
   const resolvedPerformanceMode = resolvePerformanceMode(performancePreference, performanceSnapshot);
   const performanceReasonLabel = {
     'save-data': 'Save-Data is on',
@@ -1343,11 +1379,23 @@ const SettingsPage = ({
                 iconBackground="#fce7f3"
                 iconColor="#be185d"
                 title="Notifications"
-                detail={notificationPermission === 'denied' ? 'Blocked in browser settings.' : 'Enable app alerts where the browser supports them.'}
+                detail={notificationPermission === 'denied' ? 'Blocked in browser settings.' : 'Enable chapter release alerts where the browser supports them.'}
                 value={notificationPermission === 'granted' ? 'On' : notificationPermission === 'denied' ? 'Blocked' : notificationPermission === 'unsupported' ? 'Unavailable' : 'Off'}
                 onClick={notificationPermission !== 'unsupported' && notificationPermission !== 'granted' ? handleRequestNotifications : undefined}
                 disabled={notificationPermission === 'unsupported' || notificationPermission === 'granted'}
               />
+              {notificationPermission === 'granted' && (
+                <SettingsRow
+                  icon={<Bell size={16} strokeWidth={2.5} />}
+                  iconBackground="#fdf2f8"
+                  iconColor="#be185d"
+                  title="Test chapter alert"
+                  detail="Send the current chapter release notification."
+                  value={notificationTestStatus || 'Send'}
+                  onClick={handleTestChapterNotification}
+                  disabled={notificationTestStatus === 'Sending'}
+                />
+              )}
               <SettingsRow
                 icon={<Share2 size={16} strokeWidth={2.5} />}
                 iconBackground="#cffafe"
@@ -1382,16 +1430,34 @@ const SettingsPage = ({
                 icon={<WifiOff size={17} strokeWidth={2.5} />}
                 iconBackground="#fef3c7"
                 iconColor="#b45309"
-                title="Offline library"
+                title={selectedOfflineGroup.label}
                 detail={offlineStatus.preparing
                   ? `Cached ${displayedOfflineCached} of ${offlineStatus.total} files.`
                   : offlineProgress >= 100
                     ? 'Prepared for offline use.'
-                    : 'Prepare galleries, manga pages, and app files.'}
+                    : selectedOfflineGroup.detail}
                 value={`${offlineProgress}%`}
-                onClick={isOnline && !offlineStatus.preparing ? handlePrepareOffline : undefined}
+                onClick={isOnline && !offlineStatus.preparing ? () => handlePrepareOffline({ groupKey: offlineGroupKey }) : undefined}
                 disabled={!isOnline || offlineStatus.preparing}
               />
+              {OFFLINE_ASSET_GROUPS.map((group, index) => {
+                const selected = group.key === offlineGroupKey;
+                const assetCount = group.getAssets().length;
+                return (
+                  <SettingsRow
+                    key={group.key}
+                    icon={<Download size={16} strokeWidth={2.5} />}
+                    iconBackground={selected ? '#fef3c7' : '#e2e8f0'}
+                    iconColor={selected ? '#b45309' : '#64748b'}
+                    title={group.label}
+                    detail={group.detail}
+                    value={`${assetCount}`}
+                    onClick={isOnline && !offlineStatus.preparing ? () => handlePrepareOffline({ groupKey: group.key, persist: group.key === 'all' }) : undefined}
+                    disabled={!isOnline || offlineStatus.preparing || assetCount === 0}
+                    last={index === OFFLINE_ASSET_GROUPS.length - 1}
+                  />
+                );
+              })}
               <div style={{ padding: '0 14px 12px 58px', borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)' }}>
                 <div
                   aria-label={`Offline cache progress ${offlineProgress}%`}
