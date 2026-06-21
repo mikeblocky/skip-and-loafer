@@ -202,6 +202,13 @@ if ('serviceWorker' in navigator) {
           announceUpdateReady(registration);
         }
 
+        let isApplyingUpdate = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          sendOfflineAssetListIfEnabled();
+          if (!isApplyingUpdate) return;
+          window.location.reload();
+        });
+
         registration.addEventListener('updatefound', () => {
           const installingWorker = registration.installing;
           installingWorker?.addEventListener('statechange', () => {
@@ -215,11 +222,18 @@ if ('serviceWorker' in navigator) {
 
         window.addEventListener(PWA_UPDATE_APPLY_EVENT, () => {
           const waitingWorker = registration.waiting || window.__skipWaitingServiceWorker;
-          waitingWorker?.postMessage({ type: 'SKIP_WAITING' });
+          isApplyingUpdate = true;
+          if (waitingWorker) {
+            waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+          } else {
+            registration.update?.();
+          }
+          window.setTimeout(() => {
+            if (isApplyingUpdate) window.location.reload();
+          }, 1800);
         });
 
         navigator.serviceWorker.ready.then(sendOfflineAssetListIfEnabled).catch(() => {});
-        navigator.serviceWorker.addEventListener('controllerchange', sendOfflineAssetListIfEnabled);
         window.addEventListener('online', sendOfflineAssetListIfEnabled);
         window.addEventListener('focus', sendOfflineAssetListIfEnabled);
         window.addEventListener('pageshow', sendOfflineAssetListIfEnabled);

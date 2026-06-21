@@ -31,100 +31,70 @@ const COMMUNITY_FONT_FAMILY = 'var(--font-paper)';
 const SECTION_COPY = {
   en: {
     title: 'Website guide',
-    subtitle: 'An overview of the features available on this site.',
-    welcome: 'How this site works',
-    welcomeBody: 'This site has a scrapbook-style layout. You can drag elements around, tap stickers, and adjust your experience in Settings. Select a section below to see how each feature works.',
-    clickToExplore: 'Select a section to see its preview:',
+    subtitle: 'A quick map of the main parts of the site.',
+    welcome: 'Quick guide',
+    welcomeBody: 'Use the tabs to move around the site. Some pages save progress in this browser, and Settings has app, offline, sync, and display controls.',
+    clickToExplore: 'Pick a section:',
     sections: [
       {
         id: 'home',
-        title: 'Home & countdown',
+        title: 'Home',
         icon: Home,
         color: '#f43f5e',
         bg: '#fff5f8',
         border: '#fda4af',
         washi: 'pink',
-        text: 'Shows a live countdown to the next manga chapter release, upcoming character birthdays, and quick navigation controls.',
-        details: [
-          'Countdown timer with days, hours, minutes, and seconds until the next chapter.',
-          'Birthdays widget showing characters with upcoming birthdays in the next 30 days.',
-          'Quick-access shortcuts bar at the top of the page.'
-        ]
+        text: 'The starting page, with quick links and the main site overview.'
       },
       {
         id: 'chapters',
-        title: 'Manga & checklist',
+        title: 'Chapters',
         icon: BookOpen,
         color: '#2563eb',
         bg: '#eff6ff',
         border: '#bfdbfe',
         washi: 'blue',
-        text: 'Mark chapters as read using the chapter checklist. Use "+1 read" to log rereads, and follow links to official releases in Japanese or English.',
-        details: [
-          'Chapter checkboxes that save automatically in your browser.',
-          '"+1 read" button to track reread sessions and milestone progress.',
-          'Links to official Shonen Jump Plus and English platforms.'
-        ]
+        text: 'Track chapters you have read and keep simple reread notes.'
       },
       {
         id: 'sync',
-        title: 'Reread logs & syncing',
+        title: 'Reading',
         icon: BarChart3,
         color: '#16a34a',
         bg: '#f0fdf4',
         border: '#bbf7d0',
         washi: 'yellow',
-        text: 'Generate a sync key in the Reading tab to transfer your checklist, read history, and milestones to another device. No account required.',
-        details: [
-          'One-click sync key generation covering all checklist and milestone data.',
-          'Paste the key on any device to merge your reading logs instantly.',
-          'No account, email, or password needed.'
-        ]
+        text: 'Review reading progress and move saved data between devices with a sync key.'
       },
       {
         id: 'gallery',
-        title: 'Fan gallery',
+        title: 'Gallery',
         icon: PenLine,
         color: '#ea580c',
         bg: '#fff7ed',
         border: '#fdba74',
         washi: 'pink',
-        text: 'Browse and submit fan art, merchandise photos, or cosplay shots. Photos can be dragged, rotated, and repositioned on the canvas.',
-        details: [
-          'Draggable, rotatable photo canvas for fan submissions.',
-          'Guestbook note composer to post a message on the wall.',
-          'Submission form with title and artist credit fields.'
-        ]
+        text: 'Browse image collections and community-style pages.'
       },
       {
         id: 'quiz',
-        title: 'Trivia & rankings',
+        title: 'Quiz',
         icon: Trophy,
         color: '#dc2626',
         bg: '#fff1f2',
         border: '#fca5a5',
         washi: 'blue',
-        text: 'Take timed trivia quizzes on the series. Choose a question set and difficulty level, then submit your score to the global leaderboard.',
-        details: [
-          'Timed quizzes covering characters, volumes, and story trivia.',
-          'Global leaderboard showing top scores and attempt counts.',
-          'Personal score history saved locally in your browser.'
-        ]
+        text: 'Play small quizzes and check your results.'
       },
       {
         id: 'birthdays',
-        title: 'Character birthdays',
+        title: 'Birthdays',
         icon: Cake,
         color: '#d97706',
         bg: '#fffbeb',
         border: '#fcd34d',
         washi: 'yellow',
-        text: 'View character birthdays with profile cards showing birth dates, zodiac signs, and relationships. Birthday notifications appear automatically on the day.',
-        details: [
-          'Profile cards with birthday dates, zodiac signs, and character relationships.',
-          'Birthday alerts and confetti on the character\'s actual birthday.',
-          'Candle display and tribute message panel on birthday pages.'
-        ]
+        text: 'See character birthday pages and date reminders.'
       },
       {
         id: 'shortcuts',
@@ -134,15 +104,11 @@ const SECTION_COPY = {
         bg: '#e0e7ff',
         border: '#a5b4fc',
         washi: 'blue',
-        text: 'Use keyboard shortcuts to navigate the site quickly. See the full reference below.',
-        details: [
-          'Press 1-9 for the first nine visible tabs, or 0 for the tenth visible tab.',
-          'Press Q and E to move between sub-tabs within a page.',
-        ]
+        text: 'Use a few keyboard shortcuts for faster navigation.'
       },
     ],
     shortcutsTitle: 'Keyboard shortcuts',
-    shortcutsIntro: 'Keyboard shortcuts available across the site:',
+    shortcutsIntro: 'Useful keyboard shortcuts:',
     shortcutsList: [
       { key: '1-9, 0', desc: 'Open the matching visible main tab; 0 opens the tenth visible tab' },
       { key: 'Q / E', desc: 'Go to the previous or next sub-tab in Chapters, Gallery, or Reading/Sync' },
@@ -150,100 +116,70 @@ const SECTION_COPY = {
   },
   ja: {
     title: 'ガイドブック',
-    subtitle: 'このインタラクティブな手書きスケッチブック型サイトの使い方をご案内します。',
-    welcome: 'ファンハブへようこそ！',
-    welcomeBody: 'このサイトは手書きのスクラップブックを模してデザインされています。カードをドラッグして並び替えたり、ステッカーをタップしたりできます。設定パネルから各種アクセシビリティもカスタマイズ可能です！',
-    clickToExplore: 'タブを選択してプレビューを表示します：',
+    subtitle: 'サイトの主なページをかんたんにまとめています。',
+    welcome: 'かんたんガイド',
+    welcomeBody: 'タブから各ページへ移動できます。一部のページはこのブラウザに進行状況を保存し、設定ではアプリ、オフライン、同期、表示を調整できます。',
+    clickToExplore: 'セクションを選んでください：',
     sections: [
       {
         id: 'home',
-        title: 'ホームとカウントダウン',
+        title: 'ホーム',
         icon: Home,
         color: '#f43f5e',
         bg: '#fff5f8',
         border: '#fda4af',
         washi: 'pink',
-        text: '最新話（第81話など）の更新カウントダウンを表示します。他にもキャラクターの誕生日予定やクイックコントロールが利用可能です。',
-        details: [
-          '最新話の更新までのリアルタイムのカウントダウン表示。',
-          '直近30日のキャラクター誕生日をお祝いするウィジェット。',
-          'サイト内をサクサク移動できる上部クイックコントロール。'
-        ]
+        text: '最初に見るページです。よく使う場所へ移動しやすくなっています。'
       },
       {
         id: 'chapters',
-        title: 'コミックスとチェックリスト',
+        title: 'チャプター',
         icon: BookOpen,
         color: '#2563eb',
         bg: '#eff6ff',
         border: '#bfdbfe',
         washi: 'blue',
-        text: '読んだ話をチェックリストで管理できます。「+1 読了」ボタンで再読ログを登録でき、公式の日本語版リンクへスムーズにアクセス可能です。',
-        details: [
-          'ブラウザに自動保存される手書き風チェックリスト。',
-          '再読回数を記録できる「+1 読了」カウンター。',
-          '少年ジャンプ＋公式や各言語の配信プラットフォームへのダイレクトリンク。'
-        ]
+        text: '読んだ話や再読の記録をかんたんに残せます。'
       },
       {
         id: 'sync',
-        title: '再読記録と同期設定',
+        title: '読書',
         icon: BarChart3,
         color: '#16a34a',
         bg: '#f0fdf4',
         border: '#bbf7d0',
         washi: 'yellow',
-        text: '読書タブで独自の「同期キー」を発行することで、ログイン不要で他のスマホやPCと既読チェックリストや再読マイルストーンを安全に共有できます！',
-        details: [
-          '既読データや統計ログを記録するワンクリック同期キー発行。',
-          '他のスマホやPCにキーを入力するだけで瞬時にデータをマージ。',
-          '個人情報不要の安心・安全なパスワードレス設計。'
-        ]
+        text: '読書の進み具合を確認し、同期キーで別の端末へ保存データを移せます。'
       },
       {
         id: 'gallery',
-        title: 'ポラロイドギャラリー',
+        title: 'ギャラリー',
         icon: PenLine,
         color: '#ea580c',
         bg: '#fff7ed',
         border: '#fdba74',
         washi: 'pink',
-        text: 'ファンギャラリーにイラストやグッズ棚、コスプレの写真を投稿できます！キャンバス上でポラロイド写真やゲストブックのメモを自由にドラッグ＆回転させられます。',
-        details: [
-          '自由にドラッグ、スロー、回転できるインタラクティブキャンバス。',
-          'メッセージを書き残せる手書きのゲストブック付箋機能。',
-          'タイトルや作者名タグを添えて作品を登録できる投稿パネル。'
-        ]
+        text: '画像コレクションやコミュニティ系のページを見られます。'
       },
       {
         id: 'quiz',
-        title: 'クイズとランキング',
+        title: 'クイズ',
         icon: Trophy,
         color: '#dc2626',
         bg: '#fff1f2',
         border: '#fca5a5',
         washi: 'blue',
-        text: '作品に関するファンクイズに挑戦できます！問題数や難易度（イージー、ノーマル、ハード、激ムズ）を選んで、ハイスコアを全世界ランキングへ登録しましょう！',
-        details: [
-          '難易度別、出題範囲別に挑戦できる制限時間付きのファンクイズ。',
-          '全世界のハイスコアや挑戦結果が集うグローバルランキング。',
-          '個人スクラップブックに保存されるパーソナル挑戦履歴。'
-        ]
+        text: '小さなクイズで遊んで、結果を確認できます。'
       },
       {
         id: 'birthdays',
-        title: '誕生日お祝いページ',
+        title: '誕生日',
         icon: Cake,
         color: '#d97706',
         bg: '#fffbeb',
         border: '#fcd34d',
         washi: 'yellow',
-        text: '美津未や誠の誕生日をかわいいお祝いカードでカウントダウン！誕生日当日は特別なフルスクリーンアニメーションと通知が自動で出現します。',
-        details: [
-          '誕生日や星座、関係図を表示するキャラクター図鑑。',
-          '当日に出現するバースデー特製お祝いエフェクト。',
-          'ケーキのキャンドルを消してお祝いメッセージを残すトリビュート板。'
-        ]
+        text: 'キャラクターの誕生日ページや日付のメモを見られます。'
       },
       {
         id: 'shortcuts',
@@ -253,15 +189,11 @@ const SECTION_COPY = {
         bg: '#e0e7ff',
         border: '#a5b4fc',
         washi: 'blue',
-        text: 'キーボードショートカットを使ってサクサク移動できます。詳細はページ下部のリファレンスを参照してください。',
-        details: [
-          '1〜9キーで最初の9個の表示中タブ、0キーで10番目の表示中タブへ切り替え。',
-          'QキーとEキーでパネル内のサブタブを前後フリップ。',
-        ]
+        text: 'いくつかのキーでページ移動を少し早くできます。'
       },
     ],
     shortcutsTitle: 'ショートカットキー一覧',
-    shortcutsIntro: 'サイト内で次のキーボード入力を使うと、瞬時にナビゲーションが可能です：',
+    shortcutsIntro: '使えるショートカット：',
     shortcutsList: [
       { key: '1〜9, 0', desc: '対応する表示中のメインタブへ切り替え。0キーは10番目の表示中タブです' },
       { key: 'Q / E', desc: 'コミックス、ギャラリー、読書/同期内のサブタブを前後に切り替え' },
@@ -970,25 +902,6 @@ export const TutorialPage = ({ isMobile, uiLanguage = 'en', outerSwitcher }) => 
               {renderVisualMockup()}
             </div>
 
-            {/* Detailed Notepad Breakdown list */}
-            <div style={{ display: 'grid', gap: '8px', marginTop: '4px' }}>
-              {selectedSection.details.map((detail, dIdx) => (
-                <div 
-                  key={dIdx} 
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'start', 
-                    gap: '8px',
-                    fontSize: '0.88rem',
-                    color: '#334155',
-                    lineHeight: 1.4
-                  }}
-                >
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: selectedSection.color, marginTop: '7px', flexShrink: 0 }} />
-                  <span>{detail}</span>
-                </div>
-              ))}
-            </div>
           </motion.div>
         </AnimatePresence>
       </div>

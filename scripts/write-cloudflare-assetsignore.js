@@ -5,6 +5,8 @@ const target = join(process.cwd(), 'dist', '.assetsignore');
 const content = [
   '# Large files served from Cloudflare R2 by worker/index.js',
   'anime/episode1.mp4',
+  '# Musical gallery videos (~500 MB) are too big for the asset bundle — R2 only.',
+  'gallery/musical/*.mp4',
   '',
 ].join('\n');
 

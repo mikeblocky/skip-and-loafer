@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+/* Self-hosted display fonts (no Google Fonts dependency). The .ttf files live in
+   /public and are served same-origin, so they work under a strict CSP without the
+   service-worker font-fetch workarounds we used to need. */
+@font-face {
+  font-family: 'Coming Soon';
+  src: url('/ComingSoon-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sniglet';
+  src: url('/Sniglet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sniglet';
+  src: url('/Sniglet-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {

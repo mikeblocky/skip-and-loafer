@@ -1,12 +1,12 @@
-import { Twitter, Tv, Book, Sticker, Globe, Megaphone, Users } from 'lucide-react';
+import { Twitter, Tv, Music, Book, Sticker, Globe, Megaphone, Users } from 'lucide-react';
 
 export const UI_TEXT = {
-  en: { header: 'Gallery', noImages: 'No images yet — coming soon!', artAlt: 'Gallery artwork' },
-  es: { header: 'Galería', noImages: 'Aún no hay imágenes — ¡próximamente!', artAlt: 'Arte de la galería' },
-  pt: { header: 'Galeria', noImages: 'Ainda sem imagens — em breve!', artAlt: 'Arte da galeria' },
-  fr: { header: 'Galerie', noImages: 'Pas encore d’images — bientôt disponible !', artAlt: 'Illustration de la galerie' },
-  de: { header: 'Galerie', noImages: 'Noch keine Bilder — bald verfügbar!', artAlt: 'Galerie-Bild' },
-  it: { header: 'Galleria', noImages: 'Nessuna immagine per ora — in arrivo!', artAlt: 'Illustrazione galleria' },
+  en: { header: 'Gallery', noImages: 'No images yet — coming soon!', artAlt: 'Gallery artwork', filterAll: 'All', filterImages: 'Images', filterVideos: 'Videos', filterGifs: 'GIFs' },
+  es: { header: 'Galería', noImages: 'Aún no hay imágenes — ¡próximamente!', artAlt: 'Arte de la galería', filterAll: 'Todo', filterImages: 'Imágenes', filterVideos: 'Vídeos', filterGifs: 'GIFs' },
+  pt: { header: 'Galeria', noImages: 'Ainda sem imagens — em breve!', artAlt: 'Arte da galeria', filterAll: 'Tudo', filterImages: 'Imagens', filterVideos: 'Vídeos', filterGifs: 'GIFs' },
+  fr: { header: 'Galerie', noImages: 'Pas encore d’images — bientôt disponible !', artAlt: 'Illustration de la galerie', filterAll: 'Tout', filterImages: 'Images', filterVideos: 'Vidéos', filterGifs: 'GIFs' },
+  de: { header: 'Galerie', noImages: 'Noch keine Bilder — bald verfügbar!', artAlt: 'Galerie-Bild', filterAll: 'Alle', filterImages: 'Bilder', filterVideos: 'Videos', filterGifs: 'GIFs' },
+  it: { header: 'Galleria', noImages: 'Nessuna immagine per ora — in arrivo!', artAlt: 'Illustrazione galleria', filterAll: 'Tutto', filterImages: 'Immagini', filterVideos: 'Video', filterGifs: 'GIF' },
 };
 
 export const TAB_LABELS = {
@@ -14,6 +14,7 @@ export const TAB_LABELS = {
     takamatsu: { title: "Takamatsu's tweets", short: 'Takamatsu' },
     official: { title: 'Official tweets', short: 'Official' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Musical', short: 'Musical' },
     volumes: { title: 'Manga', short: 'Manga' },
     stickers: { title: 'Stickers', short: 'Stickers' },
     websites: { title: 'Websites', short: 'Websites' },
@@ -24,6 +25,7 @@ export const TAB_LABELS = {
     takamatsu: { title: 'Tweets de Takamatsu', short: 'Takamatsu' },
     official: { title: 'Tweets oficiales', short: 'Oficial' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Musical', short: 'Musical' },
     volumes: { title: 'Manga', short: 'Manga' },
     stickers: { title: 'Stickers', short: 'Stickers' },
     websites: { title: 'Sitios web', short: 'Web' },
@@ -34,6 +36,7 @@ export const TAB_LABELS = {
     takamatsu: { title: 'Tweets do Takamatsu', short: 'Takamatsu' },
     official: { title: 'Tweets oficiais', short: 'Oficial' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Musical', short: 'Musical' },
     volumes: { title: 'Mangá', short: 'Mangá' },
     stickers: { title: 'Stickers', short: 'Stickers' },
     websites: { title: 'Sites', short: 'Sites' },
@@ -44,6 +47,7 @@ export const TAB_LABELS = {
     takamatsu: { title: 'Tweets de Takamatsu', short: 'Takamatsu' },
     official: { title: 'Tweets officiels', short: 'Officiel' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Comédie musicale', short: 'Musical' },
     volumes: { title: 'Manga', short: 'Manga' },
     stickers: { title: 'Autocollants', short: 'Stickers' },
     websites: { title: 'Sites web', short: 'Sites' },
@@ -54,6 +58,7 @@ export const TAB_LABELS = {
     takamatsu: { title: 'Takamatsu-tweets', short: 'Takamatsu' },
     official: { title: 'Offizielle tweets', short: 'Offiziell' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Musical', short: 'Musical' },
     volumes: { title: 'Manga', short: 'Manga' },
     stickers: { title: 'Sticker', short: 'Sticker' },
     websites: { title: 'Websites', short: 'Web' },
@@ -64,6 +69,7 @@ export const TAB_LABELS = {
     takamatsu: { title: 'Tweet di Takamatsu', short: 'Takamatsu' },
     official: { title: 'Tweet ufficiali', short: 'Ufficiale' },
     anime: { title: 'Anime', short: 'Anime' },
+    musical: { title: 'Musical', short: 'Musical' },
     volumes: { title: 'Manga', short: 'Manga' },
     stickers: { title: 'Sticker', short: 'Sticker' },
     websites: { title: 'Siti web', short: 'Siti' },
@@ -76,6 +82,7 @@ export const TABS = [
   { id: 'takamatsu', color: '#3b82f6', icon: Twitter },
   { id: 'official', color: '#10b981', icon: Twitter },
   { id: 'anime', color: '#f59e0b', icon: Tv },
+  { id: 'musical', color: '#a855f7', icon: Music },
   { id: 'volumes', color: '#ef4444', icon: Book },
   { id: 'stickers', color: '#8b5cf6', icon: Sticker },
   { id: 'websites', color: '#06b6d4', icon: Globe },

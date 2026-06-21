@@ -42,15 +42,10 @@
   <meta name="twitter:image" content="https://skip-and-loafer.com/opengraph-image.jpg" />
   <meta name="twitter:image:alt" content="Skip and Loafer manga cover art featuring Mitsumi and Shima" />
 
-  <!-- Google Fonts for typo.love and lelezhang.design aesthetic -->
-  <!-- Loaded as a plain stylesheet (no inline onload) so it works under a strict CSP that
-       forbids inline event handlers. `display=swap` keeps text visible during font load. -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style"
-    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap">
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Coming+Soon&family=Pangolin&family=Playpen+Sans:wght@400&family=Sniglet:wght@400&display=swap">
+  <!-- Display fonts (Coming Soon + Sniglet) are self-hosted via @font-face in src/index.css.
+       The .ttf files are preloaded here so the first paint already has the right typefaces. -->
+  <link rel="preload" as="font" type="font/ttf" href="/Sniglet-Regular.ttf" crossorigin>
+  <link rel="preload" as="font" type="font/ttf" href="/ComingSoon-Regular.ttf" crossorigin>
 </head>
 
 <body>

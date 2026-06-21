@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
 import { Accessibility, Keyboard, Languages, Settings, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy, Camera, HardDriveDownload, Share2, Bell, UploadCloud, ChevronRight, Type, Maximize2, AlignJustify, Link, Contrast, Layers, CircleOff, WandSparkles, Palette, Globe2, Home, ArrowLeftRight } from 'lucide-react';
@@ -312,6 +312,10 @@ const SettingsPage = ({
   });
   const [offlineGroupKey, setOfflineGroupKey] = useState('all');
   const [storageEstimate, setStorageEstimate] = useState(null);
+  // Per-group cached file count + byte size, keyed by group.key. Populated by
+  // refreshGroupStats (heavier than the count refresh, so it runs less often).
+  const [cacheGroupStats, setCacheGroupStats] = useState({});
+  const [deletingGroupKey, setDeletingGroupKey] = useState('');
   const [isClearingOfflineCache, setIsClearingOfflineCache] = useState(false);
   const [persistentStorage, setPersistentStorage] = useState({
     supported: typeof navigator !== 'undefined' && !!navigator.storage?.persist,
@@ -427,6 +431,61 @@ const SettingsPage = ({
     };
   }, []);
 
+  const refreshGroupStats = useCallback(async () => {
+    if (typeof window === 'undefined' || !('caches' in window)) return;
+    try {
+      const cacheNames = (await caches.keys()).filter((name) => name.startsWith('skip-offline-'));
+      // Map every cached offline asset to its byte size once (deduped across caches).
+      const pathBytes = new Map();
+      await Promise.all(cacheNames.map(async (cacheName) => {
+        const cache = await caches.open(cacheName);
+        const requests = await cache.keys();
+        await Promise.all(requests.map(async (request) => {
+          const path = getOfflinePublicAssetPath(request);
+          if (!path || pathBytes.has(path)) return;
+          try {
+            const response = await cache.match(request);
+            if (!response) return;
+            const declared = Number(response.headers.get('content-length'));
+            let bytes = Number.isFinite(declared) && declared > 0 ? declared : 0;
+            if (!bytes) bytes = (await response.clone().blob()).size;
+            pathBytes.set(path, bytes);
+          } catch {
+            pathBytes.set(path, 0);
+          }
+        }));
+      }));
+
+      const stats = {};
+      for (const group of OFFLINE_ASSET_GROUPS) {
+        let count = 0;
+        let bytes = 0;
+        for (const path of group.getAssets()) {
+          const size = pathBytes.get(path);
+          if (size !== undefined) {
+            count += 1;
+            bytes += size;
+          }
+        }
+        stats[group.key] = { count, bytes };
+      }
+      setCacheGroupStats(stats);
+    } catch {
+      // Cache API can be unavailable in private browsing; leave the last known stats.
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshGroupStats();
+    const handleRefresh = () => refreshGroupStats();
+    window.addEventListener('focus', handleRefresh);
+    document.addEventListener('visibilitychange', handleRefresh);
+    return () => {
+      window.removeEventListener('focus', handleRefresh);
+      document.removeEventListener('visibilitychange', handleRefresh);
+    };
+  }, [refreshGroupStats]);
+
   useEffect(() => {
     const refreshStorageStatus = async () => {
       try {
@@ -486,6 +545,7 @@ const SettingsPage = ({
           preparing: false,
         }));
         refreshStorageStatus();
+        refreshGroupStats();
         return;
       }
 
@@ -498,6 +558,7 @@ const SettingsPage = ({
         preparing: false,
       });
       refreshStorageStatus();
+      refreshGroupStats();
     };
 
     refreshStorageStatus();
@@ -516,7 +577,7 @@ const SettingsPage = ({
       document.removeEventListener('visibilitychange', refreshStorageStatus);
       navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, [offlineGroupKey]);
+  }, [offlineGroupKey, refreshGroupStats]);
 
   const handleInstall = async () => {
     const promptEvent = installPromptRef.current || getSavedInstallPrompt();
@@ -656,6 +717,34 @@ const SettingsPage = ({
     } catch {
       // Ignore storage failures.
     }
+  };
+
+  const handleDeleteGroup = async (groupKey) => {
+    if (typeof window === 'undefined' || !('caches' in window)) return;
+    const group = getOfflineAssetGroup(groupKey);
+    // Deleting "Everything" is the same as clearing the whole offline cache.
+    if (group.key === 'all') {
+      await handleClearOfflineCache();
+      return;
+    }
+
+    const assetSet = new Set(group.getAssets());
+    setDeletingGroupKey(group.key);
+    try {
+      const cacheNames = (await caches.keys()).filter((name) => name.startsWith('skip-offline-'));
+      await Promise.all(cacheNames.map(async (cacheName) => {
+        const cache = await caches.open(cacheName);
+        const requests = await cache.keys();
+        await Promise.all(requests.map(async (request) => {
+          const path = getOfflinePublicAssetPath(request);
+          if (path && assetSet.has(path)) await cache.delete(request);
+        }));
+      }));
+    } catch {
+      // Ignore Cache API failures; partial deletes still free space.
+    }
+    setDeletingGroupKey('');
+    await refreshGroupStats();
   };
 
   const handleClearOfflineCache = async () => {
@@ -802,7 +891,7 @@ const SettingsPage = ({
     { key: 'reduceMotion', label: t.reduceMotion || fallbackText.reduceMotion, detail: 'Limit motion-heavy transitions and animated effects.' },
     { key: 'simplifyVisuals', label: t.simplifyVisuals || fallbackText.simplifyVisuals, detail: 'Hide extra decorative details for a calmer page.' },
     { key: 'dimNonEssentialColors', label: t.dimNonEssentialColors || fallbackText.dimNonEssentialColors || 'Dim non-essential colors', detail: 'Tone down accent colors that are not carrying information.' },
-    { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Comfortable dark mode', detail: 'Use a softer dark palette for longer sessions.' },
+    { key: 'darkMode', label: t.darkMode || fallbackText.darkMode || 'Dark mode', detail: 'Use a softer dark palette for longer sessions.' },
     { key: 'hideStickers', label: 'Hide character stickers' },
   ];
 
@@ -1443,6 +1532,7 @@ const SettingsPage = ({
               {OFFLINE_ASSET_GROUPS.map((group, index) => {
                 const selected = group.key === offlineGroupKey;
                 const assetCount = group.getAssets().length;
+                const stats = cacheGroupStats[group.key] || { count: 0, bytes: 0 };
                 return (
                   <SettingsRow
                     key={group.key}
@@ -1450,8 +1540,8 @@ const SettingsPage = ({
                     iconBackground={selected ? '#fef3c7' : '#e2e8f0'}
                     iconColor={selected ? '#b45309' : '#64748b'}
                     title={group.label}
-                    detail={group.detail}
-                    value={`${assetCount}`}
+                    detail={stats.count > 0 ? `${group.detail} · ${stats.count}/${assetCount} cached` : group.detail}
+                    value={stats.bytes > 0 ? formatBytes(stats.bytes) : `${assetCount}`}
                     onClick={isOnline && !offlineStatus.preparing ? () => handlePrepareOffline({ groupKey: group.key, persist: group.key === 'all' }) : undefined}
                     disabled={!isOnline || offlineStatus.preparing || assetCount === 0}
                     last={index === OFFLINE_ASSET_GROUPS.length - 1}
@@ -1498,12 +1588,32 @@ const SettingsPage = ({
                 onClick={isOnline && pendingOfflineActions > 0 ? handleFlushPendingActions : undefined}
                 disabled={!isOnline || pendingOfflineActions === 0}
               />
+              {OFFLINE_ASSET_GROUPS
+                .filter((group) => group.key !== 'all' && (cacheGroupStats[group.key]?.count || 0) > 0)
+                .map((group) => {
+                  const stats = cacheGroupStats[group.key] || { count: 0, bytes: 0 };
+                  const deleting = deletingGroupKey === group.key;
+                  return (
+                    <SettingsRow
+                      key={`delete-${group.key}`}
+                      icon={<Trash2 size={16} strokeWidth={2.5} />}
+                      iconBackground="#fee2e2"
+                      iconColor="#b91c1c"
+                      title={deleting ? `Deleting ${group.label}` : `Delete ${group.label}`}
+                      detail={`Free ${stats.count} file${stats.count === 1 ? '' : 's'} · ${formatBytes(stats.bytes)}`}
+                      value=""
+                      onClick={!deleting ? () => handleDeleteGroup(group.key) : undefined}
+                      disabled={deleting}
+                      destructive
+                    />
+                  );
+                })}
               <SettingsRow
                 icon={<Trash2 size={16} strokeWidth={2.5} />}
                 iconBackground="#fee2e2"
                 iconColor="#b91c1c"
-                title={isClearingOfflineCache ? 'Deleting offline cache' : 'Delete offline cache'}
-                detail="Remove prepared files and stop automatic offline prep."
+                title={isClearingOfflineCache ? 'Deleting offline cache' : 'Delete all offline files'}
+                detail="Remove every prepared file and stop automatic offline prep."
                 value=""
                 onClick={handleClearOfflineCache}
                 disabled={isClearingOfflineCache}

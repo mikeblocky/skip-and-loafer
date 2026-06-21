@@ -2,6 +2,7 @@ const galleryTabLoaders = {
   takamatsu: () => import('./data/takamatsuGallery'),
   official: () => import('./data/officialGallery'),
   anime: () => import('./data/animeGallery'),
+  musical: () => import('./data/musicalGallery'),
   volumes: () => import('./data/volumesGallery'),
   stickers: () => import('./data/stickersGallery'),
   websites: () => import('./data/websitesGallery'),

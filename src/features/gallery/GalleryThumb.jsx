@@ -1,7 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  IMAGE_DIMENSION_CACHE,
   IMAGE_LOADED_CACHE,
   THUMBNAIL_CACHE,
   createThumbnail,
@@ -57,7 +56,6 @@ const GalleryThumb = ({
   const [isVisible, setIsVisible] = useState(false);
   const [thumbSrc, setThumbSrc] = useState(() => THUMBNAIL_CACHE.get(src) || null);
   const [isLoaded, setIsLoaded] = useState(() => IMAGE_LOADED_CACHE.has(src) || THUMBNAIL_CACHE.has(src));
-  const dimensions = IMAGE_DIMENSION_CACHE.get(src);
   const cardRef = useRef(null);
   const palette = CARD_PALETTES[index % CARD_PALETTES.length];
   const shouldAnimateEntrance = index < (isMobile ? 8 : 18);
@@ -153,8 +151,7 @@ const GalleryThumb = ({
             background: '#f8fafc',
             borderRadius: isMobile ? '8px' : '12px',
             overflow: 'hidden',
-            aspectRatio: dimensions ? `${dimensions.width} / ${dimensions.height}` : 'auto',
-            minHeight: dimensions ? 'auto' : (isMobile ? '120px' : '200px'),
+            aspectRatio: '1 / 1',
             position: 'relative',
             border: isMobile ? '1px solid rgba(255,255,255,0.9)' : '2px solid rgba(255,255,255,0.92)',
           }}
@@ -165,7 +162,7 @@ const GalleryThumb = ({
             <>
               <video
                 src={src}
-                className="block w-full h-auto object-contain"
+                className="block w-full h-full object-cover"
                 preload="metadata"
                 playsInline
                 muted
@@ -207,7 +204,7 @@ const GalleryThumb = ({
               <img
                 src={thumbSrc || src}
                 alt={`${artAltLabel} ${index + 1}`}
-                className="block w-full h-auto object-contain"
+                className="block w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
                 fetchPriority={index < 2 ? 'high' : 'low'}

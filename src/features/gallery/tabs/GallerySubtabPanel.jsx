@@ -1,8 +1,11 @@
-import { memo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ImageOff } from 'lucide-react';
 import PaperLoadingState from '../../../components/shared/paper/PaperLoadingState';
 import useProgressiveGalleryFeed from '../hooks/useProgressiveGalleryFeed';
+import { getGalleryMediaKind } from '../galleryMedia';
+
+const KIND_ORDER = ['video', 'gif', 'image'];
 
 const GallerySubtabPanel = ({
   tab,
@@ -18,6 +21,31 @@ const GallerySubtabPanel = ({
   GalleryThumbComponent,
 }) => {
   const isActive = tabIndex === activeTab;
+
+  const availableKinds = useMemo(() => {
+    const present = new Set(images.map(getGalleryMediaKind));
+    return KIND_ORDER.filter((kind) => present.has(kind));
+  }, [images]);
+  const showFilter = availableKinds.length > 1;
+
+  const [activeKind, setActiveKind] = useState('all');
+  const effectiveKind = showFilter ? activeKind : 'all';
+
+  const filteredImages = useMemo(
+    () => (effectiveKind === 'all' ? images : images.filter((src) => getGalleryMediaKind(src) === effectiveKind)),
+    [images, effectiveKind],
+  );
+
+  const filterChips = useMemo(() => {
+    const labels = {
+      all: t.filterAll || 'All',
+      video: t.filterVideos || 'Videos',
+      gif: t.filterGifs || 'GIFs',
+      image: t.filterImages || 'Images',
+    };
+    return ['all', ...availableKinds].map((kind) => ({ kind, label: labels[kind] }));
+  }, [availableKinds, t]);
+
   const {
     sentinelRef,
     visibleImages,
@@ -25,7 +53,7 @@ const GallerySubtabPanel = ({
     totalCount,
     hasMore,
     remainingCount,
-  } = useProgressiveGalleryFeed(images, isActive, isMobile);
+  } = useProgressiveGalleryFeed(filteredImages, isActive, isMobile);
 
   return (
     <motion.div
@@ -64,8 +92,49 @@ const GallerySubtabPanel = ({
         </div>
       ) : (
         <>
-          <div 
-            style={{ 
+          {showFilter && (
+            <div
+              className="hide-scrollbar"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: isMobile ? 'nowrap' : 'wrap',
+                overflowX: isMobile ? 'auto' : 'visible',
+                padding: isMobile ? '0 2px 12px' : '0 4px 16px',
+              }}
+            >
+              {filterChips.map(({ kind, label }) => {
+                const isChipActive = activeKind === kind;
+                return (
+                  <motion.button
+                    key={kind}
+                    type="button"
+                    onClick={() => setActiveKind(kind)}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      flexShrink: 0,
+                      padding: '6px 14px',
+                      borderRadius: '999px',
+                      border: `2px solid ${tab.color}${isChipActive ? '' : '40'}`,
+                      borderBottom: isChipActive ? `4px solid ${tab.color}` : `2px solid ${tab.color}40`,
+                      background: isChipActive ? `${tab.color}1a` : '#ffffff',
+                      color: tab.color,
+                      fontFamily: 'var(--font-main)',
+                      fontSize: isMobile ? '0.82rem' : '0.88rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {label}
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
+          <div
+            style={{
               display: 'grid',
               gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(210px, 1fr))',
               gap: isMobile ? '12px' : '20px',

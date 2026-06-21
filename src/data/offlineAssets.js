@@ -1,5 +1,5 @@
 const publicAssetPaths = Object.keys(
-  import.meta.glob('/public/**/*.{avif,gif,ico,jpeg,jpg,json,mp4,png,svg,webm,webp,woff,woff2}', { eager: false })
+  import.meta.glob('/public/**/*.{avif,gif,ico,jpeg,jpg,json,mp4,png,svg,ttf,webm,webp,woff,woff2}', { eager: false })
 );
 
 export const OFFLINE_PUBLIC_ASSETS = publicAssetPaths

@@ -28,3 +28,7 @@ dist-ssr
 .env
 .env*.local
 test-results/
+
+# Large media served from Cloudflare R2 (uploaded with `wrangler r2 object put`, not committed).
+# Musical gallery videos total ~500 MB and several exceed the 25 MiB Workers asset limit.
+/public/gallery/musical/*.mp4

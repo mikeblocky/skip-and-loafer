@@ -9,6 +9,16 @@ const MAX_READS_JSON_BODY_LENGTH = 512;
 const COMMUNITY_SIGNATURE_LIMIT = 80;
 const COMMUNITY_FAN_GALLERY_LIMIT = 20;
 const MEDIA_R2_PATHS = new Set(['anime/episode1.mp4']);
+// Oversized media that can't ride the Workers asset bundle (25 MiB/file limit) is
+// uploaded to the R2 media bucket and served by handleMediaAsset instead. The whole
+// Musical gallery's videos live there; their still images stay as normal assets.
+const MEDIA_R2_PATH_PATTERNS = [/^gallery\/musical\/.+\.mp4$/i];
+
+function isMediaR2Path(pathname) {
+  const key = pathname.replace(/^\/+/, '');
+  if (MEDIA_R2_PATHS.has(key)) return true;
+  return MEDIA_R2_PATH_PATTERNS.some((pattern) => pattern.test(key));
+}
 const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const ALLOWED_QUIZ_DIFFICULTIES = new Set(['easy', 'normal', 'hard', 'expert']);
 const ALLOWED_QUIZ_SETS = new Set(['10', '20', 'all']);
@@ -22,13 +32,13 @@ const SECURITY_HEADERS = {
     "form-action 'self'",
     // Cloudflare Web Analytics injects beacon.min.js from static.cloudflareinsights.com.
     "script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    // Fonts are now self-hosted (.ttf in /public), so no external font origins are needed.
+    "font-src 'self'",
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: data:",
-    // cloudflareinsights.com receives the RUM beacon report; the service worker
-    // refetches the Google Fonts stylesheet via fetch(), which needs connect-src.
-    "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://cloudflareinsights.com https://fonts.googleapis.com https://fonts.gstatic.com",
+    // cloudflareinsights.com receives the RUM beacon report.
+    "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://cloudflareinsights.com",
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "upgrade-insecure-requests",
@@ -242,6 +252,30 @@ function base64ToBytes(base64) {
     bytes[index] = binary.charCodeAt(index);
   }
   return bytes;
+}
+
+// The data: URL only tells us what the client *claims* the type is. Verify the
+// decoded bytes actually begin with the matching magic number so a non-image
+// (or a mismatched type) can't be stored and later served under an image/* label.
+function imageBytesMatchMime(bytes, mimeType) {
+  if (bytes.length < 12) return false;
+  if (mimeType === 'image/jpeg') {
+    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (mimeType === 'image/png') {
+    return (
+      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+      bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+    );
+  }
+  if (mimeType === 'image/webp') {
+    // "RIFF" .... "WEBP"
+    return (
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+    );
+  }
+  return false;
 }
 
 async function sha256Hex(value) {
@@ -582,6 +616,10 @@ async function handleFanGallery(request, env) {
         return json({ error: 'Image upload is too large' }, { status: 413 });
       }
 
+      if (!imageBytesMatchMime(imageBytes, parsedImage.mimeType)) {
+        return json({ error: 'A valid image upload is required' }, { status: 400 });
+      }
+
       await env.FAN_GALLERY_BUCKET.put(imageKey, imageBytes, {
         httpMetadata: { contentType: parsedImage.mimeType },
         customMetadata: { imageHash, entryId },
@@ -688,7 +726,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) return addSecurityHeaders(await handleApiRequest(request, env), request);
-    if (MEDIA_R2_PATHS.has(url.pathname.replace(/^\/+/, ''))) {
+    if (isMediaR2Path(url.pathname)) {
       return addSecurityHeaders(await handleMediaAsset(request, env, url.pathname), request);
     }
     return addSecurityHeaders(await env.ASSETS.fetch(request), request);

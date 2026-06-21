@@ -1,6 +1,6 @@
-import { Moon, Sparkles, Palette, BookOpen, LayoutGrid, Zap } from 'lucide-react';
+import { Music } from 'lucide-react';
 
-export const CHANGELOG_VERSION = '2026-06-17-v19.0';
+export const CHANGELOG_VERSION = '2026-06-21-v20.0';
 export const STORAGE_KEY = 'skip_changelogSeenVersion';
 export const RELEASE_DATE = CHANGELOG_VERSION.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || 'Unknown';
 
@@ -26,63 +26,12 @@ export const getUtcOffsetLabel = () => {
 
 export const CHANGELOG_SERIES = [
   {
-    title: 'Dark mode: full overhaul',
-    icon: Moon,
-    color: { border: '#818cf8', bottom: '#6366f1', bg: 'var(--surface-card, #eef2ff)', icon: '#818cf8' },
+    title: 'Musical library added in Gallery',
+    icon: Music,
+    color: { border: '#c084fc', bottom: '#a855f7', bg: 'var(--surface-card, #faf5ff)', icon: '#c084fc' },
     lines: [
-      { type: 'fixed', text: 'All sketchbook panel elements now properly darken in dark mode.' },
-      { type: 'fixed', text: 'Chapter reading cards, leaderboard rows, and tutorial guide sections fully adapted.' },
-      { type: 'fixed', text: 'Mystery pick draw button and pulled-character prediction card now use dark surfaces.' },
-      { type: 'fixed', text: 'Blog reader Paper & Sepia button, quiz choice grids, and rank question selections now respect dark mode.' },
-      { type: 'fixed', text: 'Settings accessibility rows: checkboxes and labels now clearly visible in dark mode.' },
-      { type: 'fixed', text: 'Added missing RGB color variants so browser-serialized inline styles are correctly overridden.' },
-    ],
-  },
-  {
-    title: 'High contrast improvements',
-    icon: Sparkles,
-    color: { border: '#f472b6', bottom: '#ec4899', bg: 'var(--surface-card, #fdf2f8)', icon: '#f472b6' },
-    lines: [
-      { type: 'fixed', text: 'Active/checked option rows in high contrast + dark mode no longer flash white.' },
-      { type: 'fixed', text: 'All settings card panels stay dark when high contrast and dark mode are both on.' },
-    ],
-  },
-  {
-    title: 'Paper notebook aesthetic',
-    icon: BookOpen,
-    color: { border: '#fb923c', bottom: '#ea580c', bg: 'var(--surface-card, #fff7ed)', icon: '#fb923c' },
-    lines: [
-      { type: 'added', text: 'Paper notebook visual style: textured panels, scrapbook borders, and hand-drawn accents throughout.' },
-      { type: 'added', text: 'Character illustrations added as animated elements across key screens.' },
-      { type: 'changed', text: 'Gallery images converted to WebP for faster loads and crisper quality.' },
-    ],
-  },
-  {
-    title: 'Gallery & layout polish',
-    icon: LayoutGrid,
-    color: { border: '#34d399', bottom: '#059669', bg: 'var(--surface-card, #ecfdf5)', icon: '#34d399' },
-    lines: [
-      { type: 'changed', text: 'Gallery cards are smaller and denser; layout is wider with bigger, bolder text.' },
-      { type: 'changed', text: 'Sniglet font weight unified across all gallery headings for a cleaner look.' },
-    ],
-  },
-  {
-    title: 'Quiz experience',
-    icon: Zap,
-    color: { border: '#fbbf24', bottom: '#d97706', bg: 'var(--surface-card, #fffbeb)', icon: '#fbbf24' },
-    lines: [
-      { type: 'fixed', text: 'Quiz playing screen is now scrollable so long questions never get clipped.' },
-      { type: 'changed', text: 'Inline feedback bar replaces the pop-up modal, staying in context as you play.' },
-      { type: 'changed', text: 'Narrower max-width improves readability on wide screens.' },
-    ],
-  },
-  {
-    title: 'Color scheme options',
-    icon: Palette,
-    color: { border: '#60a5fa', bottom: '#2563eb', bg: 'var(--surface-card, #eff6ff)', icon: '#60a5fa' },
-    lines: [
-      { type: 'added', text: 'Color vision modes (Protanopia, Deuteranopia, Tritanopia, Black & White) added to Settings.' },
-      { type: 'added', text: 'Blog reader now lets you switch between Paper, Sepia, and Night color themes.' },
+      { type: 'added', text: 'New Musical section in the Gallery collecting videos, GIFs, and photos from the stage musical.' },
+      { type: 'added', text: 'Filter by All, Videos, GIFs, or Images to quickly find what you want to watch.' },
     ],
   },
 ];

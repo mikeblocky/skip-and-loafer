@@ -24,7 +24,7 @@ export const UI = {
     reduceTransparency: 'Reduce transparency',
     simplifyVisuals: 'Simplify visuals',
     dimNonEssentialColors: 'Dim non-essential colors',
-    darkMode: 'Comfortable dark mode',
+    darkMode: 'Dark mode',
     colorVisionMode: 'Color vision mode',
     colorVisionOff: 'Off',
     colorVisionProtanopia: 'Protanopia',

@@ -1,22 +1,50 @@
 // Bump this when the shell assets OR the response headers (e.g. CSP) change, so
 // old caches holding a stale index.html (with an outdated CSP) are purged.
-const SHELL_VERSION = 'v9';
+const SHELL_VERSION = 'v13';
 const SHELL_CACHE = `skip-shell-${SHELL_VERSION}`;
-const FONT_CACHE = `skip-fonts-${SHELL_VERSION}`;
 const RUNTIME_CACHE = `skip-runtime-${SHELL_VERSION}`;
 const OFFLINE_CACHE = `skip-offline-${SHELL_VERSION}`;
 const BUILD_ASSET_MANIFEST = '/offline-build-assets.json';
 
+// ── Caching model ─────────────────────────────────────────────────────────────
+// Three caches, each filled by a DIFFERENT and EXPLICIT trigger. Nothing is ever
+// bulk pre-downloaded in the background:
+//
+//   SHELL_CACHE   — the minimal app shell only (index.html, manifest, icons, the
+//                   self-hosted fonts in SHELL_ASSETS). Precached on install so the
+//                   app can boot offline. Small and fixed; this is the ONLY thing
+//                   fetched automatically.
+//
+//   RUNTIME_CACHE — populated lazily, strictly on demand. An asset lands here only
+//                   when the user actually requests it while browsing (the
+//                   shouldCacheRuntimeRequest branch in fetch caches the response of
+//                   a real navigation). The worker never fetches anything the user
+//                   did not already load.
+//
+//   OFFLINE_CACHE — the full offline library (all chapter / gallery / build assets
+//                   from the manifest). OPT-IN ONLY: filled when the page posts a
+//                   SKIP_CACHE_OFFLINE_ASSETS message, which the app sends solely
+//                   when the user has enabled "offline library" in Settings. Wiped
+//                   by SKIP_CLEAR_OFFLINE_CACHE. The install step does NOT touch it.
+// ──────────────────────────────────────────────────────────────────────────────
+
 // Files to pre-cache on install (small set — only truly static shell assets).
+// Fonts are self-hosted now, so the .ttf files are part of the precached shell.
 const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
   '/swt2-512.png',
+  '/Sniglet-Regular.ttf',
+  '/Sniglet-ExtraBold.ttf',
+  '/ComingSoon-Regular.ttf',
 ];
 
-const MEDIA_EXTENSIONS = /\.(?:avif|gif|ico|jpe?g|mp4|png|svg|webm|webp|woff2?)$/i;
+const MEDIA_EXTENSIONS = /\.(?:avif|gif|ico|jpe?g|png|svg|ttf|webp|woff2?)$/i;
+// Video files are intentionally excluded here — the fetch handler passes them
+// straight through to the network instead of ever routing them through a cache.
+const VIDEO_EXTENSIONS = /\.(?:mp4|m4v|webm|mov)$/i;
 const MAX_BACKGROUND_CACHE_CONCURRENCY = 3;
 const MAX_RUNTIME_CACHE_ENTRIES = 180;
 const NAVIGATION_TIMEOUT_MS = 2800;
@@ -43,7 +71,9 @@ const shouldCacheRuntimeRequest = (request, url) => {
 };
 
 const putIfOk = async (cache, request, response) => {
-  if (response && response.ok) {
+  // Only full 200 responses are cacheable. A 206 (partial/range) response throws
+  // in cache.put(), and opaque/redirected responses aren't useful here.
+  if (response && response.status === 200) {
     await cache.put(request, response.clone());
   }
   return response;
@@ -111,6 +141,10 @@ const cacheOfflineAssets = async (assets = [], onProgress) => {
   return { cached: cachedCount, total: uniqueAssets.length };
 };
 
+// Downloads the whole build manifest into OFFLINE_CACHE. This is the opt-in offline
+// library, so it runs ONLY from the SKIP_CACHE_OFFLINE_ASSETS message handler — never
+// on install. Calling it eagerly would pull every chapter/gallery asset in the
+// background without the user asking, which is exactly what we don't want.
 const cacheBuildAssets = async () => {
   try {
     const response = await fetch(BUILD_ASSET_MANIFEST, { cache: 'reload' });
@@ -124,12 +158,19 @@ const cacheBuildAssets = async () => {
   }
 };
 
-// ── Install: pre-cache shell ──────────────────────────────────────────────────
+// ── Install: pre-cache the minimal shell ONLY ────────────────────────────────
 self.addEventListener('install', (event) => {
+  // Activate immediately rather than waiting for every old tab to close. A buggy
+  // prior worker (e.g. one that threw on video range requests) would otherwise keep
+  // controlling open pages until a manual update; skipWaiting + clients.claim on
+  // activate guarantees the corrected worker takes over on the next load.
+  self.skipWaiting();
+  // Precache the small, fixed app shell so the app can boot offline — and nothing
+  // else. The full offline library is deliberately NOT fetched here; it is opt-in and
+  // only cached when the user enables offline mode (SKIP_CACHE_OFFLINE_ASSETS).
+  // Everything else is cached lazily, per request, as the user actually visits it.
   event.waitUntil(
-    caches.open(SHELL_CACHE)
-      .then((cache) => cache.addAll(SHELL_ASSETS))
-      .then(() => cacheBuildAssets()),
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS)),
   );
 });
 
@@ -139,7 +180,7 @@ self.addEventListener('activate', (event) => {
     caches.keys()
       .then((names) => Promise.all(
         names
-          .filter((n) => n !== SHELL_CACHE && n !== FONT_CACHE && n !== RUNTIME_CACHE && !n.startsWith('skip-offline-'))
+          .filter((n) => n !== SHELL_CACHE && n !== RUNTIME_CACHE && !n.startsWith('skip-offline-'))
           .map((n) => caches.delete(n)),
       ))
       .then(() => self.registration.navigationPreload?.enable?.())
@@ -227,31 +268,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Google Fonts CSS + woff2 — Cache-first (fonts never change for a given URL).
-  if (
-    url.hostname === 'fonts.googleapis.com' ||
-    url.hostname === 'fonts.gstatic.com'
-  ) {
-    event.respondWith(
-      caches.open(FONT_CACHE).then(async (cache) => {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        try {
-          const response = await fetch(request);
-          if (response.ok) cache.put(request, response.clone());
-          return response;
-        } catch {
-          // A stale document CSP can block this cross-origin fetch. Degrade
-          // gracefully (cached copy or an empty stylesheet) so the page keeps
-          // rendering with fallback fonts instead of throwing an uncaught error.
-          if (cached) return cached;
-          if (url.hostname === 'fonts.googleapis.com') {
-            return new Response('', { status: 200, headers: { 'Content-Type': 'text/css' } });
-          }
-          return Response.error();
-        }
-      }),
-    );
+  // Never intercept video files (the R2-served musical gallery .mp4s). They're large
+  // and streamed via range requests: a 206 can't be stored in the Cache API (cache.put
+  // throws) and a full 200 is too big to cache usefully. Routing them through the SW
+  // only breaks native streaming/seeking, so let the browser fetch them directly.
+  if (VIDEO_EXTENSIONS.test(url.pathname) || request.headers.has('range')) {
     return;
   }
 
@@ -291,19 +312,22 @@ self.addEventListener('fetch', (event) => {
           trimCache(RUNTIME_CACHE, MAX_RUNTIME_CACHE_ENTRIES).catch(() => {});
           return cachedResponse;
         } catch {
-          return caches.match(request);
+          // Never resolve respondWith() to undefined — that becomes a network error.
+          const fallback = await caches.match(request);
+          return fallback || Response.error();
         }
       }),
     );
     return;
   }
 
-  // Shell static files (icons, manifest, woff2 in root) — Stale-while-revalidate.
+  // Shell static files (icons, manifest, fonts in root) — Stale-while-revalidate.
   if (
     url.origin === self.location.origin &&
     (url.pathname === '/manifest.json' ||
       url.pathname.endsWith('.woff2') ||
       url.pathname.endsWith('.woff') ||
+      url.pathname.endsWith('.ttf') ||
       url.pathname.endsWith('.ico') ||
       url.pathname.endsWith('.png'))
   ) {
