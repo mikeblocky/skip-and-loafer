@@ -1,299 +1,43 @@
-const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const SYNC_TTL_DAYS = 36;
-const MAX_SYNC_PAYLOAD_LENGTH = 10 * 1024 * 1024;
-const MAX_IMAGE_DATA_URL_LENGTH = 8_000_000;
-const MAX_JSON_BODY_LENGTH = 10 * 1024 * 1024;
-const MAX_COMMUNITY_JSON_BODY_LENGTH = 16 * 1024;
-const MAX_QUIZ_JSON_BODY_LENGTH = 8 * 1024;
-const MAX_READS_JSON_BODY_LENGTH = 512;
-const COMMUNITY_SIGNATURE_LIMIT = 80;
-const COMMUNITY_FAN_GALLERY_LIMIT = 20;
-const MEDIA_R2_PATHS = new Set(['anime/episode1.mp4']);
-// Oversized media that can't ride the Workers asset bundle (25 MiB/file limit) is
-// uploaded to the R2 media bucket and served by handleMediaAsset instead. The whole
-// Musical gallery's videos live there; their still images stay as normal assets.
-const MEDIA_R2_PATH_PATTERNS = [/^gallery\/musical\/.+\.mp4$/i];
-
-function isMediaR2Path(pathname) {
-  const key = pathname.replace(/^\/+/, '');
-  if (MEDIA_R2_PATHS.has(key)) return true;
-  return MEDIA_R2_PATH_PATTERNS.some((pattern) => pattern.test(key));
-}
-const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const ALLOWED_QUIZ_DIFFICULTIES = new Set(['easy', 'normal', 'hard', 'expert']);
-const ALLOWED_QUIZ_SETS = new Set(['10', '20', 'all']);
-const SECURITY_HEADERS = {
-  'Content-Security-Policy': [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    "frame-ancestors 'none'",
-    "frame-src 'none'",
-    "form-action 'self'",
-    // Cloudflare Web Analytics injects beacon.min.js from static.cloudflareinsights.com.
-    "script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com",
-    "style-src 'self' 'unsafe-inline'",
-    // Fonts are now self-hosted (.ttf in /public), so no external font origins are needed.
-    "font-src 'self'",
-    "img-src 'self' data: blob: https:",
-    "media-src 'self' blob: data:",
-    // cloudflareinsights.com receives the RUM beacon report.
-    "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://cloudflareinsights.com",
-    "worker-src 'self' blob:",
-    "manifest-src 'self'",
-    "upgrade-insecure-requests",
-  ].join('; '),
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Origin-Agent-Cluster': '?1',
-  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-Permitted-Cross-Domain-Policies': 'none',
-};
-
-function getRequestOrigin(request) {
-  const origin = request.headers.get('Origin');
-  if (!origin) return '';
-
-  try {
-    const requestUrl = new URL(request.url);
-    const originUrl = new URL(origin);
-    return originUrl.origin === requestUrl.origin ? originUrl.origin : '';
-  } catch {
-    return '';
-  }
-}
-
-function applyCorsHeaders(headers, request, methods = 'GET, POST, OPTIONS') {
-  const origin = getRequestOrigin(request);
-  if (origin) {
-    headers.set('Access-Control-Allow-Origin', origin);
-    headers.set('Vary', 'Origin');
-  }
-  headers.set('Access-Control-Allow-Headers', 'Content-Type');
-  headers.set('Access-Control-Allow-Methods', methods);
-}
-
-function addSecurityHeaders(response, request) {
-  const headers = new Headers(response.headers);
-  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-    headers.set(name, value);
-  }
-  if (request?.url.startsWith('https://')) {
-    headers.set('Strict-Transport-Security', SECURITY_HEADERS['Strict-Transport-Security']);
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
-function json(payload, init = {}, request) {
-  const headers = new Headers(init.headers || {});
-  headers.set('Content-Type', 'application/json');
-  if (request) applyCorsHeaders(headers, request);
-  return new Response(JSON.stringify(payload), { ...init, headers });
-}
-
-function empty(status = 204, extraHeaders = {}, request, methods) {
-  const headers = new Headers(extraHeaders);
-  if (request) applyCorsHeaders(headers, request, methods);
-  return new Response(null, { status, headers });
-}
-
-function methodNotAllowed(allowed) {
-  return json(
-    { error: 'Method not allowed' },
-    {
-      status: 405,
-      headers: { Allow: allowed.join(', ') },
-    },
-  );
-}
-
-async function readJson(request, maxLength = MAX_JSON_BODY_LENGTH) {
-  if (!String(request.headers.get('content-type') || '').toLowerCase().includes('application/json')) {
-    throw new Error('Expected application/json');
-  }
-  const contentLength = Number(request.headers.get('content-length') || 0);
-  if (contentLength > maxLength) throw new Error('JSON body too large');
-
-  try {
-    return await request.json();
-  } catch {
-    return {};
-  }
-}
-
-function clampText(value, max) {
-  return String(value || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max);
-}
-
-function createEntityId(prefix) {
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  const token = [...bytes].map((byte) => byte.toString(36).padStart(2, '0')).join('').slice(0, 12);
-  return `${prefix}_${Date.now().toString(36)}_${token}`;
-}
-
-function generateKey() {
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  let key = '';
-  for (let index = 0; index < 8; index += 1) {
-    if (index === 4) key += '-';
-    key += CHARSET[bytes[index] % CHARSET.length];
-  }
-  return key;
-}
-
-function isValidSyncKey(key) {
-  return /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/.test(String(key || '').trim().toUpperCase());
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function normalizeName(name) {
-  const trimmed = String(name || 'Player').trim().slice(0, 24);
-  return trimmed || 'Player';
-}
-
-function normalizeScoreToHundred(score) {
-  const safeScore = Number(score) || 0;
-  return Math.max(0, Math.min(100, safeScore));
-}
-
-function normalizeQuizDifficulty(value) {
-  const normalized = String(value || 'easy').trim().toLowerCase();
-  return ALLOWED_QUIZ_DIFFICULTIES.has(normalized) ? normalized : 'easy';
-}
-
-function normalizeQuizSet(value) {
-  const normalized = String(value || '10').trim().toLowerCase();
-  return ALLOWED_QUIZ_SETS.has(normalized) ? normalized : '10';
-}
-
-function requireSameOriginWrite(request) {
-  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return null;
-  const origin = request.headers.get('Origin');
-  if (!origin) return null;
-  if (!getRequestOrigin(request)) return json({ error: 'Cross-origin writes are not allowed' }, { status: 403 }, request);
-  return null;
-}
-
-function normalizePositiveInt(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) return null;
-  return Math.round(number);
-}
-
-function sortLeaderboard(entries) {
-  return [...entries].sort((a, b) => {
-    if (normalizeScoreToHundred(b.bestScore) !== normalizeScoreToHundred(a.bestScore)) {
-      return normalizeScoreToHundred(b.bestScore) - normalizeScoreToHundred(a.bestScore);
-    }
-    if ((a.played || 0) !== (b.played || 0)) return (a.played || 0) - (b.played || 0);
-    return (a.name || '').localeCompare(b.name || '');
-  });
-}
-
-function rowToSignature(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    message: row.message,
-    type: row.type,
-    createdAt: row.created_at,
-  };
-}
-
-function rowToFanGalleryEntry(row, url) {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    imageDataUrl: row.image_url || url,
-    imageUrl: row.image_url || url,
-    mimeType: row.mime_type,
-    width: row.width,
-    height: row.height,
-    createdAt: row.created_at,
-  };
-}
-
-function parseImageDataUrl(value) {
-  const normalized = String(value || '').trim();
-  if (!/^data:image\/[^;]+;base64,/i.test(normalized)) return null;
-  if (normalized.length > MAX_IMAGE_DATA_URL_LENGTH) return null;
-
-  const match = normalized.match(/^data:(image\/[^;]+);base64,(.+)$/i);
-  if (!match) return null;
-  const mimeType = match[1].toLowerCase();
-  if (!ALLOWED_IMAGE_MIME_TYPES.has(mimeType)) return null;
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(match[2])) return null;
-
-  return {
-    mimeType,
-    base64: match[2],
-    normalized,
-  };
-}
-
-function base64ToBytes(base64) {
-  const binary = atob(base64);
-  if (binary.length > MAX_IMAGE_DATA_URL_LENGTH) throw new Error('Image upload is too large');
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
-// The data: URL only tells us what the client *claims* the type is. Verify the
-// decoded bytes actually begin with the matching magic number so a non-image
-// (or a mismatched type) can't be stored and later served under an image/* label.
-function imageBytesMatchMime(bytes, mimeType) {
-  if (bytes.length < 12) return false;
-  if (mimeType === 'image/jpeg') {
-    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  }
-  if (mimeType === 'image/png') {
-    return (
-      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
-      bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
-    );
-  }
-  if (mimeType === 'image/webp') {
-    // "RIFF" .... "WEBP"
-    return (
-      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
-    );
-  }
-  return false;
-}
-
-async function sha256Hex(value) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-function extensionFromMime(mimeType) {
-  if (mimeType === 'image/jpeg') return 'jpg';
-  if (mimeType === 'image/png') return 'png';
-  if (mimeType === 'image/webp') return 'webp';
-  return 'bin';
-}
-
-function galleryImageUrl(request, imageKey) {
-  return `${new URL(request.url).origin}/api/community/fan-gallery/images/${encodeURIComponent(imageKey)}`;
-}
+import {
+  COMMUNITY_FAN_GALLERY_LIMIT,
+  COMMUNITY_SIGNATURE_LIMIT,
+  MAX_COMMUNITY_JSON_BODY_LENGTH,
+  MAX_IMAGE_DATA_URL_LENGTH,
+  MAX_QUIZ_JSON_BODY_LENGTH,
+  MAX_READS_JSON_BODY_LENGTH,
+  MAX_SYNC_PAYLOAD_LENGTH,
+  SYNC_TTL_DAYS,
+} from './constants.js';
+import {
+  addSecurityHeaders,
+  empty,
+  json,
+  methodNotAllowed,
+  readJson,
+  requireSameOriginWrite,
+} from './http.js';
+import {
+  base64ToBytes,
+  clampText,
+  createEntityId,
+  extensionFromMime,
+  galleryImageUrl,
+  generateKey,
+  imageBytesMatchMime,
+  isMediaR2Path,
+  isValidSyncKey,
+  normalizeName,
+  normalizePositiveInt,
+  normalizeQuizDifficulty,
+  normalizeQuizSet,
+  normalizeScoreToHundred,
+  nowIso,
+  parseImageDataUrl,
+  rowToFanGalleryEntry,
+  rowToSignature,
+  sha256Hex,
+  sortLeaderboard,
+} from './validation.js';
 
 async function purgeExpiredSyncEntries(db) {
   await db.prepare('DELETE FROM sync_entries WHERE expires_at <= ?').bind(Date.now()).run();

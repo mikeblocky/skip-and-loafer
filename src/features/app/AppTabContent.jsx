@@ -197,6 +197,7 @@ const AppTabContent = ({
   readerPrefs,
   setReaderPrefs,
   handleMainTouchStart,
+  handleMainTouchMove,
   handleMainTouchEnd,
   setUiLanguage,
   toggleAccessibilityPref,
@@ -418,6 +419,7 @@ const AppTabContent = ({
       aria-live="polite"
       className="planner-container"
       onTouchStart={handleMainTouchStart}
+      onTouchMove={handleMainTouchMove}
       onTouchEnd={handleMainTouchEnd}
       style={{
         width: '100%',

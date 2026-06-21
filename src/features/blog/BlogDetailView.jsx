@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, CalendarDays, ChevronLeft, ArrowUp, CornerDownLeft } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronUp, ArrowUp, CornerDownLeft } from 'lucide-react';
 import {
   BLOG_META_DOT_STYLE,
   getBackToListButtonStyle,
@@ -11,7 +12,6 @@ import {
   getReaderPanelStyle,
   getReaderScrollStyle,
 } from './blogStyles';
-import { formatDate, formatReadMinutes } from './blogShared';
 
 const BlogDetailView = ({
   isMobile,
@@ -30,7 +30,11 @@ const BlogDetailView = ({
   markdownChunksLength,
   visibleChunkCount,
   loadMoreRef,
-}) => (
+}) => {
+  const [titleExpanded, setTitleExpanded] = useState(false);
+  const shouldClampTitle = selectedBlog.title.length > (isMobile ? 72 : 96);
+
+  return (
   <div style={{ display: 'flex', flexDirection: 'column', flex: isMobile ? 'none' : 1, minHeight: 0, gap: '12px', boxSizing: 'border-box' }}>
     <div
       className="sketchbook-border"
@@ -66,14 +70,49 @@ const BlogDetailView = ({
         <ChevronLeft size={16} strokeWidth={3.5} />
       </motion.button>
 
-      <h3 style={{
-        ...getReaderHeadingStyle(readerTheme, headingFontScale, isMobile),
-        margin: 0,
-        flex: 1,
-        lineHeight: 1.25,
-      }}>
+      <h3
+        title={shouldClampTitle && !titleExpanded ? selectedBlog.title : undefined}
+        style={{
+          ...getReaderHeadingStyle(readerTheme, headingFontScale, isMobile),
+          margin: 0,
+          flex: 1,
+          lineHeight: 1.25,
+          display: shouldClampTitle && !titleExpanded ? '-webkit-box' : 'block',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: shouldClampTitle && !titleExpanded ? (isMobile ? 2 : 1) : 'unset',
+          overflow: shouldClampTitle && !titleExpanded ? 'hidden' : 'visible',
+          wordBreak: 'break-word',
+        }}
+      >
         {selectedBlog.title}
       </h3>
+
+      {shouldClampTitle && (
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.94, y: 3 }}
+          onClick={() => setTitleExpanded((expanded) => !expanded)}
+          title={titleExpanded ? 'Collapse title' : 'Expand title'}
+          aria-label={titleExpanded ? 'Collapse blog title' : 'Expand blog title'}
+          aria-expanded={titleExpanded}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: isMobile ? 34 : 38,
+            height: isMobile ? 34 : 38,
+            flexShrink: 0,
+            border: '2.5px solid #fed7aa',
+            borderBottom: '5px solid #fb923c',
+            borderRadius: '10px',
+            background: '#ffffff',
+            color: readerTheme.title || readerTheme.heading,
+            cursor: 'pointer',
+          }}
+        >
+          {titleExpanded ? <ChevronUp size={16} strokeWidth={3.2} /> : <ChevronDown size={16} strokeWidth={3.2} />}
+        </motion.button>
+      )}
     </div>
 
     <div style={getReaderPanelStyle(readerTheme, isMobile)}>
@@ -152,6 +191,7 @@ const BlogDetailView = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default BlogDetailView;

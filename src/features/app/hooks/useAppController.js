@@ -101,7 +101,7 @@ export const useAppController = () => {
   const canMountRichPanels = deferredShellMount && !performanceMode.isEfficient;
   const showDecorativeLayer = deferredShellMount && !accessibilityPrefs.simplifyVisuals && !performanceMode.isEfficient;
 
-  const { handleMainTouchStart, handleMainTouchEnd } = useTabSwipeNavigation({
+  const { handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd } = useTabSwipeNavigation({
     activePage: displayActivePage,
     setActivePage,
     tabPages: visibleTabPages,
@@ -256,6 +256,7 @@ export const useAppController = () => {
     getReadCount,
     getRemainingCooldown,
     handleMainTouchEnd,
+    handleMainTouchMove,
     handleMainTouchStart,
     handleNextChapter,
     handlePageChange,

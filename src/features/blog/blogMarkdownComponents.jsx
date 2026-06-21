@@ -30,17 +30,17 @@ export const createBlogMarkdownComponents = ({
   openImageBySrc,
 }) => ({
   h1: ({ children }) => (
-    <h1 style={{ margin: '6px 0 10px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.26 * headingFontScale}rem` : `${1.46 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.012em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h1 style={{ margin: '6px 0 10px 0', color: readerTheme.title || readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.26 * headingFontScale}rem` : `${1.46 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.012em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 style={{ margin: '16px 0 8px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.11 * headingFontScale}rem` : `${1.28 * headingFontScale}rem`, lineHeight: 1.28, letterSpacing: '0.01em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h2 style={{ margin: '16px 0 8px 0', color: readerTheme.header || readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.11 * headingFontScale}rem` : `${1.28 * headingFontScale}rem`, lineHeight: 1.28, letterSpacing: '0.01em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 style={{ margin: '14px 0 8px 0', color: readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.05 * headingFontScale}rem` : `${1.16 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.008em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
+    <h3 style={{ margin: '14px 0 8px 0', color: readerTheme.header || readerTheme.heading, fontFamily: 'Sniglet, var(--font-main)', fontSize: isMobile ? `${1.05 * headingFontScale}rem` : `${1.16 * headingFontScale}rem`, lineHeight: 1.24, letterSpacing: '0.008em', fontWeight: 400, transition: 'font-size 0.3s ease, color 0.3s ease' }}>
       {children}
     </h3>
   ),
@@ -122,7 +122,7 @@ export const createBlogMarkdownComponents = ({
     <li style={{ marginBottom: '8px' }}>{children}</li>
   ),
   strong: ({ children }) => (
-    <strong style={{ color: readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 400, letterSpacing: '0.01em' }}>{children}</strong>
+    <strong style={{ color: readerTheme.strong || readerTheme.heading, fontFamily: 'var(--font-main)', fontWeight: 400, letterSpacing: '0.01em' }}>{children}</strong>
   ),
   a: ({ href, children }) => {
     const safeHref = sanitizeUrl(href);

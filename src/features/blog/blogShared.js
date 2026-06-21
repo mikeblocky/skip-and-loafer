@@ -28,6 +28,22 @@ export const formatDate = (raw, locale) => {
 
 export const formatReadMinutes = (minutes, t) => `${minutes} ${t.minuteUnit || 'min'}`;
 
+export const estimateReadMinutes = (content = '') => {
+  const plainText = String(content)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[#>*_~|[\]()-]/g, ' ')
+    .trim();
+
+  if (!plainText) return 1;
+
+  const words = plainText.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
+};
+
 export const ensureMetaDescriptionTag = () => {
   let tag = document.querySelector('meta[name="description"]');
   if (!tag) {

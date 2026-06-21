@@ -3200,6 +3200,35 @@ html[data-a11y-dark-mode='1'] .doodle-corner-star {
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  .paper-interact:hover,
+  .app-tactile:hover,
+  .washi-tape:hover,
+  .nav-bookmark-btn:hover:not([data-active="true"]),
+  .nav-bookmark-btn[data-active="true"]:hover,
+  .nav-mobile-btn:hover,
+  .sub-tab-btn:hover,
+  .dropdown-heading-badge-trigger:hover,
+  .planner-container:hover {
+    transform: none !important;
+  }
+
+  .paper-interact:hover,
+  .app-tactile:hover {
+    box-shadow: inherit;
+    z-index: auto;
+  }
+
+  .nav-mobile-btn:active,
+  .sub-tab-btn:active,
+  .dropdown-heading-badge-trigger:active,
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transition-duration: 90ms;
+  }
+}
+
 
 
 

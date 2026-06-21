@@ -77,6 +77,30 @@ const AppChrome = ({ app }) => {
     navigator.clearAppBadge().catch(() => {});
   }, [app.unreadCount]);
 
+  useEffect(() => {
+    if (!app.isMobile) return undefined;
+
+    const clearCompletedPress = () => {
+      window.requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (!active?.matches?.('button, a, [role="button"]')) return;
+        active.blur?.();
+      });
+    };
+
+    window.addEventListener('pointerup', clearCompletedPress, { passive: true });
+    window.addEventListener('pointercancel', clearCompletedPress, { passive: true });
+    window.addEventListener('touchend', clearCompletedPress, { passive: true });
+    window.addEventListener('touchcancel', clearCompletedPress, { passive: true });
+
+    return () => {
+      window.removeEventListener('pointerup', clearCompletedPress);
+      window.removeEventListener('pointercancel', clearCompletedPress);
+      window.removeEventListener('touchend', clearCompletedPress);
+      window.removeEventListener('touchcancel', clearCompletedPress);
+    };
+  }, [app.isMobile]);
+
   return (
     <div className="app-surface-shell" style={shellViewportStyle}>
       {/* SVG Color Blindness Matrix Filters */}
@@ -252,6 +276,7 @@ const AppChrome = ({ app }) => {
               readerPrefs={app.readerPrefs}
               setReaderPrefs={app.setReaderPrefs}
               handleMainTouchStart={app.handleMainTouchStart}
+              handleMainTouchMove={app.handleMainTouchMove}
               handleMainTouchEnd={app.handleMainTouchEnd}
               setUiLanguage={app.setUiLanguage}
               toggleAccessibilityPref={app.toggleAccessibilityPref}

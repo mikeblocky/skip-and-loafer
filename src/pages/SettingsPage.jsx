@@ -1,15 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import PageLayout from '../components/shared/paper/PageLayout';
-import { Accessibility, Keyboard, Languages, Settings, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy, Camera, HardDriveDownload, Share2, Bell, UploadCloud, ChevronRight, Type, Maximize2, AlignJustify, Link, Contrast, Layers, CircleOff, WandSparkles, Palette, Globe2, Home, ArrowLeftRight } from 'lucide-react';
+import { Accessibility, Keyboard, Languages, Settings, Sparkle, Sun, Moon, FileText as FileTextIcon, ALargeSmall, Space, Focus, Zap, Download, CheckCircle, Smartphone, WifiOff, RefreshCw, Trash2, Clock3, MousePointerClick, Route, Trophy, Camera, HardDriveDownload, Share2, Bell, UploadCloud, Type, Maximize2, AlignJustify, Link, Contrast, Layers, CircleOff, WandSparkles, Palette, Globe2, Home, ArrowLeftRight } from 'lucide-react';
 import { getLanguageOptions, UI } from '../i18n/ui';
 import { OFFLINE_ASSET_GROUPS, OFFLINE_PUBLIC_ASSETS, getOfflineAssetGroup } from '../data/offlineAssets.js';
-import {
-  createPaperChipStyle,
-  PAPER_FONT_FAMILY,
-} from '../components/shared/paper/paperTheme';
+import { PAPER_FONT_FAMILY } from '../components/shared/paper/paperTheme';
 import PaperPageHeader from '../components/shared/paper/PaperPageHeader';
 import PaperHeadingBadge from '../components/shared/paper/PaperHeadingBadge';
+import {
+  SettingsChoiceRow,
+  SettingsDropdown,
+  SettingsRow,
+  SettingsToggleRow,
+} from '../features/settings/SettingsControls.jsx';
+import {
+  PANEL_TITLE_STYLE,
+  getPanelIconBoxStyle,
+} from '../features/settings/settingsStyles.js';
 import { getThemedCameraEnabled, setThemedCameraEnabled } from '../features/stickerCam/themedCameraPreference';
 import { getReleasedChapterNotification } from '../data/chapterReleaseInfo.js';
 import {
@@ -28,247 +34,6 @@ import {
   resolvePerformanceMode,
   writePerformanceModePreference,
 } from '../utils/performanceMode.js';
-
-const PANEL_TITLE_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  fontFamily: 'var(--font-paper)',
-  fontWeight: '400',
-  color: 'var(--text-primary)',
-  fontSize: '1.2rem',
-  letterSpacing: '0.2px',
-  borderBottom: '2.5px dashed var(--surface-border)',
-  paddingBottom: '10px',
-  marginBottom: '16px',
-};
-
-const getPanelIconBoxStyle = (border, bottom, background, color) => ({
-  ...createPaperChipStyle({
-    borderColor: border,
-    bottomColor: bottom,
-    background,
-    color,
-    radius: '12px',
-    padding: '0',
-    minHeight: '34px',
-    gap: '0',
-  }),
-  width: '34px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-});
-
-const BUTTON_RESET_STYLE = {
-  width: '100%',
-  textAlign: 'left',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  fontFamily: 'inherit',
-  fontSize: 'inherit',
-  fontWeight: 'inherit',
-  color: 'inherit',
-  outline: 'none',
-  margin: 0,
-};
-
-const SETTINGS_GROUP_STYLE = {
-  background: 'var(--surface-panel)',
-  border: '2.5px solid var(--surface-border)',
-  borderBottom: '5px solid var(--surface-border-strong)',
-  borderRadius: '18px',
-  overflow: 'hidden',
-};
-
-const getSettingsRowStyle = (disabled = false) => ({
-  ...BUTTON_RESET_STYLE,
-  minHeight: '54px',
-  display: 'grid',
-  gridTemplateColumns: '32px minmax(0, 1fr) auto',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '12px 14px',
-  borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)',
-  cursor: disabled ? 'default' : 'pointer',
-  opacity: disabled ? 0.58 : 1,
-});
-
-const SETTINGS_ROW_LAST_STYLE = {
-  borderBottom: 'none',
-};
-
-const getSettingsIconStyle = (background, color) => ({
-  width: '30px',
-  height: '30px',
-  borderRadius: '9px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background,
-  color,
-  flexShrink: 0,
-});
-
-const SETTINGS_VALUE_STYLE = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '6px',
-  fontFamily: 'var(--font-paper)',
-  fontSize: '0.76rem',
-  color: 'var(--text-secondary)',
-  whiteSpace: 'nowrap',
-};
-
-const SettingsRow = ({
-  icon,
-  iconBackground,
-  iconColor,
-  title,
-  detail,
-  value,
-  onClick,
-  disabled = false,
-  destructive = false,
-  last = false,
-  role,
-  ariaChecked,
-}) => {
-  const content = (
-    <>
-      <span style={getSettingsIconStyle(iconBackground, iconColor)}>{icon}</span>
-      <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <span style={{
-          fontFamily: 'var(--font-paper)',
-          fontSize: '0.9rem',
-          color: destructive ? '#b91c1c' : 'var(--text-primary)',
-          lineHeight: 1.25,
-        }}>
-          {title}
-        </span>
-        {detail && (
-          <span style={{
-            fontFamily: 'var(--font-paper)',
-            fontSize: '0.74rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.3,
-          }}>
-            {detail}
-          </span>
-        )}
-      </span>
-      <span style={SETTINGS_VALUE_STYLE}>
-        {value}
-        {onClick && !disabled && <ChevronRight size={15} strokeWidth={2.4} aria-hidden="true" />}
-      </span>
-    </>
-  );
-
-  if (!onClick) {
-    return <div style={{ ...getSettingsRowStyle(false), cursor: 'default', ...(last ? SETTINGS_ROW_LAST_STYLE : {}) }}>{content}</div>;
-  }
-
-  return (
-    <motion.button
-      type="button"
-      role={role}
-      aria-checked={ariaChecked}
-      onClick={onClick}
-      disabled={disabled}
-      whileTap={disabled ? undefined : { scale: 0.995 }}
-      style={{ ...getSettingsRowStyle(disabled), ...(last ? SETTINGS_ROW_LAST_STYLE : {}) }}
-    >
-      {content}
-    </motion.button>
-  );
-};
-
-const SettingsToggleRow = ({
-  icon,
-  iconBackground = '#dbeafe',
-  iconColor = '#1d4ed8',
-  title,
-  detail,
-  checked,
-  onClick,
-  last = false,
-}) => (
-  <SettingsRow
-    icon={icon}
-    iconBackground={checked ? iconBackground : '#e2e8f0'}
-    iconColor={checked ? iconColor : '#64748b'}
-    title={title}
-    detail={detail}
-    value={checked ? 'On' : 'Off'}
-    onClick={onClick}
-    role="checkbox"
-    ariaChecked={checked}
-    last={last}
-  />
-);
-
-const SettingsChoiceRow = ({
-  icon,
-  iconBackground = '#dbeafe',
-  iconColor = '#1d4ed8',
-  title,
-  detail,
-  selected,
-  onClick,
-  last = false,
-}) => (
-  <SettingsRow
-    icon={icon}
-    iconBackground={selected ? iconBackground : '#e2e8f0'}
-    iconColor={selected ? iconColor : '#64748b'}
-    title={title}
-    detail={detail}
-    value={selected ? 'Selected' : ''}
-    onClick={onClick}
-    role="radio"
-    ariaChecked={selected}
-    last={last}
-  />
-);
-
-const SettingsDropdown = ({
-  title,
-  value,
-  children,
-  defaultOpen = false,
-}) => (
-  <details
-    open={defaultOpen}
-    style={{
-      ...SETTINGS_GROUP_STYLE,
-      overflow: 'hidden',
-    }}
-  >
-    <summary
-      style={{
-        minHeight: '52px',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) auto',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '12px 14px',
-        cursor: 'pointer',
-        listStyle: 'none',
-        fontFamily: 'var(--font-paper)',
-        color: 'var(--text-primary)',
-        borderBottom: '1.5px solid rgba(148, 163, 184, 0.32)',
-      }}
-    >
-      <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <span style={{ fontSize: '0.9rem', lineHeight: 1.25 }}>{title}</span>
-      </span>
-      <span style={SETTINGS_VALUE_STYLE}>{value}</span>
-    </summary>
-    <div>{children}</div>
-  </details>
-);
 
 const getSavedInstallPrompt = () => window.__skipInstallPromptEvent || null;
 const OFFLINE_PUBLIC_ASSET_PATHS = new Set(OFFLINE_PUBLIC_ASSETS);
@@ -291,7 +56,6 @@ const SettingsPage = ({
   accessibilityPrefs,
   toggleAccessibilityPref,
   setAccessibilityColorBlindMode,
-  shortcutStats,
   readerPrefs,
   setReaderPrefs,
   t,

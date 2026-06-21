@@ -263,7 +263,7 @@ export const getReaderPanelStyle = (readerTheme, isMobile) => ({
 
 export const getReaderHeadingStyle = (readerTheme, headingFontScale, isMobile) => ({
   margin: 0,
-  color: readerTheme.heading,
+  color: readerTheme.title || readerTheme.heading,
   fontFamily: 'Sniglet, var(--font-main)',
   fontWeight: 400,
   fontSize: isMobile ? `${1.02 * headingFontScale}rem` : `${1.18 * headingFontScale}rem`,
